@@ -329,7 +329,7 @@ class AudioService:
             device_sr = int(device_info['default_samplerate'])
             channel_idx = min(channel, num_channels) - 1
 
-            # Resample from Twilio's 8kHz to device sample rate
+            # Resample to device sample rate if needed
             if sample_rate != device_sr:
                 audio = librosa.resample(audio, orig_sr=sample_rate, target_sr=device_sr)
 
