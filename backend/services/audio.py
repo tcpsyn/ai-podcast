@@ -24,6 +24,7 @@ class AudioService:
 
         self.output_device: Optional[int] = None  # Single output device (multi-channel)
         self.caller_channel: int = 1   # Channel for caller TTS
+        self.live_caller_channel: int = 4  # Channel for live caller audio
         self.music_channel: int = 2    # Channel for music
         self.sfx_channel: int = 3      # Channel for SFX
         self.phone_filter: bool = False  # Phone filter on caller voices
@@ -69,10 +70,11 @@ class AudioService:
                 self.input_channel = data.get("input_channel", 1)
                 self.output_device = data.get("output_device")
                 self.caller_channel = data.get("caller_channel", 1)
+                self.live_caller_channel = data.get("live_caller_channel", 4)
                 self.music_channel = data.get("music_channel", 2)
                 self.sfx_channel = data.get("sfx_channel", 3)
                 self.phone_filter = data.get("phone_filter", False)
-                print(f"Loaded audio settings: output={self.output_device}, channels={self.caller_channel}/{self.music_channel}/{self.sfx_channel}, phone_filter={self.phone_filter}")
+                print(f"Loaded audio settings: output={self.output_device}, channels={self.caller_channel}/{self.live_caller_channel}/{self.music_channel}/{self.sfx_channel}, phone_filter={self.phone_filter}")
             except Exception as e:
                 print(f"Failed to load audio settings: {e}")
 
@@ -84,6 +86,7 @@ class AudioService:
                 "input_channel": self.input_channel,
                 "output_device": self.output_device,
                 "caller_channel": self.caller_channel,
+                "live_caller_channel": self.live_caller_channel,
                 "music_channel": self.music_channel,
                 "sfx_channel": self.sfx_channel,
                 "phone_filter": self.phone_filter,
@@ -114,6 +117,7 @@ class AudioService:
         input_channel: Optional[int] = None,
         output_device: Optional[int] = None,
         caller_channel: Optional[int] = None,
+        live_caller_channel: Optional[int] = None,
         music_channel: Optional[int] = None,
         sfx_channel: Optional[int] = None,
         phone_filter: Optional[bool] = None
@@ -127,6 +131,8 @@ class AudioService:
             self.output_device = output_device
         if caller_channel is not None:
             self.caller_channel = caller_channel
+        if live_caller_channel is not None:
+            self.live_caller_channel = live_caller_channel
         if music_channel is not None:
             self.music_channel = music_channel
         if sfx_channel is not None:
@@ -144,6 +150,7 @@ class AudioService:
             "input_channel": self.input_channel,
             "output_device": self.output_device,
             "caller_channel": self.caller_channel,
+            "live_caller_channel": self.live_caller_channel,
             "music_channel": self.music_channel,
             "sfx_channel": self.sfx_channel,
             "phone_filter": self.phone_filter,
@@ -313,8 +320,8 @@ class AudioService:
         """Stop any playing caller audio"""
         self._caller_stop_event.set()
 
-    def route_real_caller_audio(self, pcm_data: bytes, channel: int, sample_rate: int):
-        """Route real caller PCM audio to a specific Loopback channel"""
+    def route_real_caller_audio(self, pcm_data: bytes, sample_rate: int):
+        """Route real caller PCM audio to the configured live caller Loopback channel"""
         import librosa
 
         if self.output_device is None:
@@ -327,7 +334,7 @@ class AudioService:
             device_info = sd.query_devices(self.output_device)
             num_channels = device_info['max_output_channels']
             device_sr = int(device_info['default_samplerate'])
-            channel_idx = min(channel, num_channels) - 1
+            channel_idx = min(self.live_caller_channel, num_channels) - 1
 
             # Resample to device sample rate if needed
             if sample_rate != device_sr:

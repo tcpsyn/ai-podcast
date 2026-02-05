@@ -436,6 +436,7 @@ class AudioDeviceSettings(BaseModel):
     input_channel: Optional[int] = None
     output_device: Optional[int] = None
     caller_channel: Optional[int] = None
+    live_caller_channel: Optional[int] = None
     music_channel: Optional[int] = None
     sfx_channel: Optional[int] = None
     phone_filter: Optional[bool] = None
@@ -471,6 +472,7 @@ async def set_audio_settings(settings: AudioDeviceSettings):
         input_channel=settings.input_channel,
         output_device=settings.output_device,
         caller_channel=settings.caller_channel,
+        live_caller_channel=settings.live_caller_channel,
         music_channel=settings.music_channel,
         sfx_channel=settings.sfx_channel,
         phone_filter=settings.phone_filter
@@ -832,9 +834,8 @@ async def caller_audio_stream(websocket: WebSocket):
                 pcm_data = message["bytes"]
                 audio_buffer.extend(pcm_data)
 
-                # Route to Loopback channel
-                channel = call_info["channel"]
-                audio_service.route_real_caller_audio(pcm_data, channel, SAMPLE_RATE)
+                # Route to configured live caller Loopback channel
+                audio_service.route_real_caller_audio(pcm_data, SAMPLE_RATE)
 
                 # Transcribe when we have enough audio
                 if len(audio_buffer) >= chunk_samples * 2:

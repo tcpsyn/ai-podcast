@@ -223,11 +223,13 @@ async function loadAudioDevices() {
         // Channel settings
         const inputCh = document.getElementById('input-channel');
         const callerCh = document.getElementById('caller-channel');
+        const liveCallerCh = document.getElementById('live-caller-channel');
         const musicCh = document.getElementById('music-channel');
         const sfxCh = document.getElementById('sfx-channel');
 
         if (inputCh) inputCh.value = settings.input_channel || 1;
         if (callerCh) callerCh.value = settings.caller_channel || 1;
+        if (liveCallerCh) liveCallerCh.value = settings.live_caller_channel || 4;
         if (musicCh) musicCh.value = settings.music_channel || 2;
         if (sfxCh) sfxCh.value = settings.sfx_channel || 3;
 
@@ -250,6 +252,7 @@ async function saveAudioDevices() {
     const outputDevice = document.getElementById('output-device')?.value;
     const inputChannel = document.getElementById('input-channel')?.value;
     const callerChannel = document.getElementById('caller-channel')?.value;
+    const liveCallerChannel = document.getElementById('live-caller-channel')?.value;
     const musicChannel = document.getElementById('music-channel')?.value;
     const sfxChannel = document.getElementById('sfx-channel')?.value;
     const phoneFilterChecked = document.getElementById('phone-filter')?.checked ?? false;
@@ -262,6 +265,7 @@ async function saveAudioDevices() {
             input_channel: inputChannel ? parseInt(inputChannel) : 1,
             output_device: outputDevice ? parseInt(outputDevice) : null,
             caller_channel: callerChannel ? parseInt(callerChannel) : 1,
+            live_caller_channel: liveCallerChannel ? parseInt(liveCallerChannel) : 4,
             music_channel: musicChannel ? parseInt(musicChannel) : 2,
             sfx_channel: sfxChannel ? parseInt(sfxChannel) : 3,
             phone_filter: phoneFilterChecked
