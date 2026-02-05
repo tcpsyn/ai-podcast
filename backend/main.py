@@ -4,13 +4,10 @@ import uuid
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, Response
-from twilio.twiml.voice_response import VoiceResponse
+from fastapi.responses import FileResponse
 import json
-import base64
-import audioop
 import time
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -670,9 +667,9 @@ async def text_to_speech(request: TTSRequest):
 
     # Also send to active real callers so they hear the AI
     if session.active_real_caller:
-        call_sid = session.active_real_caller["call_sid"]
+        caller_id = session.active_real_caller["caller_id"]
         asyncio.create_task(
-            caller_service.send_audio_to_caller(call_sid, audio_bytes, 24000)
+            caller_service.send_audio_to_caller(caller_id, audio_bytes, 24000)
         )
 
     return {"status": "playing", "duration": len(audio_bytes) / 2 / 24000}
@@ -780,34 +777,7 @@ async def update_settings(data: dict):
     return llm_service.get_settings()
 
 
-# --- Twilio Webhook & Queue Endpoints ---
-
-@app.post("/api/twilio/voice")
-async def twilio_voice_webhook(
-    CallSid: str = Form(...),
-    From: str = Form(...),
-):
-    """Handle incoming Twilio call — greet and enqueue"""
-    caller_service.add_to_queue(CallSid, From)
-
-    response = VoiceResponse()
-    response.say("You're calling Luke at the Roost. Hold tight, we'll get to you.", voice="alice")
-    response.enqueue(
-        "radio_show",
-        wait_url="/api/twilio/hold-music",
-        wait_url_method="POST",
-    )
-    return Response(content=str(response), media_type="application/xml")
-
-
-@app.post("/api/twilio/hold-music")
-async def twilio_hold_music():
-    """Serve hold music TwiML for queued callers"""
-    response = VoiceResponse()
-    response.say("Please hold, you'll be on air shortly.", voice="alice")
-    response.pause(length=30)
-    return Response(content=str(response), media_type="application/xml")
-
+# --- Queue Endpoints ---
 
 @app.get("/api/queue")
 async def get_call_queue():
@@ -815,32 +785,22 @@ async def get_call_queue():
     return {"queue": caller_service.get_queue()}
 
 
-@app.post("/api/queue/take/{call_sid}")
-async def take_call_from_queue(call_sid: str):
+@app.post("/api/queue/take/{caller_id}")
+async def take_call_from_queue(caller_id: str):
     """Take a caller off hold and put them on air"""
     try:
-        call_info = caller_service.take_call(call_sid)
+        call_info = caller_service.take_call(caller_id)
     except ValueError as e:
         raise HTTPException(404, str(e))
 
     session.active_real_caller = {
-        "call_sid": call_info["call_sid"],
-        "phone": call_info["phone"],
+        "caller_id": call_info["caller_id"],
         "channel": call_info["channel"],
         "name": call_info["name"],
     }
 
-    # Connect Twilio media stream by updating the call
-    from twilio.rest import Client as TwilioClient
-    if settings.twilio_account_sid and settings.twilio_auth_token:
-        client = TwilioClient(settings.twilio_account_sid, settings.twilio_auth_token)
-        twiml = VoiceResponse()
-        connect = twiml.connect()
-        connect.stream(
-            url=f"wss://{settings.twilio_webhook_base_url.replace('https://', '')}/api/twilio/stream",
-            name=call_sid,
-        )
-        client.calls(call_sid).update(twiml=str(twiml))
+    # Notify caller they're on air via WebSocket
+    await caller_service.notify_caller(caller_id, {"status": "on_air", "channel": call_info["channel"]})
 
     return {
         "status": "on_air",
@@ -848,97 +808,17 @@ async def take_call_from_queue(call_sid: str):
     }
 
 
-@app.post("/api/queue/drop/{call_sid}")
-async def drop_from_queue(call_sid: str):
+@app.post("/api/queue/drop/{caller_id}")
+async def drop_from_queue(caller_id: str):
     """Drop a caller from the queue"""
-    caller_service.remove_from_queue(call_sid)
-
-    # Hang up the Twilio call
-    from twilio.rest import Client as TwilioClient
-    if settings.twilio_account_sid and settings.twilio_auth_token:
-        try:
-            client = TwilioClient(settings.twilio_account_sid, settings.twilio_auth_token)
-            client.calls(call_sid).update(status="completed")
-        except Exception as e:
-            print(f"[Twilio] Failed to end call {call_sid}: {e}")
-
+    caller_service.remove_from_queue(caller_id)
+    await caller_service.disconnect_caller(caller_id)
     return {"status": "dropped"}
 
 
-# --- Twilio WebSocket Media Stream ---
-
-@app.websocket("/api/twilio/stream")
-async def twilio_media_stream(websocket: WebSocket):
-    """Handle Twilio Media Streams WebSocket — bidirectional audio"""
-    await websocket.accept()
-    print("[Twilio WS] Media stream connected")
-
-    call_sid = None
-    stream_sid = None
-    audio_buffer = bytearray()
-    CHUNK_DURATION_S = 3  # Transcribe every 3 seconds of audio
-    MULAW_SAMPLE_RATE = 8000
-    chunk_samples = CHUNK_DURATION_S * MULAW_SAMPLE_RATE
-
-    try:
-        while True:
-            data = await websocket.receive_text()
-            msg = json.loads(data)
-            event = msg.get("event")
-
-            if event == "start":
-                stream_sid = msg["start"]["streamSid"]
-                call_sid = msg["start"]["callSid"]
-                caller_service.register_websocket(call_sid, websocket)
-                if call_sid in caller_service.active_calls:
-                    caller_service.active_calls[call_sid]["stream_sid"] = stream_sid
-                print(f"[Twilio WS] Stream started: {stream_sid} for call {call_sid}")
-
-            elif event == "media":
-                # Decode mulaw audio from base64
-                payload = base64.b64decode(msg["media"]["payload"])
-                # Convert mulaw to 16-bit PCM
-                pcm_data = audioop.ulaw2lin(payload, 2)
-                audio_buffer.extend(pcm_data)
-
-                # Get channel for this caller
-                call_info = caller_service.active_calls.get(call_sid)
-                if call_info:
-                    channel = call_info["channel"]
-                    # Route PCM to the caller's dedicated Loopback channel
-                    audio_service.route_real_caller_audio(pcm_data, channel, MULAW_SAMPLE_RATE)
-
-                # When we have enough audio, transcribe
-                if len(audio_buffer) >= chunk_samples * 2:  # 2 bytes per sample
-                    pcm_chunk = bytes(audio_buffer[:chunk_samples * 2])
-                    audio_buffer = audio_buffer[chunk_samples * 2:]
-
-                    # Transcribe in background
-                    asyncio.create_task(
-                        _handle_real_caller_transcription(call_sid, pcm_chunk, MULAW_SAMPLE_RATE)
-                    )
-
-            elif event == "stop":
-                print(f"[Twilio WS] Stream stopped: {stream_sid}")
-                break
-
-    except WebSocketDisconnect:
-        print(f"[Twilio WS] Disconnected: {call_sid}")
-    except Exception as e:
-        print(f"[Twilio WS] Error: {e}")
-    finally:
-        if call_sid:
-            caller_service.unregister_websocket(call_sid)
-        # Transcribe any remaining audio
-        if audio_buffer and call_sid:
-            asyncio.create_task(
-                _handle_real_caller_transcription(call_sid, bytes(audio_buffer), MULAW_SAMPLE_RATE)
-            )
-
-
-async def _handle_real_caller_transcription(call_sid: str, pcm_data: bytes, sample_rate: int):
+async def _handle_real_caller_transcription(caller_id: str, pcm_data: bytes, sample_rate: int):
     """Transcribe a chunk of real caller audio and add to conversation"""
-    call_info = caller_service.active_calls.get(call_sid)
+    call_info = caller_service.active_calls.get(caller_id)
     if not call_info:
         return
 
@@ -1017,7 +897,7 @@ async def hangup_real_caller():
     if not session.active_real_caller:
         raise HTTPException(400, "No active real caller")
 
-    call_sid = session.active_real_caller["call_sid"]
+    caller_id = session.active_real_caller["caller_id"]
     caller_name = session.active_real_caller["name"]
 
     # Summarize the conversation
@@ -1039,16 +919,9 @@ async def hangup_real_caller():
         transcript=list(session.conversation),
     ))
 
-    # End the Twilio call
-    caller_service.hangup(call_sid)
-
-    from twilio.rest import Client as TwilioClient
-    if settings.twilio_account_sid and settings.twilio_auth_token:
-        try:
-            client = TwilioClient(settings.twilio_account_sid, settings.twilio_auth_token)
-            client.calls(call_sid).update(status="completed")
-        except Exception as e:
-            print(f"[Twilio] Failed to end call: {e}")
+    # Disconnect the caller
+    caller_service.hangup(caller_id)
+    await caller_service.disconnect_caller(caller_id)
 
     session.active_real_caller = None
 

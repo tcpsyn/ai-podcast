@@ -15,12 +15,6 @@ class Settings(BaseSettings):
     openrouter_api_key: str = os.getenv("OPENROUTER_API_KEY", "")
     inworld_api_key: str = os.getenv("INWORLD_API_KEY", "")
 
-    # Twilio Settings
-    twilio_account_sid: str = os.getenv("TWILIO_ACCOUNT_SID", "")
-    twilio_auth_token: str = os.getenv("TWILIO_AUTH_TOKEN", "")
-    twilio_phone_number: str = os.getenv("TWILIO_PHONE_NUMBER", "")
-    twilio_webhook_base_url: str = os.getenv("TWILIO_WEBHOOK_BASE_URL", "")
-
     # LLM Settings
     llm_provider: str = "openrouter"  # "openrouter" or "ollama"
     openrouter_model: str = "anthropic/claude-3-haiku"
