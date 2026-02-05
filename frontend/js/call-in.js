@@ -46,7 +46,7 @@ class CallerProcessor extends AudioWorkletProcessor {
     constructor() {
         super();
         this.buffer = [];
-        this.targetSamples = 640; // 40ms at 16kHz — low latency
+        this.targetSamples = 960; // 60ms at 16kHz
     }
     process(inputs) {
         const input = inputs[0][0];
@@ -84,7 +84,7 @@ class PlaybackProcessor extends AudioWorkletProcessor {
         this.readPos = 0;
         this.available = 0;
         this.started = false;
-        this.jitterMs = 80; // buffer 80ms before starting playback
+        this.jitterMs = 150; // buffer 150ms before starting playback
         this.jitterSamples = Math.floor(16000 * this.jitterMs / 1000);
 
         this.port.onmessage = (e) => {
