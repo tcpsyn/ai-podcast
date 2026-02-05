@@ -78,7 +78,7 @@ registerProcessor('caller-processor', CallerProcessor);
 class PlaybackProcessor extends AudioWorkletProcessor {
     constructor() {
         super();
-        this.ringSize = 16000 * 3; // 3s ring buffer at 16kHz
+        this.ringSize = 16000 * 10; // 10s ring buffer at 16kHz
         this.ring = new Float32Array(this.ringSize);
         this.writePos = 0;
         this.readPos = 0;

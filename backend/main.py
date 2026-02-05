@@ -673,11 +673,11 @@ async def text_to_speech(request: TTSRequest):
     )
     thread.start()
 
-    # Also send to active real callers so they hear the AI
+    # Also stream to active real callers so they hear the AI
     if session.active_real_caller:
         caller_id = session.active_real_caller["caller_id"]
         asyncio.create_task(
-            caller_service.send_audio_to_caller(caller_id, audio_bytes, 24000)
+            caller_service.stream_audio_to_caller(caller_id, audio_bytes, 24000)
         )
 
     return {"status": "playing", "duration": len(audio_bytes) / 2 / 24000}

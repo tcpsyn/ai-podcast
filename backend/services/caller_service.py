@@ -3,6 +3,7 @@
 import asyncio
 import time
 import threading
+import numpy as np
 from typing import Optional
 
 
@@ -111,14 +112,16 @@ class CallerService:
         self._websockets.pop(caller_id, None)
 
     async def send_audio_to_caller(self, caller_id: str, pcm_data: bytes, sample_rate: int):
-        """Send audio to real caller via WebSocket binary frame"""
+        """Send small audio chunk to real caller via WebSocket binary frame.
+        For short chunks (host mic, ≤960 samples), sends immediately.
+        For large chunks (TTS), use stream_audio_to_caller instead.
+        """
         ws = self._websockets.get(caller_id)
         if not ws:
             return
 
         try:
             if sample_rate != 16000:
-                import numpy as np
                 audio = np.frombuffer(pcm_data, dtype=np.int16).astype(np.float32) / 32768.0
                 ratio = 16000 / sample_rate
                 out_len = int(len(audio) * ratio)
@@ -129,6 +132,34 @@ class CallerService:
             await ws.send_bytes(pcm_data)
         except Exception as e:
             print(f"[Caller] Failed to send audio: {e}")
+
+    async def stream_audio_to_caller(self, caller_id: str, pcm_data: bytes, sample_rate: int):
+        """Stream large audio (TTS) to caller in real-time chunks to avoid buffer overflow."""
+        ws = self._websockets.get(caller_id)
+        if not ws:
+            return
+
+        try:
+            audio = np.frombuffer(pcm_data, dtype=np.int16).astype(np.float32) / 32768.0
+            if sample_rate != 16000:
+                ratio = 16000 / sample_rate
+                out_len = int(len(audio) * ratio)
+                indices = (np.arange(out_len) / ratio).astype(int)
+                indices = np.clip(indices, 0, len(audio) - 1)
+                audio = audio[indices]
+
+            # Send in 60ms chunks at real-time rate
+            chunk_samples = 960
+            for i in range(0, len(audio), chunk_samples):
+                if caller_id not in self._websockets:
+                    break
+                chunk = audio[i:i + chunk_samples]
+                pcm_chunk = (chunk * 32767).astype(np.int16).tobytes()
+                await ws.send_bytes(pcm_chunk)
+                await asyncio.sleep(0.055)  # ~60ms, slightly under to stay ahead
+
+        except Exception as e:
+            print(f"[Caller] Failed to stream audio: {e}")
 
     async def notify_caller(self, caller_id: str, message: dict):
         """Send JSON control message to caller"""
