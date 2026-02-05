@@ -863,6 +863,29 @@ async def caller_audio_stream(websocket: WebSocket):
             )
 
 
+# --- Host Audio Broadcast ---
+
+async def _broadcast_host_audio(pcm_bytes: bytes):
+    """Send host mic audio to all active real callers"""
+    for caller_id in list(caller_service.active_calls.keys()):
+        try:
+            await caller_service.send_audio_to_caller(caller_id, pcm_bytes, 16000)
+        except Exception:
+            pass
+
+
+def _host_audio_sync_callback(pcm_bytes: bytes):
+    """Sync wrapper to schedule async broadcast from audio thread"""
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop.call_soon_threadsafe(
+                asyncio.ensure_future, _broadcast_host_audio(pcm_bytes)
+            )
+    except Exception:
+        pass
+
+
 # --- Queue Endpoints ---
 
 @app.get("/api/queue")
@@ -887,6 +910,10 @@ async def take_call_from_queue(caller_id: str):
 
     # Notify caller they're on air via WebSocket
     await caller_service.notify_caller(caller_id, {"status": "on_air", "channel": call_info["channel"]})
+
+    # Start host mic streaming if this is the first real caller
+    if len(caller_service.active_calls) == 1:
+        audio_service.start_host_stream(_host_audio_sync_callback)
 
     return {
         "status": "on_air",
@@ -1008,6 +1035,10 @@ async def hangup_real_caller():
     # Disconnect the caller
     caller_service.hangup(caller_id)
     await caller_service.disconnect_caller(caller_id)
+
+    # Stop host streaming if no more active callers
+    if len(caller_service.active_calls) == 0:
+        audio_service.stop_host_stream()
 
     session.active_real_caller = None
 

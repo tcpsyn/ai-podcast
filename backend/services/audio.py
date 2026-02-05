@@ -48,6 +48,10 @@ class AudioService:
         self._caller_stop_event = threading.Event()
         self._caller_thread: Optional[threading.Thread] = None
 
+        # Host mic streaming state
+        self._host_stream: Optional[sd.InputStream] = None
+        self._host_send_callback: Optional[Callable] = None
+
         # Sample rates
         self.input_sample_rate = 16000  # For Whisper
         self.output_sample_rate = 24000  # For TTS
@@ -344,6 +348,55 @@ class AudioService:
 
         except Exception as e:
             print(f"Real caller audio routing error: {e}")
+
+    # --- Host Mic Streaming ---
+
+    def start_host_stream(self, send_callback: Callable):
+        """Start continuous host mic capture for streaming to real callers"""
+        if self.input_device is None:
+            print("[Audio] No input device configured for host streaming")
+            return
+
+        self._host_send_callback = send_callback
+
+        device_info = sd.query_devices(self.input_device)
+        max_channels = device_info['max_input_channels']
+        device_sr = int(device_info['default_samplerate'])
+        record_channel = min(self.input_channel, max_channels) - 1
+
+        import librosa
+
+        def callback(indata, frames, time_info, status):
+            if not self._host_send_callback:
+                return
+            # Extract the configured input channel
+            mono = indata[:, record_channel].copy()
+            # Resample to 16kHz if needed
+            if device_sr != 16000:
+                mono = librosa.resample(mono, orig_sr=device_sr, target_sr=16000)
+            # Convert float32 to int16 PCM
+            pcm = (mono * 32767).astype(np.int16).tobytes()
+            self._host_send_callback(pcm)
+
+        self._host_stream = sd.InputStream(
+            device=self.input_device,
+            channels=max_channels,
+            samplerate=device_sr,
+            dtype=np.float32,
+            blocksize=4096,
+            callback=callback,
+        )
+        self._host_stream.start()
+        print(f"[Audio] Host mic streaming started (device {self.input_device} ch {self.input_channel} @ {device_sr}Hz)")
+
+    def stop_host_stream(self):
+        """Stop host mic streaming"""
+        if self._host_stream:
+            self._host_stream.stop()
+            self._host_stream.close()
+            self._host_stream = None
+            self._host_send_callback = None
+            print("[Audio] Host mic streaming stopped")
 
     # --- Music Playback ---
 
