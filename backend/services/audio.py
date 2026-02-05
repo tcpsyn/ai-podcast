@@ -24,7 +24,7 @@ class AudioService:
 
         self.output_device: Optional[int] = None  # Single output device (multi-channel)
         self.caller_channel: int = 1   # Channel for caller TTS
-        self.live_caller_channel: int = 4  # Channel for live caller audio
+        self.live_caller_channel: int = 9  # Channel for live caller audio
         self.music_channel: int = 2    # Channel for music
         self.sfx_channel: int = 3      # Channel for SFX
         self.phone_filter: bool = False  # Phone filter on caller voices
@@ -52,6 +52,10 @@ class AudioService:
         # Host mic streaming state
         self._host_stream: Optional[sd.InputStream] = None
         self._host_send_callback: Optional[Callable] = None
+
+        # Live caller routing state
+        self._live_caller_stream: Optional[sd.OutputStream] = None
+        self._live_caller_queue: Optional[queue.Queue] = None
 
         # Sample rates
         self.input_sample_rate = 16000  # For Whisper
@@ -320,38 +324,84 @@ class AudioService:
         """Stop any playing caller audio"""
         self._caller_stop_event.set()
 
-    def route_real_caller_audio(self, pcm_data: bytes, sample_rate: int):
-        """Route real caller PCM audio to the configured live caller Loopback channel"""
-        import librosa
+    def _start_live_caller_stream(self):
+        """Start persistent output stream for live caller audio"""
+        if self._live_caller_stream is not None:
+            return
 
         if self.output_device is None:
             return
 
+        self._live_caller_queue = queue.Queue()
+
+        device_info = sd.query_devices(self.output_device)
+        num_channels = device_info['max_output_channels']
+        device_sr = int(device_info['default_samplerate'])
+        channel_idx = min(self.live_caller_channel, num_channels) - 1
+
+        self._live_caller_device_sr = device_sr
+        self._live_caller_num_channels = num_channels
+        self._live_caller_channel_idx = channel_idx
+
+        def callback(outdata, frames, time_info, status):
+            outdata.fill(0)
+            written = 0
+            while written < frames:
+                try:
+                    chunk = self._live_caller_queue.get_nowait()
+                    end = min(written + len(chunk), frames)
+                    count = end - written
+                    outdata[written:end, channel_idx] = chunk[:count]
+                    if count < len(chunk):
+                        # Put remainder back (rare)
+                        leftover = chunk[count:]
+                        self._live_caller_queue.put(leftover)
+                    written = end
+                except Exception:
+                    break
+
+        self._live_caller_stream = sd.OutputStream(
+            device=self.output_device,
+            samplerate=device_sr,
+            channels=num_channels,
+            dtype=np.float32,
+            callback=callback,
+            blocksize=2048,
+        )
+        self._live_caller_stream.start()
+        print(f"[Audio] Live caller stream started on ch {self.live_caller_channel} @ {device_sr}Hz")
+
+    def _stop_live_caller_stream(self):
+        """Stop persistent live caller output stream"""
+        if self._live_caller_stream:
+            self._live_caller_stream.stop()
+            self._live_caller_stream.close()
+            self._live_caller_stream = None
+            self._live_caller_queue = None
+            print("[Audio] Live caller stream stopped")
+
+    def route_real_caller_audio(self, pcm_data: bytes, sample_rate: int):
+        """Route real caller PCM audio to the configured live caller Loopback channel"""
+        if self.output_device is None:
+            return
+
+        # Ensure persistent stream is running
+        if self._live_caller_stream is None:
+            self._start_live_caller_stream()
+
         try:
-            # Convert bytes to float32
             audio = np.frombuffer(pcm_data, dtype=np.int16).astype(np.float32) / 32768.0
 
-            device_info = sd.query_devices(self.output_device)
-            num_channels = device_info['max_output_channels']
-            device_sr = int(device_info['default_samplerate'])
-            channel_idx = min(self.live_caller_channel, num_channels) - 1
-
-            # Resample to device sample rate if needed
+            # Simple decimation/interpolation instead of librosa
+            device_sr = self._live_caller_device_sr
             if sample_rate != device_sr:
-                audio = librosa.resample(audio, orig_sr=sample_rate, target_sr=device_sr)
+                ratio = device_sr / sample_rate
+                out_len = int(len(audio) * ratio)
+                indices = (np.arange(out_len) / ratio).astype(int)
+                indices = np.clip(indices, 0, len(audio) - 1)
+                audio = audio[indices]
 
-            # Create multi-channel output
-            multi_ch = np.zeros((len(audio), num_channels), dtype=np.float32)
-            multi_ch[:, channel_idx] = audio
-
-            # Write to output device
-            with sd.OutputStream(
-                device=self.output_device,
-                samplerate=device_sr,
-                channels=num_channels,
-                dtype=np.float32,
-            ) as stream:
-                stream.write(multi_ch)
+            self._live_caller_queue.put(audio)
 
         except Exception as e:
             print(f"Real caller audio routing error: {e}")
@@ -366,44 +416,45 @@ class AudioService:
 
         self._host_send_callback = send_callback
 
-        device_info = sd.query_devices(self.input_device)
-        max_channels = device_info['max_input_channels']
-        device_sr = int(device_info['default_samplerate'])
-        record_channel = min(self.input_channel, max_channels) - 1
+        def _start():
+            device_info = sd.query_devices(self.input_device)
+            max_channels = device_info['max_input_channels']
+            device_sr = int(device_info['default_samplerate'])
+            record_channel = min(self.input_channel, max_channels) - 1
+            step = max(1, int(device_sr / 16000))
 
-        import librosa
+            def callback(indata, frames, time_info, status):
+                if not self._host_send_callback:
+                    return
+                mono = indata[:, record_channel]
+                # Simple decimation to ~16kHz
+                if step > 1:
+                    mono = mono[::step]
+                pcm = (mono * 32767).astype(np.int16).tobytes()
+                self._host_send_callback(pcm)
 
-        def callback(indata, frames, time_info, status):
-            if not self._host_send_callback:
-                return
-            # Extract the configured input channel
-            mono = indata[:, record_channel].copy()
-            # Resample to 16kHz if needed
-            if device_sr != 16000:
-                mono = librosa.resample(mono, orig_sr=device_sr, target_sr=16000)
-            # Convert float32 to int16 PCM
-            pcm = (mono * 32767).astype(np.int16).tobytes()
-            self._host_send_callback(pcm)
+            self._host_stream = sd.InputStream(
+                device=self.input_device,
+                channels=max_channels,
+                samplerate=device_sr,
+                dtype=np.float32,
+                blocksize=4096,
+                callback=callback,
+            )
+            self._host_stream.start()
+            print(f"[Audio] Host mic streaming started (device {self.input_device} ch {self.input_channel} @ {device_sr}Hz)")
 
-        self._host_stream = sd.InputStream(
-            device=self.input_device,
-            channels=max_channels,
-            samplerate=device_sr,
-            dtype=np.float32,
-            blocksize=4096,
-            callback=callback,
-        )
-        self._host_stream.start()
-        print(f"[Audio] Host mic streaming started (device {self.input_device} ch {self.input_channel} @ {device_sr}Hz)")
+        threading.Thread(target=_start, daemon=True).start()
 
     def stop_host_stream(self):
-        """Stop host mic streaming"""
+        """Stop host mic streaming and live caller output"""
         if self._host_stream:
             self._host_stream.stop()
             self._host_stream.close()
             self._host_stream = None
             self._host_send_callback = None
             print("[Audio] Host mic streaming stopped")
+        self._stop_live_caller_stream()
 
     # --- Music Playback ---
 

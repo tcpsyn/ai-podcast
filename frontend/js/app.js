@@ -229,7 +229,7 @@ async function loadAudioDevices() {
 
         if (inputCh) inputCh.value = settings.input_channel || 1;
         if (callerCh) callerCh.value = settings.caller_channel || 1;
-        if (liveCallerCh) liveCallerCh.value = settings.live_caller_channel || 4;
+        if (liveCallerCh) liveCallerCh.value = settings.live_caller_channel || 9;
         if (musicCh) musicCh.value = settings.music_channel || 2;
         if (sfxCh) sfxCh.value = settings.sfx_channel || 3;
 
@@ -265,7 +265,7 @@ async function saveAudioDevices() {
             input_channel: inputChannel ? parseInt(inputChannel) : 1,
             output_device: outputDevice ? parseInt(outputDevice) : null,
             caller_channel: callerChannel ? parseInt(callerChannel) : 1,
-            live_caller_channel: liveCallerChannel ? parseInt(liveCallerChannel) : 4,
+            live_caller_channel: liveCallerChannel ? parseInt(liveCallerChannel) : 9,
             music_channel: musicChannel ? parseInt(musicChannel) : 2,
             sfx_channel: sfxChannel ? parseInt(sfxChannel) : 3,
             phone_filter: phoneFilterChecked
