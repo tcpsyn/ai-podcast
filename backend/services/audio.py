@@ -309,6 +309,42 @@ class AudioService:
         """Stop any playing caller audio"""
         self._caller_stop_event.set()
 
+    def route_real_caller_audio(self, pcm_data: bytes, channel: int, sample_rate: int):
+        """Route real caller PCM audio to a specific Loopback channel"""
+        import librosa
+
+        if self.output_device is None:
+            return
+
+        try:
+            # Convert bytes to float32
+            audio = np.frombuffer(pcm_data, dtype=np.int16).astype(np.float32) / 32768.0
+
+            device_info = sd.query_devices(self.output_device)
+            num_channels = device_info['max_output_channels']
+            device_sr = int(device_info['default_samplerate'])
+            channel_idx = min(channel, num_channels) - 1
+
+            # Resample from Twilio's 8kHz to device sample rate
+            if sample_rate != device_sr:
+                audio = librosa.resample(audio, orig_sr=sample_rate, target_sr=device_sr)
+
+            # Create multi-channel output
+            multi_ch = np.zeros((len(audio), num_channels), dtype=np.float32)
+            multi_ch[:, channel_idx] = audio
+
+            # Write to output device
+            with sd.OutputStream(
+                device=self.output_device,
+                samplerate=device_sr,
+                channels=num_channels,
+                dtype=np.float32,
+            ) as stream:
+                stream.write(multi_ch)
+
+        except Exception as e:
+            print(f"Real caller audio routing error: {e}")
+
     # --- Music Playback ---
 
     def load_music(self, file_path: str) -> bool:
