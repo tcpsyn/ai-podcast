@@ -247,7 +247,7 @@ def generate_caller_background(base: dict) -> str:
 
     return f"""{age}, {job} {location}. {problem.capitalize()}. {interest1.capitalize()}, {interest2}. {quirk1.capitalize()}, {quirk2}."""
 
-def get_caller_prompt(caller: dict, conversation_summary: str = "") -> str:
+def get_caller_prompt(caller: dict, conversation_summary: str = "", show_history: str = "") -> str:
     """Generate a natural system prompt for a caller"""
     context = ""
     if conversation_summary:
@@ -257,10 +257,14 @@ CONVERSATION SO FAR:
 Continue naturally. Don't repeat yourself.
 """
 
+    history = ""
+    if show_history:
+        history = f"\n{show_history}\n"
+
     return f"""You're {caller['name']}, calling a late-night radio show. You trust this host.
 
 {caller['vibe']}
-{context}
+{history}{context}
 HOW TO TALK:
 - Sound like a real person chatting, not writing.
 - Keep responses to 2-3 sentences. Enough to make your point, short enough for back-and-forth.
@@ -611,9 +615,10 @@ async def chat(request: ChatRequest):
 
     session.add_message("user", request.text)
 
-    # Include conversation summary for context
+    # Include conversation summary and show history for context
     conversation_summary = session.get_conversation_summary()
-    system_prompt = get_caller_prompt(session.caller, conversation_summary)
+    show_history = session.get_show_history()
+    system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history)
 
     response = await llm_service.generate(
         messages=session.conversation[-10:],  # Reduced history for speed
@@ -979,7 +984,8 @@ async def _check_ai_auto_respond(real_caller_text: str, real_caller_name: str):
 
     # Generate full response
     conversation_summary = session.get_conversation_summary()
-    system_prompt = get_caller_prompt(session.caller, conversation_summary)
+    show_history = session.get_show_history()
+    system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history)
 
     response = await llm_service.generate(
         messages=session.conversation[-10:],
@@ -1001,6 +1007,123 @@ async def _check_ai_auto_respond(real_caller_text: str, real_caller_name: str):
         daemon=True,
     )
     thread.start()
+
+
+# --- Follow-Up & Session Control Endpoints ---
+
+@app.post("/api/hangup/real")
+async def hangup_real_caller():
+    """Hang up on real caller — summarize call and store in history"""
+    if not session.active_real_caller:
+        raise HTTPException(400, "No active real caller")
+
+    call_sid = session.active_real_caller["call_sid"]
+    caller_name = session.active_real_caller["name"]
+
+    # Summarize the conversation
+    summary = ""
+    if session.conversation:
+        transcript_text = "\n".join(
+            f"{msg['role']}: {msg['content']}" for msg in session.conversation
+        )
+        summary = await llm_service.generate(
+            messages=[{"role": "user", "content": f"Summarize this radio show call in 1-2 sentences:\n{transcript_text}"}],
+            system_prompt="You summarize radio show conversations concisely. Focus on what the caller talked about and any emotional moments.",
+        )
+
+    # Store in call history
+    session.call_history.append(CallRecord(
+        caller_type="real",
+        caller_name=caller_name,
+        summary=summary,
+        transcript=list(session.conversation),
+    ))
+
+    # End the Twilio call
+    twilio_service.hangup(call_sid)
+
+    from twilio.rest import Client as TwilioClient
+    if settings.twilio_account_sid and settings.twilio_auth_token:
+        try:
+            client = TwilioClient(settings.twilio_account_sid, settings.twilio_auth_token)
+            client.calls(call_sid).update(status="completed")
+        except Exception as e:
+            print(f"[Twilio] Failed to end call: {e}")
+
+    session.active_real_caller = None
+
+    # Play hangup sound
+    hangup_sound = settings.sounds_dir / "hangup.wav"
+    if hangup_sound.exists():
+        audio_service.play_sfx(str(hangup_sound))
+
+    # Auto follow-up?
+    auto_followup_triggered = False
+    if session.auto_followup:
+        auto_followup_triggered = True
+        asyncio.create_task(_auto_followup(summary))
+
+    return {
+        "status": "disconnected",
+        "caller": caller_name,
+        "summary": summary,
+        "auto_followup": auto_followup_triggered,
+    }
+
+
+async def _auto_followup(last_call_summary: str):
+    """Automatically pick an AI caller and connect them as follow-up"""
+    await asyncio.sleep(7)  # Brief pause before follow-up
+
+    # Ask LLM to pick best AI caller for follow-up
+    caller_list = ", ".join(
+        f'{k}: {v["name"]} ({v["gender"]}, {v["age_range"][0]}-{v["age_range"][1]})'
+        for k, v in CALLER_BASES.items()
+    )
+    pick = await llm_service.generate(
+        messages=[{"role": "user", "content": f'A caller just talked about: "{last_call_summary}". Which AI caller should follow up? Available: {caller_list}. Reply with just the key number.'}],
+        system_prompt="Pick the most interesting AI caller to follow up on this topic. Just reply with the number key.",
+    )
+
+    # Extract key from response
+    match = re.search(r'\d+', pick)
+    if match:
+        caller_key = match.group()
+        if caller_key in CALLER_BASES:
+            session.start_call(caller_key)
+            print(f"[Auto Follow-Up] {CALLER_BASES[caller_key]['name']} is calling in about: {last_call_summary[:50]}...")
+
+
+@app.post("/api/followup/generate")
+async def generate_followup():
+    """Generate an AI follow-up caller based on recent show history"""
+    if not session.call_history:
+        raise HTTPException(400, "No call history to follow up on")
+
+    last_record = session.call_history[-1]
+    await _auto_followup(last_record.summary)
+
+    return {
+        "status": "followup_triggered",
+        "based_on": last_record.caller_name,
+    }
+
+
+@app.post("/api/session/ai-mode")
+async def set_ai_mode(data: dict):
+    """Set AI respond mode (manual or auto)"""
+    mode = data.get("mode", "manual")
+    session.ai_respond_mode = mode
+    print(f"[Session] AI respond mode: {mode}")
+    return {"mode": mode}
+
+
+@app.post("/api/session/auto-followup")
+async def set_auto_followup(data: dict):
+    """Toggle auto follow-up"""
+    session.auto_followup = data.get("enabled", False)
+    print(f"[Session] Auto follow-up: {session.auto_followup}")
+    return {"enabled": session.auto_followup}
 
 
 # --- Server Control Endpoints ---
