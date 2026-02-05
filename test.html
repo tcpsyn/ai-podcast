@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test JavaScript Loading</title>
+</head>
+<body>
+    <h1>JavaScript Test</h1>
+    <button id="test-btn">Test Button</button>
+    <div id="output"></div>
+
+    <script src="frontend/js/audio.js"></script>
+    <script src="frontend/js/websocket.js"></script>
+    <script src="frontend/js/app.js"></script>
+    <script>
+        // Test if the classes loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const output = document.getElementById('output');
+            
+            if (typeof AudioManager !== 'undefined') {
+                output.innerHTML += '<p>✓ AudioManager loaded</p>';
+            } else {
+                output.innerHTML += '<p>✗ AudioManager failed to load</p>';
+            }
+            
+            if (typeof RadioShowApp !== 'undefined') {
+                output.innerHTML += '<p>✓ RadioShowApp loaded</p>';
+            } else {
+                output.innerHTML += '<p>✗ RadioShowApp failed to load</p>';
+            }
+            
+            document.getElementById('test-btn').addEventListener('click', function() {
+                output.innerHTML += '<p>Button click works!</p>';
+            });
+        });
+    </script>
+</body>
+</html>

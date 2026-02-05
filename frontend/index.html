@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Radio Show</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>AI Radio Show</h1>
+            <div class="header-buttons">
+                <button id="new-session-btn" class="new-session-btn">New Session</button>
+                <button id="settings-btn">Settings</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Callers -->
+            <section class="callers-section">
+                <h2>Callers <span id="session-id" class="session-id"></span></h2>
+                <div id="callers" class="caller-grid"></div>
+                <div id="call-status" class="call-status">No active call</div>
+                <div id="caller-background" class="caller-background hidden"></div>
+                <button id="hangup-btn" class="hangup-btn" disabled>Hang Up</button>
+            </section>
+
+            <!-- Chat -->
+            <section class="chat-section">
+                <div id="chat" class="chat-log"></div>
+                <div class="talk-controls">
+                    <button id="talk-btn" class="talk-btn">Hold to Talk</button>
+                    <button id="type-btn" class="type-btn">Type</button>
+                </div>
+                <div id="status" class="status hidden"></div>
+            </section>
+
+            <!-- Music -->
+            <section class="music-section">
+                <h2>Music</h2>
+                <select id="track-select"></select>
+                <div class="music-controls">
+                    <button id="play-btn">Play</button>
+                    <button id="stop-btn">Stop</button>
+                    <input type="range" id="volume" min="0" max="100" value="30">
+                </div>
+            </section>
+
+            <!-- Sound Effects -->
+            <section class="sounds-section">
+                <h2>Sounds</h2>
+                <div id="soundboard" class="soundboard"></div>
+            </section>
+
+            <!-- Server Log -->
+            <section class="log-section">
+                <div class="log-header">
+                    <h2>Server Log</h2>
+                    <div class="server-controls">
+                        <button id="restart-server-btn" class="server-btn restart">Restart</button>
+                        <button id="stop-server-btn" class="server-btn stop">Stop</button>
+                        <label class="auto-scroll-label">
+                            <input type="checkbox" id="auto-scroll" checked> Auto-scroll
+                        </label>
+                    </div>
+                </div>
+                <div id="server-log" class="server-log"></div>
+            </section>
+        </main>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Settings</h2>
+
+                <!-- Audio Devices -->
+                <div class="settings-group">
+                    <h3>Audio Routing</h3>
+                    <div class="device-row">
+                        <label>
+                            Input Device
+                            <select id="input-device"></select>
+                        </label>
+                        <label>
+                            Ch
+                            <input type="number" id="input-channel" value="1" min="1" max="16" class="channel-input">
+                        </label>
+                    </div>
+                    <div class="device-row">
+                        <label>
+                            Output Device
+                            <select id="output-device"></select>
+                        </label>
+                    </div>
+                    <div class="channel-row">
+                        <label>Caller Ch <input type="number" id="caller-channel" value="1" min="1" max="16" class="channel-input"></label>
+                        <label>Music Ch <input type="number" id="music-channel" value="2" min="1" max="16" class="channel-input"></label>
+                        <label>SFX Ch <input type="number" id="sfx-channel" value="3" min="1" max="16" class="channel-input"></label>
+                    </div>
+                </div>
+
+                <!-- LLM Settings -->
+                <div class="settings-group">
+                    <h3>LLM Provider</h3>
+                    <label>
+                        Provider
+                        <select id="provider">
+                            <option value="openrouter">OpenRouter</option>
+                            <option value="ollama">Ollama</option>
+                        </select>
+                    </label>
+
+                    <div id="openrouter-settings">
+                        <label>
+                            Model
+                            <select id="openrouter-model"></select>
+                        </label>
+                    </div>
+
+                    <div id="ollama-settings" class="hidden">
+                        <label>
+                            Model
+                            <select id="ollama-model"></select>
+                        </label>
+                        <label>
+                            Host
+                            <input type="text" id="ollama-host" value="http://localhost:11434">
+                        </label>
+                        <button type="button" id="refresh-ollama" class="refresh-btn">Refresh Models</button>
+                    </div>
+                </div>
+
+                <!-- TTS Settings -->
+                <div class="settings-group">
+                    <h3>TTS Provider</h3>
+                    <label>
+                        Provider
+                        <select id="tts-provider">
+                            <option value="inworld">Inworld (High quality, natural)</option>
+                            <option value="f5tts">F5-TTS (Most natural local)</option>
+                            <option value="elevenlabs">ElevenLabs (Best quality, paid)</option>
+                            <option value="kokoro">Kokoro MLX (Fast, Apple Silicon)</option>
+                            <option value="chattts">ChatTTS (Conversational)</option>
+                            <option value="styletts2">StyleTTS2 (Voice cloning)</option>
+                            <option value="vits">VITS (Fast local)</option>
+                            <option value="bark">Bark (Expressive, supports [laughs])</option>
+                        </select>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" id="phone-filter">
+                        Phone filter on voices
+                    </label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button id="save-settings">Save</button>
+                    <button id="close-settings">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Type Modal -->
+        <div id="type-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Type Message</h2>
+                <textarea id="type-input" rows="3" placeholder="Type what you want to say..."></textarea>
+                <div class="modal-buttons">
+                    <button id="send-type">Send</button>
+                    <button id="close-type">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js?v=8"></script>
+</body>
+</html>

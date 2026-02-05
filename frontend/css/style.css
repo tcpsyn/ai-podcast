@@ -1,0 +1,543 @@
+/* AI Radio Show - Clean CSS */
+
+:root {
+    --bg: #1a1a2e;
+    --bg-light: #252547;
+    --accent: #e94560;
+    --text: #fff;
+    --text-muted: #888;
+    --radius: 8px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+#app {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    font-size: 1.5rem;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+header button {
+    background: var(--bg-light);
+    color: var(--text);
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.new-session-btn {
+    background: var(--accent) !important;
+}
+
+.session-id {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: normal;
+}
+
+.caller-background {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 10px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.caller-background.hidden {
+    display: none;
+}
+
+/* Main layout */
+main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 700px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Sections */
+section {
+    background: var(--bg-light);
+    padding: 16px;
+    border-radius: var(--radius);
+}
+
+section h2 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    color: var(--text-muted);
+}
+
+/* Callers */
+.caller-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.caller-btn {
+    background: var(--bg);
+    color: var(--text);
+    border: 2px solid transparent;
+    padding: 10px 8px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.caller-btn:hover {
+    border-color: var(--accent);
+}
+
+.caller-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.call-status {
+    text-align: center;
+    padding: 8px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.hangup-btn {
+    width: 100%;
+    background: #c0392b;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.hangup-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Chat */
+.chat-section {
+    grid-column: span 2;
+}
+
+@media (max-width: 700px) {
+    .chat-section {
+        grid-column: span 1;
+    }
+}
+
+.chat-log {
+    height: 300px;
+    overflow-y: auto;
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.message {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: var(--radius);
+    line-height: 1.4;
+}
+
+.message.host {
+    background: #2c5282;
+}
+
+.message.caller {
+    background: #553c9a;
+}
+
+.message strong {
+    display: block;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 4px;
+}
+
+.talk-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.talk-btn {
+    flex: 1;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.talk-btn:hover {
+    filter: brightness(1.1);
+}
+
+.talk-btn.recording {
+    background: #c0392b;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.type-btn {
+    background: var(--bg);
+    color: var(--text);
+    border: none;
+    padding: 16px 24px;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.status {
+    text-align: center;
+    padding: 12px;
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.status.hidden {
+    display: none;
+}
+
+/* Music */
+.music-section select {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg);
+    color: var(--text);
+    border: none;
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+}
+
+.music-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.music-controls button {
+    background: var(--bg);
+    color: var(--text);
+    border: none;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.music-controls input[type="range"] {
+    flex: 1;
+}
+
+/* Soundboard */
+.soundboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.sound-btn {
+    background: var(--bg);
+    color: var(--text);
+    border: none;
+    padding: 12px 8px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.1s;
+}
+
+.sound-btn:hover {
+    background: var(--accent);
+}
+
+.sound-btn:active {
+    transform: scale(0.95);
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: var(--bg-light);
+    padding: 24px;
+    border-radius: var(--radius);
+    width: 90%;
+    max-width: 400px;
+}
+
+.modal-content h2 {
+    margin-bottom: 16px;
+}
+
+.modal-content h3 {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 16px 0 8px 0;
+    border-bottom: 1px solid var(--bg);
+    padding-bottom: 4px;
+}
+
+.settings-group {
+    margin-bottom: 16px;
+}
+
+.device-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.device-row label:first-child {
+    flex: 1;
+}
+
+.channel-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.channel-row label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+}
+
+.channel-input {
+    width: 50px !important;
+    text-align: center;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 16px;
+}
+
+.modal-content label.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-content select,
+.modal-content input[type="text"],
+.modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg);
+    color: var(--text);
+    border: none;
+    border-radius: var(--radius);
+    margin-top: 4px;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.modal-buttons button:first-child {
+    background: var(--accent);
+    color: white;
+}
+
+.modal-buttons button:last-child {
+    background: var(--bg);
+    color: var(--text);
+}
+
+.refresh-btn {
+    background: var(--bg);
+    color: var(--text-muted);
+    border: 1px solid var(--bg-light);
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+    margin-top: 8px;
+}
+
+.refresh-btn:hover {
+    background: var(--bg-light);
+    color: var(--text);
+}
+
+.refresh-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Server Log */
+.log-section {
+    grid-column: span 2;
+}
+
+@media (max-width: 700px) {
+    .log-section {
+        grid-column: span 1;
+    }
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.log-header h2 {
+    margin-bottom: 0;
+}
+
+.server-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.server-btn {
+    border: none;
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.server-btn.restart {
+    background: #2196F3;
+    color: white;
+}
+
+.server-btn.restart:hover {
+    background: #1976D2;
+}
+
+.server-btn.stop {
+    background: #c0392b;
+    color: white;
+}
+
+.server-btn.stop:hover {
+    background: #a93226;
+}
+
+.auto-scroll-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.server-log {
+    height: 200px;
+    overflow-y: auto;
+    background: #0d0d1a;
+    border-radius: var(--radius);
+    padding: 12px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: #8f8;
+}
+
+.server-log .log-line {
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.server-log .log-line.error {
+    color: #f88;
+}
+
+.server-log .log-line.warning {
+    color: #ff8;
+}
+
+.server-log .log-line.tts {
+    color: #8ff;
+}
+
+.server-log .log-line.chat {
+    color: #f8f;
+}

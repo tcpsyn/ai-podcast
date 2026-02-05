@@ -1,0 +1,54 @@
+# Environment
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Audio/Media (large files)
+*.mp3
+*.wav
+*.m4a
+*.ogg
+
+# Sessions
+sessions/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Whisper models (downloaded automatically)
+*.pt
+
+# Temporary
+*.tmp
+*.log
+
+# Large model files (download separately)
+*.onnx
+*.safetensors
+*.tar.bz2
+*.bin
+models/
+asset/
+kokoro-v1.0.onnx
+voices-v1.0.bin
+
+# Reference voices for TTS
+ref_audio/
+
+# Claude settings (local)
+.claude/

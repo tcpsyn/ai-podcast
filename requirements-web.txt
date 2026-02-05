@@ -1,0 +1,16 @@
+# Web application requirements (in addition to existing radio_show.py deps)
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+websockets>=12.0
+httpx>=0.26.0
+pydantic-settings>=2.1.0
+
+# Already installed for CLI (but listed for completeness):
+# faster-whisper
+# elevenlabs
+# numpy
+# scipy
+# librosa
+# soundfile
+# python-dotenv
