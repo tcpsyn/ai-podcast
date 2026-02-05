@@ -2,6 +2,7 @@
 
 import uuid
 import asyncio
+from dataclasses import dataclass, field
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
@@ -294,12 +295,24 @@ OUTPUT: Spoken words only. No (actions), no *gestures*, no stage directions."""
 
 
 # --- Session State ---
+@dataclass
+class CallRecord:
+    caller_type: str          # "ai" or "real"
+    caller_name: str          # "Tony" or "Caller #3"
+    summary: str              # LLM-generated summary after hangup
+    transcript: list[dict] = field(default_factory=list)
+
+
 class Session:
     def __init__(self):
         self.id = str(uuid.uuid4())[:8]
         self.current_caller_key: str = None
         self.conversation: list[dict] = []
         self.caller_backgrounds: dict[str, str] = {}  # Generated backgrounds for this session
+        self.call_history: list[CallRecord] = []
+        self.active_real_caller: dict | None = None
+        self.ai_respond_mode: str = "manual"  # "manual" or "auto"
+        self.auto_followup: bool = False
 
     def start_call(self, caller_key: str):
         self.current_caller_key = caller_key
@@ -321,15 +334,39 @@ class Session:
                 print(f"[Session {self.id}] Generated background for {base['name']}: {self.caller_backgrounds[caller_key][:100]}...")
         return self.caller_backgrounds.get(caller_key, "")
 
+    def get_show_history(self) -> str:
+        """Get formatted show history for AI caller prompts"""
+        if not self.call_history:
+            return ""
+        lines = ["EARLIER IN THE SHOW:"]
+        for record in self.call_history:
+            caller_type_label = "(real caller)" if record.caller_type == "real" else "(AI)"
+            lines.append(f"- {record.caller_name} {caller_type_label}: {record.summary}")
+        lines.append("You can reference these if it feels natural. Don't force it.")
+        return "\n".join(lines)
+
     def get_conversation_summary(self) -> str:
         """Get a brief summary of conversation so far for context"""
         if len(self.conversation) <= 2:
             return ""
-        # Just include the key exchanges, not the full history
         summary_parts = []
-        for msg in self.conversation[-6:]:  # Last 3 exchanges
-            role = "Host" if msg["role"] == "user" else self.caller["name"]
-            summary_parts.append(f'{role}: "{msg["content"][:100]}..."' if len(msg["content"]) > 100 else f'{role}: "{msg["content"]}"')
+        for msg in self.conversation[-6:]:
+            role = msg["role"]
+            if role == "user" or role == "host":
+                label = "Host"
+            elif role.startswith("real_caller:"):
+                label = role.split(":", 1)[1]
+            elif role.startswith("ai_caller:"):
+                label = role.split(":", 1)[1]
+            elif role == "assistant":
+                label = self.caller["name"] if self.caller else "Caller"
+            else:
+                label = role
+            content = msg["content"]
+            summary_parts.append(
+                f'{label}: "{content[:100]}..."' if len(content) > 100
+                else f'{label}: "{content}"'
+            )
         return "\n".join(summary_parts)
 
     @property
@@ -349,6 +386,10 @@ class Session:
         self.caller_backgrounds = {}
         self.current_caller_key = None
         self.conversation = []
+        self.call_history = []
+        self.active_real_caller = None
+        self.ai_respond_mode = "manual"
+        self.auto_followup = False
         self.id = str(uuid.uuid4())[:8]
         print(f"[Session] Reset - new session ID: {self.id}")
 
