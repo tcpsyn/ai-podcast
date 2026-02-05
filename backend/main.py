@@ -663,6 +663,13 @@ async def text_to_speech(request: TTSRequest):
     )
     thread.start()
 
+    # Also send to active real callers so they hear the AI
+    if session.active_real_caller:
+        call_sid = session.active_real_caller["call_sid"]
+        asyncio.create_task(
+            twilio_service.send_audio_to_caller(call_sid, audio_bytes, 24000)
+        )
+
     return {"status": "playing", "duration": len(audio_bytes) / 2 / 24000}
 
 
@@ -877,6 +884,9 @@ async def twilio_media_stream(websocket: WebSocket):
             if event == "start":
                 stream_sid = msg["start"]["streamSid"]
                 call_sid = msg["start"]["callSid"]
+                twilio_service.register_websocket(call_sid, websocket)
+                if call_sid in twilio_service.active_calls:
+                    twilio_service.active_calls[call_sid]["stream_sid"] = stream_sid
                 print(f"[Twilio WS] Stream started: {stream_sid} for call {call_sid}")
 
             elif event == "media":
@@ -912,6 +922,8 @@ async def twilio_media_stream(websocket: WebSocket):
     except Exception as e:
         print(f"[Twilio WS] Error: {e}")
     finally:
+        if call_sid:
+            twilio_service.unregister_websocket(call_sid)
         # Transcribe any remaining audio
         if audio_buffer and call_sid:
             asyncio.create_task(

@@ -1,5 +1,8 @@
 """Twilio call queue and media stream service"""
 
+import asyncio
+import base64
+import audioop
 import time
 import threading
 from typing import Optional
@@ -16,6 +19,7 @@ class TwilioService:
         self._allocated_channels: set[int] = set()
         self._caller_counter: int = 0
         self._lock = threading.Lock()
+        self._websockets: dict[str, any] = {}  # call_sid -> WebSocket
 
     def add_to_queue(self, call_sid: str, phone: str):
         with self._lock:
@@ -88,6 +92,7 @@ class TwilioService:
         if call_info:
             self.release_channel(call_info["channel"])
             print(f"[Twilio] {call_info['name']} hung up — channel {call_info['channel']} released")
+        self._websockets.pop(call_sid, None)
 
     def reset(self):
         with self._lock:
@@ -97,4 +102,47 @@ class TwilioService:
             self.active_calls.clear()
             self._allocated_channels.clear()
             self._caller_counter = 0
+            self._websockets.clear()
         print("[Twilio] Service reset")
+
+    def register_websocket(self, call_sid: str, websocket):
+        """Register a WebSocket for a call"""
+        self._websockets[call_sid] = websocket
+
+    def unregister_websocket(self, call_sid: str):
+        """Unregister a WebSocket"""
+        self._websockets.pop(call_sid, None)
+
+    async def send_audio_to_caller(self, call_sid: str, pcm_data: bytes, sample_rate: int):
+        """Send audio back to real caller via Twilio WebSocket"""
+        ws = self._websockets.get(call_sid)
+        if not ws:
+            return
+
+        call_info = self.active_calls.get(call_sid)
+        if not call_info or "stream_sid" not in call_info:
+            return
+
+        try:
+            # Resample to 8kHz if needed
+            if sample_rate != 8000:
+                import numpy as np
+                import librosa
+                audio = np.frombuffer(pcm_data, dtype=np.int16).astype(np.float32) / 32768.0
+                audio = librosa.resample(audio, orig_sr=sample_rate, target_sr=8000)
+                pcm_data = (audio * 32767).astype(np.int16).tobytes()
+
+            # Convert PCM to mulaw
+            mulaw_data = audioop.lin2ulaw(pcm_data, 2)
+
+            # Send as Twilio media message
+            import json
+            await ws.send_text(json.dumps({
+                "event": "media",
+                "streamSid": call_info["stream_sid"],
+                "media": {
+                    "payload": base64.b64encode(mulaw_data).decode("ascii"),
+                },
+            }))
+        except Exception as e:
+            print(f"[Twilio] Failed to send audio to caller: {e}")

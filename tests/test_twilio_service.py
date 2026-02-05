@@ -65,3 +65,39 @@ def test_caller_counter_increments():
     r2 = svc.take_call("CA2")
     assert r1["name"] == "Caller #1"
     assert r2["name"] == "Caller #2"
+
+
+def test_register_and_unregister_websocket():
+    svc = TwilioService()
+    fake_ws = object()
+    svc.register_websocket("CA123", fake_ws)
+    assert svc._websockets["CA123"] is fake_ws
+    svc.unregister_websocket("CA123")
+    assert "CA123" not in svc._websockets
+
+
+def test_hangup_clears_websocket():
+    svc = TwilioService()
+    svc.add_to_queue("CA123", "+15125550142")
+    svc.take_call("CA123")
+    svc.register_websocket("CA123", object())
+    svc.hangup("CA123")
+    assert "CA123" not in svc._websockets
+
+
+def test_reset_clears_websockets():
+    svc = TwilioService()
+    svc.register_websocket("CA1", object())
+    svc.register_websocket("CA2", object())
+    svc.reset()
+    assert svc._websockets == {}
+
+
+def test_send_audio_no_websocket():
+    """send_audio_to_caller returns silently when no WS registered"""
+    import asyncio
+    svc = TwilioService()
+    # Should not raise
+    asyncio.get_event_loop().run_until_complete(
+        svc.send_audio_to_caller("CA_NONE", b"\x00" * 100, 8000)
+    )
