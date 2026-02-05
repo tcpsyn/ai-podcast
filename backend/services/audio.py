@@ -52,6 +52,7 @@ class AudioService:
         # Host mic streaming state
         self._host_stream: Optional[sd.InputStream] = None
         self._host_send_callback: Optional[Callable] = None
+        self._host_device_sr: int = 48000
 
         # Live caller routing state
         self._live_caller_stream: Optional[sd.OutputStream] = None
@@ -173,6 +174,13 @@ class AudioService:
 
         self._recording = True
         self._recorded_audio = []
+
+        if self._host_stream is not None:
+            # Host stream already capturing — piggyback on it
+            self._record_device_sr = self._host_device_sr
+            print(f"Recording started (piggybacking on host stream @ {self._host_device_sr}Hz)")
+            return True
+
         self._record_thread = threading.Thread(target=self._record_worker)
         self._record_thread.start()
         print(f"Recording started from device {self.input_device}")
@@ -188,6 +196,7 @@ class AudioService:
         self._recording = False
         if self._record_thread:
             self._record_thread.join(timeout=2.0)
+            self._record_thread = None
 
         if not self._recorded_audio:
             return b""
@@ -451,6 +460,10 @@ class AudioService:
             step = max(1, int(device_sr / 16000))
 
             def callback(indata, frames, time_info, status):
+                # Capture for push-to-talk recording if active
+                if self._recording:
+                    self._recorded_audio.append(indata[:, record_channel].copy())
+
                 if not self._host_send_callback:
                     return
                 mono = indata[:, record_channel]
@@ -460,6 +473,7 @@ class AudioService:
                 pcm = (mono * 32767).astype(np.int16).tobytes()
                 self._host_send_callback(pcm)
 
+            self._host_device_sr = device_sr
             self._host_stream = sd.InputStream(
                 device=self.input_device,
                 channels=max_channels,
