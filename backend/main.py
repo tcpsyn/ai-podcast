@@ -4,14 +4,16 @@ import uuid
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
+from twilio.twiml.voice_response import VoiceResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 
 from .config import settings
+from .services.twilio_service import TwilioService
 from .services.transcription import transcribe_audio
 from .services.llm import llm_service
 from .services.tts import generate_speech
@@ -395,6 +397,7 @@ class Session:
 
 
 session = Session()
+twilio_service = TwilioService()
 
 
 # --- Static Files ---
@@ -759,6 +762,91 @@ async def update_settings(data: dict):
         tts_provider=data.get("tts_provider")
     )
     return llm_service.get_settings()
+
+
+# --- Twilio Webhook & Queue Endpoints ---
+
+@app.post("/api/twilio/voice")
+async def twilio_voice_webhook(
+    CallSid: str = Form(...),
+    From: str = Form(...),
+):
+    """Handle incoming Twilio call — greet and enqueue"""
+    twilio_service.add_to_queue(CallSid, From)
+
+    response = VoiceResponse()
+    response.say("You're calling Luke at the Roost. Hold tight, we'll get to you.", voice="alice")
+    response.enqueue(
+        "radio_show",
+        wait_url="/api/twilio/hold-music",
+        wait_url_method="POST",
+    )
+    return Response(content=str(response), media_type="application/xml")
+
+
+@app.post("/api/twilio/hold-music")
+async def twilio_hold_music():
+    """Serve hold music TwiML for queued callers"""
+    response = VoiceResponse()
+    response.say("Please hold, you'll be on air shortly.", voice="alice")
+    response.pause(length=30)
+    return Response(content=str(response), media_type="application/xml")
+
+
+@app.get("/api/queue")
+async def get_call_queue():
+    """Get list of callers waiting in queue"""
+    return {"queue": twilio_service.get_queue()}
+
+
+@app.post("/api/queue/take/{call_sid}")
+async def take_call_from_queue(call_sid: str):
+    """Take a caller off hold and put them on air"""
+    try:
+        call_info = twilio_service.take_call(call_sid)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+    session.active_real_caller = {
+        "call_sid": call_info["call_sid"],
+        "phone": call_info["phone"],
+        "channel": call_info["channel"],
+        "name": call_info["name"],
+    }
+
+    # Connect Twilio media stream by updating the call
+    from twilio.rest import Client as TwilioClient
+    if settings.twilio_account_sid and settings.twilio_auth_token:
+        client = TwilioClient(settings.twilio_account_sid, settings.twilio_auth_token)
+        twiml = VoiceResponse()
+        connect = twiml.connect()
+        connect.stream(
+            url=f"wss://{settings.twilio_webhook_base_url.replace('https://', '')}/api/twilio/stream",
+            name=call_sid,
+        )
+        client.calls(call_sid).update(twiml=str(twiml))
+
+    return {
+        "status": "on_air",
+        "caller": call_info,
+    }
+
+
+@app.post("/api/queue/drop/{call_sid}")
+async def drop_from_queue(call_sid: str):
+    """Drop a caller from the queue"""
+    twilio_service.remove_from_queue(call_sid)
+
+    # Hang up the Twilio call
+    from twilio.rest import Client as TwilioClient
+    if settings.twilio_account_sid and settings.twilio_auth_token:
+        try:
+            client = TwilioClient(settings.twilio_account_sid, settings.twilio_auth_token)
+            client.calls(call_sid).update(status="completed")
+        except Exception as e:
+            print(f"[Twilio] Failed to end call {call_sid}: {e}")
+
+    return {"status": "dropped"}
 
 
 # --- Server Control Endpoints ---
