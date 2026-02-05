@@ -350,10 +350,10 @@ class AudioService:
         self._live_caller_num_channels = num_channels
         self._live_caller_channel_idx = channel_idx
 
-        # Ring buffer: 3 seconds capacity, 150ms pre-buffer before playback starts
+        # Ring buffer: 3 seconds capacity, 80ms pre-buffer before playback starts
         ring_size = int(device_sr * 3)
         ring = np.zeros(ring_size, dtype=np.float32)
-        prebuffer_samples = int(device_sr * 0.15)
+        prebuffer_samples = int(device_sr * 0.08)
         # Mutable state shared between writer (main thread) and reader (audio callback)
         # CPython GIL makes individual int reads/writes atomic
         state = {"write_pos": 0, "read_pos": 0, "avail": 0, "started": False}
@@ -459,6 +459,11 @@ class AudioService:
             record_channel = min(self.input_channel, max_channels) - 1
             step = max(1, int(device_sr / 16000))
 
+            # Buffer host mic to send ~60ms chunks instead of tiny 21ms ones
+            host_accum = []
+            host_accum_samples = [0]
+            send_threshold = 960  # 60ms at 16kHz
+
             def callback(indata, frames, time_info, status):
                 # Capture for push-to-talk recording if active
                 if self._recording:
@@ -470,8 +475,16 @@ class AudioService:
                 # Simple decimation to ~16kHz
                 if step > 1:
                     mono = mono[::step]
-                pcm = (mono * 32767).astype(np.int16).tobytes()
-                self._host_send_callback(pcm)
+
+                host_accum.append(mono.copy())
+                host_accum_samples[0] += len(mono)
+
+                if host_accum_samples[0] >= send_threshold:
+                    combined = np.concatenate(host_accum)
+                    pcm = (combined * 32767).astype(np.int16).tobytes()
+                    host_accum.clear()
+                    host_accum_samples[0] = 0
+                    self._host_send_callback(pcm)
 
             self._host_device_sr = device_sr
             self._host_stream = sd.InputStream(

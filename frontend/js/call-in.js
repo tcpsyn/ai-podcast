@@ -84,7 +84,7 @@ class PlaybackProcessor extends AudioWorkletProcessor {
         this.readPos = 0;
         this.available = 0;
         this.started = false;
-        this.jitterMs = 150; // buffer 150ms before starting playback
+        this.jitterMs = 100; // buffer 100ms before starting playback
         this.jitterSamples = Math.floor(16000 * this.jitterMs / 1000);
 
         this.port.onmessage = (e) => {

@@ -872,25 +872,38 @@ async def caller_audio_stream(websocket: WebSocket):
 
 # --- Host Audio Broadcast ---
 
-async def _broadcast_host_audio(pcm_bytes: bytes):
-    """Send host mic audio to all active real callers"""
-    for caller_id in list(caller_service.active_calls.keys()):
-        try:
-            await caller_service.send_audio_to_caller(caller_id, pcm_bytes, 16000)
-        except Exception:
-            pass
+_host_audio_queue: asyncio.Queue = None
+_host_audio_task: asyncio.Task = None
+
+
+async def _host_audio_sender():
+    """Persistent task that drains audio queue and sends to callers"""
+    while True:
+        pcm_bytes = await _host_audio_queue.get()
+        for caller_id in list(caller_service.active_calls.keys()):
+            try:
+                await caller_service.send_audio_to_caller(caller_id, pcm_bytes, 16000)
+            except Exception:
+                pass
+
+
+def _start_host_audio_sender():
+    """Start the persistent host audio sender task"""
+    global _host_audio_queue, _host_audio_task
+    if _host_audio_queue is None:
+        _host_audio_queue = asyncio.Queue(maxsize=100)
+    if _host_audio_task is None or _host_audio_task.done():
+        _host_audio_task = asyncio.create_task(_host_audio_sender())
 
 
 def _host_audio_sync_callback(pcm_bytes: bytes):
-    """Sync wrapper to schedule async broadcast from audio thread"""
+    """Sync callback from audio thread — push to queue for async sending"""
+    if _host_audio_queue is None:
+        return
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            loop.call_soon_threadsafe(
-                asyncio.ensure_future, _broadcast_host_audio(pcm_bytes)
-            )
-    except Exception:
-        pass
+        _host_audio_queue.put_nowait(pcm_bytes)
+    except asyncio.QueueFull:
+        pass  # Drop frame rather than block
 
 
 # --- Queue Endpoints ---
@@ -920,6 +933,7 @@ async def take_call_from_queue(caller_id: str):
 
     # Start host mic streaming if this is the first real caller
     if len(caller_service.active_calls) == 1:
+        _start_host_audio_sender()
         audio_service.start_host_stream(_host_audio_sync_callback)
 
     return {
