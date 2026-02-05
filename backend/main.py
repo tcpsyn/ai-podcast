@@ -1022,6 +1022,13 @@ async def _check_ai_auto_respond(real_caller_text: str, real_caller_name: str):
     )
     thread.start()
 
+    # Also send to active real caller so they hear the AI
+    if session.active_real_caller:
+        caller_id = session.active_real_caller["caller_id"]
+        asyncio.create_task(
+            caller_service.send_audio_to_caller(caller_id, audio_bytes, 24000)
+        )
+
 
 # --- Follow-Up & Session Control Endpoints ---
 
