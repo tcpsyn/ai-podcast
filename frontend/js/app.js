@@ -52,6 +52,9 @@ function initEventListeners() {
     // Start log polling
     startLogPolling();
 
+    // Start queue polling
+    startQueuePolling();
+
     // Talk button - now triggers server-side recording
     const talkBtn = document.getElementById('talk-btn');
     if (talkBtn) {
@@ -97,6 +100,45 @@ function initEventListeners() {
         phoneFilter = e.target.checked;
     });
     document.getElementById('refresh-ollama')?.addEventListener('click', refreshOllamaModels);
+
+    // Real caller hangup
+    document.getElementById('hangup-real-btn')?.addEventListener('click', async () => {
+        await fetch('/api/hangup/real', { method: 'POST' });
+        hideRealCaller();
+        log('Real caller disconnected');
+    });
+
+    // AI respond mode toggle
+    document.getElementById('mode-manual')?.addEventListener('click', () => {
+        document.getElementById('mode-manual')?.classList.add('active');
+        document.getElementById('mode-auto')?.classList.remove('active');
+        document.getElementById('ai-respond-btn')?.classList.remove('hidden');
+        fetch('/api/session/ai-mode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'manual' }),
+        });
+    });
+
+    document.getElementById('mode-auto')?.addEventListener('click', () => {
+        document.getElementById('mode-auto')?.classList.add('active');
+        document.getElementById('mode-manual')?.classList.remove('active');
+        document.getElementById('ai-respond-btn')?.classList.add('hidden');
+        fetch('/api/session/ai-mode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'auto' }),
+        });
+    });
+
+    // Auto follow-up toggle
+    document.getElementById('auto-followup')?.addEventListener('change', (e) => {
+        fetch('/api/session/auto-followup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled: e.target.checked }),
+        });
+    });
 }
 
 
@@ -273,8 +315,23 @@ async function startCall(key, name) {
 
     currentCaller = { key, name };
 
-    document.getElementById('call-status').textContent = `On call: ${name}`;
+    // Check if real caller is active (three-way scenario)
+    const realCallerActive = document.getElementById('real-caller-info') &&
+        !document.getElementById('real-caller-info').classList.contains('hidden');
+
+    if (realCallerActive) {
+        document.getElementById('call-status').textContent = `Three-way: ${name} (AI) + Real Caller`;
+    } else {
+        document.getElementById('call-status').textContent = `On call: ${name}`;
+    }
+
     document.getElementById('hangup-btn').disabled = false;
+
+    // Show AI caller in active call indicator
+    const aiInfo = document.getElementById('ai-caller-info');
+    const aiName = document.getElementById('ai-caller-name');
+    if (aiInfo) aiInfo.classList.remove('hidden');
+    if (aiName) aiName.textContent = name;
 
     // Show caller background
     const bgEl = document.getElementById('caller-background');
@@ -287,8 +344,10 @@ async function startCall(key, name) {
         btn.classList.toggle('active', btn.dataset.key === key);
     });
 
-    log(`Connected to ${name}`);
-    clearChat();
+    log(`Connected to ${name}` + (realCallerActive ? ' (three-way)' : ''));
+    if (!realCallerActive) clearChat();
+
+    updateActiveCallIndicator();
 }
 
 
@@ -314,7 +373,6 @@ async function newSession() {
 async function hangup() {
     if (!currentCaller) return;
 
-    // Stop any playing TTS
     await fetch('/api/tts/stop', { method: 'POST' });
     await fetch('/api/hangup', { method: 'POST' });
 
@@ -331,6 +389,10 @@ async function hangup() {
     // Hide caller background
     const bgEl = document.getElementById('caller-background');
     if (bgEl) bgEl.classList.add('hidden');
+
+    // Hide AI caller indicator
+    document.getElementById('ai-caller-info')?.classList.add('hidden');
+    updateActiveCallIndicator();
 }
 
 
@@ -647,7 +709,19 @@ function addMessage(sender, text) {
         return;
     }
     const div = document.createElement('div');
-    div.className = `message ${sender === 'You' ? 'host' : 'caller'}`;
+
+    let className = 'message';
+    if (sender === 'You') {
+        className += ' host';
+    } else if (sender === 'System') {
+        className += ' system';
+    } else if (sender.includes('(caller)') || sender.includes('Caller #')) {
+        className += ' real-caller';
+    } else {
+        className += ' ai-caller';
+    }
+
+    div.className = className;
     div.innerHTML = `<strong>${sender}:</strong> ${text}`;
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
@@ -766,6 +840,121 @@ async function restartServer() {
     } catch (err) {
         log('Failed to restart server: ' + err.message);
     }
+}
+
+
+// --- Call Queue ---
+let queuePollInterval = null;
+
+function startQueuePolling() {
+    queuePollInterval = setInterval(fetchQueue, 3000);
+    fetchQueue();
+}
+
+async function fetchQueue() {
+    try {
+        const res = await fetch('/api/queue');
+        const data = await res.json();
+        renderQueue(data.queue);
+    } catch (err) {}
+}
+
+function renderQueue(queue) {
+    const el = document.getElementById('call-queue');
+    if (!el) return;
+
+    if (queue.length === 0) {
+        el.innerHTML = '<div class="queue-empty">No callers waiting</div>';
+        return;
+    }
+
+    el.innerHTML = queue.map(caller => {
+        const mins = Math.floor(caller.wait_time / 60);
+        const secs = caller.wait_time % 60;
+        const waitStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        return `
+            <div class="queue-item">
+                <span class="queue-phone">${caller.phone}</span>
+                <span class="queue-wait">waiting ${waitStr}</span>
+                <button class="queue-take-btn" onclick="takeCall('${caller.call_sid}')">Take Call</button>
+                <button class="queue-drop-btn" onclick="dropCall('${caller.call_sid}')">Drop</button>
+            </div>
+        `;
+    }).join('');
+}
+
+async function takeCall(callSid) {
+    try {
+        const res = await fetch(`/api/queue/take/${callSid}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'on_air') {
+            showRealCaller(data.caller);
+            log(`${data.caller.name} (${data.caller.phone}) is on air — Channel ${data.caller.channel}`);
+        }
+    } catch (err) {
+        log('Failed to take call: ' + err.message);
+    }
+}
+
+async function dropCall(callSid) {
+    try {
+        await fetch(`/api/queue/drop/${callSid}`, { method: 'POST' });
+        fetchQueue();
+    } catch (err) {
+        log('Failed to drop call: ' + err.message);
+    }
+}
+
+
+// --- Active Call Indicator ---
+let realCallerTimer = null;
+let realCallerStartTime = null;
+
+function updateActiveCallIndicator() {
+    const container = document.getElementById('active-call');
+    const realInfo = document.getElementById('real-caller-info');
+    const aiInfo = document.getElementById('ai-caller-info');
+    const statusEl = document.getElementById('call-status');
+
+    const hasReal = realInfo && !realInfo.classList.contains('hidden');
+    const hasAi = aiInfo && !aiInfo.classList.contains('hidden');
+
+    if (hasReal || hasAi) {
+        container?.classList.remove('hidden');
+        statusEl?.classList.add('hidden');
+    } else {
+        container?.classList.add('hidden');
+        statusEl?.classList.remove('hidden');
+        if (statusEl) statusEl.textContent = 'No active call';
+    }
+}
+
+function showRealCaller(callerInfo) {
+    const nameEl = document.getElementById('real-caller-name');
+    const chEl = document.getElementById('real-caller-channel');
+    if (nameEl) nameEl.textContent = `${callerInfo.name} (${callerInfo.phone})`;
+    if (chEl) chEl.textContent = `Ch ${callerInfo.channel}`;
+
+    document.getElementById('real-caller-info')?.classList.remove('hidden');
+    realCallerStartTime = Date.now();
+
+    if (realCallerTimer) clearInterval(realCallerTimer);
+    realCallerTimer = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - realCallerStartTime) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+        const durEl = document.getElementById('real-caller-duration');
+        if (durEl) durEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }, 1000);
+
+    updateActiveCallIndicator();
+}
+
+function hideRealCaller() {
+    document.getElementById('real-caller-info')?.classList.add('hidden');
+    if (realCallerTimer) clearInterval(realCallerTimer);
+    realCallerTimer = null;
+    updateActiveCallIndicator();
 }
 
 

@@ -21,9 +21,42 @@
             <section class="callers-section">
                 <h2>Callers <span id="session-id" class="session-id"></span></h2>
                 <div id="callers" class="caller-grid"></div>
+                <!-- Active Call Indicator -->
+                <div id="active-call" class="active-call hidden">
+                    <div id="real-caller-info" class="caller-info hidden">
+                        <span class="caller-type real">LIVE</span>
+                        <span id="real-caller-name"></span>
+                        <span id="real-caller-channel" class="channel-badge"></span>
+                        <span id="real-caller-duration" class="call-duration"></span>
+                        <button id="hangup-real-btn" class="hangup-btn small">Hang Up</button>
+                    </div>
+                    <div id="ai-caller-info" class="caller-info hidden">
+                        <span class="caller-type ai">AI</span>
+                        <span id="ai-caller-name"></span>
+                        <div class="ai-controls">
+                            <div class="mode-toggle">
+                                <button id="mode-manual" class="mode-btn active">Manual</button>
+                                <button id="mode-auto" class="mode-btn">Auto</button>
+                            </div>
+                            <button id="ai-respond-btn" class="respond-btn">Let them respond</button>
+                        </div>
+                        <button id="hangup-ai-btn" class="hangup-btn small">Hang Up</button>
+                    </div>
+                    <label class="auto-followup-label">
+                        <input type="checkbox" id="auto-followup"> Auto Follow-Up
+                    </label>
+                </div>
                 <div id="call-status" class="call-status">No active call</div>
                 <div id="caller-background" class="caller-background hidden"></div>
                 <button id="hangup-btn" class="hangup-btn" disabled>Hang Up</button>
+            </section>
+
+            <!-- Call Queue -->
+            <section class="queue-section">
+                <h2>Incoming Calls</h2>
+                <div id="call-queue" class="call-queue">
+                    <div class="queue-empty">No callers waiting</div>
+                </div>
             </section>
 
             <!-- Chat -->
@@ -173,6 +206,6 @@
         </div>
     </div>
 
-    <script src="/js/app.js?v=8"></script>
+    <script src="/js/app.js?v=9"></script>
 </body>
 </html>

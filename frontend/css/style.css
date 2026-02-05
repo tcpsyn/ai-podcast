@@ -541,3 +541,38 @@ section h2 {
 .server-log .log-line.chat {
     color: #f8f;
 }
+
+/* Call Queue */
+.queue-section { margin: 1rem 0; }
+.call-queue { border: 1px solid #333; border-radius: 4px; padding: 0.5rem; max-height: 150px; overflow-y: auto; }
+.queue-empty { color: #666; text-align: center; padding: 0.5rem; }
+.queue-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 0.5rem; border-bottom: 1px solid #222; }
+.queue-item:last-child { border-bottom: none; }
+.queue-phone { font-family: monospace; color: #4fc3f7; }
+.queue-wait { color: #999; font-size: 0.85rem; flex: 1; }
+.queue-take-btn { background: #2e7d32; color: white; border: none; padding: 0.25rem 0.75rem; border-radius: 3px; cursor: pointer; }
+.queue-take-btn:hover { background: #388e3c; }
+.queue-drop-btn { background: #c62828; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; }
+.queue-drop-btn:hover { background: #d32f2f; }
+
+/* Active Call Indicator */
+.active-call { border: 1px solid #444; border-radius: 4px; padding: 0.75rem; margin: 0.5rem 0; background: #1a1a2e; }
+.caller-info { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.caller-info:last-of-type { margin-bottom: 0; }
+.caller-type { font-size: 0.7rem; font-weight: bold; padding: 0.15rem 0.4rem; border-radius: 3px; text-transform: uppercase; }
+.caller-type.real { background: #c62828; color: white; }
+.caller-type.ai { background: #1565c0; color: white; }
+.channel-badge { font-size: 0.75rem; color: #999; background: #222; padding: 0.1rem 0.4rem; border-radius: 3px; }
+.call-duration { font-family: monospace; color: #4fc3f7; }
+.ai-controls { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; }
+.mode-toggle { display: flex; border: 1px solid #444; border-radius: 3px; overflow: hidden; }
+.mode-btn { background: #222; color: #999; border: none; padding: 0.2rem 0.5rem; font-size: 0.75rem; cursor: pointer; }
+.mode-btn.active { background: #1565c0; color: white; }
+.respond-btn { background: #2e7d32; color: white; border: none; padding: 0.25rem 0.75rem; border-radius: 3px; font-size: 0.8rem; cursor: pointer; }
+.hangup-btn.small { font-size: 0.75rem; padding: 0.2rem 0.5rem; }
+.auto-followup-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #999; margin-top: 0.5rem; }
+
+/* Three-Party Chat */
+.message.real-caller { border-left: 3px solid #c62828; padding-left: 0.5rem; }
+.message.ai-caller { border-left: 3px solid #1565c0; padding-left: 0.5rem; }
+.message.host { border-left: 3px solid #2e7d32; padding-left: 0.5rem; }
