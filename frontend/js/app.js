@@ -874,31 +874,31 @@ function renderQueue(queue) {
         const waitStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
         return `
             <div class="queue-item">
-                <span class="queue-phone">${caller.phone}</span>
+                <span class="queue-name">${caller.name}</span>
                 <span class="queue-wait">waiting ${waitStr}</span>
-                <button class="queue-take-btn" onclick="takeCall('${caller.call_sid}')">Take Call</button>
-                <button class="queue-drop-btn" onclick="dropCall('${caller.call_sid}')">Drop</button>
+                <button class="queue-take-btn" onclick="takeCall('${caller.caller_id}')">Take Call</button>
+                <button class="queue-drop-btn" onclick="dropCall('${caller.caller_id}')">Drop</button>
             </div>
         `;
     }).join('');
 }
 
-async function takeCall(callSid) {
+async function takeCall(callerId) {
     try {
-        const res = await fetch(`/api/queue/take/${callSid}`, { method: 'POST' });
+        const res = await fetch(`/api/queue/take/${callerId}`, { method: 'POST' });
         const data = await res.json();
         if (data.status === 'on_air') {
             showRealCaller(data.caller);
-            log(`${data.caller.name} (${data.caller.phone}) is on air — Channel ${data.caller.channel}`);
+            log(`${data.caller.name} is on air — Channel ${data.caller.channel}`);
         }
     } catch (err) {
         log('Failed to take call: ' + err.message);
     }
 }
 
-async function dropCall(callSid) {
+async function dropCall(callerId) {
     try {
-        await fetch(`/api/queue/drop/${callSid}`, { method: 'POST' });
+        await fetch(`/api/queue/drop/${callerId}`, { method: 'POST' });
         fetchQueue();
     } catch (err) {
         log('Failed to drop call: ' + err.message);
@@ -932,7 +932,7 @@ function updateActiveCallIndicator() {
 function showRealCaller(callerInfo) {
     const nameEl = document.getElementById('real-caller-name');
     const chEl = document.getElementById('real-caller-channel');
-    if (nameEl) nameEl.textContent = `${callerInfo.name} (${callerInfo.phone})`;
+    if (nameEl) nameEl.textContent = callerInfo.name;
     if (chEl) chEl.textContent = `Ch ${callerInfo.channel}`;
 
     document.getElementById('real-caller-info')?.classList.remove('hidden');

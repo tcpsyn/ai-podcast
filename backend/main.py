@@ -416,6 +416,11 @@ async def index():
     return FileResponse(frontend_dir / "index.html")
 
 
+@app.get("/call-in")
+async def call_in_page():
+    return FileResponse(frontend_dir / "call-in.html")
+
+
 # --- Request Models ---
 
 class ChatRequest(BaseModel):
