@@ -555,10 +555,11 @@ async def hangup():
     caller_name = session.caller["name"] if session.caller else None
     session.end_call()
 
-    # Play hangup sound
+    # Play hangup sound in background so response returns immediately
+    import threading
     hangup_sound = settings.sounds_dir / "hangup.wav"
     if hangup_sound.exists():
-        audio_service.play_sfx(str(hangup_sound))
+        threading.Thread(target=audio_service.play_sfx, args=(str(hangup_sound),), daemon=True).start()
 
     return {"status": "disconnected", "caller": caller_name}
 
@@ -1012,33 +1013,16 @@ async def _check_ai_auto_respond(real_caller_text: str, real_caller_name: str):
 
 @app.post("/api/hangup/real")
 async def hangup_real_caller():
-    """Hang up on real caller — summarize call and store in history"""
+    """Hang up on real caller — disconnect immediately, summarize in background"""
     if not session.active_real_caller:
         raise HTTPException(400, "No active real caller")
 
     caller_id = session.active_real_caller["caller_id"]
     caller_name = session.active_real_caller["name"]
+    conversation_snapshot = list(session.conversation)
+    auto_followup_enabled = session.auto_followup
 
-    # Summarize the conversation
-    summary = ""
-    if session.conversation:
-        transcript_text = "\n".join(
-            f"{msg['role']}: {msg['content']}" for msg in session.conversation
-        )
-        summary = await llm_service.generate(
-            messages=[{"role": "user", "content": f"Summarize this radio show call in 1-2 sentences:\n{transcript_text}"}],
-            system_prompt="You summarize radio show conversations concisely. Focus on what the caller talked about and any emotional moments.",
-        )
-
-    # Store in call history
-    session.call_history.append(CallRecord(
-        caller_type="real",
-        caller_name=caller_name,
-        summary=summary,
-        transcript=list(session.conversation),
-    ))
-
-    # Disconnect the caller
+    # Disconnect the caller immediately
     caller_service.hangup(caller_id)
     await caller_service.disconnect_caller(caller_id)
 
@@ -1048,23 +1032,45 @@ async def hangup_real_caller():
 
     session.active_real_caller = None
 
-    # Play hangup sound
+    # Play hangup sound in background
+    import threading
     hangup_sound = settings.sounds_dir / "hangup.wav"
     if hangup_sound.exists():
-        audio_service.play_sfx(str(hangup_sound))
+        threading.Thread(target=audio_service.play_sfx, args=(str(hangup_sound),), daemon=True).start()
 
-    # Auto follow-up?
-    auto_followup_triggered = False
-    if session.auto_followup:
-        auto_followup_triggered = True
-        asyncio.create_task(_auto_followup(summary))
+    # Summarize and store history in background
+    asyncio.create_task(
+        _summarize_real_call(caller_name, conversation_snapshot, auto_followup_enabled)
+    )
 
     return {
         "status": "disconnected",
         "caller": caller_name,
-        "summary": summary,
-        "auto_followup": auto_followup_triggered,
     }
+
+
+async def _summarize_real_call(caller_name: str, conversation: list, auto_followup_enabled: bool):
+    """Background task: summarize call and store in history"""
+    summary = ""
+    if conversation:
+        transcript_text = "\n".join(
+            f"{msg['role']}: {msg['content']}" for msg in conversation
+        )
+        summary = await llm_service.generate(
+            messages=[{"role": "user", "content": f"Summarize this radio show call in 1-2 sentences:\n{transcript_text}"}],
+            system_prompt="You summarize radio show conversations concisely. Focus on what the caller talked about and any emotional moments.",
+        )
+
+    session.call_history.append(CallRecord(
+        caller_type="real",
+        caller_name=caller_name,
+        summary=summary,
+        transcript=conversation,
+    ))
+    print(f"[Real Caller] {caller_name} call summarized: {summary[:80]}...")
+
+    if auto_followup_enabled:
+        await _auto_followup(summary)
 
 
 async def _auto_followup(last_call_summary: str):
