@@ -366,7 +366,7 @@ class AudioService:
             channels=num_channels,
             dtype=np.float32,
             callback=callback,
-            blocksize=2048,
+            blocksize=1024,
         )
         self._live_caller_stream.start()
         print(f"[Audio] Live caller stream started on ch {self.live_caller_channel} @ {device_sr}Hz")
@@ -438,7 +438,7 @@ class AudioService:
                 channels=max_channels,
                 samplerate=device_sr,
                 dtype=np.float32,
-                blocksize=4096,
+                blocksize=1024,
                 callback=callback,
             )
             self._host_stream.start()

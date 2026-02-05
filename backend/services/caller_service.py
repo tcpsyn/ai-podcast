@@ -119,9 +119,12 @@ class CallerService:
         try:
             if sample_rate != 16000:
                 import numpy as np
-                import librosa
                 audio = np.frombuffer(pcm_data, dtype=np.int16).astype(np.float32) / 32768.0
-                audio = librosa.resample(audio, orig_sr=sample_rate, target_sr=16000)
+                ratio = 16000 / sample_rate
+                out_len = int(len(audio) * ratio)
+                indices = (np.arange(out_len) / ratio).astype(int)
+                indices = np.clip(indices, 0, len(audio) - 1)
+                audio = audio[indices]
                 pcm_data = (audio * 32767).astype(np.int16).tobytes()
             await ws.send_bytes(pcm_data)
         except Exception as e:

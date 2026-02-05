@@ -8,7 +8,7 @@ let ws = null;
 let audioCtx = null;
 let micStream = null;
 let workletNode = null;
-let nextPlayTime = 0;
+let playbackNode = null;
 let callerId = null;
 
 const callBtn = document.getElementById('call-btn');
@@ -39,19 +39,19 @@ async function startCall() {
         // Set up AudioContext
         audioCtx = new AudioContext({ sampleRate: 48000 });
 
-        // Register worklet processor inline via blob
+        // Register worklet processors inline via blob
         const processorCode = `
+// --- Capture processor: downsample to 16kHz, emit small chunks ---
 class CallerProcessor extends AudioWorkletProcessor {
     constructor() {
         super();
         this.buffer = [];
-        this.targetSamples = 4096; // ~256ms at 16kHz
+        this.targetSamples = 640; // 40ms at 16kHz — low latency
     }
     process(inputs) {
         const input = inputs[0][0];
         if (!input) return true;
 
-        // Downsample from sampleRate to 16000
         const ratio = sampleRate / 16000;
         for (let i = 0; i < input.length; i += ratio) {
             const idx = Math.floor(i);
@@ -60,7 +60,7 @@ class CallerProcessor extends AudioWorkletProcessor {
             }
         }
 
-        if (this.buffer.length >= this.targetSamples) {
+        while (this.buffer.length >= this.targetSamples) {
             const chunk = this.buffer.splice(0, this.targetSamples);
             const int16 = new Int16Array(chunk.length);
             for (let i = 0; i < chunk.length; i++) {
@@ -73,6 +73,70 @@ class CallerProcessor extends AudioWorkletProcessor {
     }
 }
 registerProcessor('caller-processor', CallerProcessor);
+
+// --- Playback processor: ring buffer with 16kHz->sampleRate upsampling ---
+class PlaybackProcessor extends AudioWorkletProcessor {
+    constructor() {
+        super();
+        this.ringSize = 16000 * 3; // 3s ring buffer at 16kHz
+        this.ring = new Float32Array(this.ringSize);
+        this.writePos = 0;
+        this.readPos = 0;
+        this.available = 0;
+        this.started = false;
+        this.jitterMs = 80; // buffer 80ms before starting playback
+        this.jitterSamples = Math.floor(16000 * this.jitterMs / 1000);
+
+        this.port.onmessage = (e) => {
+            const data = e.data;
+            for (let i = 0; i < data.length; i++) {
+                this.ring[this.writePos] = data[i];
+                this.writePos = (this.writePos + 1) % this.ringSize;
+            }
+            this.available += data.length;
+            if (this.available > this.ringSize) {
+                // Overflow — skip ahead
+                this.available = this.ringSize;
+                this.readPos = (this.writePos - this.ringSize + this.ringSize) % this.ringSize;
+            }
+        };
+    }
+    process(inputs, outputs) {
+        const output = outputs[0][0];
+        if (!output) return true;
+
+        // Wait for jitter buffer to fill before starting
+        if (!this.started) {
+            if (this.available < this.jitterSamples) {
+                output.fill(0);
+                return true;
+            }
+            this.started = true;
+        }
+
+        const ratio = 16000 / sampleRate;
+        const srcNeeded = Math.ceil(output.length * ratio);
+
+        if (this.available >= srcNeeded) {
+            for (let i = 0; i < output.length; i++) {
+                const srcPos = i * ratio;
+                const idx = Math.floor(srcPos);
+                const frac = srcPos - idx;
+                const p0 = (this.readPos + idx) % this.ringSize;
+                const p1 = (p0 + 1) % this.ringSize;
+                output[i] = this.ring[p0] * (1 - frac) + this.ring[p1] * frac;
+            }
+            this.readPos = (this.readPos + srcNeeded) % this.ringSize;
+            this.available -= srcNeeded;
+        } else {
+            // Underrun — silence, reset jitter buffer
+            output.fill(0);
+            this.started = false;
+        }
+        return true;
+    }
+}
+registerProcessor('playback-processor', PlaybackProcessor);
 `;
         const blob = new Blob([processorCode], { type: 'application/javascript' });
         const blobUrl = URL.createObjectURL(blob);
@@ -120,6 +184,10 @@ registerProcessor('caller-processor', CallerProcessor);
         source.connect(workletNode);
         // Don't connect worklet to destination — we don't want to hear our own mic
 
+        // Set up playback worklet for received audio
+        playbackNode = new AudioWorkletNode(audioCtx, 'playback-processor');
+        playbackNode.connect(audioCtx.destination);
+
         // Show mic meter
         const analyser = audioCtx.createAnalyser();
         analyser.fftSize = 256;
@@ -144,7 +212,6 @@ function handleControlMessage(msg) {
         setStatus(`Waiting in queue (position ${msg.position})...`, false);
     } else if (msg.status === 'on_air') {
         setStatus('ON AIR', true);
-        nextPlayTime = audioCtx.currentTime;
     } else if (msg.status === 'disconnected') {
         setStatus('Disconnected', false);
         cleanup();
@@ -152,27 +219,15 @@ function handleControlMessage(msg) {
 }
 
 function handleAudioData(buffer) {
-    if (!audioCtx) return;
+    if (!playbackNode) return;
 
+    // Convert Int16 PCM to Float32 and send to playback worklet
     const int16 = new Int16Array(buffer);
     const float32 = new Float32Array(int16.length);
     for (let i = 0; i < int16.length; i++) {
         float32[i] = int16[i] / 32768;
     }
-
-    const audioBuf = audioCtx.createBuffer(1, float32.length, 16000);
-    audioBuf.copyToChannel(float32, 0);
-
-    const source = audioCtx.createBufferSource();
-    source.buffer = audioBuf;
-    source.connect(audioCtx.destination);
-
-    const now = audioCtx.currentTime;
-    if (nextPlayTime < now) {
-        nextPlayTime = now;
-    }
-    source.start(nextPlayTime);
-    nextPlayTime += audioBuf.duration;
+    playbackNode.port.postMessage(float32, [float32.buffer]);
 }
 
 function hangUp() {
@@ -187,6 +242,10 @@ function cleanup() {
     if (workletNode) {
         workletNode.disconnect();
         workletNode = null;
+    }
+    if (playbackNode) {
+        playbackNode.disconnect();
+        playbackNode = null;
     }
     if (micStream) {
         micStream.getTracks().forEach(t => t.stop());
