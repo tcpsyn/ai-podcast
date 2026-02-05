@@ -30,8 +30,8 @@ def test_session_active_real_caller():
     s = Session()
     assert s.active_real_caller is None
     s.active_real_caller = {
-        "call_sid": "CA123", "phone": "+15125550142",
-        "channel": 3, "name": "Caller #1",
+        "caller_id": "abc123",
+        "channel": 3, "name": "Dave",
     }
     assert s.active_real_caller["channel"] == 3
 
@@ -70,7 +70,7 @@ def test_session_reset_clears_history():
         caller_type="real", caller_name="Dave",
         summary="test", transcript=[],
     ))
-    s.active_real_caller = {"call_sid": "CA123"}
+    s.active_real_caller = {"caller_id": "abc123"}
     s.ai_respond_mode = "auto"
     s.reset()
     assert s.call_history == []

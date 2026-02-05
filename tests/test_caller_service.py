@@ -100,3 +100,81 @@ def test_send_audio_no_websocket():
     asyncio.get_event_loop().run_until_complete(
         svc.send_audio_to_caller("NONE", b"\x00" * 100, 16000)
     )
+
+
+def test_notify_caller():
+    """notify_caller sends JSON text to WebSocket"""
+    import asyncio
+
+    class FakeWS:
+        def __init__(self):
+            self.sent = []
+        async def send_text(self, data):
+            self.sent.append(data)
+
+    svc = CallerService()
+    ws = FakeWS()
+    svc.register_websocket("abc123", ws)
+    asyncio.get_event_loop().run_until_complete(
+        svc.notify_caller("abc123", {"status": "on_air", "channel": 3})
+    )
+    assert len(ws.sent) == 1
+    import json
+    msg = json.loads(ws.sent[0])
+    assert msg["status"] == "on_air"
+    assert msg["channel"] == 3
+
+
+def test_disconnect_caller():
+    """disconnect_caller sends disconnected message and removes WS"""
+    import asyncio
+
+    class FakeWS:
+        def __init__(self):
+            self.sent = []
+            self.closed = False
+        async def send_text(self, data):
+            self.sent.append(data)
+        async def close(self):
+            self.closed = True
+
+    svc = CallerService()
+    ws = FakeWS()
+    svc.register_websocket("abc123", ws)
+    asyncio.get_event_loop().run_until_complete(
+        svc.disconnect_caller("abc123")
+    )
+    assert ws.closed
+    assert "abc123" not in svc._websockets
+    import json
+    msg = json.loads(ws.sent[0])
+    assert msg["status"] == "disconnected"
+
+
+def test_send_audio_binary():
+    """send_audio_to_caller sends raw PCM bytes (not mulaw/JSON)"""
+    import asyncio
+
+    class FakeWS:
+        def __init__(self):
+            self.sent_bytes = []
+        async def send_bytes(self, data):
+            self.sent_bytes.append(data)
+
+    svc = CallerService()
+    ws = FakeWS()
+    svc.register_websocket("abc123", ws)
+    pcm = b"\x00\x01" * 100
+    asyncio.get_event_loop().run_until_complete(
+        svc.send_audio_to_caller("abc123", pcm, 16000)
+    )
+    assert len(ws.sent_bytes) == 1
+    assert ws.sent_bytes[0] == pcm
+
+
+def test_take_call_preserves_caller_name():
+    """take_call uses the name from the queue, not a generic counter name"""
+    svc = CallerService()
+    svc.add_to_queue("abc123", "Dave from Chicago")
+    result = svc.take_call("abc123")
+    assert result["name"] == "Dave from Chicago"
