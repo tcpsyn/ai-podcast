@@ -7,10 +7,10 @@ from ..config import settings
 
 # Available OpenRouter models
 OPENROUTER_MODELS = [
-    "anthropic/claude-3-haiku",
-    "anthropic/claude-3.5-sonnet",
     "openai/gpt-4o-mini",
     "openai/gpt-4o",
+    "anthropic/claude-3-haiku",
+    "anthropic/claude-3.5-sonnet",
     "google/gemini-flash-1.5",
     "google/gemini-pro-1.5",
     "meta-llama/llama-3.1-8b-instruct",
@@ -114,7 +114,7 @@ class LLMService:
         """Call OpenRouter API with retry"""
         for attempt in range(2):  # Try twice
             try:
-                async with httpx.AsyncClient(timeout=30.0) as client:
+                async with httpx.AsyncClient(timeout=60.0) as client:
                     response = await client.post(
                         "https://openrouter.ai/api/v1/chat/completions",
                         headers={
@@ -124,12 +124,16 @@ class LLMService:
                         json={
                             "model": self.openrouter_model,
                             "messages": messages,
-                            "max_tokens": 100,
+                            "max_tokens": 150,
                         },
                     )
                     response.raise_for_status()
                     data = response.json()
-                    return data["choices"][0]["message"]["content"]
+                    content = data["choices"][0]["message"]["content"]
+                    if not content or not content.strip():
+                        print(f"OpenRouter returned empty response")
+                        return ""
+                    return content
             except (httpx.TimeoutException, httpx.ReadTimeout):
                 print(f"OpenRouter timeout (attempt {attempt + 1})")
                 if attempt == 0:

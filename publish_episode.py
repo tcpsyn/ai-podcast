@@ -155,11 +155,12 @@ Respond with ONLY valid JSON, no markdown or explanation."""
     return metadata
 
 
-def create_episode(audio_path: str, metadata: dict, duration: int) -> dict:
+def create_episode(audio_path: str, metadata: dict, episode_number: int) -> dict:
     """Create episode on Castopod."""
     print("[3/5] Creating episode on Castopod...")
 
     headers = get_auth_header()
+    slug = re.sub(r'[^a-z0-9]+', '-', metadata["title"].lower()).strip('-')
 
     # Upload audio and create episode
     with open(audio_path, "rb") as f:
@@ -168,21 +169,25 @@ def create_episode(audio_path: str, metadata: dict, duration: int) -> dict:
         }
         data = {
             "title": metadata["title"],
-            "description_markdown": metadata["description"],
+            "slug": slug,
+            "description": metadata["description"],
             "parental_advisory": "explicit",
             "type": "full",
-            "created_by": "1"
+            "podcast_id": str(PODCAST_ID),
+            "created_by": "1",
+            "updated_by": "1",
+            "episode_number": str(episode_number),
         }
 
         response = requests.post(
-            f"{CASTOPOD_URL}/api/rest/v1/podcasts/{PODCAST_ID}/episodes",
+            f"{CASTOPOD_URL}/api/rest/v1/episodes",
             headers=headers,
             files=files,
             data=data
         )
 
     if response.status_code not in (200, 201):
-        print(f"Error creating episode: {response.text}")
+        print(f"Error creating episode: {response.status_code} {response.text}")
         sys.exit(1)
 
     episode = response.json()
@@ -312,7 +317,7 @@ def get_next_episode_number() -> int:
     headers = get_auth_header()
 
     response = requests.get(
-        f"{CASTOPOD_URL}/api/rest/v1/podcasts/{PODCAST_ID}/episodes",
+        f"{CASTOPOD_URL}/api/rest/v1/episodes",
         headers=headers
     )
 
@@ -323,7 +328,12 @@ def get_next_episode_number() -> int:
     if not episodes:
         return 1
 
-    max_num = max(ep.get("number", 0) for ep in episodes)
+    # Filter to our podcast
+    our_episodes = [ep for ep in episodes if ep.get("podcast_id") == PODCAST_ID]
+    if not our_episodes:
+        return 1
+
+    max_num = max(ep.get("number", 0) or 0 for ep in our_episodes)
     return max_num + 1
 
 
@@ -373,7 +383,7 @@ def main():
         return
 
     # Step 3: Create episode
-    episode = create_episode(str(audio_path), metadata, transcript["duration"])
+    episode = create_episode(str(audio_path), metadata, episode_number)
 
     # Step 4: Publish
     episode = publish_episode(episode["id"])
