@@ -11,17 +11,17 @@ def test_queue_starts_empty():
 
 def test_add_caller_to_queue():
     svc = CallerService()
-    svc.add_to_queue("abc123", "Dave")
+    svc.add_to_queue("abc123", "+15551234567")
     q = svc.get_queue()
     assert len(q) == 1
     assert q[0]["caller_id"] == "abc123"
-    assert q[0]["name"] == "Dave"
+    assert q[0]["phone"] == "+15551234567"
     assert "wait_time" in q[0]
 
 
 def test_remove_caller_from_queue():
     svc = CallerService()
-    svc.add_to_queue("abc123", "Dave")
+    svc.add_to_queue("abc123", "+15551234567")
     svc.remove_from_queue("abc123")
     assert svc.get_queue() == []
 
@@ -39,7 +39,7 @@ def test_allocate_channel():
 
 def test_take_call():
     svc = CallerService()
-    svc.add_to_queue("abc123", "Dave")
+    svc.add_to_queue("abc123", "+15551234567")
     result = svc.take_call("abc123")
     assert result["caller_id"] == "abc123"
     assert result["channel"] >= 3
@@ -49,7 +49,7 @@ def test_take_call():
 
 def test_hangup_real_caller():
     svc = CallerService()
-    svc.add_to_queue("abc123", "Dave")
+    svc.add_to_queue("abc123", "+15551234567")
     svc.take_call("abc123")
     ch = svc.active_calls["abc123"]["channel"]
     svc.hangup("abc123")
@@ -59,12 +59,12 @@ def test_hangup_real_caller():
 
 def test_caller_counter_increments():
     svc = CallerService()
-    svc.add_to_queue("id1", "Dave")
-    svc.add_to_queue("id2", "Sarah")
+    svc.add_to_queue("id1", "+15551234567")
+    svc.add_to_queue("id2", "+15559876543")
     r1 = svc.take_call("id1")
     r2 = svc.take_call("id2")
-    assert r1["name"] == "Dave"
-    assert r2["name"] == "Sarah"
+    assert r1["phone"] == "+15551234567"
+    assert r2["phone"] == "+15559876543"
 
 
 def test_register_and_unregister_websocket():
@@ -78,7 +78,7 @@ def test_register_and_unregister_websocket():
 
 def test_hangup_clears_websocket():
     svc = CallerService()
-    svc.add_to_queue("abc123", "Dave")
+    svc.add_to_queue("abc123", "+15551234567")
     svc.take_call("abc123")
     svc.register_websocket("abc123", object())
     svc.hangup("abc123")
@@ -102,64 +102,17 @@ def test_send_audio_no_websocket():
     )
 
 
-def test_notify_caller():
-    """notify_caller sends JSON text to WebSocket"""
+def test_send_audio_json():
+    """send_audio_to_caller sends base64 JSON via SignalWire protocol"""
     import asyncio
-
-    class FakeWS:
-        def __init__(self):
-            self.sent = []
-        async def send_text(self, data):
-            self.sent.append(data)
-
-    svc = CallerService()
-    ws = FakeWS()
-    svc.register_websocket("abc123", ws)
-    asyncio.get_event_loop().run_until_complete(
-        svc.notify_caller("abc123", {"status": "on_air", "channel": 3})
-    )
-    assert len(ws.sent) == 1
     import json
-    msg = json.loads(ws.sent[0])
-    assert msg["status"] == "on_air"
-    assert msg["channel"] == 3
-
-
-def test_disconnect_caller():
-    """disconnect_caller sends disconnected message and removes WS"""
-    import asyncio
+    import base64
 
     class FakeWS:
         def __init__(self):
-            self.sent = []
-            self.closed = False
+            self.sent_text = []
         async def send_text(self, data):
-            self.sent.append(data)
-        async def close(self):
-            self.closed = True
-
-    svc = CallerService()
-    ws = FakeWS()
-    svc.register_websocket("abc123", ws)
-    asyncio.get_event_loop().run_until_complete(
-        svc.disconnect_caller("abc123")
-    )
-    assert ws.closed
-    assert "abc123" not in svc._websockets
-    import json
-    msg = json.loads(ws.sent[0])
-    assert msg["status"] == "disconnected"
-
-
-def test_send_audio_binary():
-    """send_audio_to_caller sends raw PCM bytes (not mulaw/JSON)"""
-    import asyncio
-
-    class FakeWS:
-        def __init__(self):
-            self.sent_bytes = []
-        async def send_bytes(self, data):
-            self.sent_bytes.append(data)
+            self.sent_text.append(data)
 
     svc = CallerService()
     ws = FakeWS()
@@ -168,13 +121,15 @@ def test_send_audio_binary():
     asyncio.get_event_loop().run_until_complete(
         svc.send_audio_to_caller("abc123", pcm, 16000)
     )
-    assert len(ws.sent_bytes) == 1
-    assert ws.sent_bytes[0] == pcm
+    assert len(ws.sent_text) == 1
+    msg = json.loads(ws.sent_text[0])
+    assert msg["event"] == "media"
+    assert base64.b64decode(msg["media"]["payload"]) == pcm
 
 
-def test_take_call_preserves_caller_name():
-    """take_call uses the name from the queue, not a generic counter name"""
+def test_take_call_preserves_caller_phone():
+    """take_call uses the phone from the queue"""
     svc = CallerService()
-    svc.add_to_queue("abc123", "Dave from Chicago")
+    svc.add_to_queue("abc123", "+15551234567")
     result = svc.take_call("abc123")
-    assert result["name"] == "Dave from Chicago"
+    assert result["phone"] == "+15551234567"
