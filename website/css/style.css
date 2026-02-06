@@ -1,10 +1,11 @@
 :root {
-  --bg: #1a1a2e;
-  --bg-light: #252547;
-  --accent: #e94560;
-  --accent-hover: #ff6b81;
-  --text: #f0f0f0;
-  --text-muted: #888;
+  --bg: #1a1209;
+  --bg-light: #2a2015;
+  --accent: #e8791d;
+  --accent-hover: #f59a4a;
+  --accent-red: #cc2222;
+  --text: #f5f0e5;
+  --text-muted: #9a8b78;
   --radius: 12px;
   --radius-sm: 8px;
 }
@@ -51,7 +52,7 @@ a:hover {
   width: 220px;
   height: 220px;
   border-radius: var(--radius);
-  box-shadow: 0 8px 32px rgba(233, 69, 96, 0.3);
+  box-shadow: 0 8px 32px rgba(232, 121, 29, 0.35);
   object-fit: cover;
 }
 
@@ -167,7 +168,7 @@ a:hover {
 }
 
 .episode-card:hover {
-  background: #2d2d55;
+  background: #352a1c;
 }
 
 .episode-play-btn {
@@ -242,7 +243,7 @@ a:hover {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #16162b;
+  background: #150f06;
   border-top: 1px solid #333;
   padding: 0.75rem 1.5rem;
   display: none;
@@ -337,7 +338,7 @@ a:hover {
   text-align: center;
   color: var(--text-muted);
   font-size: 0.85rem;
-  border-top: 1px solid #252547;
+  border-top: 1px solid #2a2015;
 }
 
 .footer-links {
