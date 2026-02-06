@@ -1,0 +1,386 @@
+:root {
+  --bg: #1a1a2e;
+  --bg-light: #252547;
+  --accent: #e94560;
+  --accent-hover: #ff6b81;
+  --text: #f0f0f0;
+  --text-muted: #888;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* Hero */
+.hero {
+  padding: 3rem 1.5rem 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.cover-art {
+  width: 220px;
+  height: 220px;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(233, 69, 96, 0.3);
+  object-fit: cover;
+}
+
+.hero-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  font-size: 1.15rem;
+  color: var(--text-muted);
+  max-width: 400px;
+}
+
+.phone {
+  margin-top: 0.5rem;
+}
+
+.phone-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  display: block;
+}
+
+.phone-digits {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.phone-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.25rem;
+}
+
+/* Subscribe buttons */
+.subscribe-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.subscribe-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.subscribe-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+.subscribe-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.btn-spotify { background: #1DB954; }
+.btn-youtube { background: #FF0000; }
+.btn-apple { background: #A033FF; }
+.btn-rss { background: #f26522; }
+
+/* Episodes */
+.episodes-section {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 8rem;
+}
+
+.episodes-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.episodes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.episode-card {
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  transition: background 0.2s;
+}
+
+.episode-card:hover {
+  background: #2d2d55;
+}
+
+.episode-play-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.episode-play-btn:hover {
+  background: var(--accent-hover);
+  transform: scale(1.05);
+}
+
+.episode-play-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: #fff;
+}
+
+.episode-play-btn.playing svg {
+  /* pause icon swap handled by JS */
+}
+
+.episode-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.episode-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.episode-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.episode-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.episodes-loading {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem 0;
+}
+
+.episodes-error {
+  text-align: center;
+  color: var(--accent);
+  padding: 2rem 0;
+}
+
+/* Sticky Player */
+.sticky-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #16162b;
+  border-top: 1px solid #333;
+  padding: 0.75rem 1.5rem;
+  display: none;
+  z-index: 100;
+}
+
+.sticky-player.active {
+  display: block;
+}
+
+.player-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.player-play-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.player-play-btn:hover {
+  background: var(--accent-hover);
+}
+
+.player-play-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: #fff;
+}
+
+.player-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.player-progress {
+  flex: 1;
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+
+.player-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+.player-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  min-width: 80px;
+  text-align: right;
+}
+
+/* Footer */
+.footer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 10rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid #252547;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.footer-links a {
+  color: var(--text-muted);
+}
+
+.footer-links a:hover {
+  color: var(--text);
+}
+
+/* Desktop */
+@media (min-width: 768px) {
+  .hero {
+    padding: 4rem 2rem 2.5rem;
+  }
+
+  .hero-inner {
+    flex-direction: row;
+    text-align: left;
+    gap: 3rem;
+  }
+
+  .hero-info {
+    align-items: flex-start;
+  }
+
+  .cover-art {
+    width: 260px;
+    height: 260px;
+  }
+
+  .subscribe-row {
+    justify-content: flex-start;
+  }
+
+  .episodes-section {
+    padding: 2rem 2rem 8rem;
+  }
+}
