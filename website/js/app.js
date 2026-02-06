@@ -1,5 +1,4 @@
-const FEED_URL = 'https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml';
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+const FEED_URL = '/feed';
 
 const audio = document.getElementById('audio-element');
 const stickyPlayer = document.getElementById('sticky-player');
@@ -57,23 +56,29 @@ function truncate(html, maxLen) {
 const playSVG = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
 const pauseSVG = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
 
+// Fetch with timeout
+function fetchWithTimeout(url, ms = 8000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ms);
+  return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timeout));
+}
+
 // Fetch and parse RSS feed
 async function fetchEpisodes() {
   let xml;
-  try {
-    // Try direct fetch first
-    const res = await fetch(FEED_URL);
-    if (!res.ok) throw new Error('Direct fetch failed');
-    xml = await res.text();
-  } catch {
+  const maxRetries = 2;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      // Fallback to CORS proxy
-      const res = await fetch(CORS_PROXY + encodeURIComponent(FEED_URL));
-      if (!res.ok) throw new Error('Proxy fetch failed');
+      const res = await fetchWithTimeout(FEED_URL);
+      if (!res.ok) throw new Error('Fetch failed');
       xml = await res.text();
-    } catch {
-      episodesList.innerHTML = '<div class="episodes-error">Unable to load episodes. <a href="' + FEED_URL + '" target="_blank">View RSS feed</a></div>';
-      return;
+      if (xml.includes('<item>')) break;
+      throw new Error('Invalid response');
+    } catch (err) {
+      if (attempt === maxRetries) {
+        episodesList.innerHTML = '<div class="episodes-error">Unable to load episodes. <a href="https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml" target="_blank">View RSS feed</a></div>';
+        return;
+      }
     }
   }
 
