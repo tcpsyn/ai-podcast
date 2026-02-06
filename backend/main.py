@@ -469,6 +469,7 @@ session = Session()
 caller_service = CallerService()
 _ai_response_lock = asyncio.Lock()  # Prevents concurrent AI responses
 _session_epoch = 0  # Increments on hangup/call start — stale tasks check this
+_show_on_air = False  # Controls whether phone calls are accepted or get off-air message
 
 
 # --- News & Research Helpers ---
@@ -551,6 +552,21 @@ async def index():
     return FileResponse(frontend_dir / "index.html")
 
 
+# --- On-Air Toggle ---
+
+@app.post("/api/on-air")
+async def set_on_air(state: dict):
+    """Toggle whether the show is on air (accepting phone calls)"""
+    global _show_on_air
+    _show_on_air = bool(state.get("on_air", False))
+    print(f"[Show] On-air: {_show_on_air}")
+    return {"on_air": _show_on_air}
+
+@app.get("/api/on-air")
+async def get_on_air():
+    return {"on_air": _show_on_air}
+
+
 # --- SignalWire Endpoints ---
 
 @app.post("/api/signalwire/voice")
@@ -560,6 +576,15 @@ async def signalwire_voice_webhook(request: Request):
     caller_phone = form.get("From", "Unknown")
     call_sid = form.get("CallSid", "")
     print(f"[SignalWire] Inbound call from {caller_phone} (CallSid: {call_sid})")
+
+    if not _show_on_air:
+        print(f"[SignalWire] Show is off air — playing off-air message for {caller_phone}")
+        xml = """<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Say voice="woman">Luke at the Roost is off the air right now. Please call back during the show for your chance to talk to Luke. Thanks for calling!</Say>
+    <Hangup/>
+</Response>"""
+        return Response(content=xml, media_type="application/xml")
 
     # Use dedicated stream URL (ngrok) if configured, otherwise derive from request
     if settings.signalwire_stream_url:

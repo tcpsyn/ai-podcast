@@ -54,6 +54,27 @@ header button {
     cursor: pointer;
 }
 
+.on-air-btn {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: background 0.2s;
+}
+
+.on-air-btn.off {
+    background: #666 !important;
+}
+
+.on-air-btn.on {
+    background: #cc2222 !important;
+    animation: on-air-pulse 2s ease-in-out infinite;
+}
+
+@keyframes on-air-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
 .new-session-btn {
     background: var(--accent) !important;
 }

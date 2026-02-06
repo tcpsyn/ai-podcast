@@ -57,6 +57,24 @@ function initEventListeners() {
     // New Session
     document.getElementById('new-session-btn')?.addEventListener('click', newSession);
 
+    // On-Air toggle
+    const onAirBtn = document.getElementById('on-air-btn');
+    if (onAirBtn) {
+        fetch('/api/on-air').then(r => r.json()).then(data => {
+            updateOnAirBtn(onAirBtn, data.on_air);
+        });
+        onAirBtn.addEventListener('click', async () => {
+            const isOn = onAirBtn.classList.contains('on');
+            const res = await safeFetch('/api/on-air', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ on_air: !isOn }),
+            });
+            updateOnAirBtn(onAirBtn, res.on_air);
+            log(res.on_air ? 'Show is ON AIR — accepting calls' : 'Show is OFF AIR — calls get off-air message');
+        });
+    }
+
     // Server controls
     document.getElementById('restart-server-btn')?.addEventListener('click', restartServer);
     document.getElementById('stop-server-btn')?.addEventListener('click', stopServer);
@@ -770,6 +788,12 @@ function clearChat() {
 
 function log(text) {
     addMessage('System', text);
+}
+
+function updateOnAirBtn(btn, isOn) {
+    btn.classList.toggle('on', isOn);
+    btn.classList.toggle('off', !isOn);
+    btn.textContent = isOn ? 'ON AIR' : 'OFF AIR';
 }
 
 
