@@ -486,6 +486,7 @@ async def shutdown():
     for caller_id in list(caller_service.active_calls.keys()):
         caller_service.hangup(caller_id)
     caller_service.reset()
+    await news_service.close()
     print("[Server] Cleanup complete")
 
 
@@ -670,6 +671,9 @@ async def start_call(caller_key: str):
     session.start_call(caller_key)
     caller = session.caller  # This generates the background if needed
 
+    if not session.news_headlines:
+        asyncio.create_task(_fetch_session_headlines())
+
     return {
         "status": "connected",
         "caller": caller["name"],
@@ -691,6 +695,10 @@ async def hangup():
         _auto_respond_pending.cancel()
         _auto_respond_pending = None
     _auto_respond_buffer.clear()
+
+    if session._research_task and not session._research_task.done():
+        session._research_task.cancel()
+        session._research_task = None
 
     caller_name = session.caller["name"] if session.caller else None
     session.end_call()
@@ -819,6 +827,7 @@ async def chat(request: ChatRequest):
 
     epoch = _session_epoch
     session.add_message("user", request.text)
+    session._research_task = asyncio.create_task(_background_research(request.text))
 
     async with _ai_response_lock:
         if _session_epoch != epoch:
@@ -1371,6 +1380,8 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
 
     broadcast_event("ai_done")
 
+    session._research_task = asyncio.create_task(_background_research(accumulated_text))
+
     # Also stream to active real caller so they hear the AI
     if session.active_real_caller:
         caller_id = session.active_real_caller["caller_id"]
@@ -1458,6 +1469,10 @@ async def hangup_real_caller():
         _auto_respond_pending.cancel()
         _auto_respond_pending = None
     _auto_respond_buffer.clear()
+
+    if session._research_task and not session._research_task.done():
+        session._research_task.cancel()
+        session._research_task = None
 
     caller_id = session.active_real_caller["caller_id"]
     caller_phone = session.active_real_caller["phone"]
