@@ -52,12 +52,14 @@ class CallerProcessor extends AudioWorkletProcessor {
         const input = inputs[0][0];
         if (!input) return true;
 
-        const ratio = sampleRate / 16000;
-        for (let i = 0; i < input.length; i += ratio) {
-            const idx = Math.floor(i);
-            if (idx < input.length) {
-                this.buffer.push(input[idx]);
+        // Downsample with averaging (anti-aliased)
+        const step = Math.floor(sampleRate / 16000);
+        for (let i = 0; i + step <= input.length; i += step) {
+            let sum = 0;
+            for (let j = 0; j < step; j++) {
+                sum += input[i + j];
             }
+            this.buffer.push(sum / step);
         }
 
         while (this.buffer.length >= this.targetSamples) {

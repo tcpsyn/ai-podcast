@@ -880,6 +880,9 @@ async def _host_audio_sender():
     """Persistent task that drains audio queue and sends to callers"""
     while True:
         pcm_bytes = await _host_audio_queue.get()
+        # Skip host mic audio while TTS is streaming to avoid interleaving
+        if caller_service.streaming_tts:
+            continue
         for caller_id in list(caller_service.active_calls.keys()):
             try:
                 await caller_service.send_audio_to_caller(caller_id, pcm_bytes, 16000)

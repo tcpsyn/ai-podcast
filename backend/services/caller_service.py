@@ -19,6 +19,7 @@ class CallerService:
         self._caller_counter: int = 0
         self._lock = threading.Lock()
         self._websockets: dict[str, any] = {}  # caller_id -> WebSocket
+        self.streaming_tts: bool = False  # True while TTS audio is being streamed
 
     def add_to_queue(self, caller_id: str, name: str):
         with self._lock:
@@ -139,6 +140,7 @@ class CallerService:
         if not ws:
             return
 
+        self.streaming_tts = True
         try:
             audio = np.frombuffer(pcm_data, dtype=np.int16).astype(np.float32) / 32768.0
             if sample_rate != 16000:
@@ -160,6 +162,8 @@ class CallerService:
 
         except Exception as e:
             print(f"[Caller] Failed to stream audio: {e}")
+        finally:
+            self.streaming_tts = False
 
     async def notify_caller(self, caller_id: str, message: dict):
         """Send JSON control message to caller"""

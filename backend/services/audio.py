@@ -472,9 +472,10 @@ class AudioService:
                 if not self._host_send_callback:
                     return
                 mono = indata[:, record_channel]
-                # Simple decimation to ~16kHz
+                # Downsample to ~16kHz with averaging (anti-aliased)
                 if step > 1:
-                    mono = mono[::step]
+                    n = len(mono) // step * step
+                    mono = mono[:n].reshape(-1, step).mean(axis=1)
 
                 host_accum.append(mono.copy())
                 host_accum_samples[0] += len(mono)
