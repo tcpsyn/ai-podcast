@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     openrouter_api_key: str = os.getenv("OPENROUTER_API_KEY", "")
     inworld_api_key: str = os.getenv("INWORLD_API_KEY", "")
 
+    # SignalWire
+    signalwire_project_id: str = os.getenv("SIGNALWIRE_PROJECT_ID", "")
+    signalwire_space: str = os.getenv("SIGNALWIRE_SPACE", "")
+    signalwire_token: str = os.getenv("SIGNALWIRE_TOKEN", "")
+    signalwire_phone: str = os.getenv("SIGNALWIRE_PHONE", "")
+
     # LLM Settings
     llm_provider: str = "openrouter"  # "openrouter" or "ollama"
     openrouter_model: str = "anthropic/claude-3-haiku"
