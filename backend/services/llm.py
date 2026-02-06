@@ -124,7 +124,7 @@ class LLMService:
                         json={
                             "model": self.openrouter_model,
                             "messages": messages,
-                            "max_tokens": 150,
+                            "max_tokens": 100,
                         },
                     )
                     response.raise_for_status()

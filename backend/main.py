@@ -264,10 +264,9 @@ Continue naturally. Don't repeat yourself.
 {history}{context}
 HOW TO TALK:
 - Sound like a real person chatting, not writing.
-- MAX 1-2 sentences. Seriously — no more than 2 sentences EVER. One sentence is ideal.
-- ALWAYS finish your sentence. Never trail off mid-thought.
+- Be brief. Say what you need to say and stop. Think quick back-and-forth, not speeches.
+- ALWAYS complete your thought. Never trail off or leave a sentence unfinished.
 - Swear naturally if it fits: fuck, shit, damn, etc.
-- DO NOT ramble, explain, or monologue. Say one thing and stop.
 
 SPELLING FOR TEXT-TO-SPEECH (use proper spelling so TTS pronounces correctly):
 - Write "you know" not "yanno" or "y'know"
@@ -569,30 +568,20 @@ async def hangup():
 
 import re
 
-def limit_sentences(text: str, max_sentences: int = 2) -> str:
-    """Keep only the first N complete sentences. Never cuts mid-sentence."""
+def ensure_complete_thought(text: str) -> str:
+    """If text was cut off mid-sentence, trim to the last complete sentence."""
     text = text.strip()
     if not text:
         return text
-
-    sentences = []
-    current = 0
-    for i, ch in enumerate(text):
-        if ch in '.!?' and i + 1 < len(text) and text[i + 1] in ' \n\t':
-            sentences.append(text[current:i + 1].strip())
-            current = i + 2
-            if len(sentences) >= max_sentences:
-                break
-        elif ch in '.!?' and i == len(text) - 1:
-            sentences.append(text[current:i + 1].strip())
-            if len(sentences) >= max_sentences:
-                break
-
-    if sentences:
-        return ' '.join(sentences)
-
-    # No sentence-ending punctuation found — return text with period
-    return text.rstrip(',;: ') + '.'
+    # Already ends with sentence-ending punctuation — good
+    if text[-1] in '.!?':
+        return text
+    # Cut off mid-sentence — find the last complete sentence
+    for i in range(len(text) - 1, -1, -1):
+        if text[i] in '.!?':
+            return text[:i + 1]
+    # No punctuation at all — just add a period
+    return text.rstrip(',;:— -') + '.'
 
 
 def clean_for_tts(text: str) -> str:
@@ -661,7 +650,7 @@ async def chat(request: ChatRequest):
 
     # Clean response for TTS (remove parenthetical actions, asterisks, etc.)
     response = clean_for_tts(response)
-    response = limit_sentences(response)
+    response = ensure_complete_thought(response)
 
     print(f"[Chat] Cleaned: {response[:100] if response else '(empty)'}...")
 
@@ -1037,7 +1026,7 @@ async def _check_ai_auto_respond(real_caller_text: str, real_caller_name: str):
         system_prompt=system_prompt,
     )
     response = clean_for_tts(response)
-    response = limit_sentences(response)
+    response = ensure_complete_thought(response)
     if not response or not response.strip():
         return
 
