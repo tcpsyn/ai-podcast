@@ -1,0 +1,222 @@
+const FEED_URL = 'https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml';
+const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+
+const audio = document.getElementById('audio-element');
+const stickyPlayer = document.getElementById('sticky-player');
+const playerPlayBtn = document.getElementById('player-play-btn');
+const playerTitle = document.getElementById('player-title');
+const playerProgress = document.getElementById('player-progress');
+const playerProgressFill = document.getElementById('player-progress-fill');
+const playerTime = document.getElementById('player-time');
+const episodesList = document.getElementById('episodes-list');
+
+let currentEpisodeCard = null;
+
+// Format seconds to M:SS or H:MM:SS
+function formatTime(seconds) {
+  if (!seconds || isNaN(seconds)) return '0:00';
+  const s = Math.floor(seconds);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+
+// Format duration from itunes:duration (could be seconds or HH:MM:SS)
+function parseDuration(raw) {
+  if (!raw) return '';
+  if (raw.includes(':')) {
+    const parts = raw.split(':').map(Number);
+    let totalSec = 0;
+    if (parts.length === 3) totalSec = parts[0] * 3600 + parts[1] * 60 + parts[2];
+    else if (parts.length === 2) totalSec = parts[0] * 60 + parts[1];
+    return `${Math.round(totalSec / 60)} min`;
+  }
+  const sec = parseInt(raw, 10);
+  if (isNaN(sec)) return '';
+  return `${Math.round(sec / 60)} min`;
+}
+
+// Format date nicely
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// Strip HTML tags and truncate
+function truncate(html, maxLen) {
+  const div = document.createElement('div');
+  div.innerHTML = html || '';
+  const text = div.textContent || '';
+  if (text.length <= maxLen) return text;
+  return text.slice(0, maxLen).trimEnd() + '...';
+}
+
+// SVG icons
+const playSVG = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const pauseSVG = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+
+// Fetch and parse RSS feed
+async function fetchEpisodes() {
+  let xml;
+  try {
+    // Try direct fetch first
+    const res = await fetch(FEED_URL);
+    if (!res.ok) throw new Error('Direct fetch failed');
+    xml = await res.text();
+  } catch {
+    try {
+      // Fallback to CORS proxy
+      const res = await fetch(CORS_PROXY + encodeURIComponent(FEED_URL));
+      if (!res.ok) throw new Error('Proxy fetch failed');
+      xml = await res.text();
+    } catch {
+      episodesList.innerHTML = '<div class="episodes-error">Unable to load episodes. <a href="' + FEED_URL + '" target="_blank">View RSS feed</a></div>';
+      return;
+    }
+  }
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xml, 'text/xml');
+  const items = doc.querySelectorAll('item');
+
+  if (items.length === 0) {
+    episodesList.innerHTML = '<div class="episodes-error">No episodes found.</div>';
+    return;
+  }
+
+  const episodes = Array.from(items).map((item, i) => {
+    const title = item.querySelector('title')?.textContent || 'Untitled';
+    const description = item.querySelector('description')?.textContent || '';
+    const enclosure = item.querySelector('enclosure');
+    const audioUrl = enclosure?.getAttribute('url') || '';
+    const pubDate = item.querySelector('pubDate')?.textContent || '';
+    const duration = item.getElementsByTagNameNS('http://www.itunes.com/dtds/podcast-1.0.dtd', 'duration')[0]?.textContent || '';
+    const episodeNum = item.getElementsByTagNameNS('http://www.itunes.com/dtds/podcast-1.0.dtd', 'episode')[0]?.textContent || '';
+    const link = item.querySelector('link')?.textContent || '';
+
+    return { title, description, audioUrl, pubDate, duration, episodeNum, link };
+  });
+
+  renderEpisodes(episodes);
+}
+
+function renderEpisodes(episodes) {
+  episodesList.innerHTML = '';
+
+  episodes.forEach((ep) => {
+    const card = document.createElement('div');
+    card.className = 'episode-card';
+
+    const epLabel = ep.episodeNum ? `Ep ${ep.episodeNum}` : '';
+    const dateStr = ep.pubDate ? formatDate(ep.pubDate) : '';
+    const durStr = parseDuration(ep.duration);
+
+    const metaParts = [epLabel, dateStr, durStr].filter(Boolean).join(' &middot; ');
+
+    card.innerHTML = `
+      <button class="episode-play-btn" aria-label="Play ${ep.title}" data-url="${ep.audioUrl}" data-title="${ep.title.replace(/"/g, '&quot;')}">
+        ${playSVG}
+      </button>
+      <div class="episode-info">
+        <div class="episode-meta">${metaParts}</div>
+        <div class="episode-title">${ep.title}</div>
+        <div class="episode-desc">${truncate(ep.description, 150)}</div>
+      </div>
+    `;
+
+    const btn = card.querySelector('.episode-play-btn');
+    btn.addEventListener('click', () => playEpisode(ep.audioUrl, ep.title, card, btn));
+
+    episodesList.appendChild(card);
+  });
+}
+
+function playEpisode(url, title, card, btn) {
+  if (!url) return;
+
+  // If clicking the same episode that's playing, toggle play/pause
+  if (audio.src === url || audio.src === encodeURI(url)) {
+    if (audio.paused) {
+      audio.play();
+    } else {
+      audio.pause();
+    }
+    return;
+  }
+
+  // Reset previous card button icon
+  if (currentEpisodeCard) {
+    const prevBtn = currentEpisodeCard.querySelector('.episode-play-btn');
+    if (prevBtn) {
+      prevBtn.innerHTML = playSVG;
+      prevBtn.classList.remove('playing');
+    }
+  }
+
+  currentEpisodeCard = card;
+  audio.src = url;
+  audio.play();
+
+  playerTitle.textContent = title;
+  stickyPlayer.classList.add('active');
+}
+
+// Sync UI with audio state
+audio.addEventListener('play', () => {
+  updatePlayIcons(true);
+});
+
+audio.addEventListener('pause', () => {
+  updatePlayIcons(false);
+});
+
+audio.addEventListener('timeupdate', () => {
+  if (audio.duration) {
+    const pct = (audio.currentTime / audio.duration) * 100;
+    playerProgressFill.style.width = pct + '%';
+    playerTime.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+  }
+});
+
+audio.addEventListener('ended', () => {
+  updatePlayIcons(false);
+});
+
+function updatePlayIcons(playing) {
+  // Sticky player icons
+  const iconPlay = playerPlayBtn.querySelector('.icon-play');
+  const iconPause = playerPlayBtn.querySelector('.icon-pause');
+  if (iconPlay) iconPlay.style.display = playing ? 'none' : 'block';
+  if (iconPause) iconPause.style.display = playing ? 'block' : 'none';
+
+  // Episode card icon
+  if (currentEpisodeCard) {
+    const btn = currentEpisodeCard.querySelector('.episode-play-btn');
+    if (btn) {
+      btn.innerHTML = playing ? pauseSVG : playSVG;
+      btn.classList.toggle('playing', playing);
+    }
+  }
+}
+
+// Sticky player play/pause button
+playerPlayBtn.addEventListener('click', () => {
+  if (audio.src) {
+    if (audio.paused) audio.play();
+    else audio.pause();
+  }
+});
+
+// Progress bar seeking
+playerProgress.addEventListener('click', (e) => {
+  if (audio.duration) {
+    const rect = playerProgress.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    audio.currentTime = pct * audio.duration;
+  }
+});
+
+// Init
+fetchEpisodes();
