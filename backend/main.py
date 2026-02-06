@@ -569,6 +569,25 @@ async def hangup():
 
 import re
 
+def truncate_to_complete_sentence(text: str) -> str:
+    """Truncate text to the last complete sentence ending with punctuation."""
+    text = text.strip()
+    if not text:
+        return text
+    # If already ends with sentence-ending punctuation, return as-is
+    if text[-1] in '.!?':
+        return text
+    # Find the last sentence-ending punctuation
+    last_period = text.rfind('.')
+    last_excl = text.rfind('!')
+    last_quest = text.rfind('?')
+    last_end = max(last_period, last_excl, last_quest)
+    if last_end > 0:
+        return text[:last_end + 1]
+    # No complete sentence found — add a period
+    return text + '.'
+
+
 def clean_for_tts(text: str) -> str:
     """Strip out non-speakable content and fix phonetic spellings for TTS"""
     # Remove content in parentheses: (laughs), (pausing), (looking away), etc.
@@ -635,6 +654,7 @@ async def chat(request: ChatRequest):
 
     # Clean response for TTS (remove parenthetical actions, asterisks, etc.)
     response = clean_for_tts(response)
+    response = truncate_to_complete_sentence(response)
 
     print(f"[Chat] Cleaned: {response[:100] if response else '(empty)'}...")
 
@@ -1010,6 +1030,7 @@ async def _check_ai_auto_respond(real_caller_text: str, real_caller_name: str):
         system_prompt=system_prompt,
     )
     response = clean_for_tts(response)
+    response = truncate_to_complete_sentence(response)
     if not response or not response.strip():
         return
 
