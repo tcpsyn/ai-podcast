@@ -250,7 +250,8 @@ def generate_caller_background(base: dict) -> str:
 
     return f"""{age}, {job} {location}. {problem.capitalize()}. {interest1.capitalize()}, {interest2}. {quirk1.capitalize()}, {quirk2}."""
 
-def get_caller_prompt(caller: dict, conversation_summary: str = "", show_history: str = "") -> str:
+def get_caller_prompt(caller: dict, conversation_summary: str = "", show_history: str = "",
+                      news_context: str = "", research_context: str = "") -> str:
     """Generate a natural system prompt for a caller"""
     context = ""
     if conversation_summary:
@@ -264,10 +265,20 @@ Continue naturally. Don't repeat yourself.
     if show_history:
         history = f"\n{show_history}\n"
 
+    world_context = ""
+    if news_context or research_context:
+        parts = ["WHAT YOU'VE BEEN READING ABOUT LATELY:"]
+        if news_context:
+            parts.append(f"Headlines you noticed today:\n{news_context}")
+        if research_context:
+            parts.append(f"Stuff related to what you're talking about:\n{research_context}")
+        parts.append("Work these in IF they're relevant to what you're discussing. Don't force news into the conversation. You're a person who reads the news, not a news anchor.")
+        world_context = "\n".join(parts) + "\n"
+
     return f"""You're {caller['name']}, calling a late-night radio show. You trust this host.
 
 {caller['vibe']}
-{history}{context}
+{history}{context}{world_context}
 HOW TO TALK:
 - Sound like a real person chatting, not writing.
 - Be brief. Say what you need to say and stop. Think quick back-and-forth, not speeches.
@@ -839,7 +850,9 @@ async def chat(request: ChatRequest):
         # Include conversation summary and show history for context
         conversation_summary = session.get_conversation_summary()
         show_history = session.get_show_history()
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history)
+        news_ctx, research_ctx = _build_news_context()
+        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
+                                          news_ctx, research_ctx)
 
         messages = _normalize_messages_for_llm(session.conversation[-10:])
         response = await llm_service.generate(
@@ -1334,7 +1347,9 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
 
         conversation_summary = session.get_conversation_summary()
         show_history = session.get_show_history()
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history)
+        news_ctx, research_ctx = _build_news_context()
+        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
+                                          news_ctx, research_ctx)
 
         messages = _normalize_messages_for_llm(session.conversation[-10:])
         response = await llm_service.generate(
@@ -1406,7 +1421,9 @@ async def ai_respond():
 
         conversation_summary = session.get_conversation_summary()
         show_history = session.get_show_history()
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history)
+        news_ctx, research_ctx = _build_news_context()
+        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
+                                          news_ctx, research_ctx)
 
         messages = _normalize_messages_for_llm(session.conversation[-10:])
         response = await llm_service.generate(
