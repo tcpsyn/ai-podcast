@@ -202,7 +202,17 @@ class AudioService:
             time.sleep(0.05)
 
         if not self._recorded_audio:
-            print(f"Recording stopped: NO audio chunks captured (piggyback={self._host_stream is not None})")
+            piggyback = self._host_stream is not None
+            # Check what other streams might be active
+            active_streams = []
+            if self._music_stream:
+                active_streams.append("music")
+            if self._live_caller_stream:
+                active_streams.append("live_caller")
+            if self._host_stream:
+                active_streams.append("host")
+            streams_info = f", active_streams=[{','.join(active_streams)}]" if active_streams else ""
+            print(f"Recording stopped: NO audio chunks captured (piggyback={piggyback}, device={self.input_device}, ch={self.input_channel}{streams_info})")
             return b""
 
         # Combine all chunks
@@ -228,16 +238,27 @@ class AudioService:
             device_sr = int(device_info['default_samplerate'])
             record_channel = min(self.input_channel, max_channels) - 1
 
+            if max_channels == 0:
+                print(f"Recording error: device {self.input_device} has no input channels")
+                self._recording = False
+                return
+
             # Store device sample rate for later resampling
             self._record_device_sr = device_sr
 
-            print(f"Recording from device {self.input_device} ch {self.input_channel} @ {device_sr}Hz")
+            stream_ready = threading.Event()
+            callback_count = [0]
 
             def callback(indata, frames, time_info, status):
                 if status:
                     print(f"Record status: {status}")
+                callback_count[0] += 1
+                if not stream_ready.is_set():
+                    stream_ready.set()
                 if self._recording:
                     self._recorded_audio.append(indata[:, record_channel].copy())
+
+            print(f"Recording: opening stream on device {self.input_device} ch {self.input_channel} @ {device_sr}Hz ({max_channels} ch)")
 
             with sd.InputStream(
                 device=self.input_device,
@@ -247,11 +268,19 @@ class AudioService:
                 callback=callback,
                 blocksize=1024
             ):
+                # Wait for stream to actually start capturing
+                if not stream_ready.wait(timeout=1.0):
+                    print(f"Recording WARNING: stream opened but callback not firing after 1s")
+
                 while self._recording:
                     time.sleep(0.05)
 
+            print(f"Recording: stream closed, {callback_count[0]} callbacks fired, {len(self._recorded_audio)} chunks captured")
+
         except Exception as e:
             print(f"Recording error: {e}")
+            import traceback
+            traceback.print_exc()
             self._recording = False
 
     # --- Caller TTS Playback ---
@@ -463,10 +492,10 @@ class AudioService:
             record_channel = min(self.input_channel, max_channels) - 1
             step = max(1, int(device_sr / 16000))
 
-            # Buffer host mic to send ~60ms chunks instead of tiny 21ms ones
+            # Buffer host mic to send ~100ms chunks (reduces WebSocket frame rate)
             host_accum = []
             host_accum_samples = [0]
-            send_threshold = 960  # 60ms at 16kHz
+            send_threshold = 1600  # 100ms at 16kHz
 
             def callback(indata, frames, time_info, status):
                 # Capture for push-to-talk recording if active

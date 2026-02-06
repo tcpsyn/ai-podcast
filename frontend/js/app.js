@@ -16,6 +16,21 @@ let tracks = [];
 let sounds = [];
 
 
+// --- Safe JSON parsing ---
+async function safeFetch(url, options = {}) {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+        const text = await res.text();
+        let detail = text;
+        try { detail = JSON.parse(text).detail || text; } catch {}
+        throw new Error(detail);
+    }
+    const text = await res.text();
+    if (!text) return {};
+    return JSON.parse(text);
+}
+
+
 // --- Init ---
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('AI Radio Show initializing...');
@@ -108,6 +123,15 @@ function initEventListeners() {
         log('Real caller disconnected');
     });
 
+    // AI caller hangup (small button in AI caller panel)
+    document.getElementById('hangup-ai-btn')?.addEventListener('click', hangup);
+
+    // AI respond button (manual trigger)
+    document.getElementById('ai-respond-btn')?.addEventListener('click', triggerAiRespond);
+
+    // Start conversation update polling
+    startConversationPolling();
+
     // AI respond mode toggle
     document.getElementById('mode-manual')?.addEventListener('click', () => {
         document.getElementById('mode-manual')?.classList.add('active');
@@ -123,7 +147,6 @@ function initEventListeners() {
     document.getElementById('mode-auto')?.addEventListener('click', () => {
         document.getElementById('mode-auto')?.classList.add('active');
         document.getElementById('mode-manual')?.classList.remove('active');
-        document.getElementById('ai-respond-btn')?.classList.add('hidden');
         fetch('/api/session/ai-mode', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -362,6 +385,7 @@ async function newSession() {
     }
 
     await fetch('/api/session/reset', { method: 'POST' });
+    conversationSince = 0;
 
     // Hide caller background
     const bgEl = document.getElementById('caller-background');
@@ -434,8 +458,7 @@ async function stopRecording() {
 
     try {
         // Stop recording and get transcription
-        const res = await fetch('/api/record/stop', { method: 'POST' });
-        const data = await res.json();
+        const data = await safeFetch('/api/record/stop', { method: 'POST' });
 
         if (!data.text) {
             log('(No speech detected)');
@@ -449,12 +472,11 @@ async function stopRecording() {
         // Chat
         showStatus(`${currentCaller.name} is thinking...`);
 
-        const chatRes = await fetch('/api/chat', {
+        const chatData = await safeFetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: data.text })
         });
-        const chatData = await chatRes.json();
 
         addMessage(chatData.caller, chatData.text);
 
@@ -462,7 +484,7 @@ async function stopRecording() {
         if (chatData.text && chatData.text.trim()) {
             showStatus(`${currentCaller.name} is speaking...`);
 
-            await fetch('/api/tts', {
+            await safeFetch('/api/tts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -496,12 +518,11 @@ async function sendTypedMessage() {
     try {
         showStatus(`${currentCaller.name} is thinking...`);
 
-        const chatRes = await fetch('/api/chat', {
+        const chatData = await safeFetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text })
         });
-        const chatData = await chatRes.json();
 
         addMessage(chatData.caller, chatData.text);
 
@@ -509,7 +530,7 @@ async function sendTypedMessage() {
         if (chatData.text && chatData.text.trim()) {
             showStatus(`${currentCaller.name} is speaking...`);
 
-            await fetch('/api/tts', {
+            await safeFetch('/api/tts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -538,6 +559,8 @@ async function loadMusic() {
 
         const select = document.getElementById('track-select');
         if (!select) return;
+
+        const previousValue = select.value;
         select.innerHTML = '';
 
         tracks.forEach((track, i) => {
@@ -546,6 +569,12 @@ async function loadMusic() {
             option.textContent = track.name;
             select.appendChild(option);
         });
+
+        // Restore previous selection if it still exists
+        if (previousValue && [...select.options].some(o => o.value === previousValue)) {
+            select.value = previousValue;
+        }
+
         console.log('Loaded', tracks.length, 'tracks');
     } catch (err) {
         console.error('loadMusic error:', err);
@@ -554,6 +583,7 @@ async function loadMusic() {
 
 
 async function playMusic() {
+    await loadMusic();
     const select = document.getElementById('track-select');
     const track = select?.value;
     if (!track) return;
@@ -894,6 +924,19 @@ async function takeCall(callerId) {
         if (data.status === 'on_air') {
             showRealCaller(data.caller);
             log(`${data.caller.phone} is on air — Channel ${data.caller.channel}`);
+
+            // Auto-select an AI caller if none is active
+            if (!currentCaller) {
+                const callerBtns = document.querySelectorAll('.caller-btn');
+                if (callerBtns.length > 0) {
+                    const randomIdx = Math.floor(Math.random() * callerBtns.length);
+                    const btn = callerBtns[randomIdx];
+                    const key = btn.dataset.key;
+                    const name = btn.textContent;
+                    log(`Auto-selecting ${name} as AI caller`);
+                    await startCall(key, name);
+                }
+            }
         }
     } catch (err) {
         log('Failed to take call: ' + err.message);
@@ -959,6 +1002,66 @@ function hideRealCaller() {
     if (realCallerTimer) clearInterval(realCallerTimer);
     realCallerTimer = null;
     updateActiveCallIndicator();
+}
+
+
+// --- AI Respond (manual trigger) ---
+async function triggerAiRespond() {
+    if (!currentCaller) {
+        log('No AI caller active — click a caller first');
+        return;
+    }
+
+    const btn = document.getElementById('ai-respond-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Thinking...'; }
+    showStatus(`${currentCaller.name} is thinking...`);
+
+    try {
+        const data = await safeFetch('/api/ai-respond', { method: 'POST' });
+        if (data.text) {
+            addMessage(data.caller, data.text);
+            showStatus(`${data.caller} is speaking...`);
+            const duration = data.text.length * 60;
+            setTimeout(hideStatus, Math.min(duration, 15000));
+        }
+    } catch (err) {
+        log('AI respond error: ' + err.message);
+    }
+
+    if (btn) { btn.disabled = false; btn.textContent = 'Let them respond'; }
+}
+
+
+// --- Conversation Update Polling ---
+let conversationSince = 0;
+
+function startConversationPolling() {
+    setInterval(fetchConversationUpdates, 1000);
+}
+
+async function fetchConversationUpdates() {
+    try {
+        const res = await fetch(`/api/conversation/updates?since=${conversationSince}`);
+        const data = await res.json();
+        if (data.messages && data.messages.length > 0) {
+            for (const msg of data.messages) {
+                conversationSince = msg.id + 1;
+                if (msg.type === 'caller_disconnected') {
+                    hideRealCaller();
+                    log(`${msg.phone} disconnected (${msg.reason})`);
+                } else if (msg.type === 'chat') {
+                    addMessage(msg.sender, msg.text);
+                } else if (msg.type === 'ai_status') {
+                    showStatus(msg.text);
+                } else if (msg.type === 'ai_done') {
+                    hideStatus();
+                } else if (msg.type === 'caller_queued') {
+                    // Queue poll will pick this up, just ensure it refreshes
+                    fetchQueue();
+                }
+            }
+        }
+    } catch (err) {}
 }
 
 
