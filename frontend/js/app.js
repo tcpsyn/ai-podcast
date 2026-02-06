@@ -878,7 +878,7 @@ function renderQueue(queue) {
         const waitStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
         return `
             <div class="queue-item">
-                <span class="queue-name">${caller.name}</span>
+                <span class="queue-name">${caller.phone}</span>
                 <span class="queue-wait">waiting ${waitStr}</span>
                 <button class="queue-take-btn" onclick="takeCall('${caller.caller_id}')">Take Call</button>
                 <button class="queue-drop-btn" onclick="dropCall('${caller.caller_id}')">Drop</button>
@@ -893,7 +893,7 @@ async function takeCall(callerId) {
         const data = await res.json();
         if (data.status === 'on_air') {
             showRealCaller(data.caller);
-            log(`${data.caller.name} is on air — Channel ${data.caller.channel}`);
+            log(`${data.caller.phone} is on air — Channel ${data.caller.channel}`);
         }
     } catch (err) {
         log('Failed to take call: ' + err.message);
@@ -936,7 +936,7 @@ function updateActiveCallIndicator() {
 function showRealCaller(callerInfo) {
     const nameEl = document.getElementById('real-caller-name');
     const chEl = document.getElementById('real-caller-channel');
-    if (nameEl) nameEl.textContent = callerInfo.name;
+    if (nameEl) nameEl.textContent = callerInfo.phone;
     if (chEl) chEl.textContent = `Ch ${callerInfo.channel}`;
 
     document.getElementById('real-caller-info')?.classList.remove('hidden');
