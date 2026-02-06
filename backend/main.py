@@ -569,23 +569,30 @@ async def hangup():
 
 import re
 
-def truncate_to_complete_sentence(text: str) -> str:
-    """Truncate text to the last complete sentence ending with punctuation."""
+def limit_sentences(text: str, max_sentences: int = 2) -> str:
+    """Keep only the first N complete sentences. Never cuts mid-sentence."""
     text = text.strip()
     if not text:
         return text
-    # If already ends with sentence-ending punctuation, return as-is
-    if text[-1] in '.!?':
-        return text
-    # Find the last sentence-ending punctuation
-    last_period = text.rfind('.')
-    last_excl = text.rfind('!')
-    last_quest = text.rfind('?')
-    last_end = max(last_period, last_excl, last_quest)
-    if last_end > 0:
-        return text[:last_end + 1]
-    # No complete sentence found — add a period
-    return text + '.'
+
+    sentences = []
+    current = 0
+    for i, ch in enumerate(text):
+        if ch in '.!?' and i + 1 < len(text) and text[i + 1] in ' \n\t':
+            sentences.append(text[current:i + 1].strip())
+            current = i + 2
+            if len(sentences) >= max_sentences:
+                break
+        elif ch in '.!?' and i == len(text) - 1:
+            sentences.append(text[current:i + 1].strip())
+            if len(sentences) >= max_sentences:
+                break
+
+    if sentences:
+        return ' '.join(sentences)
+
+    # No sentence-ending punctuation found — return text with period
+    return text.rstrip(',;: ') + '.'
 
 
 def clean_for_tts(text: str) -> str:
@@ -654,7 +661,7 @@ async def chat(request: ChatRequest):
 
     # Clean response for TTS (remove parenthetical actions, asterisks, etc.)
     response = clean_for_tts(response)
-    response = truncate_to_complete_sentence(response)
+    response = limit_sentences(response)
 
     print(f"[Chat] Cleaned: {response[:100] if response else '(empty)'}...")
 
@@ -1030,7 +1037,7 @@ async def _check_ai_auto_respond(real_caller_text: str, real_caller_name: str):
         system_prompt=system_prompt,
     )
     response = clean_for_tts(response)
-    response = truncate_to_complete_sentence(response)
+    response = limit_sentences(response)
     if not response or not response.strip():
         return
 
