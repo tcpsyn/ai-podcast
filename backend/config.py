@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     signalwire_space: str = os.getenv("SIGNALWIRE_SPACE", "")
     signalwire_token: str = os.getenv("SIGNALWIRE_TOKEN", "")
     signalwire_phone: str = os.getenv("SIGNALWIRE_PHONE", "")
+    signalwire_stream_url: str = os.getenv("SIGNALWIRE_STREAM_URL", "")
 
     # LLM Settings
     llm_provider: str = "openrouter"  # "openrouter" or "ollama"
@@ -28,7 +29,7 @@ class Settings(BaseSettings):
     ollama_host: str = "http://localhost:11434"
 
     # TTS Settings
-    tts_provider: str = "kokoro"  # "kokoro", "elevenlabs", "vits", or "bark"
+    tts_provider: str = "inworld"  # "kokoro", "elevenlabs", "inworld", "vits", or "bark"
 
     # Audio Settings
     sample_rate: int = 24000

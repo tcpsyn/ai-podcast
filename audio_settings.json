@@ -3,6 +3,7 @@
   "input_channel": 1,
   "output_device": 13,
   "caller_channel": 3,
+  "live_caller_channel": 9,
   "music_channel": 5,
   "sfx_channel": 7,
   "phone_filter": false

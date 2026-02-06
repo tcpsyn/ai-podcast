@@ -40,18 +40,46 @@ app.add_middleware(
 # Base caller info (name, voice) - backgrounds generated dynamically per session
 import random
 
+MALE_NAMES = [
+    "Tony", "Rick", "Dennis", "Earl", "Marcus", "Keith", "Darnell", "Wayne",
+    "Greg", "Andre", "Ray", "Jerome", "Hector", "Travis", "Vince", "Leon",
+    "Dale", "Frank", "Terrence", "Bobby", "Cliff", "Nate", "Reggie", "Carl",
+]
+
+FEMALE_NAMES = [
+    "Jasmine", "Megan", "Tanya", "Carla", "Brenda", "Sheila", "Denise", "Tamika",
+    "Lorraine", "Crystal", "Angie", "Renee", "Monique", "Gina", "Patrice", "Deb",
+    "Shonda", "Marlene", "Yolanda", "Stacy", "Jackie", "Carmen", "Rita", "Val",
+]
+
 CALLER_BASES = {
-    "1": {"name": "Tony", "voice": "VR6AewLTigWG4xSOukaG", "gender": "male", "age_range": (35, 55)},
-    "2": {"name": "Jasmine", "voice": "jBpfuIE2acCO8z3wKNLl", "gender": "female", "age_range": (25, 38)},
-    "3": {"name": "Rick", "voice": "TxGEqnHWrfWFTfGW9XjX", "gender": "male", "age_range": (40, 58)},
-    "4": {"name": "Megan", "voice": "EXAVITQu4vr4xnSDxMaL", "gender": "female", "age_range": (24, 35)},
-    "5": {"name": "Dennis", "voice": "pNInz6obpgDQGcFmaJgB", "gender": "male", "age_range": (32, 48)},
-    "6": {"name": "Tanya", "voice": "21m00Tcm4TlvDq8ikWAM", "gender": "female", "age_range": (30, 45)},
-    "7": {"name": "Earl", "voice": "ODq5zmih8GrVes37Dizd", "gender": "male", "age_range": (58, 72)},
-    "8": {"name": "Carla", "voice": "XB0fDUnXU5powFXDhCwa", "gender": "female", "age_range": (38, 52)},
-    "9": {"name": "Marcus", "voice": "IKne3meq5aSn9XLyUdCD", "gender": "male", "age_range": (24, 34)},
-    "0": {"name": "Brenda", "voice": "pFZP5JQG7iQjIQuC4Bku", "gender": "female", "age_range": (45, 60)},
+    "1": {"voice": "VR6AewLTigWG4xSOukaG", "gender": "male", "age_range": (35, 55)},
+    "2": {"voice": "jBpfuIE2acCO8z3wKNLl", "gender": "female", "age_range": (25, 38)},
+    "3": {"voice": "TxGEqnHWrfWFTfGW9XjX", "gender": "male", "age_range": (40, 58)},
+    "4": {"voice": "EXAVITQu4vr4xnSDxMaL", "gender": "female", "age_range": (24, 35)},
+    "5": {"voice": "pNInz6obpgDQGcFmaJgB", "gender": "male", "age_range": (32, 48)},
+    "6": {"voice": "21m00Tcm4TlvDq8ikWAM", "gender": "female", "age_range": (30, 45)},
+    "7": {"voice": "ODq5zmih8GrVes37Dizd", "gender": "male", "age_range": (58, 72)},
+    "8": {"voice": "XB0fDUnXU5powFXDhCwa", "gender": "female", "age_range": (38, 52)},
+    "9": {"voice": "IKne3meq5aSn9XLyUdCD", "gender": "male", "age_range": (24, 34)},
+    "0": {"voice": "pFZP5JQG7iQjIQuC4Bku", "gender": "female", "age_range": (45, 60)},
 }
+
+
+def _randomize_caller_names():
+    """Assign random names to callers, unique per gender."""
+    males = random.sample(MALE_NAMES, sum(1 for c in CALLER_BASES.values() if c["gender"] == "male"))
+    females = random.sample(FEMALE_NAMES, sum(1 for c in CALLER_BASES.values() if c["gender"] == "female"))
+    mi, fi = 0, 0
+    for base in CALLER_BASES.values():
+        if base["gender"] == "male":
+            base["name"] = males[mi]
+            mi += 1
+        else:
+            base["name"] = females[fi]
+            fi += 1
+
+_randomize_caller_names()  # Initial assignment
 
 # Background components for dynamic generation
 JOBS_MALE = [
@@ -431,8 +459,10 @@ class Session:
         if self._research_task and not self._research_task.done():
             self._research_task.cancel()
         self._research_task = None
+        _randomize_caller_names()
         self.id = str(uuid.uuid4())[:8]
-        print(f"[Session] Reset - new session ID: {self.id}")
+        names = [CALLER_BASES[k]["name"] for k in sorted(CALLER_BASES.keys())]
+        print(f"[Session] Reset - new session ID: {self.id}, callers: {', '.join(names)}")
 
 
 session = Session()
