@@ -197,14 +197,18 @@ class AudioService:
         if self._record_thread:
             self._record_thread.join(timeout=2.0)
             self._record_thread = None
+        else:
+            # Piggybacking on host stream — give callback a moment to finish
+            time.sleep(0.05)
 
         if not self._recorded_audio:
+            print(f"Recording stopped: NO audio chunks captured (piggyback={self._host_stream is not None})")
             return b""
 
         # Combine all chunks
         audio = np.concatenate(self._recorded_audio)
         device_sr = getattr(self, '_record_device_sr', 48000)
-        print(f"Recording stopped: {len(audio)} samples @ {device_sr}Hz ({len(audio)/device_sr:.2f}s)")
+        print(f"Recording stopped: {len(audio)} samples @ {device_sr}Hz ({len(audio)/device_sr:.2f}s), chunks={len(self._recorded_audio)}, peak={np.abs(audio).max():.4f}")
 
         # Resample to 16kHz for Whisper
         if device_sr != 16000:
@@ -466,7 +470,7 @@ class AudioService:
 
             def callback(indata, frames, time_info, status):
                 # Capture for push-to-talk recording if active
-                if self._recording:
+                if self._recording and self._recorded_audio is not None:
                     self._recorded_audio.append(indata[:, record_channel].copy())
 
                 if not self._host_send_callback:
