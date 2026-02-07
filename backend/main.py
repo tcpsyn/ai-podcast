@@ -921,8 +921,8 @@ async def start_call(caller_key: str):
     session.start_call(caller_key)
     caller = session.caller  # This generates the background if needed
 
-    if not session.news_headlines:
-        asyncio.create_task(_fetch_session_headlines())
+    # if not session.news_headlines:
+    #     asyncio.create_task(_fetch_session_headlines())
 
     return {
         "status": "connected",
@@ -1077,7 +1077,7 @@ async def chat(request: ChatRequest):
 
     epoch = _session_epoch
     session.add_message("user", request.text)
-    session._research_task = asyncio.create_task(_background_research(request.text))
+    # session._research_task = asyncio.create_task(_background_research(request.text))
 
     try:
         async with asyncio.timeout(20):
@@ -1091,9 +1091,7 @@ async def chat(request: ChatRequest):
                 # Include conversation summary and show history for context
                 conversation_summary = session.get_conversation_summary()
                 show_history = session.get_show_history()
-                news_ctx, research_ctx = _build_news_context()
-                system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
-                                                  news_ctx, research_ctx)
+                system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history)
 
                 messages = _normalize_messages_for_llm(session.conversation[-10:])
                 response = await llm_service.generate(
@@ -1622,9 +1620,7 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
 
                 conversation_summary = session.get_conversation_summary()
                 show_history = session.get_show_history()
-                news_ctx, research_ctx = _build_news_context()
-                system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
-                                                  news_ctx, research_ctx)
+                system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history)
 
                 messages = _normalize_messages_for_llm(session.conversation[-10:])
                 response = await llm_service.generate(
@@ -1674,7 +1670,7 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
 
     broadcast_event("ai_done")
 
-    session._research_task = asyncio.create_task(_background_research(accumulated_text))
+    # session._research_task = asyncio.create_task(_background_research(accumulated_text))
 
     # Also stream to active real caller so they hear the AI
     if session.active_real_caller:
@@ -1702,9 +1698,7 @@ async def ai_respond():
 
                 conversation_summary = session.get_conversation_summary()
                 show_history = session.get_show_history()
-                news_ctx, research_ctx = _build_news_context()
-                system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
-                                                  news_ctx, research_ctx)
+                system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history)
 
                 messages = _normalize_messages_for_llm(session.conversation[-10:])
                 response = await llm_service.generate(
