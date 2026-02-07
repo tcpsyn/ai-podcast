@@ -398,29 +398,36 @@ QUIRKS = [
     "has stories they've never told anyone", "testing how the host reacts before going deeper",
 ]
 
-LOCATIONS = [
-    # Big cities
-    "outside Chicago", "in Phoenix", "near Atlanta", "in the Detroit area", "outside Boston",
-    "in North Jersey", "near Austin", "in the Bay Area", "outside Philadelphia", "in Denver",
-    "near Seattle", "in South Florida", "outside Nashville", "in Cleveland", "near Portland",
-    "in the Twin Cities", "outside Dallas", "in Baltimore", "near Sacramento", "in Pittsburgh",
-    # Smaller cities & regions
-    "in Albuquerque", "outside Memphis", "in Boise", "near Reno", "in Tucson",
-    "outside Louisville", "in Omaha", "near Buffalo", "in El Paso", "outside Richmond",
-    "in Spokane", "near Tulsa", "in Knoxville", "outside Milwaukee", "in Savannah",
-    "near Charleston", "in Des Moines", "outside Raleigh", "in Fresno", "near Anchorage",
-    # Rural & small town
-    "in a small town in West Virginia", "in rural Montana", "outside a tiny town in Arkansas",
-    "in the middle of nowhere, Kansas", "in a farming town in Iowa", "in the Mississippi Delta",
-    "in a coal town in eastern Kentucky", "in a beach town in the Carolinas",
-    "on the outskirts of a reservation in New Mexico", "in a logging town in Oregon",
-    "in the Florida panhandle", "in the Ozarks", "in a trailer park outside Vegas",
-    "in a fishing village in Maine", "in the Texas hill country",
-    # Specific vibes
-    "on a military base in Georgia", "in a college town in Ohio", "in an oil town in North Dakota",
-    "in a border town in Arizona", "in a factory town in Indiana", "in a ski town in Colorado",
-    "on a ranch in Wyoming", "in a retirement community in Florida",
+LOCATIONS_LOCAL = [
+    # Bootheel & immediate area (most common)
+    "in Lordsburg", "in Animas", "in Portal", "in Playas", "in Road Forks",
+    "in Deming", "in Silver City", "in San Simon", "in Safford",
+    "outside Lordsburg", "near Animas", "just outside Deming", "up in Silver City",
+    "out by Playas", "down near Portal", "off the highway near Road Forks",
+    "between Lordsburg and Deming", "south of Silver City", "out past San Simon",
+    "near the Peloncillo Mountains", "out on the flats near Animas",
+    # Wider NM
+    "in Las Cruces", "in Truth or Consequences", "in Socorro", "in Alamogordo",
+    "in Hatch", "in Columbus", "near the Gila", "in Reserve", "in Cliff",
+    "in Bayard", "in Hillsboro", "in Magdalena",
+    # Wider AZ
+    "in Tucson", "in Willcox", "in Douglas", "in Bisbee", "in Sierra Vista",
+    "in Benson", "in Globe", "in Clifton", "in Duncan", "in Tombstone",
+    "in Nogales", "in Green Valley", "outside Tucson",
 ]
+
+LOCATIONS_OUT_OF_STATE = [
+    "in El Paso", "in Phoenix", "in Albuquerque", "in Denver",
+    "outside Dallas", "in Austin", "in the Bay Area", "in Chicago",
+    "in Nashville", "in Atlanta", "near Portland", "in Detroit",
+    "in Vegas", "in Salt Lake", "in Oklahoma City",
+]
+
+
+def pick_location() -> str:
+    if random.random() < 0.8:
+        return random.choice(LOCATIONS_LOCAL)
+    return random.choice(LOCATIONS_OUT_OF_STATE)
 
 
 def generate_caller_background(base: dict) -> str:
@@ -428,7 +435,7 @@ def generate_caller_background(base: dict) -> str:
     age = random.randint(*base["age_range"])
     jobs = JOBS_MALE if base["gender"] == "male" else JOBS_FEMALE
     job = random.choice(jobs)
-    location = random.choice(LOCATIONS)
+    location = pick_location()
 
     # Generate problem with fills
     problem_template = random.choice(PROBLEMS)
