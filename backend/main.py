@@ -24,7 +24,7 @@ from .services.transcription import transcribe_audio
 from .services.llm import llm_service
 from .services.tts import generate_speech
 from .services.audio import audio_service
-from .services.news import news_service, extract_keywords
+from .services.news import news_service, extract_keywords, STOP_WORDS
 
 app = FastAPI(title="AI Radio Show")
 
@@ -431,7 +431,7 @@ def pick_location() -> str:
 
 
 def generate_caller_background(base: dict) -> str:
-    """Generate a unique background for a caller"""
+    """Generate a unique background for a caller (sync, no research)"""
     age = random.randint(*base["age_range"])
     jobs = JOBS_MALE if base["gender"] == "male" else JOBS_FEMALE
     job = random.choice(jobs)
@@ -448,6 +448,41 @@ def generate_caller_background(base: dict) -> str:
     quirk1, quirk2 = random.sample(QUIRKS, 2)
 
     return f"""{age}, {job} {location}. {problem.capitalize()}. {interest1.capitalize()}, {interest2}. {quirk1.capitalize()}, {quirk2}."""
+
+
+async def enrich_caller_background(background: str) -> str:
+    """Search for a relevant news headline and bake it into the caller's background.
+    Called once at pickup time — never during live conversation."""
+    try:
+        # Extract a search query from the caller's problem
+        # e.g. "is thinking about quitting their job" -> search for job/career news
+        words = background.split(".")
+        # The problem is the second sentence
+        problem_text = words[1].strip() if len(words) > 1 else ""
+        if not problem_text:
+            return background
+
+        # Pull 2-3 meaningful words from the problem for a search
+        search_words = [w.lower() for w in problem_text.split()
+                        if len(w) > 4 and w.lower() not in STOP_WORDS][:3]
+        if not search_words:
+            return background
+
+        query = " ".join(search_words)
+        async with asyncio.timeout(3):
+            results = await news_service.search_topic(query)
+
+        if results:
+            headline = results[0].title
+            background += f" Recently saw a headline that said '{headline}' and it's been on their mind."
+            print(f"[Research] Enriched caller with: {headline[:60]}...")
+
+    except TimeoutError:
+        pass  # No enrichment, no problem
+    except Exception as e:
+        print(f"[Research] Enrichment failed: {e}")
+
+    return background
 
 def get_caller_prompt(caller: dict, conversation_summary: str = "", show_history: str = "",
                       news_context: str = "", research_context: str = "") -> str:
@@ -921,8 +956,10 @@ async def start_call(caller_key: str):
     session.start_call(caller_key)
     caller = session.caller  # This generates the background if needed
 
-    # if not session.news_headlines:
-    #     asyncio.create_task(_fetch_session_headlines())
+    # Enrich with a relevant news headline (3s timeout, won't block the show)
+    if caller_key in session.caller_backgrounds:
+        enriched = await enrich_caller_background(session.caller_backgrounds[caller_key])
+        session.caller_backgrounds[caller_key] = enriched
 
     return {
         "status": "connected",
