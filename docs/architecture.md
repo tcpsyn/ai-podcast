@@ -35,7 +35,7 @@ Session Reset / First Access to Caller Slot
     │
     ▼
 _randomize_callers()
-    │  Assigns unique names (from 24M/24F pool) and voices (5M/5F) to 10 slots
+    │  Assigns unique names (from 24M/24F pool) and voices (Inworld: 14M/11F, ElevenLabs: 14M/8F) to 10 slots
     │
     ▼
 generate_caller_background(base)

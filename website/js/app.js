@@ -223,5 +223,83 @@ playerProgress.addEventListener('click', (e) => {
   }
 });
 
+// Testimonials Slider
+function initTestimonials() {
+  const track = document.getElementById('testimonials-track');
+  const dotsContainer = document.getElementById('testimonials-dots');
+  const cards = track.querySelectorAll('.testimonial-card');
+  if (!cards.length) return;
+
+  let currentIndex = 0;
+  let autoplayTimer = null;
+  const maxIndex = () => Math.max(0, cards.length - 1);
+
+  function buildDots() {
+    dotsContainer.innerHTML = '';
+    for (let i = 0; i < cards.length; i++) {
+      const dot = document.createElement('button');
+      dot.className = 'testimonial-dot' + (i === currentIndex ? ' active' : '');
+      dot.setAttribute('aria-label', `Testimonial ${i + 1}`);
+      dot.addEventListener('click', () => goTo(i));
+      dotsContainer.appendChild(dot);
+    }
+  }
+
+  function updatePosition() {
+    const cardWidth = cards[0].offsetWidth;
+    track.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
+    dotsContainer.querySelectorAll('.testimonial-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === currentIndex);
+    });
+  }
+
+  function goTo(index) {
+    currentIndex = Math.max(0, Math.min(index, maxIndex()));
+    updatePosition();
+    resetAutoplay();
+  }
+
+  function next() {
+    goTo(currentIndex >= maxIndex() ? 0 : currentIndex + 1);
+  }
+
+  function resetAutoplay() {
+    clearInterval(autoplayTimer);
+    autoplayTimer = setInterval(next, 10000);
+  }
+
+  // Touch/swipe support
+  let touchStartX = 0;
+  let touchDelta = 0;
+  track.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchDelta = 0;
+    clearInterval(autoplayTimer);
+  }, { passive: true });
+
+  track.addEventListener('touchmove', (e) => {
+    touchDelta = e.touches[0].clientX - touchStartX;
+  }, { passive: true });
+
+  track.addEventListener('touchend', () => {
+    if (Math.abs(touchDelta) > 50) {
+      touchDelta < 0 ? goTo(currentIndex + 1) : goTo(currentIndex - 1);
+    }
+    resetAutoplay();
+  });
+
+  // Recalculate on resize
+  window.addEventListener('resize', () => {
+    if (currentIndex > maxIndex()) currentIndex = maxIndex();
+    buildDots();
+    updatePosition();
+  });
+
+  buildDots();
+  updatePosition();
+  resetAutoplay();
+}
+
 // Init
 fetchEpisodes();
+initTestimonials();

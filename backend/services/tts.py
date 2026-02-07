@@ -577,7 +577,12 @@ async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray,
     import base64
     import librosa
 
-    voice = INWORLD_VOICES.get(voice_id, DEFAULT_INWORLD_VOICE)
+    # voice_id is now the Inworld voice name directly (e.g. "Edward")
+    # Fall back to legacy mapping if it's an ElevenLabs ID
+    if voice_id in INWORLD_VOICES:
+        voice = INWORLD_VOICES[voice_id]
+    else:
+        voice = voice_id
 
     api_key = settings.inworld_api_key
     if not api_key:

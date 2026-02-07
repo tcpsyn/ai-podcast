@@ -52,22 +52,53 @@ FEMALE_NAMES = [
     "Shonda", "Marlene", "Yolanda", "Stacy", "Jackie", "Carmen", "Rita", "Val",
 ]
 
-# Voice pools — ElevenLabs IDs mapped to Inworld voices in tts.py
-MALE_VOICES = [
-    "VR6AewLTigWG4xSOukaG",  # Edward
-    "TxGEqnHWrfWFTfGW9XjX",  # Shaun
-    "pNInz6obpgDQGcFmaJgB",  # Alex
-    "ODq5zmih8GrVes37Dizd",  # Craig
-    "IKne3meq5aSn9XLyUdCD",  # Timothy
+# Voice pools per TTS provider
+INWORLD_MALE_VOICES = [
+    "Alex", "Blake", "Carter", "Clive", "Craig", "Dennis",
+    "Dominus", "Edward", "Hades", "Mark", "Ronald", "Shaun", "Theodore", "Timothy",
+]
+INWORLD_FEMALE_VOICES = [
+    "Ashley", "Deborah", "Elizabeth", "Hana", "Julia",
+    "Luna", "Olivia", "Pixie", "Priya", "Sarah", "Wendy",
 ]
 
-FEMALE_VOICES = [
-    "jBpfuIE2acCO8z3wKNLl",  # Hana
-    "EXAVITQu4vr4xnSDxMaL",  # Ashley
-    "21m00Tcm4TlvDq8ikWAM",  # Wendy
-    "XB0fDUnXU5powFXDhCwa",  # Sarah
-    "pFZP5JQG7iQjIQuC4Bku",  # Deborah
+ELEVENLABS_MALE_VOICES = [
+    "CwhRBWXzGAHq8TQ4Fs17",  # Roger - Laid-Back, Casual
+    "IKne3meq5aSn9XLyUdCD",  # Charlie - Deep, Confident
+    "JBFqnCBsd6RMkjVDRZzb",  # George - Warm Storyteller
+    "N2lVS1w4EtoT3dr4eOWO",  # Callum - Husky Trickster
+    "SOYHLrjzK2X1ezoPC6cr",  # Harry - Fierce
+    "TX3LPaxmHKxFdv7VOQHJ",  # Liam - Energetic
+    "bIHbv24MWmeRgasZH58o",  # Will - Relaxed Optimist
+    "cjVigY5qzO86Huf0OWal",  # Eric - Smooth, Trustworthy
+    "iP95p4xoKVk53GoZ742B",  # Chris - Charming
+    "nPczCjzI2devNBz1zQrb",  # Brian - Deep, Resonant
+    "onwK4e9ZLuTAKqWW03F9",  # Daniel - Steady Broadcaster
+    "pNInz6obpgDQGcFmaJgB",  # Adam - Dominant, Firm
+    "pqHfZKP75CvOlQylNhV4",  # Bill - Wise, Mature
 ]
+ELEVENLABS_FEMALE_VOICES = [
+    "EXAVITQu4vr4xnSDxMaL",  # Sarah - Mature, Reassuring
+    "FGY2WhTYpPnrIDTdsKH5",  # Laura - Enthusiast, Quirky
+    "Xb7hH8MSUJpSbSDYk0k2",  # Alice - Clear Educator
+    "XrExE9yKIg1WjnnlVkGX",  # Matilda - Professional
+    "cgSgspJ2msm6clMCkdW9",  # Jessica - Playful, Bright
+    "hpp4J3VqNfWAUOO0d1Us",  # Bella - Professional, Warm
+    "pFZP5JQG7iQjIQuC4Bku",  # Lily - Velvety Actress
+]
+
+# River is gender-neutral, add to both pools
+ELEVENLABS_MALE_VOICES.append("SAz9YHcvj6GT2YYXdXww")   # River - Neutral
+ELEVENLABS_FEMALE_VOICES.append("SAz9YHcvj6GT2YYXdXww")  # River - Neutral
+
+
+def _get_voice_pools():
+    """Get male/female voice pools based on active TTS provider."""
+    provider = settings.tts_provider
+    if provider == "elevenlabs":
+        return ELEVENLABS_MALE_VOICES, ELEVENLABS_FEMALE_VOICES
+    # Default to Inworld voices (also used as fallback for other providers)
+    return INWORLD_MALE_VOICES, INWORLD_FEMALE_VOICES
 
 CALLER_BASES = {
     "1": {"gender": "male", "age_range": (28, 62)},
@@ -89,8 +120,9 @@ def _randomize_callers():
     num_f = sum(1 for c in CALLER_BASES.values() if c["gender"] == "female")
     males = random.sample(MALE_NAMES, num_m)
     females = random.sample(FEMALE_NAMES, num_f)
-    m_voices = random.sample(MALE_VOICES, num_m)
-    f_voices = random.sample(FEMALE_VOICES, num_f)
+    male_pool, female_pool = _get_voice_pools()
+    m_voices = random.sample(male_pool, min(num_m, len(male_pool)))
+    f_voices = random.sample(female_pool, min(num_f, len(female_pool)))
     mi, fi = 0, 0
     for base in CALLER_BASES.values():
         if base["gender"] == "male":
@@ -1943,6 +1975,7 @@ async def get_settings():
 @app.post("/api/settings")
 async def update_settings(data: dict):
     """Update LLM and TTS settings"""
+    old_tts = settings.tts_provider
     llm_service.update_settings(
         provider=data.get("provider"),
         openrouter_model=data.get("openrouter_model"),
@@ -1950,6 +1983,14 @@ async def update_settings(data: dict):
         ollama_host=data.get("ollama_host"),
         tts_provider=data.get("tts_provider")
     )
+    # Re-randomize voices when TTS provider changes voice system
+    new_tts = settings.tts_provider
+    if new_tts != old_tts:
+        old_is_el = old_tts == "elevenlabs"
+        new_is_el = new_tts == "elevenlabs"
+        if old_is_el != new_is_el:
+            _randomize_callers()
+            print(f"[Settings] TTS changed {old_tts} → {new_tts}, re-randomized voices")
     return llm_service.get_settings()
 
 

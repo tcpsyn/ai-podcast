@@ -135,6 +135,7 @@ class AudioService:
         live_caller_channel: Optional[int] = None,
         music_channel: Optional[int] = None,
         sfx_channel: Optional[int] = None,
+        ad_channel: Optional[int] = None,
         phone_filter: Optional[bool] = None
     ):
         """Configure audio devices and channels"""
@@ -152,6 +153,8 @@ class AudioService:
             self.music_channel = music_channel
         if sfx_channel is not None:
             self.sfx_channel = sfx_channel
+        if ad_channel is not None:
+            self.ad_channel = ad_channel
         if phone_filter is not None:
             self.phone_filter = phone_filter
 
@@ -168,6 +171,7 @@ class AudioService:
             "live_caller_channel": self.live_caller_channel,
             "music_channel": self.music_channel,
             "sfx_channel": self.sfx_channel,
+            "ad_channel": self.ad_channel,
             "phone_filter": self.phone_filter,
         }
 
