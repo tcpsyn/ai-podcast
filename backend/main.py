@@ -1075,25 +1075,30 @@ async def chat(request: ChatRequest):
     session.add_message("user", request.text)
     session._research_task = asyncio.create_task(_background_research(request.text))
 
-    async with _ai_response_lock:
-        if _session_epoch != epoch:
-            raise HTTPException(409, "Call ended while waiting")
+    try:
+        async with asyncio.timeout(20):
+            async with _ai_response_lock:
+                if _session_epoch != epoch:
+                    raise HTTPException(409, "Call ended while waiting")
 
-        # Stop any playing caller audio so responses don't overlap
-        audio_service.stop_caller_audio()
+                # Stop any playing caller audio so responses don't overlap
+                audio_service.stop_caller_audio()
 
-        # Include conversation summary and show history for context
-        conversation_summary = session.get_conversation_summary()
-        show_history = session.get_show_history()
-        news_ctx, research_ctx = _build_news_context()
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
-                                          news_ctx, research_ctx)
+                # Include conversation summary and show history for context
+                conversation_summary = session.get_conversation_summary()
+                show_history = session.get_show_history()
+                news_ctx, research_ctx = _build_news_context()
+                system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
+                                                  news_ctx, research_ctx)
 
-        messages = _normalize_messages_for_llm(session.conversation[-10:])
-        response = await llm_service.generate(
-            messages=messages,
-            system_prompt=system_prompt
-        )
+                messages = _normalize_messages_for_llm(session.conversation[-10:])
+                response = await llm_service.generate(
+                    messages=messages,
+                    system_prompt=system_prompt
+                )
+    except TimeoutError:
+        caller_name = session.caller["name"] if session.caller else "Caller"
+        return {"text": "Uh... hold on, I lost my train of thought.", "caller": caller_name, "voice_id": session.caller["voice"] if session.caller else ""}
 
     # Discard if call changed while we were generating
     if _session_epoch != epoch:
@@ -1600,26 +1605,32 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
 
     ai_name = session.caller["name"]
 
-    async with _ai_response_lock:
-        if _session_epoch != epoch:
-            return  # Call changed while waiting for lock
+    try:
+        async with asyncio.timeout(20):
+            async with _ai_response_lock:
+                if _session_epoch != epoch:
+                    return  # Call changed while waiting for lock
 
-        print(f"[Auto-Respond] {ai_name} is jumping in...")
-        session._last_ai_auto_respond = time.time()
-        audio_service.stop_caller_audio()
-        broadcast_event("ai_status", {"text": f"{ai_name} is thinking..."})
+                print(f"[Auto-Respond] {ai_name} is jumping in...")
+                session._last_ai_auto_respond = time.time()
+                audio_service.stop_caller_audio()
+                broadcast_event("ai_status", {"text": f"{ai_name} is thinking..."})
 
-        conversation_summary = session.get_conversation_summary()
-        show_history = session.get_show_history()
-        news_ctx, research_ctx = _build_news_context()
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
-                                          news_ctx, research_ctx)
+                conversation_summary = session.get_conversation_summary()
+                show_history = session.get_show_history()
+                news_ctx, research_ctx = _build_news_context()
+                system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
+                                                  news_ctx, research_ctx)
 
-        messages = _normalize_messages_for_llm(session.conversation[-10:])
-        response = await llm_service.generate(
-            messages=messages,
-            system_prompt=system_prompt,
-        )
+                messages = _normalize_messages_for_llm(session.conversation[-10:])
+                response = await llm_service.generate(
+                    messages=messages,
+                    system_prompt=system_prompt,
+                )
+    except TimeoutError:
+        print(f"[Auto-Respond] Timed out for {ai_name}")
+        broadcast_event("ai_done")
+        return
 
     # Discard if call changed during generation
     if _session_epoch != epoch:
@@ -1677,23 +1688,27 @@ async def ai_respond():
 
     epoch = _session_epoch
 
-    async with _ai_response_lock:
-        if _session_epoch != epoch:
-            raise HTTPException(409, "Call ended while waiting")
+    try:
+        async with asyncio.timeout(20):
+            async with _ai_response_lock:
+                if _session_epoch != epoch:
+                    raise HTTPException(409, "Call ended while waiting")
 
-        audio_service.stop_caller_audio()
+                audio_service.stop_caller_audio()
 
-        conversation_summary = session.get_conversation_summary()
-        show_history = session.get_show_history()
-        news_ctx, research_ctx = _build_news_context()
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
-                                          news_ctx, research_ctx)
+                conversation_summary = session.get_conversation_summary()
+                show_history = session.get_show_history()
+                news_ctx, research_ctx = _build_news_context()
+                system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history,
+                                                  news_ctx, research_ctx)
 
-        messages = _normalize_messages_for_llm(session.conversation[-10:])
-        response = await llm_service.generate(
-            messages=messages,
-            system_prompt=system_prompt
-        )
+                messages = _normalize_messages_for_llm(session.conversation[-10:])
+                response = await llm_service.generate(
+                    messages=messages,
+                    system_prompt=system_prompt
+                )
+    except TimeoutError:
+        return {"text": "Uh... sorry, I spaced out for a second there.", "caller": session.caller["name"], "voice_id": session.caller["voice"]}
 
     if _session_epoch != epoch:
         raise HTTPException(409, "Call changed during response")
@@ -1707,7 +1722,7 @@ async def ai_respond():
     ai_name = session.caller["name"]
     session.add_message(f"ai_caller:{ai_name}", response)
 
-    # TTS
+    # TTS — outside the lock so other requests aren't blocked
     audio_bytes = await generate_speech(response, session.caller["voice"], "none")
 
     if _session_epoch != epoch:

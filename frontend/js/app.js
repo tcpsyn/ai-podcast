@@ -17,17 +17,26 @@ let sounds = [];
 
 
 // --- Safe JSON parsing ---
-async function safeFetch(url, options = {}) {
-    const res = await fetch(url, options);
-    if (!res.ok) {
+async function safeFetch(url, options = {}, timeoutMs = 30000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timer);
+        if (!res.ok) {
+            const text = await res.text();
+            let detail = text;
+            try { detail = JSON.parse(text).detail || text; } catch {}
+            throw new Error(detail);
+        }
         const text = await res.text();
-        let detail = text;
-        try { detail = JSON.parse(text).detail || text; } catch {}
-        throw new Error(detail);
+        if (!text) return {};
+        return JSON.parse(text);
+    } catch (err) {
+        clearTimeout(timer);
+        if (err.name === 'AbortError') throw new Error('Request timed out');
+        throw err;
     }
-    const text = await res.text();
-    if (!text) return {};
-    return JSON.parse(text);
 }
 
 
