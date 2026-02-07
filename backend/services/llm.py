@@ -17,6 +17,13 @@ OPENROUTER_MODELS = [
     "mistralai/mistral-7b-instruct",
 ]
 
+# Fast models to try as fallbacks (cheap, fast, good enough for conversation)
+FALLBACK_MODELS = [
+    "google/gemini-flash-1.5",
+    "openai/gpt-4o-mini",
+    "meta-llama/llama-3.1-8b-instruct",
+]
+
 
 class LLMService:
     """Abstraction layer for LLM providers"""
@@ -27,6 +34,13 @@ class LLMService:
         self.ollama_model = settings.ollama_model
         self.ollama_host = settings.ollama_host
         self.tts_provider = settings.tts_provider
+        self._client: httpx.AsyncClient | None = None
+
+    @property
+    def client(self) -> httpx.AsyncClient:
+        if self._client is None or self._client.is_closed:
+            self._client = httpx.AsyncClient(timeout=15.0)
+        return self._client
 
     def update_settings(
         self,
@@ -47,7 +61,6 @@ class LLMService:
             self.ollama_host = ollama_host
         if tts_provider:
             self.tts_provider = tts_provider
-            # Also update the global settings so TTS service picks it up
             settings.tts_provider = tts_provider
 
     async def get_ollama_models(self) -> list[str]:
@@ -71,7 +84,7 @@ class LLMService:
             "ollama_host": self.ollama_host,
             "tts_provider": self.tts_provider,
             "available_openrouter_models": OPENROUTER_MODELS,
-            "available_ollama_models": []  # Fetched separately
+            "available_ollama_models": []
         }
 
     async def get_settings_async(self) -> dict:
@@ -92,57 +105,64 @@ class LLMService:
         messages: list[dict],
         system_prompt: Optional[str] = None
     ) -> str:
-        """
-        Generate a response from the LLM.
-
-        Args:
-            messages: List of message dicts with 'role' and 'content'
-            system_prompt: Optional system prompt to prepend
-
-        Returns:
-            Generated text response
-        """
         if system_prompt:
             messages = [{"role": "system", "content": system_prompt}] + messages
 
         if self.provider == "openrouter":
-            return await self._call_openrouter(messages)
+            return await self._call_openrouter_with_fallback(messages)
         else:
             return await self._call_ollama(messages)
 
-    async def _call_openrouter(self, messages: list[dict]) -> str:
-        """Call OpenRouter API with retry"""
-        for attempt in range(2):  # Try twice
-            try:
-                async with httpx.AsyncClient(timeout=25.0) as client:
-                    response = await client.post(
-                        "https://openrouter.ai/api/v1/chat/completions",
-                        headers={
-                            "Authorization": f"Bearer {settings.openrouter_api_key}",
-                            "Content-Type": "application/json",
-                        },
-                        json={
-                            "model": self.openrouter_model,
-                            "messages": messages,
-                            "max_tokens": 150,
-                        },
-                    )
-                    response.raise_for_status()
-                    data = response.json()
-                    content = data["choices"][0]["message"]["content"]
-                    if not content or not content.strip():
-                        print(f"OpenRouter returned empty response")
-                        return ""
-                    return content
-            except (httpx.TimeoutException, httpx.ReadTimeout):
-                print(f"OpenRouter timeout (attempt {attempt + 1})")
-                if attempt == 0:
-                    continue  # Retry once
-                return "Uh, sorry, I lost you there for a second. What was that?"
-            except Exception as e:
-                print(f"OpenRouter error: {e}")
-                return "Yeah... I don't know, man."
-        return "Uh, hold on a sec..."
+    async def _call_openrouter_with_fallback(self, messages: list[dict]) -> str:
+        """Try primary model, then fallback models. Always returns a response."""
+
+        # Try primary model first
+        result = await self._call_openrouter_once(messages, self.openrouter_model)
+        if result is not None:
+            return result
+
+        # Try fallback models
+        for model in FALLBACK_MODELS:
+            if model == self.openrouter_model:
+                continue  # Already tried
+            print(f"[LLM] Falling back to {model}...")
+            result = await self._call_openrouter_once(messages, model, timeout=10.0)
+            if result is not None:
+                return result
+
+        # Everything failed — return an in-character line so the show continues
+        print("[LLM] All models failed, using canned response")
+        return "Sorry, I totally blanked out for a second. What were you saying?"
+
+    async def _call_openrouter_once(self, messages: list[dict], model: str, timeout: float = 15.0) -> str | None:
+        """Single attempt to call OpenRouter. Returns None on failure (not a fallback string)."""
+        try:
+            response = await self.client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.openrouter_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": model,
+                    "messages": messages,
+                    "max_tokens": 150,
+                },
+                timeout=timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+            content = data["choices"][0]["message"]["content"]
+            if content and content.strip():
+                return content
+            print(f"[LLM] {model} returned empty response")
+            return None
+        except httpx.TimeoutException:
+            print(f"[LLM] {model} timed out ({timeout}s)")
+            return None
+        except Exception as e:
+            print(f"[LLM] {model} error: {e}")
+            return None
 
     async def _call_ollama(self, messages: list[dict]) -> str:
         """Call Ollama API"""
@@ -155,11 +175,11 @@ class LLMService:
                         "messages": messages,
                         "stream": False,
                         "options": {
-                            "num_predict": 100,     # Allow complete thoughts
-                            "temperature": 0.8,     # Balanced creativity/coherence
-                            "top_p": 0.9,           # Focused word choices
-                            "repeat_penalty": 1.3,  # Avoid repetition
-                            "top_k": 50,            # Reasonable token variety
+                            "num_predict": 100,
+                            "temperature": 0.8,
+                            "top_p": 0.9,
+                            "repeat_penalty": 1.3,
+                            "top_k": 50,
                         },
                     },
                     timeout=30.0
@@ -169,10 +189,10 @@ class LLMService:
                 return data["message"]["content"]
         except httpx.TimeoutException:
             print("Ollama timeout")
-            return "Uh, sorry, I lost you there for a second. What was that?"
+            return "Sorry, I totally blanked out for a second. What were you saying?"
         except Exception as e:
             print(f"Ollama error: {e}")
-            return "Yeah... I don't know, man."
+            return "Sorry, I totally blanked out for a second. What were you saying?"
 
 
 # Global instance
