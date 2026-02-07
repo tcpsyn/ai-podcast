@@ -892,6 +892,294 @@ def _get_town_from_location(location: str) -> str | None:
     return None
 
 
+# Weather lookup via Open-Meteo (free, no API key)
+_weather_cache: dict[str, tuple[float, str]] = {}
+
+# WMO weather codes to plain descriptions
+_WMO_CODES = {
+    0: "clear skies", 1: "mostly clear", 2: "partly cloudy", 3: "overcast",
+    45: "foggy", 48: "foggy with frost", 51: "light drizzle", 53: "drizzle",
+    55: "heavy drizzle", 56: "freezing drizzle", 57: "heavy freezing drizzle",
+    61: "light rain", 63: "rain", 65: "heavy rain", 66: "freezing rain",
+    67: "heavy freezing rain", 71: "light snow", 73: "snow", 75: "heavy snow",
+    77: "snow grains", 80: "light rain showers", 81: "rain showers",
+    82: "heavy rain showers", 85: "light snow showers", 86: "heavy snow showers",
+    95: "thunderstorm", 96: "thunderstorm with hail", 99: "thunderstorm with heavy hail",
+}
+
+# Known coordinates for local towns (avoid geocoding API calls)
+_TOWN_COORDS = {
+    "lordsburg": (32.35, -108.71), "animas": (31.95, -108.82),
+    "portal": (31.91, -109.14), "hachita": (31.93, -108.33),
+    "road forks": (32.31, -108.72), "deming": (32.27, -107.76),
+    "silver city": (32.77, -108.28), "san simon": (32.27, -109.22),
+    "safford": (32.83, -109.71), "las cruces": (32.35, -106.76),
+    "truth or consequences": (33.13, -107.25), "socorro": (34.06, -106.89),
+    "alamogordo": (32.90, -105.96), "hatch": (32.66, -107.16),
+    "columbus": (31.83, -107.64), "tucson": (32.22, -110.97),
+    "willcox": (32.25, -109.83), "douglas": (31.34, -109.55),
+    "bisbee": (31.45, -109.93), "sierra vista": (31.55, -110.30),
+    "benson": (31.97, -110.29), "globe": (33.39, -110.79),
+    "clifton": (33.05, -109.30), "duncan": (32.72, -109.10),
+    "tombstone": (31.71, -110.07), "nogales": (31.34, -110.94),
+    "green valley": (31.83, -111.00), "reserve": (33.71, -108.76),
+    "cliff": (32.96, -108.62), "bayard": (32.76, -108.13),
+    "hillsboro": (32.92, -107.56), "magdalena": (34.12, -107.24),
+    # Out of state
+    "el paso": (31.76, -106.44), "phoenix": (33.45, -112.07),
+    "albuquerque": (35.08, -106.65), "denver": (39.74, -104.98),
+    "dallas": (32.78, -96.80), "austin": (30.27, -97.74),
+    "chicago": (41.88, -87.63), "nashville": (36.16, -86.78),
+    "atlanta": (33.75, -84.39), "portland": (45.52, -122.68),
+    "detroit": (42.33, -83.05), "vegas": (36.17, -115.14),
+    "salt lake": (40.76, -111.89), "oklahoma city": (35.47, -97.52),
+}
+
+
+async def _get_weather_for_town(town: str) -> str | None:
+    """Get current weather description for a town. Returns a natural sentence or None."""
+    # Check cache (30 min)
+    if town in _weather_cache:
+        ts, desc = _weather_cache[town]
+        if time.time() - ts < 1800:
+            return desc
+
+    coords = _TOWN_COORDS.get(town)
+    if not coords:
+        return None
+
+    lat, lon = coords
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params={
+                    "latitude": lat,
+                    "longitude": lon,
+                    "current_weather": "true",
+                    "temperature_unit": "fahrenheit",
+                    "windspeed_unit": "mph",
+                }
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+        cw = data.get("current_weather", {})
+        temp = cw.get("temperature")
+        wind = cw.get("windspeed")
+        code = cw.get("weathercode", 0)
+
+        if temp is None:
+            return None
+
+        condition = _WMO_CODES.get(code, "clear")
+        temp_f = round(temp)
+        wind_mph = round(wind) if wind else 0
+
+        parts = [f"{temp_f}°F", condition]
+        if wind_mph >= 15:
+            parts.append(f"wind {wind_mph} mph")
+
+        desc = ", ".join(parts)
+        _weather_cache[town] = (time.time(), desc)
+        return desc
+    except Exception as e:
+        print(f"[Weather] Failed for {town}: {e}")
+        return None
+
+
+# --- Time, season, moon, and situational context ---
+
+import math
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+_MST = ZoneInfo("America/Denver")
+
+
+def _get_time_context() -> str:
+    """Get current time/day context in Mountain time."""
+    now = datetime.now(_MST)
+    hour = now.hour
+    day_name = now.strftime("%A")
+    is_weekend = day_name in ("Friday", "Saturday", "Sunday")
+
+    if hour < 1:
+        time_feel = "just past midnight"
+    elif hour < 3:
+        time_feel = "the middle of the night"
+    elif hour < 5:
+        time_feel = "way too late — almost morning"
+    elif hour < 8:
+        time_feel = "early morning"
+    elif hour < 12:
+        time_feel = "morning"
+    elif hour < 17:
+        time_feel = "afternoon"
+    elif hour < 20:
+        time_feel = "evening"
+    elif hour < 22:
+        time_feel = "getting late"
+    else:
+        time_feel = "late at night"
+
+    weekend_note = "it's the weekend" if is_weekend else "it's a weeknight — work tomorrow for most people"
+    return f"It's {day_name} night, {time_feel}. {weekend_note}."
+
+
+def _get_moon_phase() -> str:
+    """Calculate current moon phase from date. No API needed."""
+    now = datetime.now(_MST)
+    # Simple moon phase calculation (Trig2 method)
+    # Known new moon: Jan 6, 2000
+    days_since = (now - datetime(2000, 1, 6, 18, 14, tzinfo=_MST)).total_seconds() / 86400
+    lunations = days_since / 29.53058867
+    phase = lunations % 1.0
+
+    if phase < 0.03 or phase > 0.97:
+        return "new moon — pitch black sky, incredible stars"
+    elif phase < 0.22:
+        return "waxing crescent — thin sliver of moon"
+    elif phase < 0.28:
+        return "first quarter — half moon"
+    elif phase < 0.47:
+        return "waxing gibbous — moon getting full"
+    elif phase < 0.53:
+        return "full moon — bright as hell outside, can see the mountains"
+    elif phase < 0.72:
+        return "waning gibbous — still pretty bright out"
+    elif phase < 0.78:
+        return "last quarter — half moon"
+    else:
+        return "waning crescent — thin moon, dark sky"
+
+
+def _get_seasonal_context() -> str:
+    """Get seasonal/cultural context for the current date."""
+    now = datetime.now(_MST)
+    month, day = now.month, now.day
+    contexts = []
+
+    # Seasonal weather feel
+    if month in (12, 1, 2):
+        contexts.append("Winter in the desert — cold nights, clear days. Might be frost on the truck in the morning.")
+    elif month == 3:
+        contexts.append("Early spring — wind season is starting. Dust storms possible.")
+    elif month == 4:
+        contexts.append("Spring — warming up, still breezy. Wildflowers if there was rain.")
+    elif month == 5:
+        contexts.append("Late spring — getting hot already. Dry as a bone.")
+    elif month == 6:
+        contexts.append("Early summer — scorching hot, triple digits some days. Everyone waiting for monsoon.")
+    elif month == 7:
+        contexts.append("Monsoon season — afternoon thunderstorms, lightning shows, flash flood warnings. The desert smells incredible after rain.")
+    elif month == 8:
+        contexts.append("Peak monsoon and chile harvest. Hatch chile roasting everywhere — you can smell it for miles. Hot and humid by desert standards.")
+    elif month == 9:
+        contexts.append("Late monsoon, chile harvest wrapping up. Still hot but the nights are getting cooler.")
+    elif month == 10:
+        contexts.append("Fall — perfect weather, cool nights, warm days. Hunting season starting up.")
+    elif month == 11:
+        contexts.append("Late fall — getting cold at night. Hunting season in full swing. Ranchers bringing cattle down.")
+
+    # Holidays / events
+    if month == 12 and day >= 15:
+        contexts.append("Christmas is coming up.")
+    elif month == 12 and day < 5:
+        contexts.append("Just got past Thanksgiving.")
+    elif month == 1 and day < 7:
+        contexts.append("New Year's just happened.")
+    elif month == 2 and 10 <= day <= 14:
+        contexts.append("Valentine's Day is coming.")
+    elif month == 7 and day <= 5:
+        contexts.append("Fourth of July.")
+    elif month == 11 and 20 <= day <= 28:
+        contexts.append("Thanksgiving.")
+    elif month == 10 and day >= 25:
+        contexts.append("Halloween coming up.")
+    elif month == 8 and day <= 7:
+        contexts.append("Duck Race weekend in Deming coming up — the whole area goes.")
+    elif month == 9 and 1 <= day <= 3:
+        contexts.append("Labor Day weekend — Hatch Chile Festival just happened or is happening.")
+
+    return " ".join(contexts)
+
+
+# Situational color — what's going on around them right now
+ROAD_CONTEXT = [
+    "I-10 was backed up today, some accident near Deming",
+    "Saw Border Patrol set up on 80 south of Road Forks again",
+    "Some semi jackknifed on I-10 earlier, had to take the long way",
+    "Road construction on the highway outside Lordsburg, been going on for weeks",
+    "Passed a brush fire on the way home today — BLM land, nobody out there",
+    "Train was stopped across the road for like 45 minutes today",
+    "Almost hit a javelina on the road coming home",
+    "The dirt road to the house is washed out again after that rain",
+    "Saw a rattlesnake on the porch earlier, had to relocate it",
+    "Power flickered a couple times tonight — wind probably",
+    "Coyotes are going crazy outside right now",
+    "Someone's cattle got out on the highway again",
+]
+
+PHONE_SITUATION = [
+    "Calling from the truck, parked outside — better signal out here",
+    "Signal keeps cutting in and out — only get one bar at the house",
+    "Sitting on the porch, signal's decent tonight for once",
+    "Had to walk up the hill behind the house just to get a signal",
+    "Using the wifi calling, regular signal is garbage out here",
+    "Stepped outside to call — didn't want to wake anyone up",
+    "In the truck at the gas station — only place with good signal",
+    "Borrowing my kid's phone, mine's cracked to hell",
+]
+
+BACKGROUND_MUSIC = [
+    "Had some Marty Robbins going earlier",
+    "Been listening to old Townes Van Zandt all night",
+    "Got the Highwaymen on — Waylon and Willie",
+    "Was listening to a Joe Rogan episode before this",
+    "Had some old Sabbath playing in the garage",
+    "Been playing Khruangbin all evening — that desert sound",
+    "Was listening to a true crime podcast before switching over",
+    "Had the classic rock station on in the truck",
+    "Been playing some Calexico — fits the mood out here",
+    "Radio was on, just scanning stations. Then found the show",
+    "Had some corridos playing earlier — neighbor turned me onto them",
+    "Was listening to some Pink Floyd, Dark Side. That kind of night",
+]
+
+RECENT_ERRAND = [
+    "Just got back from Walmart in Deming — hour round trip for groceries",
+    "Was at the feed store earlier, prices keep going up",
+    "Dropped the truck off at the mechanic in Lordsburg today",
+    "Went to the post office — package I've been waiting on finally came",
+    "Was at the hardware store picking up fence wire",
+    "Had to run to the vet in Silver City — dog got into something",
+    "Filled up the truck today, drove around more than I should have",
+    "Was at the county office dealing with some permit thing",
+    "Picked up dinner from that Mexican place in Lordsburg",
+    "Drove out to check on the property line fence — took all afternoon",
+    "Had a doctor appointment in Deming, whole day just gone",
+    "Was helping a neighbor move some hay bales",
+    "Went to the dump — only open certain days out here",
+    "Stopped at the Dairy Queen in Deming on the way home",
+]
+
+TV_TONIGHT = [
+    "Was watching some Dateline before this",
+    "Had the news on earlier — same stuff, different day",
+    "Was watching a documentary on Netflix, couldn't focus",
+    "Flipped through channels for a while, nothing on",
+    "Had some YouTube going — those van life videos",
+    "Was rewatching Breaking Bad, for like the fourth time",
+    "Had Investigation Discovery on in the background",
+    "Was watching old Seinfeld reruns",
+    "Tried to watch something new on streaming, couldn't get into it",
+    "Was watching those bodycam videos on YouTube",
+    "Had the History Channel on — that Ancient Aliens stuff",
+    "Was watching Forged in Fire, always get sucked into that",
+]
+
+
 def pick_location() -> str:
     if random.random() < 0.8:
         return random.choice(LOCATIONS_LOCAL)
@@ -945,10 +1233,22 @@ def generate_caller_background(base: dict) -> str:
     late_night = random.choice(LATE_NIGHT_REASONS)
     drift = random.choice(DRIFT_TENDENCIES)
 
+    # Situational context
+    time_ctx = _get_time_context()
+    moon = _get_moon_phase()
+    season_ctx = _get_seasonal_context()
+    road = random.choice(ROAD_CONTEXT) if random.random() < 0.4 else None
+    phone = random.choice(PHONE_SITUATION) if random.random() < 0.5 else None
+    music = random.choice(BACKGROUND_MUSIC) if random.random() < 0.4 else None
+    errand = random.choice(RECENT_ERRAND) if random.random() < 0.5 else None
+    tv = random.choice(TV_TONIGHT) if random.random() < 0.35 else None
+
     parts = [
         f"{age}, {job} {location}. {reason.capitalize()}.",
         f"{interest1.capitalize()}, {interest2}.",
         f"{quirk1.capitalize()}, {quirk2}.",
+        f"\nRIGHT NOW: {time_ctx} Moon: {moon}.",
+        f"\nSEASON: {season_ctx}",
         f"\nPEOPLE IN THEIR LIFE: {person1.capitalize()}. {person2.capitalize()}. Use their names when talking about them.",
         f"\nRELATIONSHIP STATUS: {rel_status}",
         f"\nDRIVES: {vehicle.capitalize()}.",
@@ -961,6 +1261,16 @@ def generate_caller_background(base: dict) -> str:
         f"\nRELATIONSHIP TO THE SHOW: {relationship}",
         f"\nWHY THEY'RE UP: {late_night}",
     ]
+    if phone:
+        parts.append(f"\nPHONE SITUATION: {phone}")
+    if errand:
+        parts.append(f"\nEARLIER TODAY: {errand}")
+    if road:
+        parts.append(f"\nROAD STUFF: {road}")
+    if music:
+        parts.append(f"\nWAS LISTENING TO: {music}")
+    if tv:
+        parts.append(f"\nWAS WATCHING: {tv}")
     if contradiction:
         parts.append(f"\nSECRET SIDE: {contradiction}")
     if drift:
@@ -1080,9 +1390,24 @@ async def enrich_caller_background(background: str) -> str:
     except Exception as e:
         print(f"[Research] Topic enrichment failed: {e}")
 
-    # Local town news enrichment
+    # Weather enrichment
     try:
         town = _get_town_from_location(background.split(".")[0])
+        if town:
+            async with asyncio.timeout(3):
+                weather = await _get_weather_for_town(town)
+                if weather:
+                    background += f"\nWEATHER RIGHT NOW: {weather}."
+                    print(f"[Research] Weather for {town}: {weather}")
+    except TimeoutError:
+        pass
+    except Exception as e:
+        print(f"[Research] Weather lookup failed: {e}")
+
+    # Local town news enrichment
+    try:
+        if not town:
+            town = _get_town_from_location(background.split(".")[0])
         if town and town not in ("road forks", "hachita"):  # Too small for news
             async with asyncio.timeout(4):
                 town_query = f"{town.title()} New Mexico" if town not in ("tucson", "phoenix", "bisbee", "douglas", "sierra vista", "safford", "willcox", "globe", "clifton", "duncan", "tombstone", "nogales", "green valley", "benson", "san simon") else f"{town.title()} Arizona"
@@ -1157,6 +1482,10 @@ HOW TO TALK:
 - You can mention what you were doing before calling, what you're drinking, your truck — small details that ground the scene.
 - If earlier callers are mentioned in the show history, you can reference them ("I heard that guy earlier talking about...") but only if it's natural.
 - If you have LOCAL NEWS, you can mention it casually like any local would ("Did you hear about that thing over in Deming?").
+- If there's WEATHER info, you're aware of it. You might mention it in passing ("it's cold as hell out here tonight", "sitting on the porch, it's actually nice out"). Don't lead with it or force it — just know what it's like outside your window right now.
+- You know what TIME and DAY it is. If it's a weeknight, you might mention work tomorrow. If it's the weekend, you're more relaxed. Reference the moon if it makes sense ("can see everything out there tonight, moon's bright").
+- You know the SEASON. Monsoon season, chile harvest, hunting season, holiday proximity — these are things locals talk about naturally.
+- If you have ROAD STUFF, PHONE SITUATION, EARLIER TODAY, WAS LISTENING TO, or WAS WATCHING — these are small details that ground you as a real person. Drop them in naturally. "Yeah I was just watching Dateline and..." or "Had to drive all the way to Deming today for..." — but only if it fits the flow.
 
 REGIONAL SPEECH (you're from the rural southwest):
 - "over in" instead of just "in" for nearby places ("over in Deming", "over in Silver City")
