@@ -15,6 +15,7 @@ class NewsItem:
     title: str
     source: str
     published: str
+    content: str = ""
 
 
 class NewsService:
@@ -88,7 +89,8 @@ class NewsService:
             engines = result.get("engines", [])
             source = engines[0] if engines else ""
             published = result.get("publishedDate", "")
-            items.append(NewsItem(title=title, source=source, published=published))
+            content = result.get("content", "").strip()
+            items.append(NewsItem(title=title, source=source, published=published, content=content))
         return items
 
     def format_headlines_for_prompt(self, items: list[NewsItem]) -> str:

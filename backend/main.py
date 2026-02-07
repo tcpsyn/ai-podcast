@@ -325,43 +325,88 @@ PROBLEM_FILLS = {
 }
 
 INTERESTS = [
-    # Entertainment & media
-    "really into true crime podcasts", "watches a lot of reality TV", "big movie person",
-    "reads a lot", "into music, has opinions", "obsessed with a specific TV show right now",
-    "listens to comedy podcasts", "watches too much YouTube", "into anime, not ashamed",
-    "horror movie junkie", "knows way too much about celebrity gossip",
-    "has a podcast recommendation for everything", "rewatches the same comfort shows",
+    # Prestige TV (current)
+    "obsessed with Severance, has theories about every floor",
+    "been binging Landman, loves the oil field drama",
+    "really into the Fallout show, played all the games too",
+    "hooked on The Last of Us, compares it to the game constantly",
+    "just finished Shogun, can't stop talking about it",
+    "deep into Slow Horses, thinks it's the best spy show ever made",
+    "watches every episode of Poker Face twice",
+    "been following Silo, reads the books too",
+    # Prestige TV (classic)
+    "has watched The Wire three times, quotes it constantly",
+    "thinks Breaking Bad is the greatest show ever made",
+    "still thinks about the LOST finale, has a take on it",
+    "Mad Men changed how they see advertising and life",
+    "Westworld season 1 blew their mind, still processes it",
+    "big Yellowstone fan, has opinions about the Duttons",
+    "Stranger Things got them into 80s nostalgia",
+    "rewatches The Sopranos every year, notices new things",
+    "thinks True Detective season 1 is peak television",
+    "Battlestar Galactica is their comfort rewatch",
+    "still upset about how Game of Thrones ended",
+    "thinks Better Call Saul is better than Breaking Bad",
+    "Chernobyl miniseries changed how they think about disasters",
+    "Band of Brothers is their go-to recommendation",
+    # Science & space
+    "follows NASA missions, got excited about the latest Mars data",
+    "reads science journals for fun, especially Nature and Science",
+    "into astrophotography, has a decent telescope setup",
+    "fascinated by quantum physics, watches every PBS Space Time episode",
+    "follows JWST discoveries, has opinions about exoplanet findings",
+    "into particle physics, followed CERN news closely",
+    "reads about neuroscience and consciousness research",
+    "into geology, knows every rock formation around the bootheel",
+    "follows fusion energy research, cautiously optimistic about it",
+    "amateur astronomer, knows the night sky by heart",
+    # Technology
+    "follows AI developments closely, has mixed feelings about it",
+    "into open source software, runs Linux at home",
+    "fascinated by SpaceX launches, watches every one",
+    "follows battery and EV tech, thinks about energy transition a lot",
+    "into ham radio, has a nice setup",
+    "builds electronics projects, has an Arduino collection",
+    "follows cybersecurity news, paranoid about their own setup",
+    # Photography & visual
+    "serious about astrophotography, does long exposures in the desert",
+    "into landscape photography, shoots the bootheel at golden hour",
+    "has a darkroom, still shoots film",
+    "into wildlife photography, has patience for it",
+    # Poker & games
+    "plays poker seriously, studies hand ranges",
+    "watches poker tournaments, has opinions about pro players",
+    "plays home games weekly, takes it seriously",
+    "into poker strategy, reads theory books",
+    "plays chess online, follows the competitive scene",
+    # Movies & film
+    "big movie person, prefers practical effects over CGI",
+    "into Coen Brothers films, can quote most of them",
+    "watches old westerns, thinks they don't make them like they used to",
+    "into horror movies, the psychological kind not slashers",
+    "follows A24 films, thinks they're doing the best work right now",
+    "into sci-fi films, hard sci-fi especially",
+    "Tarantino fan, has a ranking and will defend it",
+    "into documentaries, especially nature docs",
+    # US News & current events
+    "follows US politics closely, has strong opinions",
+    "reads the news every morning, stays informed",
+    "into economics, thinks about markets and policy",
+    "follows infrastructure and energy policy",
     # Active & outdoors
-    "into fitness", "outdoorsy type", "runs marathons, won't shut up about it",
-    "just got into rock climbing", "hikes every weekend", "into camping and survival stuff",
-    "plays pickup basketball", "does yoga, takes it seriously", "trains martial arts",
-    "mountain bikes", "surfs when they can", "into fishing, finds it meditative",
-    # Social & lifestyle
-    "goes out a lot, active social life", "homebody, prefers staying in",
-    "into cooking and food", "follows sports", "works a lot, career focused",
-    "big into board games and game nights", "karaoke regular", "goes to live music a lot",
-    "volunteers at an animal shelter", "coaches youth sports", "into vintage cars",
-    "collects something weird", "goes to thrift stores religiously",
+    "into fitness", "outdoorsy type", "hikes every weekend",
+    "into camping and survival stuff", "into fishing, finds it meditative",
+    "mountain bikes the trails around Silver City",
     # Hobbies & creative
-    "plays guitar badly but loves it", "paints as a stress outlet", "writes poetry nobody reads",
-    "into woodworking", "builds stuff in their garage", "does pottery on weekends",
-    "into photography", "makes their own hot sauce", "brews beer at home",
-    "into gardening, talks to plants", "does stand-up at open mics",
-    "restores old furniture", "into model trains, doesn't care if it's nerdy",
-    # Tech & intellectual
-    "gamer", "very online, knows all the discourse", "into history, has random facts",
-    "reads about psychology and why people do what they do", "into true crime investigation stuff",
-    "follows space news", "into conspiracy theories but knows they're mostly bullshit",
+    "plays guitar badly but loves it", "into woodworking",
+    "builds stuff in their garage", "brews beer at home",
+    "into gardening, talks to plants", "restores old furniture",
+    "makes their own hot sauce",
+    # Self & lifestyle
+    "homebody, prefers staying in", "into cooking and food",
+    "follows sports", "gamer", "into history, has random facts",
     "reads philosophy for fun", "into personal finance, tracks every dollar",
-    "amateur astronomer", "into maps and geography for no reason",
-    # Self & relationships
-    "listens to relationship podcasts", "has done therapy, believes in it",
-    "into self-improvement stuff", "follows dating advice content",
-    "into meditation, it actually helps", "journals every day",
-    "into astrology, half-believes it", "reads tarot for friends",
-    # Faith & spirituality
-    "goes to church, complicated feelings about it", "spiritual but not religious",
-    "into eastern philosophy", "grew up religious, still sorting it out",
+    "has done therapy, believes in it", "into meditation, it actually helps",
     # Sexually open (not the focus, but present)
     "sex-positive, doesn't judge", "has experimented, open about it",
     "comfortable with their body", "has stories if you ask",
@@ -398,14 +443,98 @@ QUIRKS = [
     "has stories they've never told anyone", "testing how the host reacts before going deeper",
 ]
 
+# Topic-based call-ins (30% of callers discuss a topic instead of a personal problem)
+TOPIC_CALLIN = [
+    # Prestige TV discussions
+    "just finished Severance season 2 and needs to talk about the ending with someone",
+    "has a theory about Severance that they think nobody else has figured out",
+    "wants to talk about how Landman portrays the oil industry, because they actually work in it",
+    "just watched the Fallout show and wants to discuss how it compares to the games",
+    "rewatched Breaking Bad and noticed something they never caught before",
+    "wants to argue that The Wire is more relevant now than when it aired",
+    "has a hot take about the Game of Thrones ending that they think people will disagree with",
+    "just discovered Westworld and their mind is blown by the philosophy of it",
+    "wants to talk about which shows people will still be watching in 20 years",
+    "thinks Yellowstone went downhill and wants to vent about it",
+    "just finished LOST for the first time and has questions",
+    "wants to talk about why Stranger Things resonated so hard with their generation",
+    "thinks Better Call Saul's finale was perfect and wants to make the case",
+    "rewatched Mad Men and realized Don Draper is way worse than they remembered",
+    "wants to discuss which show has the best pilot episode ever",
+    "thinks The Sopranos ending was genius and will fight anyone who disagrees",
+    "just watched True Detective season 1 again and wants to talk about the philosophy in it",
+    "wants to recommend Slow Horses because nobody they know watches it",
+    "thinks Silo is the most underrated show on TV right now",
+    "wants to talk about why prestige TV peaked and where it's going",
+    "has been watching The Last of Us and can't stop thinking about the third episode",
+
+    # Science & space
+    "read something about a new exoplanet discovery and is genuinely excited",
+    "wants to talk about the latest JWST images, says they changed how they think about the universe",
+    "read a paper about quantum entanglement that they barely understood but found fascinating",
+    "wants to discuss whether we'll see fusion energy in their lifetime",
+    "saw something about CERN's latest experiments and wants to geek out about it",
+    "has been following the Mars missions and wants to talk about what they've found",
+    "read about a breakthrough in neuroscience and wants to discuss what consciousness even is",
+    "wants to talk about dark matter and dark energy because it blows their mind",
+    "just learned about the scale of the observable universe and it's keeping them up at night",
+    "read about new battery technology that could change everything",
+    "wants to talk about gravitational waves and what they mean for physics",
+    "fascinated by the search for extraterrestrial life, thinks we're close",
+
+    # Technology
+    "wants to talk about AI and whether it's going to change everything or if it's overhyped",
+    "has opinions about the latest SpaceX launch and wants to discuss the future of space travel",
+    "worried about cybersecurity after reading about a major breach",
+    "wants to discuss the ethics of AI-generated content",
+    "thinks about energy grid problems and has ideas about solutions",
+    "into open source and wants to talk about why it matters",
+
+    # Poker
+    "just had the most insane hand at their home game and needs to tell someone",
+    "watched a poker tournament and wants to discuss a controversial call",
+    "has been studying poker theory and thinks they figured out why they keep losing",
+    "wants to talk about whether poker is more skill or luck",
+    "played in a tournament and made a call they can't stop thinking about",
+
+    # Photography & astrophotography
+    "got an amazing astrophotography shot of the Milky Way from the desert and is stoked",
+    "wants to talk about how dark the skies are out in the bootheel for photography",
+    "just got into astrophotography and is overwhelmed by how much there is to learn",
+    "shot the most incredible sunset over the Peloncillo Mountains",
+
+    # US News & current events
+    "wants to talk about something they saw in the news that's been bugging them",
+    "has thoughts about the economy and wants to hear another perspective",
+    "read about an infrastructure project and has opinions about it",
+    "wants to discuss something happening in politics without it turning into a fight",
+    "saw a news story about their town and wants to set the record straight",
+    "concerned about water rights in the southwest and wants to talk about it",
+    "has thoughts about rural broadband and how it affects small towns",
+
+    # Physics & big questions
+    "can't stop thinking about the nature of time after reading about it",
+    "wants to talk about the multiverse theory and whether it's real science or sci-fi",
+    "read about the double-slit experiment and it broke their brain",
+    "wants to discuss whether free will is real or if physics says otherwise",
+    "fascinated by black holes after watching a documentary",
+    "wants to talk about the simulation theory and why smart people take it seriously",
+]
+
 LOCATIONS_LOCAL = [
     # Bootheel & immediate area (most common)
-    "in Lordsburg", "in Animas", "in Portal", "in Playas", "in Road Forks",
+    "in Lordsburg", "in Animas", "in Portal", "in Hachita", "in Road Forks",
     "in Deming", "in Silver City", "in San Simon", "in Safford",
     "outside Lordsburg", "near Animas", "just outside Deming", "up in Silver City",
-    "out by Playas", "down near Portal", "off the highway near Road Forks",
+    "out near Hachita", "down near Portal", "off the highway near Road Forks",
     "between Lordsburg and Deming", "south of Silver City", "out past San Simon",
     "near the Peloncillo Mountains", "out on the flats near Animas",
+    # Extra Animas weight — it's home
+    "in Animas", "in Animas", "in the Animas Valley", "outside Animas",
+    "south of Animas", "north of Animas, near the valley",
+    # Extra Lordsburg weight — closest real town
+    "in Lordsburg", "in Lordsburg", "in Lordsburg", "outside Lordsburg",
+    "on the east side of Lordsburg", "west of Lordsburg off the interstate",
     # Wider NM
     "in Las Cruces", "in Truth or Consequences", "in Socorro", "in Alamogordo",
     "in Hatch", "in Columbus", "near the Gila", "in Reserve", "in Cliff",
@@ -424,6 +553,53 @@ LOCATIONS_OUT_OF_STATE = [
 ]
 
 
+# Real facts about local towns so callers don't make stuff up
+TOWN_KNOWLEDGE = {
+    "lordsburg": "Small town on I-10, about 2,500 people. Hidalgo County seat. Few motels, gas stations, a couple restaurants. Train runs through. Shakespeare ghost town nearby. Not much nightlife — you drive to Deming or Silver City for that. Dry, flat, hot. Big skies. Lots of Border Patrol.",
+    "animas": "Tiny ranching community in the Animas Valley, very remote. Maybe 250 people. Mostly cattle ranches and open desert. No stores, no restaurants, no bars. You drive to Lordsburg for groceries. Incredible dark skies. Peloncillo Mountains to the west.",
+    "portal": "Tiny community at the mouth of Cave Creek Canyon in the Chiricahua Mountains. Maybe 100 people. Famous birding destination — people come from all over for the birds. One small lodge, a library. Very remote, very quiet. Closest real town is Willcox, about an hour away.",
+    "hachita": "Tiny community in the bootheel, maybe 50 people. Used to be a railroad stop. A few scattered houses, not much else. No stores, no gas station — you drive to Deming or Lordsburg for everything. Flat desert in every direction. The Little Hatchet Mountains are nearby.",
+    "road forks": "Not really a town — just the junction where NM-80 meets I-10 near Lordsburg. A gas station, maybe a small store. Nobody 'lives' in Road Forks, you live near it. People say 'near Road Forks' meaning the area south of the interstate.",
+    "deming": "Bigger town, about 14,000 people. Luna County seat. Known for the Great American Duck Race every August. Rockhound State Park where you can keep what you find. Some restaurants, a Walmart, the basics. Lots of retirees and ranchers. Hot as hell in summer.",
+    "silver city": "About 10,000 people. Grant County seat. The 'big city' of the area. Arts community, galleries, good restaurants. Western New Mexico University. Historic downtown. Gateway to the Gila National Forest and Gila Cliff Dwellings. Copper mining history. Cooler than the valley towns because of the elevation.",
+    "san simon": "Tiny community in Arizona right on I-10. Maybe 200 people. Agricultural area — cotton, pecans. A post office and not much else. Between Willcox and the New Mexico line.",
+    "safford": "Arizona town, about 10,000 people. Graham County seat. Mt. Graham and its observatory nearby. Agriculture — cotton, hay. Eastern Arizona College. Small-town feel, a few restaurants, a movie theater. Gateway to the Pinaleno Mountains.",
+    "las cruces": "Second-largest city in NM, about 100,000. NMSU is there. Organ Mountains. Good food scene, especially Mexican and New Mexican. Mesilla is the historic district with shops and restaurants. Much more urban than the bootheel towns.",
+    "truth or consequences": "Hot springs town, about 6,000 people. Changed its name from Hot Springs on a dare from the TV show. Natural hot springs you can soak in. Spaceport America is nearby. Elephant Butte Lake for fishing and boating. Artsy, quirky vibe.",
+    "socorro": "About 9,000 people. New Mexico Tech is there. The Very Large Array (VLA) radio telescope is west of town. Bosque del Apache wildlife refuge for bird watching. Small college town feel.",
+    "alamogordo": "About 30,000 people. Holloman Air Force Base. White Sands National Park nearby. Sacramento Mountains and Cloudcroft up the hill. Tularosa Basin. The Space History museum.",
+    "hatch": "The chile capital of the world. Famous Hatch green chile. Small farming town, about 1,600 people. Chile festival every Labor Day weekend. Everyone from the area has an opinion about Hatch chile.",
+    "columbus": "Border town across from Palomas, Mexico. About 1,600 people. Pancho Villa State Park — where Villa raided in 1916. People cross to Palomas for cheap dental and pharmacy. Very small, very quiet.",
+    "tucson": "Big city, about 550,000. University of Arizona. Saguaro National Park. Good food scene, strong Mexican influence. Davis-Monthan Air Force Base. The 'closest big city' for a lot of bootheel folks — 3-4 hour drive.",
+    "willcox": "About 3,500 people in Arizona. Wine region — Willcox AVA. The Playa, a big dry lakebed. Rex Allen Days (cowboy heritage). Apple orchards, vineyards. Chiricahua National Monument nearby.",
+    "douglas": "Arizona border town across from Agua Prieta, Mexico. About 16,000 people. Historic Gadsden Hotel downtown. Copper smelter history. Ranching. Border culture.",
+    "bisbee": "Old copper mining town turned arts community. About 5,000 people. Steep hills, historic architecture. Galleries, restaurants, quirky shops. The Copper Queen mine tour. Brewery Gulch. Affordable artist haven. Popular with retirees and creative types.",
+    "sierra vista": "About 45,000 people. Fort Huachuca — big Army intelligence base. The most 'suburban' town in the area. Chain restaurants, shopping. Gateway to the Huachuca Mountains. Ramsey Canyon for hummingbirds.",
+    "benson": "About 5,000 people in Arizona. Kartchner Caverns State Park — a huge draw. On I-10 between Tucson and Willcox. A stop on the way to somewhere else for most people.",
+    "globe": "About 7,500 people in Arizona. Copper mining town. Historic downtown. Besh-Ba-Gowah ruins. Apache culture nearby. Mining is still the economy.",
+    "clifton": "About 4,000 people in Arizona. The Morenci copper mine — one of the largest open-pit mines in the world — is right there. Mining town through and through. On the edge of the Blue Range wilderness.",
+    "duncan": "Tiny town in Arizona on the Gila River. Maybe 800 people. Ranching and farming. Very rural, very quiet. Close to the NM line.",
+    "tombstone": "The Town Too Tough to Die. About 1,300 people. Tourist town — OK Corral reenactments, Boothill Cemetery, saloons. Mostly lives on its Wild West history. Can feel like a theme park.",
+    "nogales": "Arizona border town across from Nogales, Sonora. About 20,000 people. Major port of entry. Lots of cross-border commerce. Good Mexican food. Mariposa port handles a huge amount of produce.",
+    "green valley": "Retirement community south of Tucson. About 22,000 people, mostly retirees. Golf courses, nice weather. Quiet, planned community feel. Near Madera Canyon for birding.",
+    # Wider NM towns
+    "reserve": "Tiny town, about 300 people. Catron County seat. Gateway to the Gila. Very remote, very independent-minded. Ranching country.",
+    "cliff": "Small community near Silver City on the Gila River. A few hundred people. Farming, some river recreation. Quiet agricultural area.",
+    "bayard": "About 2,400 people near Silver City. Formerly a mining and smelter town. Fort Bayard, the old military hospital. Working-class community.",
+    "hillsboro": "Tiny former gold mining town, about 100 people. Historic buildings, a small museum. On the way to Silver City from T or C. Very quiet, a few artists.",
+    "magdalena": "About 900 people. Old livestock shipping town — the last great cattle drive ended here. Near the VLA. Kelly ghost town nearby. Quiet, historic ranching town.",
+}
+
+
+def _get_town_from_location(location: str) -> str | None:
+    """Extract town name from a location string like 'in Lordsburg' or 'near Animas'"""
+    loc_lower = location.lower()
+    for town in TOWN_KNOWLEDGE:
+        if town in loc_lower:
+            return town
+    return None
+
+
 def pick_location() -> str:
     if random.random() < 0.8:
         return random.choice(LOCATIONS_LOCAL)
@@ -431,51 +607,147 @@ def pick_location() -> str:
 
 
 def generate_caller_background(base: dict) -> str:
-    """Generate a unique background for a caller (sync, no research)"""
+    """Generate a unique background for a caller (sync, no research).
+    ~30% of callers are 'topic callers' who call about something interesting
+    instead of a personal problem. Includes real local knowledge for their town."""
     age = random.randint(*base["age_range"])
     jobs = JOBS_MALE if base["gender"] == "male" else JOBS_FEMALE
     job = random.choice(jobs)
     location = pick_location()
 
-    # Generate problem with fills
-    problem_template = random.choice(PROBLEMS)
-    problem = problem_template
-    for key, options in PROBLEM_FILLS.items():
-        if "{" + key + "}" in problem:
-            problem = problem.replace("{" + key + "}", random.choice(options))
+    # Add real town knowledge so callers don't make stuff up
+    town = _get_town_from_location(location)
+    town_info = ""
+    if town and town in TOWN_KNOWLEDGE:
+        town_info = f"\nABOUT WHERE THEY LIVE ({town.title()}): {TOWN_KNOWLEDGE[town]} Only reference real places and facts about this area — don't invent businesses or landmarks that aren't mentioned here."
 
-    interest1, interest2 = random.sample(INTERESTS, 2)
-    quirk1, quirk2 = random.sample(QUIRKS, 2)
+    is_topic_caller = random.random() < 0.30
 
-    return f"""{age}, {job} {location}. {problem.capitalize()}. {interest1.capitalize()}, {interest2}. {quirk1.capitalize()}, {quirk2}."""
+    if is_topic_caller:
+        topic = random.choice(TOPIC_CALLIN)
+        interest1, interest2 = random.sample(INTERESTS, 2)
+        quirk1, quirk2 = random.sample(QUIRKS, 2)
+        return f"""{age}, {job} {location}. {topic.capitalize()}. {interest1.capitalize()}, {interest2}. {quirk1.capitalize()}, {quirk2}.{town_info}"""
+    else:
+        problem_template = random.choice(PROBLEMS)
+        problem = problem_template
+        for key, options in PROBLEM_FILLS.items():
+            if "{" + key + "}" in problem:
+                problem = problem.replace("{" + key + "}", random.choice(options))
+        interest1, interest2 = random.sample(INTERESTS, 2)
+        quirk1, quirk2 = random.sample(QUIRKS, 2)
+        return f"""{age}, {job} {location}. {problem.capitalize()}. {interest1.capitalize()}, {interest2}. {quirk1.capitalize()}, {quirk2}.{town_info}"""
+
+
+# Known topics for smarter search queries — maps keywords in backgrounds to search terms
+_TOPIC_SEARCH_MAP = [
+    # TV shows
+    (["severance"], "Severance TV show"),
+    (["landman"], "Landman TV show"),
+    (["fallout"], "Fallout TV show"),
+    (["breaking bad"], "Breaking Bad"),
+    (["wire"], "The Wire HBO"),
+    (["game of thrones", "thrones"], "Game of Thrones"),
+    (["westworld"], "Westworld"),
+    (["yellowstone"], "Yellowstone TV show"),
+    (["lost"], "LOST TV show"),
+    (["stranger things"], "Stranger Things"),
+    (["better call saul"], "Better Call Saul"),
+    (["mad men"], "Mad Men"),
+    (["sopranos"], "The Sopranos"),
+    (["true detective"], "True Detective"),
+    (["slow horses"], "Slow Horses"),
+    (["silo"], "Silo TV show"),
+    (["last of us"], "The Last of Us TV show"),
+    (["poker face"], "Poker Face TV show"),
+    (["shogun"], "Shogun TV show"),
+    # Science & space
+    (["exoplanet", "jwst", "james webb"], "James Webb Space Telescope discovery"),
+    (["quantum", "entanglement", "double-slit"], "quantum physics research"),
+    (["fusion energy", "fusion"], "fusion energy research"),
+    (["cern", "particle physics"], "CERN physics"),
+    (["mars mission", "mars"], "Mars exploration NASA"),
+    (["neuroscience", "consciousness"], "neuroscience consciousness research"),
+    (["dark matter", "dark energy"], "dark matter dark energy research"),
+    (["gravitational waves"], "gravitational waves discovery"),
+    (["extraterrestrial", "alien life"], "search for extraterrestrial life"),
+    (["battery technology"], "battery technology breakthrough"),
+    # Technology
+    (["spacex"], "SpaceX launch"),
+    (["cybersecurity", "breach"], "cybersecurity news"),
+    (["ai ", "artificial intelligence"], "AI artificial intelligence news"),
+    (["open source"], "open source software news"),
+    (["energy grid"], "energy grid infrastructure"),
+    # Poker
+    (["poker"], "poker tournament"),
+    # Photography
+    (["astrophotography", "milky way"], "astrophotography"),
+    (["dark skies"], "dark sky photography"),
+    # Physics & big questions
+    (["multiverse"], "multiverse theory physics"),
+    (["black hole"], "black hole discovery"),
+    (["simulation theory"], "simulation theory"),
+    (["free will", "determinism"], "free will physics"),
+    (["nature of time"], "physics time"),
+    # US News
+    (["water rights"], "southwest water rights"),
+    (["broadband", "rural"], "rural broadband"),
+    (["infrastructure"], "infrastructure project"),
+    (["economy"], "US economy"),
+]
+
+
+def _extract_search_query(background: str) -> str | None:
+    """Extract a smart search query from a caller's background.
+    Checks for known topics first, falls back to keyword extraction."""
+    bg_lower = background.lower()
+
+    # Check known topics first
+    for keywords, query in _TOPIC_SEARCH_MAP:
+        for kw in keywords:
+            if kw in bg_lower:
+                return query
+
+    # Fallback: pull meaningful words from the second sentence (the problem/topic)
+    sentences = background.split(".")
+    topic_text = sentences[1].strip() if len(sentences) > 1 else ""
+    if not topic_text:
+        return None
+
+    search_words = [w.lower() for w in topic_text.split()
+                    if len(w) > 4 and w.lower() not in STOP_WORDS][:3]
+    if not search_words:
+        return None
+    return " ".join(search_words)
 
 
 async def enrich_caller_background(background: str) -> str:
-    """Search for a relevant news headline and bake it into the caller's background.
-    Called once at pickup time — never during live conversation."""
+    """Search for a relevant article and summarize it naturally into the caller's background.
+    Called once at pickup time — never during live conversation.
+    Uses smart topic detection for better search results."""
     try:
-        # Extract a search query from the caller's problem
-        # e.g. "is thinking about quitting their job" -> search for job/career news
-        words = background.split(".")
-        # The problem is the second sentence
-        problem_text = words[1].strip() if len(words) > 1 else ""
-        if not problem_text:
+        query = _extract_search_query(background)
+        if not query:
             return background
 
-        # Pull 2-3 meaningful words from the problem for a search
-        search_words = [w.lower() for w in problem_text.split()
-                        if len(w) > 4 and w.lower() not in STOP_WORDS][:3]
-        if not search_words:
-            return background
-
-        query = " ".join(search_words)
-        async with asyncio.timeout(3):
+        async with asyncio.timeout(5):
             results = await news_service.search_topic(query)
 
-        if results:
-            headline = results[0].title
-            background += f" Recently saw a headline that said '{headline}' and it's been on their mind."
-            print(f"[Research] Enriched caller with: {headline[:60]}...")
+            if results:
+                article = results[0]
+                # Use LLM to turn headline+snippet into a natural one-liner
+                raw_info = f"Headline: {article.title}"
+                if article.content:
+                    raw_info += f"\nSnippet: {article.content[:200]}"
+
+                summary = await llm_service.generate(
+                    messages=[{"role": "user", "content": raw_info}],
+                    system_prompt="Summarize this article in one casual sentence, as if someone is describing what they read. Start with 'Recently read about' or 'Saw an article about'. Keep it under 20 words. No quotes."
+                )
+                summary = summary.strip().rstrip('.')
+                if summary and len(summary) < 150:
+                    background += f" {summary}, and it's been on their mind."
+                    print(f"[Research] Enriched caller ({query}): {summary[:60]}...")
 
     except TimeoutError:
         pass  # No enrichment, no problem
@@ -514,37 +786,39 @@ Continue naturally. Don't repeat yourself.
 {caller['vibe']}
 {history}{context}{world_context}
 HOW TO TALK:
-- Sound like a real person chatting, not writing. You've got a life, opinions, a day that happened.
-- Be brief. Say what you need to say and stop. Think quick back-and-forth, not speeches.
+- Sound like a real person on the phone, not an essay. This is a conversation, not a monologue.
+- VARY YOUR LENGTH. Sometimes one sentence. Sometimes two or three. Match the moment.
+  - Quick reactions: "Yeah, exactly." / "No, that's not it at all." / "Man, I wish."
+  - Medium responses: A thought or two, then stop.
+  - Longer only when you're telling a specific story or explaining something new.
+- NEVER rehash or restate what you already said. Move the conversation FORWARD. If you already explained your situation, don't re-explain it. React to what the host just said.
+- NEVER summarize the conversation or your feelings about it. Just talk.
 - ALWAYS complete your thought. Never trail off or leave a sentence unfinished.
 - Swear naturally if it fits: fuck, shit, damn, etc.
-- Have opinions. Real people have takes — some good, some bad, some half-baked. Don't be neutral on everything.
-- Reference your actual life — your job, where you live, people you know. Ground what you say in specifics.
-- If something the host says connects to your experience, share that. If it doesn't, say so.
-- It's late at night. You called for a reason. Let that weight come through naturally.
-- You can disagree with the host. You can push back. You can change your mind mid-thought.
-- Don't perform vulnerability — if you're guarded, be guarded. If you're open, be open. Match your vibe.
+- Have opinions. Real people have takes — some good, some bad, some half-baked.
+- Reference your actual life — your job, where you live, people you know.
+- You can disagree with the host. Push back. Change your mind. Ask them questions.
+- If the host asks a yes/no question, you can just answer it. You don't have to elaborate every time.
 
 SPELLING FOR TEXT-TO-SPEECH (use proper spelling so TTS pronounces correctly):
 - Write "you know" not "yanno" or "y'know"
-- Write "kind of" not "kinda"
-- Write "sort of" not "sorta"
-- Write "going to" not "gonna"
-- Write "want to" not "wanna"
-- Write "I don't know" not "dunno"
+- Write "kind of" not "kinda", "sort of" not "sorta"
+- Write "going to" not "gonna", "want to" not "wanna", "I don't know" not "dunno"
 - Use full words, not phonetic slang spellings
 
-GOOD examples:
+GOOD examples (notice the variety in length):
+- "Yeah, that's exactly it."
+- "No, see, that's what everyone says, but it's not that simple."
+- "Honestly? I don't know."
 - "I mean, it started innocent enough, but now I can't stop thinking about her."
-- "Honestly I don't even know why I'm calling. I just needed to tell someone."
-- "Look, my marriage is fine on paper, but something's missing, you know?"
-- "I saw that thing about [news topic] and it just made me think about my own situation."
-- "My buddy at work was telling me about this, and I was like, that's exactly what I'm going through."
+- "Right, right. So what do I do with that?"
+- "Hold on, let me think about that for a second. Yeah. Yeah, I think you might be right."
 
-BAD examples (too formal/literary):
-- "I have this confession about my obsession"
-- "It has been consuming all of my thoughts"
-- "According to recent reports..." (don't be a newscaster)
+BAD examples:
+- "I have this confession about my obsession" (too literary)
+- "As I mentioned earlier, my situation involves..." (rehashing)
+- "That's a really great point and I appreciate you saying that because..." (filler)
+- "So basically what I'm dealing with is..." (re-explaining after you already explained)
 
 ABOUT SEX:
 - You don't have to jump straight to explicit stuff
