@@ -52,56 +52,112 @@ FEMALE_NAMES = [
     "Shonda", "Marlene", "Yolanda", "Stacy", "Jackie", "Carmen", "Rita", "Val",
 ]
 
+# Voice pools — ElevenLabs IDs mapped to Inworld voices in tts.py
+MALE_VOICES = [
+    "VR6AewLTigWG4xSOukaG",  # Edward
+    "TxGEqnHWrfWFTfGW9XjX",  # Shaun
+    "pNInz6obpgDQGcFmaJgB",  # Alex
+    "ODq5zmih8GrVes37Dizd",  # Craig
+    "IKne3meq5aSn9XLyUdCD",  # Timothy
+]
+
+FEMALE_VOICES = [
+    "jBpfuIE2acCO8z3wKNLl",  # Hana
+    "EXAVITQu4vr4xnSDxMaL",  # Ashley
+    "21m00Tcm4TlvDq8ikWAM",  # Wendy
+    "XB0fDUnXU5powFXDhCwa",  # Sarah
+    "pFZP5JQG7iQjIQuC4Bku",  # Deborah
+]
+
 CALLER_BASES = {
-    "1": {"voice": "VR6AewLTigWG4xSOukaG", "gender": "male", "age_range": (35, 55)},
-    "2": {"voice": "jBpfuIE2acCO8z3wKNLl", "gender": "female", "age_range": (25, 38)},
-    "3": {"voice": "TxGEqnHWrfWFTfGW9XjX", "gender": "male", "age_range": (40, 58)},
-    "4": {"voice": "EXAVITQu4vr4xnSDxMaL", "gender": "female", "age_range": (24, 35)},
-    "5": {"voice": "pNInz6obpgDQGcFmaJgB", "gender": "male", "age_range": (32, 48)},
-    "6": {"voice": "21m00Tcm4TlvDq8ikWAM", "gender": "female", "age_range": (30, 45)},
-    "7": {"voice": "ODq5zmih8GrVes37Dizd", "gender": "male", "age_range": (58, 72)},
-    "8": {"voice": "XB0fDUnXU5powFXDhCwa", "gender": "female", "age_range": (38, 52)},
-    "9": {"voice": "IKne3meq5aSn9XLyUdCD", "gender": "male", "age_range": (24, 34)},
-    "0": {"voice": "pFZP5JQG7iQjIQuC4Bku", "gender": "female", "age_range": (45, 60)},
+    "1": {"gender": "male", "age_range": (28, 62)},
+    "2": {"gender": "female", "age_range": (22, 55)},
+    "3": {"gender": "male", "age_range": (30, 65)},
+    "4": {"gender": "female", "age_range": (21, 45)},
+    "5": {"gender": "male", "age_range": (25, 58)},
+    "6": {"gender": "female", "age_range": (28, 52)},
+    "7": {"gender": "male", "age_range": (40, 72)},
+    "8": {"gender": "female", "age_range": (30, 60)},
+    "9": {"gender": "male", "age_range": (21, 38)},
+    "0": {"gender": "female", "age_range": (35, 65)},
 }
 
 
-def _randomize_caller_names():
-    """Assign random names to callers, unique per gender."""
-    males = random.sample(MALE_NAMES, sum(1 for c in CALLER_BASES.values() if c["gender"] == "male"))
-    females = random.sample(FEMALE_NAMES, sum(1 for c in CALLER_BASES.values() if c["gender"] == "female"))
+def _randomize_callers():
+    """Assign random names and voices to callers, unique per gender."""
+    num_m = sum(1 for c in CALLER_BASES.values() if c["gender"] == "male")
+    num_f = sum(1 for c in CALLER_BASES.values() if c["gender"] == "female")
+    males = random.sample(MALE_NAMES, num_m)
+    females = random.sample(FEMALE_NAMES, num_f)
+    m_voices = random.sample(MALE_VOICES, num_m)
+    f_voices = random.sample(FEMALE_VOICES, num_f)
     mi, fi = 0, 0
     for base in CALLER_BASES.values():
         if base["gender"] == "male":
             base["name"] = males[mi]
+            base["voice"] = m_voices[mi]
             mi += 1
         else:
             base["name"] = females[fi]
+            base["voice"] = f_voices[fi]
             fi += 1
 
-_randomize_caller_names()  # Initial assignment
+_randomize_callers()  # Initial assignment
 
 # Background components for dynamic generation
 JOBS_MALE = [
-    "runs a small HVAC business", "works as a long-haul trucker", "is a high school football coach",
-    "works construction, mostly commercial jobs", "is a paramedic", "manages a warehouse",
-    "is a line cook at a decent restaurant", "works IT for the city", "is a union electrician",
-    "owns a small landscaping company", "is a cop, 12 years on the force", "works at a car dealership",
-    "is a freelance photographer", "teaches middle school history", "is a firefighter",
-    "works as a hospital security guard", "runs a food truck", "is a session musician",
-    "works at a brewery", "is a physical therapist", "drives for UPS", "is a tattoo artist",
-    "works in insurance, hates it", "is a youth pastor", "manages a gym",
+    # Trades & blue collar
+    "runs a small HVAC business", "works as a long-haul trucker", "works construction",
+    "is a union electrician", "owns a small landscaping company", "drives for UPS",
+    "is a welder at a shipyard", "works as a diesel mechanic", "does roofing",
+    "is a plumber, runs his own crew", "works at a grain elevator", "is a ranch hand",
+    # Service & public
+    "is a paramedic", "is a cop, 12 years on the force", "is a firefighter",
+    "works as a hospital security guard", "is a corrections officer", "drives a city bus",
+    # Food & hospitality
+    "is a line cook at a decent restaurant", "runs a food truck", "manages a bar",
+    "works the night shift at a gas station", "delivers pizza, has for years",
+    # White collar & tech
+    "works IT for the city", "is an insurance adjuster, hates it", "is a bank teller",
+    "does accounting for a small firm", "sells cars at a dealership", "works in a call center",
+    "is a project manager at a mid-size company", "works in logistics",
+    # Creative & education
+    "is a high school football coach", "teaches middle school history",
+    "is a freelance photographer", "is a session musician", "is a tattoo artist",
+    "works at a brewery", "is a youth pastor", "does standup comedy on the side",
+    # Odd & specific
+    "works at a pawn shop", "is a repo man", "runs a junkyard", "is a locksmith",
+    "works overnight stocking shelves", "is a pest control guy", "drives a tow truck",
+    "is a bouncer at a club", "works at a cemetery", "is a crop duster pilot",
+    "manages a storage facility", "is a hunting guide", "works on an oil rig, two weeks on two off",
 ]
 
 JOBS_FEMALE = [
-    "works as an ER nurse", "is a social worker", "runs a small bakery", "is a dental hygienist",
-    "works in HR for a hospital", "is a real estate agent", "teaches kindergarten",
-    "works as a bartender at a nice place", "is a paralegal", "runs a daycare out of her home",
-    "works retail management", "is a hairstylist, owns her chair", "is a vet tech",
-    "works in hospital billing", "is a massage therapist", "manages a restaurant",
-    "is a flight attendant", "works as a 911 dispatcher", "is a personal trainer",
-    "works at a nonprofit", "is an accountant at a small firm", "does medical transcription from home",
-    "is a court reporter", "works in pharmaceutical sales", "is a wedding planner",
+    # Healthcare
+    "works as an ER nurse", "is a dental hygienist", "is a vet tech",
+    "works in hospital billing", "is a home health aide", "is a phlebotomist",
+    "works as a traveling nurse", "is a midwife",
+    # Service & public
+    "works as a 911 dispatcher", "is a social worker", "works retail management",
+    "works as a bartender at a dive bar", "is a flight attendant",
+    "manages a restaurant", "works the front desk at a hotel",
+    # Education & office
+    "teaches kindergarten", "is a paralegal", "is an accountant at a small firm",
+    "works in HR", "is a court reporter", "does data entry from home",
+    "is a school bus driver", "works at the DMV",
+    # Creative & entrepreneurial
+    "is a hairstylist, owns her chair", "runs a small bakery",
+    "runs a daycare out of her home", "is a real estate agent",
+    "is a wedding planner", "does nails, has a loyal clientele",
+    "sells stuff on Etsy full time", "is a dog groomer",
+    # Odd & specific
+    "works at a truck stop diner", "is a bail bonds agent",
+    "works at a tribal casino", "manages a laundromat",
+    "works overnight at a group home", "is a park ranger",
+    "drives an ambulance", "works at a thrift store",
+    "is a taxidermist", "cleans houses, runs her own business",
+    "works at a gun range", "is a long-haul trucker",
+    "works the night shift at Waffle House", "is a funeral home director",
 ]
 
 PROBLEMS = [
@@ -114,6 +170,9 @@ PROBLEMS = [
     "is estranged from their kids and it's killing them",
     "found out their parent had a whole other family nobody knew about",
     "is watching their parents' marriage fall apart after 40 years",
+    "their kid just got arrested and they don't know what to do",
+    "found out their teenager has been lying about where they go at night",
+    "their in-laws are trying to take over their life and their spouse won't say anything",
 
     # Career and purpose
     "woke up and realized they've been in the wrong career for 15 years",
@@ -124,67 +183,110 @@ PROBLEMS = [
     "just got fired and doesn't know who they are without their work",
     "is being asked to do something unethical at work and doesn't know what to do",
     "watches their boss take credit for everything and is losing their mind",
+    "started a business and it's failing and they've sunk everything into it",
+    "got a job offer across the country and their family doesn't want to move",
+    "is about to get laid off and hasn't told their spouse",
+    "found out a coworker making half the effort makes twice the money",
+
+    # Money and survival
+    "is drowning in debt and can't see a way out",
+    "just found out their spouse has been hiding massive credit card debt",
+    "lost their savings in a bad investment and is too ashamed to tell anyone",
+    "can't make rent and is about to be evicted",
+    "lent a family member a ton of money and they won't pay it back",
+    "is working three jobs and still barely making it",
+    "inherited money and it's tearing the family apart",
+    "their car broke down and they can't afford to fix it and need it for work",
+
+    # Health scares
+    "just got a diagnosis they weren't expecting and is processing it alone",
+    "has been ignoring symptoms because they're scared of what the doctor will say",
+    "someone they love just got diagnosed with something serious",
+    "had a health scare and it's making them rethink everything",
+    "is dealing with chronic pain and nobody seems to believe them",
+    "just found out they can't have kids",
 
     # Mental health and inner struggles
     "has been putting on a brave face but is barely holding it together",
     "can't shake the feeling that their best years are behind them",
     "keeps self-sabotaging every good thing in their life and doesn't know why",
     "has been numb for months and is starting to scare themselves",
-    "can't stop comparing themselves to everyone else and it's destroying them",
-    "has intrusive thoughts they've never told anyone about",
     "feels like a fraud and is waiting to be found out",
     "is exhausted from being the strong one for everyone else",
+    "has been having panic attacks and doesn't know what's triggering them",
+    "can't stop doom scrolling and it's making them miserable",
+    "hasn't left the house in weeks and is starting to wonder if something's wrong",
 
     # Grief and loss
     "lost someone close and hasn't really dealt with it",
     "is grieving someone who's still alive but is no longer the person they knew",
     "never got closure with someone who died and it's eating at them",
     "is watching their best friend slowly die and doesn't know how to be there",
-    "had a miscarriage nobody knows about and carries it alone",
+    "their dog died and they're more wrecked than they thought they'd be",
+    "lost their house in a fire and is still processing it",
 
     # Regrets and past mistakes
     "made a choice years ago that changed everything and wonders what if",
     "hurt someone badly and never apologized, and it haunts them",
     "let the one that got away go and thinks about them constantly",
     "gave up on something important to make someone else happy and resents it",
-    "said something they can never take back and the guilt won't fade",
     "was a bully growing up and is finally reckoning with it",
+    "got a DUI and it's ruining their life",
+    "ghosted someone who really cared about them and feels terrible about it",
 
-    # Relationships (non-sexual)
+    # Relationships
     "is falling out of love with their spouse and doesn't know what to do",
     "married the wrong person and everyone knows it but them",
     "feels invisible in their own relationship",
     "is staying for the kids but dying inside",
     "realized they don't actually like their partner as a person",
-    "is jealous of their partner's success and it's poisoning everything",
     "found out their partner has been lying about something big",
+    "just found out their partner has a dating profile",
+    "is in love with two people and has to choose",
+    "their ex keeps showing up and they don't hate it",
+    "moved in with someone too fast and now they're trapped",
 
     # Friendship and loneliness
     "realized they don't have any real friends, just people who need things from them",
     "had a falling out with their best friend and the silence is deafening",
     "is surrounded by people but has never felt more alone",
-    "is jealous of a friend's life and hates themselves for it",
     "suspects a close friend is talking shit behind their back",
+    "all their friends are getting married and having kids and they feel left behind",
+    "their best friend started dating their ex and acts like it's no big deal",
+
+    # Neighbor and community drama
+    "is in a feud with their neighbor that's gotten way out of hand",
+    "found out something sketchy is going on next door and doesn't know if they should say something",
+    "got into it with someone at their kid's school and now it's a whole thing",
+    "someone at church said something that made them question their entire faith",
 
     # Big life decisions
     "is thinking about leaving everything behind and starting over somewhere new",
     "has to make a choice that will hurt someone no matter what",
-    "is being pressured into something they don't want but can't say no",
     "has been offered an opportunity that would change everything but they're terrified",
     "knows they need to end something but can't pull the trigger",
+    "is thinking about joining the military and their family is losing it",
+    "wants to go back to school but feels like it's too late",
 
     # Addiction and bad habits
     "is hiding how much they drink from everyone",
     "can't stop gambling and is in deeper than anyone knows",
     "is watching themselves become someone they don't recognize",
-    "keeps making the same mistake over and over expecting different results",
+    "just got out of rehab and doesn't know how to face everyone",
+    "found pills in their kid's room and doesn't know how to bring it up",
 
-    # Attraction and affairs (keep some of the original)
+    # Legal trouble
+    "is in the middle of a lawsuit and it's consuming their life",
+    "got caught doing something stupid and now there are consequences",
+    "is dealing with a custody battle that's destroying them",
+    "has a warrant they've been ignoring and it's getting worse",
+
+    # Attraction and affairs
     "is attracted to someone they shouldn't be and it's getting harder to ignore",
     "has been seeing {affair_person} on the side",
     "caught feelings for someone at work and it's fucking everything up",
 
-    # Sexual/desire (keep some but less dominant)
+    # Sexual/desire
     "can't stop thinking about {fantasy_subject}",
     "discovered something about their own desires that surprised them",
     "is questioning their sexuality after something that happened recently",
@@ -194,6 +296,8 @@ PROBLEMS = [
     "had a weird day and needs to process it with someone",
     "has been keeping a secret that's eating them alive",
     "finally ready to admit something they've never said out loud",
+    "saw something today that brought up a memory they'd buried",
+    "just realized they've become exactly like the parent they swore they'd never be",
 ]
 
 PROBLEM_FILLS = {
@@ -221,15 +325,43 @@ PROBLEM_FILLS = {
 }
 
 INTERESTS = [
-    # General interests (normal people)
-    "really into true crime podcasts", "watches a lot of reality TV", "into fitness",
-    "follows sports", "big movie person", "reads a lot", "into music, has opinions",
+    # Entertainment & media
+    "really into true crime podcasts", "watches a lot of reality TV", "big movie person",
+    "reads a lot", "into music, has opinions", "obsessed with a specific TV show right now",
+    "listens to comedy podcasts", "watches too much YouTube", "into anime, not ashamed",
+    "horror movie junkie", "knows way too much about celebrity gossip",
+    "has a podcast recommendation for everything", "rewatches the same comfort shows",
+    # Active & outdoors
+    "into fitness", "outdoorsy type", "runs marathons, won't shut up about it",
+    "just got into rock climbing", "hikes every weekend", "into camping and survival stuff",
+    "plays pickup basketball", "does yoga, takes it seriously", "trains martial arts",
+    "mountain bikes", "surfs when they can", "into fishing, finds it meditative",
+    # Social & lifestyle
     "goes out a lot, active social life", "homebody, prefers staying in",
-    "into cooking and food", "outdoorsy type", "gamer", "works a lot, career focused",
-    # Relationship/psychology focused
+    "into cooking and food", "follows sports", "works a lot, career focused",
+    "big into board games and game nights", "karaoke regular", "goes to live music a lot",
+    "volunteers at an animal shelter", "coaches youth sports", "into vintage cars",
+    "collects something weird", "goes to thrift stores religiously",
+    # Hobbies & creative
+    "plays guitar badly but loves it", "paints as a stress outlet", "writes poetry nobody reads",
+    "into woodworking", "builds stuff in their garage", "does pottery on weekends",
+    "into photography", "makes their own hot sauce", "brews beer at home",
+    "into gardening, talks to plants", "does stand-up at open mics",
+    "restores old furniture", "into model trains, doesn't care if it's nerdy",
+    # Tech & intellectual
+    "gamer", "very online, knows all the discourse", "into history, has random facts",
+    "reads about psychology and why people do what they do", "into true crime investigation stuff",
+    "follows space news", "into conspiracy theories but knows they're mostly bullshit",
+    "reads philosophy for fun", "into personal finance, tracks every dollar",
+    "amateur astronomer", "into maps and geography for no reason",
+    # Self & relationships
     "listens to relationship podcasts", "has done therapy, believes in it",
-    "reads about psychology and why people do what they do", "very online, knows all the discourse",
     "into self-improvement stuff", "follows dating advice content",
+    "into meditation, it actually helps", "journals every day",
+    "into astrology, half-believes it", "reads tarot for friends",
+    # Faith & spirituality
+    "goes to church, complicated feelings about it", "spiritual but not religious",
+    "into eastern philosophy", "grew up religious, still sorting it out",
     # Sexually open (not the focus, but present)
     "sex-positive, doesn't judge", "has experimented, open about it",
     "comfortable with their body", "has stories if you ask",
@@ -241,21 +373,53 @@ QUIRKS = [
     "laughs nervously when things get real", "very direct, doesn't sugarcoat",
     "rambles a bit when nervous", "gets quiet when the topic hits close to home",
     "deflects with humor when uncomfortable", "asks the host questions back",
+    "talks fast when excited", "pauses a lot, choosing words carefully",
+    "uses metaphors for everything", "tells stories instead of answering directly",
+    "interrupts themselves mid-thought", "whispers when saying something they shouldn't",
+    "repeats the last thing the host said while thinking", "says 'right?' after everything seeking validation",
+    # Energy & vibe
+    "high energy, talks with their hands even on the phone", "calm and measured, almost too calm",
+    "sounds tired but won't admit it", "clearly been crying but trying to hold it together",
+    "manic energy tonight, everything is hilarious or devastating", "stoned and philosophical",
+    "just got off a long shift and is running on fumes", "had a few drinks, more honest than usual",
+    "wired on coffee at 2am", "weirdly cheerful for someone with this problem",
+    # Personality
+    "self-aware about their own bullshit", "confessional, needed to tell someone",
+    "a little drunk and honest because of it", "can't believe they're saying this out loud",
+    "overshares and then apologizes for oversharing", "keeps circling back to the real issue",
+    "trying to convince themselves more than the host", "already knows what they should do, just needs to hear it",
+    "clearly rehearsed what to say but it's falling apart", "gets defensive when the host gets too close to the truth",
+    "laughs at their own pain as a coping mechanism", "proud but asking for help anyway",
+    "suspicious of advice but called anyway", "wants permission to do the thing they already decided to do",
     # Openness about sex
     "comfortable talking about sex when it comes up", "no shame about their desires",
     "gets more explicit as they get comfortable", "treats sex like a normal topic",
     "will share details if you ask", "surprisingly open once they start talking",
     "has stories they've never told anyone", "testing how the host reacts before going deeper",
-    # Personality
-    "self-aware about their own bullshit", "confessional, needed to tell someone",
-    "a little drunk and honest because of it", "can't believe they're saying this out loud",
 ]
 
 LOCATIONS = [
+    # Big cities
     "outside Chicago", "in Phoenix", "near Atlanta", "in the Detroit area", "outside Boston",
     "in North Jersey", "near Austin", "in the Bay Area", "outside Philadelphia", "in Denver",
     "near Seattle", "in South Florida", "outside Nashville", "in Cleveland", "near Portland",
     "in the Twin Cities", "outside Dallas", "in Baltimore", "near Sacramento", "in Pittsburgh",
+    # Smaller cities & regions
+    "in Albuquerque", "outside Memphis", "in Boise", "near Reno", "in Tucson",
+    "outside Louisville", "in Omaha", "near Buffalo", "in El Paso", "outside Richmond",
+    "in Spokane", "near Tulsa", "in Knoxville", "outside Milwaukee", "in Savannah",
+    "near Charleston", "in Des Moines", "outside Raleigh", "in Fresno", "near Anchorage",
+    # Rural & small town
+    "in a small town in West Virginia", "in rural Montana", "outside a tiny town in Arkansas",
+    "in the middle of nowhere, Kansas", "in a farming town in Iowa", "in the Mississippi Delta",
+    "in a coal town in eastern Kentucky", "in a beach town in the Carolinas",
+    "on the outskirts of a reservation in New Mexico", "in a logging town in Oregon",
+    "in the Florida panhandle", "in the Ozarks", "in a trailer park outside Vegas",
+    "in a fishing village in Maine", "in the Texas hill country",
+    # Specific vibes
+    "on a military base in Georgia", "in a college town in Ohio", "in an oil town in North Dakota",
+    "in a border town in Arizona", "in a factory town in Indiana", "in a ski town in Colorado",
+    "on a ranch in Wyoming", "in a retirement community in Florida",
 ]
 
 
@@ -459,7 +623,7 @@ class Session:
         if self._research_task and not self._research_task.done():
             self._research_task.cancel()
         self._research_task = None
-        _randomize_caller_names()
+        _randomize_callers()
         self.id = str(uuid.uuid4())[:8]
         names = [CALLER_BASES[k]["name"] for k in sorted(CALLER_BASES.keys())]
         print(f"[Session] Reset - new session ID: {self.id}, callers: {', '.join(names)}")
@@ -1068,6 +1232,35 @@ async def play_sfx(request: SFXRequest):
 
     audio_service.play_sfx(str(sound_path))
     return {"status": "playing", "sound": request.sound}
+
+
+# --- Ads Endpoints ---
+
+@app.get("/api/ads")
+async def get_ads():
+    """Get available ad tracks"""
+    ad_list = []
+    if settings.ads_dir.exists():
+        for ext in ['*.wav', '*.mp3', '*.flac']:
+            for f in settings.ads_dir.glob(ext):
+                ad_list.append({
+                    "name": f.stem,
+                    "file": f.name,
+                    "path": str(f)
+                })
+    return {"ads": ad_list}
+
+
+@app.post("/api/ads/play")
+async def play_ad(request: MusicRequest):
+    """Play an ad on the music channel"""
+    ad_path = settings.ads_dir / request.track
+    if not ad_path.exists():
+        raise HTTPException(404, "Ad not found")
+
+    audio_service.load_music(str(ad_path))
+    audio_service.play_music()
+    return {"status": "playing", "track": request.track}
 
 
 # --- LLM Settings Endpoints ---

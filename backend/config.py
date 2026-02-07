@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     base_dir: Path = Path(__file__).parent.parent
     sounds_dir: Path = base_dir / "sounds"
     music_dir: Path = base_dir / "music"
+    ads_dir: Path = base_dir / "ads"
     sessions_dir: Path = base_dir / "sessions"
 
     class Config:

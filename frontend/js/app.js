@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadAudioDevices();
         await loadCallers();
         await loadMusic();
+        await loadAds();
         await loadSounds();
         await loadSettings();
         initEventListeners();
@@ -118,6 +119,10 @@ function initEventListeners() {
     document.getElementById('play-btn')?.addEventListener('click', playMusic);
     document.getElementById('stop-btn')?.addEventListener('click', stopMusic);
     document.getElementById('volume')?.addEventListener('input', setMusicVolume);
+
+    // Ads
+    document.getElementById('ad-play-btn')?.addEventListener('click', playAd);
+    document.getElementById('ad-stop-btn')?.addEventListener('click', stopMusic);
 
     // Settings
     document.getElementById('settings-btn')?.addEventListener('click', async () => {
@@ -625,6 +630,50 @@ async function setMusicVolume(e) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ track: '', action: 'volume', volume })
+    });
+}
+
+
+async function loadAds() {
+    try {
+        const res = await fetch('/api/ads');
+        const data = await res.json();
+        const ads = data.ads || [];
+
+        const select = document.getElementById('ad-select');
+        if (!select) return;
+
+        const previousValue = select.value;
+        select.innerHTML = '';
+
+        ads.forEach(ad => {
+            const option = document.createElement('option');
+            option.value = ad.file;
+            option.textContent = ad.name;
+            select.appendChild(option);
+        });
+
+        if (previousValue && [...select.options].some(o => o.value === previousValue)) {
+            select.value = previousValue;
+        }
+
+        console.log('Loaded', ads.length, 'ads');
+    } catch (err) {
+        console.error('loadAds error:', err);
+    }
+}
+
+
+async function playAd() {
+    await loadAds();
+    const select = document.getElementById('ad-select');
+    const track = select?.value;
+    if (!track) return;
+
+    await fetch('/api/ads/play', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ track, action: 'play' })
     });
 }
 
