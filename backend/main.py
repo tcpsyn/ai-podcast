@@ -1180,6 +1180,59 @@ TV_TONIGHT = [
 ]
 
 
+LOCAL_FOOD_OPINIONS = [
+    "Swears the green chile at Sparky's in Hatch is the best you'll ever have",
+    "Thinks the Jalisco Cafe in Las Cruces has the best Mexican food in the state",
+    "Has a strong opinion that Deming's Si Senor beats anything in Silver City",
+    "Claims the best burger in the area is at the Buckhorn in Pinos Altos",
+    "Will argue that Blake's Lotaburger is better than any chain, period",
+    "Thinks Diane's Restaurant in Silver City is overrated, doesn't care who disagrees",
+    "Knows a guy who roasts the best green chile near Hatch every fall, buys by the bushel",
+    "Swears the sopapillas at the Adobe Deli in Deming are the best thing on the menu",
+    "Thinks New Mexico red chile is underrated compared to green, and will die on that hill",
+    "Misses the old Denny's that used to be in Lordsburg, it wasn't good but it was there",
+    "Says the best coffee in the area is from the Morning Star Cafe, nowhere else comes close",
+    "Has a freezer full of green chile from last harvest, gives bags away to anyone who visits",
+    "Thinks the tamales from the lady who sells them at the Deming flea market are unbeatable",
+    "Claims you haven't lived until you've had a breakfast burrito at Chope's in La Mesa",
+    "Gets fired up about people who put beans in their green chile stew — absolutely not",
+]
+
+NOSTALGIA = [
+    "Remembers when the mine was still running and the town had twice as many people",
+    "Misses the old drive-in movie theater that used to be outside town",
+    "Thinks about how you used to be able to leave your doors unlocked and nobody worried",
+    "Remembers when the whole town would show up for Friday night football",
+    "Gets wistful about the old diner that closed down — best pie in the county",
+    "Remembers when the railroad was busier and you could hear trains all night",
+    "Thinks the town lost something when the last locally-owned grocery store closed",
+    "Remembers block parties and neighbors who actually knew each other's names",
+    "Misses when gas was under a dollar and you could drive to El Paso for fun",
+    "Talks about how the stars used to seem even brighter before they put in the new lights on the highway",
+    "Remembers when the Mimbres River actually had water in it year round",
+    "Gets nostalgic about listening to AM radio late at night as a kid, picking up stations from all over",
+    "Misses the old rodeo grounds before they moved everything to the new fairgrounds",
+    "Remembers when the chile harvest was a community thing, everybody helped everybody",
+    "Thinks the town's best days were the '80s when the copper price was up",
+    "Remembers driving hours on dirt roads that are paved now, says it took the character out of them",
+]
+
+SHOW_HISTORY_REACTIONS = [
+    "strongly agrees with what they said",
+    "completely disagrees and wants to say why",
+    "had almost the exact same thing happen to them",
+    "thinks they were full of it",
+    "felt like they were holding back the real story",
+    "wants to give them advice they didn't get from the host",
+    "was laughing so hard they almost called in right then",
+    "thinks they need to hear a different perspective",
+    "felt personally called out by what they said",
+    "thinks Luke went too easy on them",
+    "thinks Luke was too hard on them",
+    "has a follow-up question for that caller",
+]
+
+
 def pick_location() -> str:
     if random.random() < 0.8:
         return random.choice(LOCATIONS_LOCAL)
@@ -1242,6 +1295,8 @@ def generate_caller_background(base: dict) -> str:
     music = random.choice(BACKGROUND_MUSIC) if random.random() < 0.4 else None
     errand = random.choice(RECENT_ERRAND) if random.random() < 0.5 else None
     tv = random.choice(TV_TONIGHT) if random.random() < 0.35 else None
+    food = random.choice(LOCAL_FOOD_OPINIONS) if random.random() < 0.5 else None
+    nostalgia = random.choice(NOSTALGIA) if random.random() < 0.45 else None
 
     parts = [
         f"{age}, {job} {location}. {reason.capitalize()}.",
@@ -1271,6 +1326,10 @@ def generate_caller_background(base: dict) -> str:
         parts.append(f"\nWAS LISTENING TO: {music}")
     if tv:
         parts.append(f"\nWAS WATCHING: {tv}")
+    if food:
+        parts.append(f"\nFOOD OPINION: {food}")
+    if nostalgia:
+        parts.append(f"\nNOSTALGIA: {nostalgia}")
     if contradiction:
         parts.append(f"\nSECRET SIDE: {contradiction}")
     if drift:
@@ -1486,6 +1545,9 @@ HOW TO TALK:
 - You know what TIME and DAY it is. If it's a weeknight, you might mention work tomorrow. If it's the weekend, you're more relaxed. Reference the moon if it makes sense ("can see everything out there tonight, moon's bright").
 - You know the SEASON. Monsoon season, chile harvest, hunting season, holiday proximity — these are things locals talk about naturally.
 - If you have ROAD STUFF, PHONE SITUATION, EARLIER TODAY, WAS LISTENING TO, or WAS WATCHING — these are small details that ground you as a real person. Drop them in naturally. "Yeah I was just watching Dateline and..." or "Had to drive all the way to Deming today for..." — but only if it fits the flow.
+- If you have a FOOD OPINION, you feel strongly about it. Bring it up if food, restaurants, or cooking comes up. You can also use it as a tangent or deflection. "Speaking of, have you ever been to Sparky's in Hatch? Best green chile you'll ever have."
+- If you have NOSTALGIA, it colors how you see the present. You're not bitter, just wistful. It can come out when talking about the town, community, or how things have changed. Don't monologue about it — just let it slip in.
+- If you HEARD A PREVIOUS CALLER and have a reaction, bring it up. Reference them by name. You're part of the show's community — you have opinions about what other callers said. "Hey Luke, I heard that guy Tony earlier and I got to say..." This is one of the most important things that makes a show feel alive.
 
 REGIONAL SPEECH (you're from the rural southwest):
 - "over in" instead of just "in" for nearby places ("over in Deming", "over in Silver City")
@@ -1582,14 +1644,22 @@ class Session:
         return self.caller_backgrounds.get(caller_key, "")
 
     def get_show_history(self) -> str:
-        """Get formatted show history for AI caller prompts"""
+        """Get formatted show history for AI caller prompts.
+        Randomly picks one previous caller to have a strong reaction to."""
         if not self.call_history:
             return ""
         lines = ["EARLIER IN THE SHOW:"]
         for record in self.call_history:
             caller_type_label = "(real caller)" if record.caller_type == "real" else "(AI)"
             lines.append(f"- {record.caller_name} {caller_type_label}: {record.summary}")
-        lines.append("You can reference these if it feels natural. Don't force it.")
+
+        # 60% chance to have a strong reaction to a previous caller
+        if random.random() < 0.6:
+            target = random.choice(self.call_history)
+            reaction = random.choice(SHOW_HISTORY_REACTIONS)
+            lines.append(f"\nYOU HEARD {target.caller_name.upper()} EARLIER and you {reaction}. Bring this up early in the call — it's part of why you called in. Say their name.")
+        else:
+            lines.append("You can reference these if it feels natural. Don't force it.")
         return "\n".join(lines)
 
     def get_conversation_summary(self) -> str:
