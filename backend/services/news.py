@@ -1,13 +1,13 @@
-"""News service for current events awareness in AI callers"""
+"""News service using local SearXNG for current events awareness in AI callers"""
 
 import asyncio
 import time
 import re
 from dataclasses import dataclass
-from urllib.parse import quote_plus
-from xml.etree import ElementTree
 
 import httpx
+
+SEARXNG_URL = "http://localhost:8888"
 
 
 @dataclass
@@ -22,85 +22,73 @@ class NewsService:
         self._client: httpx.AsyncClient | None = None
         self._headlines_cache: list[NewsItem] = []
         self._headlines_ts: float = 0
-        self._headlines_lock = asyncio.Lock()
         self._search_cache: dict[str, tuple[float, list[NewsItem]]] = {}
-        self._search_lock = asyncio.Lock()
 
     @property
     def client(self) -> httpx.AsyncClient:
         if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(timeout=10.0)
+            self._client = httpx.AsyncClient(timeout=5.0)
         return self._client
 
     async def get_headlines(self) -> list[NewsItem]:
-        async with self._headlines_lock:
-            # Cache for 30min on success, 5min on failure (avoid hammering)
-            if time.time() - self._headlines_ts < (1800 if self._headlines_cache else 300):
-                return self._headlines_cache
+        # Cache for 30min
+        if self._headlines_cache and time.time() - self._headlines_ts < 1800:
+            return self._headlines_cache
 
-            try:
-                resp = await self.client.get(
-                    "https://news.google.com/rss",
-                    follow_redirects=True,
-                    headers={"User-Agent": "Mozilla/5.0"}
-                )
-                resp.raise_for_status()
-                items = self._parse_rss(resp.text, max_items=10)
-                self._headlines_cache = items
-                self._headlines_ts = time.time()
-                return items
-            except Exception as e:
-                print(f"[News] Headlines fetch failed: {e}")
-                self._headlines_ts = time.time()  # Don't retry immediately
-                return self._headlines_cache
+        try:
+            resp = await self.client.get(
+                f"{SEARXNG_URL}/search",
+                params={"q": "news", "format": "json", "categories": "news"},
+            )
+            resp.raise_for_status()
+            items = self._parse_searxng(resp.json(), max_items=10)
+            self._headlines_cache = items
+            self._headlines_ts = time.time()
+            return items
+        except Exception as e:
+            print(f"[News] Headlines fetch failed: {e}")
+            self._headlines_ts = time.time()
+            return self._headlines_cache
 
     async def search_topic(self, query: str) -> list[NewsItem]:
         cache_key = query.lower()
 
-        async with self._search_lock:
-            if cache_key in self._search_cache:
-                ts, items = self._search_cache[cache_key]
-                if time.time() - ts < 600:
-                    return items
+        if cache_key in self._search_cache:
+            ts, items = self._search_cache[cache_key]
+            if time.time() - ts < 600:
+                return items
 
-            # Evict oldest when cache too large
-            if len(self._search_cache) > 50:
-                oldest_key = min(self._search_cache, key=lambda k: self._search_cache[k][0])
-                del self._search_cache[oldest_key]
+        # Evict oldest when cache too large
+        if len(self._search_cache) > 50:
+            oldest_key = min(self._search_cache, key=lambda k: self._search_cache[k][0])
+            del self._search_cache[oldest_key]
 
         try:
-            encoded = quote_plus(query)
-            url = f"https://news.google.com/rss/search?q={encoded}&hl=en-US&gl=US&ceid=US:en"
-            resp = await self.client.get(url, follow_redirects=True, headers={"User-Agent": "Mozilla/5.0"})
+            resp = await self.client.get(
+                f"{SEARXNG_URL}/search",
+                params={"q": query, "format": "json", "categories": "news"},
+            )
             resp.raise_for_status()
-            items = self._parse_rss(resp.text, max_items=5)
-
-            async with self._search_lock:
-                self._search_cache[cache_key] = (time.time(), items)
-
+            items = self._parse_searxng(resp.json(), max_items=5)
+            self._search_cache[cache_key] = (time.time(), items)
             return items
         except Exception as e:
             print(f"[News] Search failed for '{query}': {e}")
-            async with self._search_lock:
-                if cache_key in self._search_cache:
-                    return self._search_cache[cache_key][1]
+            if cache_key in self._search_cache:
+                return self._search_cache[cache_key][1]
             return []
 
-    def _parse_rss(self, xml_text: str, max_items: int = 10) -> list[NewsItem]:
+    def _parse_searxng(self, data: dict, max_items: int = 10) -> list[NewsItem]:
         items = []
-        try:
-            root = ElementTree.fromstring(xml_text)
-            for item_el in root.iter("item"):
-                if len(items) >= max_items:
-                    break
-                title = item_el.findtext("title", "").strip()
-                source_el = item_el.find("source")
-                source = source_el.text.strip() if source_el is not None and source_el.text else ""
-                published = item_el.findtext("pubDate", "").strip()
-                if title:
-                    items.append(NewsItem(title=title, source=source, published=published))
-        except ElementTree.ParseError as e:
-            print(f"[News] RSS parse error: {e}")
+        for result in data.get("results", [])[:max_items]:
+            title = result.get("title", "").strip()
+            if not title:
+                continue
+            # Extract source from engines list or metadata
+            engines = result.get("engines", [])
+            source = engines[0] if engines else ""
+            published = result.get("publishedDate", "")
+            items.append(NewsItem(title=title, source=source, published=published))
         return items
 
     def format_headlines_for_prompt(self, items: list[NewsItem]) -> str:
@@ -150,7 +138,7 @@ STOP_WORDS = {
     # Radio show filler
     "welcome", "thanks", "thank", "show", "roost", "luke", "whats",
     "youre", "thats", "heres", "theyre", "ive", "youve", "weve",
-    "sounds", "sounds", "listen", "hear", "heard", "happen", "happened",
+    "sounds", "listen", "hear", "heard", "happen", "happened",
     "happening", "absolutely", "definitely", "exactly", "totally",
     "pretty", "little", "whole", "every", "point", "sense", "real",
     "great", "cool", "awesome", "amazing", "crazy", "weird", "funny",
@@ -170,7 +158,6 @@ def extract_keywords(text: str, max_keywords: int = 3) -> list[str]:
     keywords = []
 
     # Only look for proper nouns that are likely real topics (not caller names)
-    # Skip first few words (usually greetings) and single proper nouns (usually names)
     proper_nouns = []
     for i, word in enumerate(words):
         clean = re.sub(r'[^\w]', '', word)
