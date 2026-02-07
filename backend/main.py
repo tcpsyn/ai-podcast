@@ -443,6 +443,266 @@ QUIRKS = [
     "has stories they've never told anyone", "testing how the host reacts before going deeper",
 ]
 
+# Named people in their life — 2-3 assigned per caller
+PEOPLE_MALE = [
+    "his wife Linda, who he's been with since high school",
+    "his wife Teresa, they've been rocky lately",
+    "his girlfriend Amber, been together about a year",
+    "his ex-wife Diane, they still talk sometimes",
+    "his buddy Ray from work, the one person he trusts",
+    "his brother Daryl, who always has some scheme going",
+    "his brother Eddie, who never left home",
+    "his sister Maria, the only one in the family who gets him",
+    "his mom Rosa, who calls every Sunday whether he wants her to or not",
+    "his dad, who everybody calls Big Jim, old school rancher",
+    "his best friend Manny, known each other since middle school",
+    "his neighbor Gary, who's always in everybody's business",
+    "his coworker Steve, who he eats lunch with every day",
+    "his buddy TJ, they go fishing together",
+    "his cousin Ruben, more like a brother really",
+    "his daughter Kaylee, she's in high school now",
+    "his son Marcos, just turned 21",
+    "his boss Rick, who's actually a decent guy for a boss",
+    "his uncle Hector, who raised him after his dad left",
+    "his buddy from the Army, goes by Smitty",
+]
+
+PEOPLE_FEMALE = [
+    "her husband David, high school sweetheart",
+    "her husband Mike, second marriage for both of them",
+    "her boyfriend Carlos, met him at work",
+    "her ex-husband Danny, he's still in the picture because of the kids",
+    "her best friend Jackie, they tell each other everything",
+    "her sister Brenda, who she fights with but loves",
+    "her sister Crystal, the one who moved away",
+    "her mom Pat, who has opinions about everything",
+    "her mom Lorraine, who's getting older and it worries her",
+    "her brother Ray, who can't seem to get his life together",
+    "her daughter Mia, who just started college",
+    "her son Tyler, he's 16 and thinks he knows everything",
+    "her coworker and friend Denise, who she vents to on breaks",
+    "her neighbor Rosa, who watches her kids sometimes",
+    "her cousin Angie, they grew up together",
+    "her best friend from back in the day, Monica, they reconnected recently",
+    "her dad Frank, retired and bored and driving everyone crazy",
+    "her grandma Yolanda, who's the real head of the family",
+    "her boss Karen — yes, her name is actually Karen — who is actually cool",
+    "her friend Tammy from church, the only one who knows the real story",
+]
+
+# Relationship status with detail
+RELATIONSHIP_STATUS = [
+    "Married, 15 years. It's comfortable but sometimes that's the problem.",
+    "Married, second time around. Learned a lot from the first one.",
+    "Married young, still figuring it out.",
+    "Divorced, been about two years. Still adjusting.",
+    "Divorced twice. Not in a rush to do it again.",
+    "Single, been that way a while. Not sure if by choice anymore.",
+    "In a relationship, about 3 years. She wants to get married, they're not sure.",
+    "In a relationship, it's new. Maybe 6 months. Still in the good part.",
+    "It's complicated. Technically single but there's someone.",
+    "Separated. Living apart but haven't filed yet.",
+    "Widowed. It's been a few years but it doesn't get easier.",
+    "Dating around. Nothing serious. Prefers it that way, mostly.",
+    "Long-distance thing that probably isn't going to work but they keep trying.",
+    "Living together, not married. Her family has opinions about that.",
+    "Just got out of something. Not ready to talk about it. Or maybe they are.",
+]
+
+# What vehicle they drive (rural southwest flavor)
+VEHICLES = [
+    "drives a beat-up F-150, 200k miles and counting",
+    "drives an old Chevy Silverado, it's more rust than paint",
+    "has a Toyota Tacoma, only reliable thing in their life",
+    "drives a Ram 2500, needs it for work",
+    "drives a Subaru Outback, gets them up to the Gila",
+    "has an old Ford Ranger that won't die",
+    "drives a Honda Civic they've had since college",
+    "has a Jeep Wrangler, takes it off road on weekends",
+    "drives a minivan, not cool but it fits the kids",
+    "drives their work truck, a white F-250",
+    "has a Nissan Frontier with a camper shell",
+    "drives an old Bronco they're slowly fixing up",
+    "has a Corolla that gets them from A to B, that's all they ask",
+    "drives a truck they bought off a guy in Deming, not sure of the year",
+    "doesn't have a car right now, that's a whole other story",
+    "rides a motorcycle when the weather's good, truck when it's not",
+]
+
+# What they were doing right before calling
+BEFORE_CALLING = [
+    "Was sitting in their truck in the driveway, not ready to go inside yet.",
+    "Was watching TV but not really watching, just thinking.",
+    "Was lying in bed staring at the ceiling when the show came on.",
+    "Was on the porch, the stars are incredible tonight.",
+    "Was scrolling their phone and the show was on in the background.",
+    "Was driving home and pulled over when they heard something on the show.",
+    "Was doing dishes and the quiet got to them.",
+    "Was having a smoke outside and just started thinking.",
+    "Was up feeding the dog and figured, what the hell, I'll call.",
+    "Was in the garage working on something, had the radio on.",
+    "Was sitting at the kitchen table, couldn't sleep, radio on low.",
+    "Was about to go to bed but then the last caller said something that got them.",
+    "Was out walking, it's a clear night, needed the air.",
+    "Was just staring at a text they haven't replied to yet.",
+    "Was cleaning their gun at the kitchen table, it's a ritual that helps them think.",
+    "Was parked at the gas station, not ready to go home.",
+]
+
+# Specific memories or stories they can reference
+MEMORIES = [
+    "The time they got caught in a flash flood near the Animas Valley and thought they weren't going to make it.",
+    "The night they won $400 at a poker game and didn't tell anyone.",
+    "When their dad took them hunting for the first time, out near the Peloncillos.",
+    "The time they drove to El Paso on a whim at 2am just to get out of town.",
+    "When they saw a mountain lion on their property and just stood there watching it.",
+    "The night the power went out for three days and the whole neighborhood sat outside together.",
+    "When they got lost hiking near the Gila and had to spend a night out there.",
+    "The time they pulled someone out of a ditch during monsoon season.",
+    "Their first real fight, in the parking lot of a bar in Lordsburg. They lost.",
+    "The day they moved to the bootheel. Everything they owned fit in the truck.",
+    "When a dust storm came through and they couldn't see ten feet in front of them.",
+    "The time they drove all the way to Tucson for a concert and the band cancelled.",
+    "When their kid said something so smart it made them realize they were going to be okay.",
+    "The night they sat on the hood of their truck and watched the Milky Way for hours.",
+    "When they found a rattlesnake in their kitchen and had to deal with it alone.",
+    "The time the roof leaked during monsoon and they were up all night with buckets.",
+    "When they ran into someone from high school at the Walmart in Deming and it was awkward.",
+    "The time they helped a stranger change a tire on I-10 in 110 degree heat.",
+    "When they were a kid and the whole family would drive to Hatch for chile season.",
+    "The night they almost called this show before but chickened out.",
+]
+
+# Food/drink in the moment
+HAVING_RIGHT_NOW = [
+    "Nursing a Tecate on the porch.",
+    "On their third cup of coffee.",
+    "Drinking a Coors Light, it's been that kind of day.",
+    "Eating leftover enchiladas straight from the container.",
+    "Having some whiskey, not a lot, just enough.",
+    "Drinking water because they're trying to be better about that.",
+    "Got a Dr Pepper, their one vice.",
+    "Having some chamomile tea, trying to wind down.",
+    "Eating sunflower seeds, spitting shells into a cup.",
+    "Just finished a bowl of green chile stew their neighbor brought over.",
+    "Drinking a Modelo with lime.",
+    "Having instant coffee because it's all they've got.",
+    "Snacking on beef jerky from the gas station.",
+    "Sipping on some mezcal a friend brought back from across the border.",
+]
+
+# Strong random opinions (might come out if conversation drifts)
+STRONG_OPINIONS = [
+    "Thinks the speed limit on I-10 should be 85.",
+    "Swears the best green chile comes from Hatch, will argue about it.",
+    "Believes aliens have definitely been to the bootheel. Not joking.",
+    "Thinks Cormac McCarthy is overrated and will die on that hill.",
+    "Convinced the government knows about things in the desert they won't talk about.",
+    "Thinks everyone should learn to change their own oil.",
+    "Believes the best time of day is right before sunrise.",
+    "Thinks small towns are dying because nobody under 30 wants to stay.",
+    "Has strong feelings about how chain restaurants are killing local places.",
+    "Thinks the monsoon season is the best time of year and people who complain about it are wrong.",
+    "Believes poker is the most honest game there is because everybody's lying.",
+    "Thinks dogs are better judges of character than people.",
+    "Convinced that the night sky out here is something people in cities will never understand.",
+    "Thinks people who've never been broke can't give advice about money.",
+    "Believes the desert teaches you things about yourself if you let it.",
+    "Thinks the old-timers who built these towns were tougher than anyone alive today.",
+    "Has a theory that the best conversations happen after midnight.",
+    "Thinks too many people are afraid of silence.",
+]
+
+# Contradictions/secrets — something that doesn't match their surface
+CONTRADICTIONS = [
+    "Tough exterior but cried watching The Last of Us.",
+    "Reads physics papers for fun but nobody at work knows.",
+    "Goes to church every Sunday but has serious doubts they don't talk about.",
+    "Looks like a redneck but listens to jazz when nobody's around.",
+    "Acts like they don't care what people think but checks their phone constantly.",
+    "Comes across as simple but has read more books than most people they know.",
+    "Talks tough about relationships but writes poetry in a notebook they hide.",
+    "Seems like they have it together but their finances are a mess.",
+    "Acts confident but has imposter syndrome about everything.",
+    "Everybody thinks they're happy but they haven't felt right in months.",
+    "Looks intimidating but volunteers at the animal shelter on weekends.",
+    "Talks about wanting to leave town but secretly can't imagine living anywhere else.",
+    "Comes across as a loner but they're actually lonely.",
+    "Acts practical and no-nonsense but believes in ghosts. Has a story about it.",
+    "Seems easygoing but has a temper they work hard to control.",
+    None, None, None, None,  # Not every caller needs a contradiction
+]
+
+# Verbal fingerprints — specific phrases a caller leans on (assigned 1-2 per caller)
+VERBAL_TICS = [
+    "at the end of the day", "I'm just saying", "the thing is though",
+    "and I'm like", "you know what I mean", "it is what it is",
+    "I'm not going to lie", "here's the thing", "for real though",
+    "that's the part that gets me", "I keep coming back to",
+    "and that's the crazy part", "but anyway", "so yeah",
+    "like I said", "no but seriously", "right but here's the thing",
+    "and I'm sitting there thinking", "I swear to God",
+    "look", "listen", "the way I see it",
+    "I mean whatever but", "and I told myself",
+    "it's like", "that's what kills me",
+    "but you know what", "I'll be honest with you",
+    "not going to sugarcoat it", "at this point",
+]
+
+# Emotional arcs — how the caller's mood shifts during the call
+EMOTIONAL_ARCS = [
+    "Starts guarded and vague. Opens up after the host earns trust. Gets real once comfortable.",
+    "Comes in hot and emotional. Calms down as they talk it through. Ends more grounded.",
+    "Sounds fine at first, almost too casual. The real issue leaks out slowly. Gets heavy toward the end.",
+    "Nervous energy at the start. Gains confidence as the host listens. Ends feeling heard.",
+    "Matter-of-fact and detached. Cracks show when the host asks the right question. Might get emotional.",
+    "Cheerful and joking at first. Using humor to avoid the real thing. Eventually drops the act.",
+    "Angry and blaming others at first. Slowly realizes their own role in it. Hard to admit.",
+    "Sad and low energy. Perks up when the host engages. Leaves with a little more hope.",
+    "Confident and opinionated. But underneath there's doubt. Might ask the host what they really think.",
+    "Testing the host at first — seeing if they'll judge. Once safe, shares the real story.",
+]
+
+# Relationship to the show
+SHOW_RELATIONSHIP = [
+    "First-time caller. Nervous about being on the radio. Almost hung up before they got through.",
+    "Has listened to the show a few times. Decided tonight was the night to finally call.",
+    "Regular listener. Feels like they know Luke even though they've never called before.",
+    "Doesn't usually listen to this kind of show but stumbled on it tonight and something made them stay.",
+    "Friend told them about the show and dared them to call in.",
+    "Called once before a while back. Thinks about it sometimes. Calling again because things changed.",
+    "Skeptical about calling a radio show for advice. But it's late and they need to talk to someone.",
+    "Listens every night. This is their first time calling. Big deal for them.",
+    "Heard a caller earlier tonight and it hit close to home. Had to pick up the phone.",
+    "Late-night radio is their thing. They call shows sometimes. Comfortable on air.",
+]
+
+# Time-of-night context — why they're up and calling now
+LATE_NIGHT_REASONS = [
+    "Can't sleep, been staring at the ceiling for an hour.",
+    "Just got home from a long shift. Too wired to sleep.",
+    "Sitting on the porch, it's quiet out, felt like the right time.",
+    "Partner is asleep. This is the only time they can talk freely.",
+    "Been drinking a little. Liquid courage to finally say this out loud.",
+    "Up with insomnia again. The radio's the only company at this hour.",
+    "Just had a fight. Drove around for a while and ended up parked, listening to the show.",
+    "Working the night shift, it's dead right now.",
+    "Kids are finally asleep. This is the first quiet moment all day.",
+    "Couldn't stop thinking about something. Needed to hear another voice.",
+    "Up late doom scrolling, heard the show, and thought why not.",
+    "Out in the yard looking at the stars. The quiet makes you think.",
+]
+
+# Drift tendencies — how some callers wander off-topic
+DRIFT_TENDENCIES = [
+    "Tends to wander into unrelated stories when the main topic gets uncomfortable.",
+    "Will go off on tangents about work if given an opening.",
+    "Connects everything back to a TV show they're watching.",
+    "Starts answering one question but ends up on a completely different topic.",
+    "Brings up random observations about their town or neighbors mid-conversation.",
+    None, None, None, None, None, None, None,  # Most callers don't drift
+]
+
 # Topic-based call-ins (30% of callers discuss a topic instead of a personal problem)
 TOPIC_CALLIN = [
     # Prestige TV discussions
@@ -609,34 +869,74 @@ def pick_location() -> str:
 def generate_caller_background(base: dict) -> str:
     """Generate a unique background for a caller (sync, no research).
     ~30% of callers are 'topic callers' who call about something interesting
-    instead of a personal problem. Includes real local knowledge for their town."""
+    instead of a personal problem. Includes full personality layers for realism."""
+    gender = base["gender"]
     age = random.randint(*base["age_range"])
-    jobs = JOBS_MALE if base["gender"] == "male" else JOBS_FEMALE
+    jobs = JOBS_MALE if gender == "male" else JOBS_FEMALE
     job = random.choice(jobs)
     location = pick_location()
 
-    # Add real town knowledge so callers don't make stuff up
+    # Town knowledge
     town = _get_town_from_location(location)
     town_info = ""
     if town and town in TOWN_KNOWLEDGE:
         town_info = f"\nABOUT WHERE THEY LIVE ({town.title()}): {TOWN_KNOWLEDGE[town]} Only reference real places and facts about this area — don't invent businesses or landmarks that aren't mentioned here."
 
+    # Core identity (problem or topic)
     is_topic_caller = random.random() < 0.30
-
     if is_topic_caller:
-        topic = random.choice(TOPIC_CALLIN)
-        interest1, interest2 = random.sample(INTERESTS, 2)
-        quirk1, quirk2 = random.sample(QUIRKS, 2)
-        return f"""{age}, {job} {location}. {topic.capitalize()}. {interest1.capitalize()}, {interest2}. {quirk1.capitalize()}, {quirk2}.{town_info}"""
+        reason = random.choice(TOPIC_CALLIN)
     else:
-        problem_template = random.choice(PROBLEMS)
-        problem = problem_template
+        reason = random.choice(PROBLEMS)
         for key, options in PROBLEM_FILLS.items():
-            if "{" + key + "}" in problem:
-                problem = problem.replace("{" + key + "}", random.choice(options))
-        interest1, interest2 = random.sample(INTERESTS, 2)
-        quirk1, quirk2 = random.sample(QUIRKS, 2)
-        return f"""{age}, {job} {location}. {problem.capitalize()}. {interest1.capitalize()}, {interest2}. {quirk1.capitalize()}, {quirk2}.{town_info}"""
+            if "{" + key + "}" in reason:
+                reason = reason.replace("{" + key + "}", random.choice(options))
+
+    interest1, interest2 = random.sample(INTERESTS, 2)
+    quirk1, quirk2 = random.sample(QUIRKS, 2)
+
+    # Life details
+    people_pool = PEOPLE_MALE if gender == "male" else PEOPLE_FEMALE
+    person1, person2 = random.sample(people_pool, 2)
+    rel_status = random.choice(RELATIONSHIP_STATUS)
+    vehicle = random.choice(VEHICLES)
+    before = random.choice(BEFORE_CALLING)
+    memory = random.choice(MEMORIES)
+    having = random.choice(HAVING_RIGHT_NOW)
+    opinion = random.choice(STRONG_OPINIONS)
+    contradiction = random.choice(CONTRADICTIONS)
+
+    # Personality layers
+    tic1, tic2 = random.sample(VERBAL_TICS, 2)
+    arc = random.choice(EMOTIONAL_ARCS)
+    relationship = random.choice(SHOW_RELATIONSHIP)
+    late_night = random.choice(LATE_NIGHT_REASONS)
+    drift = random.choice(DRIFT_TENDENCIES)
+
+    parts = [
+        f"{age}, {job} {location}. {reason.capitalize()}.",
+        f"{interest1.capitalize()}, {interest2}.",
+        f"{quirk1.capitalize()}, {quirk2}.",
+        f"\nPEOPLE IN THEIR LIFE: {person1.capitalize()}. {person2.capitalize()}. Use their names when talking about them.",
+        f"\nRELATIONSHIP STATUS: {rel_status}",
+        f"\nDRIVES: {vehicle.capitalize()}.",
+        f"\nRIGHT BEFORE CALLING: {before}",
+        f"\nA MEMORY THEY MIGHT REFERENCE: {memory}",
+        f"\nHAVING RIGHT NOW: {having}",
+        f"\nA STRONG OPINION: {opinion}",
+        f"\nVERBAL HABITS: Tends to say \"{tic1}\" and \"{tic2}\" — use these naturally in conversation.",
+        f"\nEMOTIONAL ARC: {arc}",
+        f"\nRELATIONSHIP TO THE SHOW: {relationship}",
+        f"\nWHY THEY'RE UP: {late_night}",
+    ]
+    if contradiction:
+        parts.append(f"\nSECRET SIDE: {contradiction}")
+    if drift:
+        parts.append(f"\nTENDENCY: {drift}")
+    if town_info:
+        parts.append(town_info)
+
+    return " ".join(parts[:3]) + "".join(parts[3:])
 
 
 # Known topics for smarter search queries — maps keywords in backgrounds to search terms
@@ -722,37 +1022,56 @@ def _extract_search_query(background: str) -> str | None:
 
 
 async def enrich_caller_background(background: str) -> str:
-    """Search for a relevant article and summarize it naturally into the caller's background.
-    Called once at pickup time — never during live conversation.
-    Uses smart topic detection for better search results."""
+    """Search for a relevant article and local town news, summarize naturally.
+    Called once at pickup time — never during live conversation."""
+    # Topic/interest enrichment
     try:
         query = _extract_search_query(background)
-        if not query:
-            return background
-
-        async with asyncio.timeout(5):
-            results = await news_service.search_topic(query)
-
-            if results:
-                article = results[0]
-                # Use LLM to turn headline+snippet into a natural one-liner
-                raw_info = f"Headline: {article.title}"
-                if article.content:
-                    raw_info += f"\nSnippet: {article.content[:200]}"
-
-                summary = await llm_service.generate(
-                    messages=[{"role": "user", "content": raw_info}],
-                    system_prompt="Summarize this article in one casual sentence, as if someone is describing what they read. Start with 'Recently read about' or 'Saw an article about'. Keep it under 20 words. No quotes."
-                )
-                summary = summary.strip().rstrip('.')
-                if summary and len(summary) < 150:
-                    background += f" {summary}, and it's been on their mind."
-                    print(f"[Research] Enriched caller ({query}): {summary[:60]}...")
-
+        if query:
+            async with asyncio.timeout(5):
+                results = await news_service.search_topic(query)
+                if results:
+                    article = results[0]
+                    raw_info = f"Headline: {article.title}"
+                    if article.content:
+                        raw_info += f"\nSnippet: {article.content[:200]}"
+                    summary = await llm_service.generate(
+                        messages=[{"role": "user", "content": raw_info}],
+                        system_prompt="Summarize this article in one casual sentence, as if someone is describing what they read. Start with 'Recently read about' or 'Saw an article about'. Keep it under 20 words. No quotes."
+                    )
+                    summary = summary.strip().rstrip('.')
+                    if summary and len(summary) < 150:
+                        background += f"\nRECENT ARTICLE: {summary}, and it's been on their mind."
+                        print(f"[Research] Topic enrichment ({query}): {summary[:60]}...")
     except TimeoutError:
-        pass  # No enrichment, no problem
+        pass
     except Exception as e:
-        print(f"[Research] Enrichment failed: {e}")
+        print(f"[Research] Topic enrichment failed: {e}")
+
+    # Local town news enrichment
+    try:
+        town = _get_town_from_location(background.split(".")[0])
+        if town and town not in ("road forks", "hachita"):  # Too small for news
+            async with asyncio.timeout(4):
+                town_query = f"{town.title()} New Mexico" if town not in ("tucson", "phoenix", "bisbee", "douglas", "sierra vista", "safford", "willcox", "globe", "clifton", "duncan", "tombstone", "nogales", "green valley", "benson", "san simon") else f"{town.title()} Arizona"
+                results = await news_service.search_topic(town_query)
+                if results:
+                    article = results[0]
+                    raw_info = f"Headline: {article.title}"
+                    if article.content:
+                        raw_info += f"\nSnippet: {article.content[:200]}"
+                    summary = await llm_service.generate(
+                        messages=[{"role": "user", "content": raw_info}],
+                        system_prompt="Summarize this local news in one casual sentence, as if someone from this town is describing what's going on. Start with 'Been hearing about' or 'Saw that'. Keep it under 20 words. No quotes."
+                    )
+                    summary = summary.strip().rstrip('.')
+                    if summary and len(summary) < 150:
+                        background += f"\nLOCAL NEWS: {summary}."
+                        print(f"[Research] Town enrichment ({town_query}): {summary[:60]}...")
+    except TimeoutError:
+        pass
+    except Exception as e:
+        print(f"[Research] Town enrichment failed: {e}")
 
     return background
 
@@ -781,7 +1100,7 @@ Continue naturally. Don't repeat yourself.
         parts.append("Work these in IF they're relevant to what you're discussing. Don't force news into the conversation. You're a person who reads the news, not a news anchor.")
         world_context = "\n".join(parts) + "\n"
 
-    return f"""You're {caller['name']}, calling a late-night radio show. You trust this host.
+    return f"""You're {caller['name']}, calling a late-night radio show called "Luke at the Roost." It's late. You trust this host.
 
 {caller['vibe']}
 {history}{context}{world_context}
@@ -791,7 +1110,7 @@ HOW TO TALK:
   - Quick reactions: "Yeah, exactly." / "No, that's not it at all." / "Man, I wish."
   - Medium responses: A thought or two, then stop.
   - Longer only when you're telling a specific story or explaining something new.
-- NEVER rehash or restate what you already said. Move the conversation FORWARD. If you already explained your situation, don't re-explain it. React to what the host just said.
+- NEVER rehash or restate what you already said. Move the conversation FORWARD. React to what the host just said.
 - NEVER summarize the conversation or your feelings about it. Just talk.
 - ALWAYS complete your thought. Never trail off or leave a sentence unfinished.
 - Swear naturally if it fits: fuck, shit, damn, etc.
@@ -799,6 +1118,27 @@ HOW TO TALK:
 - Reference your actual life — your job, where you live, people you know.
 - You can disagree with the host. Push back. Change your mind. Ask them questions.
 - If the host asks a yes/no question, you can just answer it. You don't have to elaborate every time.
+- Follow your EMOTIONAL ARC — your mood should shift as the conversation deepens.
+- Use your VERBAL HABITS naturally. Don't force them into every line, but they should show up.
+- USE PEOPLE'S NAMES. Say "my buddy Ray" not "my friend." Say "my wife Linda" not "my wife." Real people use names.
+- Reference your MEMORY or STRONG OPINION if the conversation naturally goes there. Don't force it.
+- You can mention what you were doing before calling, what you're drinking, your truck — small details that ground the scene.
+- If earlier callers are mentioned in the show history, you can reference them ("I heard that guy earlier talking about...") but only if it's natural.
+- If you have LOCAL NEWS, you can mention it casually like any local would ("Did you hear about that thing over in Deming?").
+
+REGIONAL SPEECH (you're from the rural southwest):
+- "over in" instead of just "in" for nearby places ("over in Deming", "over in Silver City")
+- "the other day" can mean anytime in the last few months
+- "down the road" for any distance, even an hour drive
+- "out here" when talking about where you live
+- "back when" for any past time
+- Don't overdo it — just let it flavor how you talk, not every sentence.
+
+YOUR FIRST LINE:
+- Your opening should reflect your RELATIONSHIP TO THE SHOW and WHY YOU'RE UP.
+- If you're nervous, sound nervous. If you're a regular listener, sound comfortable.
+- Don't start with "Hi Luke, thanks for taking my call" every time. Some callers just jump in.
+- Some openers: "Hey... so, I've been listening for a while and..." / "Yeah, so, I don't normally do this but..." / "Luke, man, I got to talk to somebody about this." / Just launch right into it with no preamble.
 
 SPELLING FOR TEXT-TO-SPEECH (use proper spelling so TTS pronounces correctly):
 - Write "you know" not "yanno" or "y'know"
@@ -813,12 +1153,14 @@ GOOD examples (notice the variety in length):
 - "I mean, it started innocent enough, but now I can't stop thinking about her."
 - "Right, right. So what do I do with that?"
 - "Hold on, let me think about that for a second. Yeah. Yeah, I think you might be right."
+- "I heard that last caller and, the thing is though, my situation is kind of the opposite."
 
 BAD examples:
 - "I have this confession about my obsession" (too literary)
 - "As I mentioned earlier, my situation involves..." (rehashing)
 - "That's a really great point and I appreciate you saying that because..." (filler)
 - "So basically what I'm dealing with is..." (re-explaining after you already explained)
+- "Hi Luke, thanks for taking my call, I'm a first-time caller" (generic, boring opener)
 
 ABOUT SEX:
 - You don't have to jump straight to explicit stuff
@@ -1126,6 +1468,7 @@ class AudioDeviceSettings(BaseModel):
     live_caller_channel: Optional[int] = None
     music_channel: Optional[int] = None
     sfx_channel: Optional[int] = None
+    ad_channel: Optional[int] = None
     phone_filter: Optional[bool] = None
 
 class MusicRequest(BaseModel):
@@ -1162,6 +1505,7 @@ async def set_audio_settings(settings: AudioDeviceSettings):
         live_caller_channel=settings.live_caller_channel,
         music_channel=settings.music_channel,
         sfx_channel=settings.sfx_channel,
+        ad_channel=settings.ad_channel,
         phone_filter=settings.phone_filter
     )
     return audio_service.get_device_settings()
