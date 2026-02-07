@@ -34,11 +34,16 @@ class NewsService:
 
     async def get_headlines(self) -> list[NewsItem]:
         async with self._headlines_lock:
-            if self._headlines_cache and time.time() - self._headlines_ts < 1800:
+            # Cache for 30min on success, 5min on failure (avoid hammering)
+            if time.time() - self._headlines_ts < (1800 if self._headlines_cache else 300):
                 return self._headlines_cache
 
             try:
-                resp = await self.client.get("https://news.google.com/rss")
+                resp = await self.client.get(
+                    "https://news.google.com/rss",
+                    follow_redirects=True,
+                    headers={"User-Agent": "Mozilla/5.0"}
+                )
                 resp.raise_for_status()
                 items = self._parse_rss(resp.text, max_items=10)
                 self._headlines_cache = items
@@ -46,9 +51,8 @@ class NewsService:
                 return items
             except Exception as e:
                 print(f"[News] Headlines fetch failed: {e}")
-                if self._headlines_cache:
-                    return self._headlines_cache
-                return []
+                self._headlines_ts = time.time()  # Don't retry immediately
+                return self._headlines_cache
 
     async def search_topic(self, query: str) -> list[NewsItem]:
         cache_key = query.lower()
@@ -67,7 +71,7 @@ class NewsService:
         try:
             encoded = quote_plus(query)
             url = f"https://news.google.com/rss/search?q={encoded}&hl=en-US&gl=US&ceid=US:en"
-            resp = await self.client.get(url)
+            resp = await self.client.get(url, follow_redirects=True, headers={"User-Agent": "Mozilla/5.0"})
             resp.raise_for_status()
             items = self._parse_rss(resp.text, max_items=5)
 
@@ -143,31 +147,52 @@ STOP_WORDS = {
     "first", "last", "back", "down", "ever", "away", "cant", "dont",
     "didnt", "doesnt", "isnt", "wasnt", "wont", "wouldnt", "couldnt",
     "shouldnt", "aint", "stop", "start", "started", "help",
+    # Radio show filler
+    "welcome", "thanks", "thank", "show", "roost", "luke", "whats",
+    "youre", "thats", "heres", "theyre", "ive", "youve", "weve",
+    "sounds", "sounds", "listen", "hear", "heard", "happen", "happened",
+    "happening", "absolutely", "definitely", "exactly", "totally",
+    "pretty", "little", "whole", "every", "point", "sense", "real",
+    "great", "cool", "awesome", "amazing", "crazy", "weird", "funny",
+    "tough", "hard", "wrong", "true", "trying", "tried", "works",
+    "working", "anymore", "already", "enough", "though", "whatever",
+    "theres", "making", "saying", "keeping", "possible", "instead",
+    "front", "behind", "course", "talks", "happens", "watch",
+    "everybodys", "pants", "husband", "client",
 }
 
 
 def extract_keywords(text: str, max_keywords: int = 3) -> list[str]:
     words = text.split()
+    if len(words) < 8:
+        return []  # Too short to extract meaningful topics
+
     keywords = []
 
-    # Pass 1: capitalized words (proper nouns) not at sentence start
+    # Only look for proper nouns that are likely real topics (not caller names)
+    # Skip first few words (usually greetings) and single proper nouns (usually names)
+    proper_nouns = []
     for i, word in enumerate(words):
         clean = re.sub(r'[^\w]', '', word)
-        if not clean:
+        if not clean or len(clean) < 3:
             continue
         is_sentence_start = i == 0 or (i > 0 and words[i - 1].rstrip()[-1:] in '.!?')
         if clean[0].isupper() and not is_sentence_start and clean.lower() not in STOP_WORDS:
-            if clean not in keywords:
-                keywords.append(clean)
-            if len(keywords) >= max_keywords:
-                return keywords
+            proper_nouns.append(clean)
 
-    # Pass 2: uncommon words (>4 chars, not in stop words)
+    # Only use proper nouns if we found 2+ (single one is probably a name)
+    if len(proper_nouns) >= 2:
+        for noun in proper_nouns[:max_keywords]:
+            if noun not in keywords:
+                keywords.append(noun)
+        if len(keywords) >= max_keywords:
+            return keywords
+
+    # Pass 2: uncommon words (>5 chars, not in stop words)
     for word in words:
         clean = re.sub(r'[^\w]', '', word).lower()
-        if len(clean) > 4 and clean not in STOP_WORDS:
-            title_clean = clean.capitalize()
-            if title_clean not in keywords and clean not in [k.lower() for k in keywords]:
+        if len(clean) > 5 and clean not in STOP_WORDS:
+            if clean not in [k.lower() for k in keywords]:
                 keywords.append(clean)
             if len(keywords) >= max_keywords:
                 return keywords

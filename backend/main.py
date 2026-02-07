@@ -661,15 +661,19 @@ async def _background_research(text: str):
     if query.lower() in session.research_notes:
         return
     try:
-        results = await news_service.search_topic(query)
-        if results:
-            session.research_notes[query.lower()] = results
-            print(f"[Research] Found {len(results)} results for '{query}'")
+        async with asyncio.timeout(8):
+            results = await news_service.search_topic(query)
+            if results:
+                session.research_notes[query.lower()] = results
+                print(f"[Research] Found {len(results)} results for '{query}'")
+    except TimeoutError:
+        print(f"[Research] Timed out for '{query}'")
     except Exception as e:
         print(f"[Research] Error: {e}")
 
 
 def _build_news_context() -> tuple[str, str]:
+    """Build context from cached news/research only — never does network calls."""
     news_context = ""
     if session.news_headlines:
         news_context = news_service.format_headlines_for_prompt(session.news_headlines[:6])
