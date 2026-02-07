@@ -131,7 +131,7 @@ function initEventListeners() {
 
     // Ads
     document.getElementById('ad-play-btn')?.addEventListener('click', playAd);
-    document.getElementById('ad-stop-btn')?.addEventListener('click', stopMusic);
+    document.getElementById('ad-stop-btn')?.addEventListener('click', stopAd);
 
     // Settings
     document.getElementById('settings-btn')?.addEventListener('click', async () => {
@@ -684,6 +684,10 @@ async function playAd() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ track, action: 'play' })
     });
+}
+
+async function stopAd() {
+    await fetch('/api/ads/stop', { method: 'POST' });
 }
 
 

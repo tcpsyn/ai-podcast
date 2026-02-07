@@ -27,7 +27,15 @@ class AudioService:
         self.live_caller_channel: int = 9  # Channel for live caller audio
         self.music_channel: int = 2    # Channel for music
         self.sfx_channel: int = 3      # Channel for SFX
+        self.ad_channel: int = 11      # Channel for ads
         self.phone_filter: bool = False  # Phone filter on caller voices
+
+        # Ad playback state
+        self._ad_stream: Optional[sd.OutputStream] = None
+        self._ad_data: Optional[np.ndarray] = None
+        self._ad_resampled: Optional[np.ndarray] = None
+        self._ad_position: int = 0
+        self._ad_playing: bool = False
 
         # Recording state
         self._recording = False
@@ -78,8 +86,9 @@ class AudioService:
                 self.live_caller_channel = data.get("live_caller_channel", 4)
                 self.music_channel = data.get("music_channel", 2)
                 self.sfx_channel = data.get("sfx_channel", 3)
+                self.ad_channel = data.get("ad_channel", 11)
                 self.phone_filter = data.get("phone_filter", False)
-                print(f"Loaded audio settings: output={self.output_device}, channels={self.caller_channel}/{self.live_caller_channel}/{self.music_channel}/{self.sfx_channel}, phone_filter={self.phone_filter}")
+                print(f"Loaded audio settings: output={self.output_device}, channels={self.caller_channel}/{self.live_caller_channel}/{self.music_channel}/{self.sfx_channel}/ad:{self.ad_channel}, phone_filter={self.phone_filter}")
             except Exception as e:
                 print(f"Failed to load audio settings: {e}")
 
@@ -94,6 +103,7 @@ class AudioService:
                 "live_caller_channel": self.live_caller_channel,
                 "music_channel": self.music_channel,
                 "sfx_channel": self.sfx_channel,
+                "ad_channel": self.ad_channel,
                 "phone_filter": self.phone_filter,
             }
             with open(SETTINGS_FILE, "w") as f:
@@ -654,6 +664,85 @@ class AudioService:
             self._music_stream = None
         self._music_position = 0
         print("Music stopped")
+
+    def play_ad(self, file_path: str):
+        """Load and play an ad file once (no loop) on the ad channel"""
+        import librosa
+
+        path = Path(file_path)
+        if not path.exists():
+            print(f"Ad file not found: {file_path}")
+            return
+
+        self.stop_ad()
+
+        try:
+            audio, sr = librosa.load(str(path), sr=self.output_sample_rate, mono=True)
+            self._ad_data = audio.astype(np.float32)
+        except Exception as e:
+            print(f"Failed to load ad: {e}")
+            return
+
+        self._ad_playing = True
+        self._ad_position = 0
+
+        if self.output_device is None:
+            num_channels = 2
+            device = None
+            device_sr = self.output_sample_rate
+            channel_idx = 0
+        else:
+            device_info = sd.query_devices(self.output_device)
+            num_channels = device_info['max_output_channels']
+            device_sr = int(device_info['default_samplerate'])
+            device = self.output_device
+            channel_idx = min(self.ad_channel, num_channels) - 1
+
+        if self.output_sample_rate != device_sr:
+            self._ad_resampled = librosa.resample(
+                self._ad_data, orig_sr=self.output_sample_rate, target_sr=device_sr
+            ).astype(np.float32)
+        else:
+            self._ad_resampled = self._ad_data
+
+        def callback(outdata, frames, time_info, status):
+            outdata[:] = 0
+            if not self._ad_playing or self._ad_resampled is None:
+                return
+
+            remaining = len(self._ad_resampled) - self._ad_position
+            if remaining >= frames:
+                outdata[:, channel_idx] = self._ad_resampled[self._ad_position:self._ad_position + frames]
+                self._ad_position += frames
+            else:
+                if remaining > 0:
+                    outdata[:remaining, channel_idx] = self._ad_resampled[self._ad_position:]
+                # Ad finished — no loop
+                self._ad_playing = False
+
+        try:
+            self._ad_stream = sd.OutputStream(
+                device=device,
+                channels=num_channels,
+                samplerate=device_sr,
+                dtype=np.float32,
+                callback=callback,
+                blocksize=2048
+            )
+            self._ad_stream.start()
+            print(f"Ad playback started on ch {self.ad_channel} @ {device_sr}Hz")
+        except Exception as e:
+            print(f"Ad playback error: {e}")
+            self._ad_playing = False
+
+    def stop_ad(self):
+        """Stop ad playback"""
+        self._ad_playing = False
+        if self._ad_stream:
+            self._ad_stream.stop()
+            self._ad_stream.close()
+            self._ad_stream = None
+        self._ad_position = 0
 
     def set_music_volume(self, volume: float):
         """Set music volume (0.0 to 1.0)"""

@@ -1298,14 +1298,20 @@ async def get_ads():
 
 @app.post("/api/ads/play")
 async def play_ad(request: MusicRequest):
-    """Play an ad on the music channel"""
+    """Play an ad once on the ad channel (ch 11)"""
     ad_path = settings.ads_dir / request.track
     if not ad_path.exists():
         raise HTTPException(404, "Ad not found")
 
-    audio_service.load_music(str(ad_path))
-    audio_service.play_music()
+    audio_service.play_ad(str(ad_path))
     return {"status": "playing", "track": request.track}
+
+
+@app.post("/api/ads/stop")
+async def stop_ad():
+    """Stop ad playback"""
+    audio_service.stop_ad()
+    return {"status": "stopped"}
 
 
 # --- LLM Settings Endpoints ---
