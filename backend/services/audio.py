@@ -53,6 +53,14 @@ class AudioService:
         self._music_volume: float = 0.3
         self._music_loop: bool = True
 
+        # Music crossfade state
+        self._crossfade_active: bool = False
+        self._crossfade_old_data: Optional[np.ndarray] = None
+        self._crossfade_old_position: int = 0
+        self._crossfade_progress: float = 0.0
+        self._crossfade_samples: int = 0
+        self._crossfade_step: float = 0.0
+
         # Caller playback state
         self._caller_stop_event = threading.Event()
         self._caller_thread: Optional[threading.Thread] = None
@@ -578,6 +586,55 @@ class AudioService:
             print(f"Failed to load music: {e}")
             return False
 
+    def crossfade_to(self, file_path: str, duration: float = 3.0):
+        """Crossfade from current music track to a new one"""
+        import librosa
+
+        if not self._music_playing or self._music_resampled is None:
+            if self.load_music(file_path):
+                self.play_music()
+            return
+
+        # Load the new track
+        path = Path(file_path)
+        if not path.exists():
+            print(f"Music file not found: {file_path}")
+            return
+
+        try:
+            audio, sr = librosa.load(str(path), sr=self.output_sample_rate, mono=True)
+            new_data = audio.astype(np.float32)
+        except Exception as e:
+            print(f"Failed to load music for crossfade: {e}")
+            return
+
+        # Get device sample rate for resampling
+        if self.output_device is not None:
+            device_info = sd.query_devices(self.output_device)
+            device_sr = int(device_info['default_samplerate'])
+        else:
+            device_sr = self.output_sample_rate
+
+        if self.output_sample_rate != device_sr:
+            new_resampled = librosa.resample(new_data, orig_sr=self.output_sample_rate, target_sr=device_sr)
+        else:
+            new_resampled = new_data.copy()
+
+        # Swap: current becomes old, new becomes current
+        self._crossfade_old_data = self._music_resampled
+        self._crossfade_old_position = self._music_position
+        self._music_resampled = new_resampled
+        self._music_data = new_data
+        self._music_position = 0
+
+        # Configure crossfade timing
+        self._crossfade_samples = int(device_sr * duration)
+        self._crossfade_progress = 0.0
+        self._crossfade_step = 1.0 / self._crossfade_samples if self._crossfade_samples > 0 else 1.0
+        self._crossfade_active = True
+
+        print(f"Crossfading to {path.name} over {duration}s")
+
     def play_music(self):
         """Start music playback to specific channel"""
         import librosa
@@ -625,24 +682,54 @@ class AudioService:
             if not self._music_playing or self._music_resampled is None:
                 return
 
+            # Read new track samples
             end_pos = self._music_position + frames
-
             if end_pos <= len(self._music_resampled):
-                outdata[:, channel_idx] = self._music_resampled[self._music_position:end_pos] * self._music_volume
+                new_samples = self._music_resampled[self._music_position:end_pos].copy()
                 self._music_position = end_pos
             else:
                 remaining = len(self._music_resampled) - self._music_position
+                new_samples = np.zeros(frames, dtype=np.float32)
                 if remaining > 0:
-                    outdata[:remaining, channel_idx] = self._music_resampled[self._music_position:] * self._music_volume
-
+                    new_samples[:remaining] = self._music_resampled[self._music_position:]
                 if self._music_loop:
-                    self._music_position = 0
                     wrap_frames = frames - remaining
                     if wrap_frames > 0:
-                        outdata[remaining:, channel_idx] = self._music_resampled[:wrap_frames] * self._music_volume
+                        new_samples[remaining:] = self._music_resampled[:wrap_frames]
                     self._music_position = wrap_frames
                 else:
-                    self._music_playing = False
+                    self._music_position = len(self._music_resampled)
+                    if remaining <= 0:
+                        self._music_playing = False
+
+            if self._crossfade_active and self._crossfade_old_data is not None:
+                # Read old track samples
+                old_end = self._crossfade_old_position + frames
+                if old_end <= len(self._crossfade_old_data):
+                    old_samples = self._crossfade_old_data[self._crossfade_old_position:old_end]
+                    self._crossfade_old_position = old_end
+                else:
+                    old_remaining = len(self._crossfade_old_data) - self._crossfade_old_position
+                    old_samples = np.zeros(frames, dtype=np.float32)
+                    if old_remaining > 0:
+                        old_samples[:old_remaining] = self._crossfade_old_data[self._crossfade_old_position:]
+                    self._crossfade_old_position = len(self._crossfade_old_data)
+
+                # Compute fade curves for this chunk
+                start_progress = self._crossfade_progress
+                end_progress = min(1.0, start_progress + self._crossfade_step * frames)
+                fade_in = np.linspace(start_progress, end_progress, frames, dtype=np.float32)
+                fade_out = 1.0 - fade_in
+
+                outdata[:, channel_idx] = (old_samples * fade_out + new_samples * fade_in) * self._music_volume
+                self._crossfade_progress = end_progress
+
+                if self._crossfade_progress >= 1.0:
+                    self._crossfade_active = False
+                    self._crossfade_old_data = None
+                    print("Crossfade complete")
+            else:
+                outdata[:, channel_idx] = new_samples * self._music_volume
 
         try:
             self._music_stream = sd.OutputStream(
@@ -659,15 +746,48 @@ class AudioService:
             print(f"Music playback error: {e}")
             self._music_playing = False
 
-    def stop_music(self):
-        """Stop music playback"""
-        self._music_playing = False
-        if self._music_stream:
+    def stop_music(self, fade_duration: float = 2.0):
+        """Stop music playback with fade out"""
+        if not self._music_playing or not self._music_stream:
+            self._music_playing = False
+            if self._music_stream:
+                self._music_stream.stop()
+                self._music_stream.close()
+                self._music_stream = None
+            self._music_position = 0
+            return
+
+        if fade_duration <= 0:
+            self._music_playing = False
             self._music_stream.stop()
             self._music_stream.close()
             self._music_stream = None
-        self._music_position = 0
-        print("Music stopped")
+            self._music_position = 0
+            print("Music stopped")
+            return
+
+        import threading
+        original_volume = self._music_volume
+        steps = 20
+        step_time = fade_duration / steps
+
+        def _fade():
+            for i in range(steps):
+                if not self._music_playing:
+                    break
+                self._music_volume = original_volume * (1 - (i + 1) / steps)
+                import time
+                time.sleep(step_time)
+            self._music_playing = False
+            if self._music_stream:
+                self._music_stream.stop()
+                self._music_stream.close()
+                self._music_stream = None
+            self._music_position = 0
+            self._music_volume = original_volume
+            print("Music faded out and stopped")
+
+        threading.Thread(target=_fade, daemon=True).start()
 
     def play_ad(self, file_path: str):
         """Load and play an ad file once (no loop) on the ad channel"""

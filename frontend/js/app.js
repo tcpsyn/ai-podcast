@@ -85,6 +85,9 @@ function initEventListeners() {
         });
     }
 
+    // Export session
+    document.getElementById('export-session-btn')?.addEventListener('click', exportSession);
+
     // Server controls
     document.getElementById('restart-server-btn')?.addEventListener('click', restartServer);
     document.getElementById('stop-server-btn')?.addEventListener('click', stopServer);
@@ -351,7 +354,8 @@ async function loadCallers() {
         data.callers.forEach(caller => {
             const btn = document.createElement('button');
             btn.className = 'caller-btn';
-            btn.textContent = caller.name;
+            if (caller.returning) btn.classList.add('returning');
+            btn.textContent = caller.returning ? `\u2605 ${caller.name}` : caller.name;
             btn.dataset.key = caller.key;
             btn.addEventListener('click', () => startCall(caller.key, caller.name));
             grid.appendChild(btn);
@@ -996,10 +1000,21 @@ function renderQueue(queue) {
         const mins = Math.floor(caller.wait_time / 60);
         const secs = caller.wait_time % 60;
         const waitStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        const displayName = caller.caller_name || caller.phone;
+        const screenBadge = caller.screening_status === 'complete'
+            ? '<span class="screening-badge screened">Screened</span>'
+            : caller.screening_status === 'screening'
+            ? '<span class="screening-badge screening">Screening...</span>'
+            : '';
+        const summary = caller.screening_summary
+            ? `<div class="screening-summary">${caller.screening_summary}</div>`
+            : '';
         return `
             <div class="queue-item">
-                <span class="queue-name">${caller.phone}</span>
+                <span class="queue-name">${displayName}</span>
+                ${screenBadge}
                 <span class="queue-wait">waiting ${waitStr}</span>
+                ${summary}
                 <button class="queue-take-btn" onclick="takeCall('${caller.caller_id}')">Take Call</button>
                 <button class="queue-drop-btn" onclick="dropCall('${caller.caller_id}')">Drop</button>
             </div>
@@ -1152,6 +1167,23 @@ async function fetchConversationUpdates() {
             }
         }
     } catch (err) {}
+}
+
+
+async function exportSession() {
+    try {
+        const res = await safeFetch('/api/session/export');
+        const blob = new Blob([JSON.stringify(res, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `session-${res.session_id}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        log(`Exported session: ${res.call_count} calls`);
+    } catch (err) {
+        log('Export error: ' + err.message);
+    }
 }
 
 

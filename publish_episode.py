@@ -344,6 +344,7 @@ def main():
     parser.add_argument("--dry-run", "-d", action="store_true", help="Generate metadata but don't publish")
     parser.add_argument("--title", "-t", help="Override generated title")
     parser.add_argument("--description", help="Override generated description")
+    parser.add_argument("--session-data", "-s", help="Path to session export JSON (from /api/session/export)")
     args = parser.parse_args()
 
     audio_path = Path(args.audio_file).expanduser().resolve()
@@ -358,11 +359,27 @@ def main():
         episode_number = get_next_episode_number()
     print(f"Episode number: {episode_number}")
 
+    # Load session data if provided
+    session_data = None
+    if args.session_data:
+        session_path = Path(args.session_data).expanduser().resolve()
+        if session_path.exists():
+            with open(session_path) as f:
+                session_data = json.load(f)
+            print(f"Loaded session data: {session_data.get('call_count', 0)} calls")
+        else:
+            print(f"Warning: Session data file not found: {session_path}")
+
     # Step 1: Transcribe
     transcript = transcribe_audio(str(audio_path))
 
     # Step 2: Generate metadata
     metadata = generate_metadata(transcript, episode_number)
+
+    # Use session chapters if available (more accurate than LLM-generated)
+    if session_data and session_data.get("chapters"):
+        metadata["chapters"] = session_data["chapters"]
+        print(f"    Using {len(metadata['chapters'])} chapters from session data")
 
     # Apply overrides
     if args.title:
@@ -373,6 +390,13 @@ def main():
     # Save chapters file
     chapters_path = audio_path.with_suffix(".chapters.json")
     save_chapters(metadata, str(chapters_path))
+
+    # Save transcript alongside episode if session data available
+    if session_data and session_data.get("transcript"):
+        transcript_path = audio_path.with_suffix(".transcript.txt")
+        with open(transcript_path, "w") as f:
+            f.write(session_data["transcript"])
+        print(f"    Transcript saved to: {transcript_path}")
 
     if args.dry_run:
         print("\n[DRY RUN] Would publish with:")

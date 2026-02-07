@@ -25,6 +25,7 @@ from .services.llm import llm_service
 from .services.tts import generate_speech
 from .services.audio import audio_service
 from .services.news import news_service, extract_keywords, STOP_WORDS
+from .services.regulars import regular_caller_service
 
 app = FastAPI(title="AI Radio Show")
 
@@ -115,7 +116,8 @@ CALLER_BASES = {
 
 
 def _randomize_callers():
-    """Assign random names and voices to callers, unique per gender."""
+    """Assign random names and voices to callers, unique per gender.
+    Overrides 2-3 slots with returning regulars when available."""
     num_m = sum(1 for c in CALLER_BASES.values() if c["gender"] == "male")
     num_f = sum(1 for c in CALLER_BASES.values() if c["gender"] == "female")
     males = random.sample(MALE_NAMES, num_m)
@@ -125,6 +127,8 @@ def _randomize_callers():
     f_voices = random.sample(female_pool, min(num_f, len(female_pool)))
     mi, fi = 0, 0
     for base in CALLER_BASES.values():
+        base["returning"] = False
+        base["regular_id"] = None
         if base["gender"] == "male":
             base["name"] = males[mi]
             base["voice"] = m_voices[mi]
@@ -133,6 +137,32 @@ def _randomize_callers():
             base["name"] = females[fi]
             base["voice"] = f_voices[fi]
             fi += 1
+
+    # Override 2-3 random slots with returning callers
+    try:
+        returning = regular_caller_service.get_returning_callers(random.randint(2, 3))
+        if returning:
+            keys_by_gender = {"male": [], "female": []}
+            for k, v in CALLER_BASES.items():
+                keys_by_gender[v["gender"]].append(k)
+
+            for regular in returning:
+                gender = regular["gender"]
+                candidates = keys_by_gender.get(gender, [])
+                if not candidates:
+                    continue
+                key = random.choice(candidates)
+                candidates.remove(key)
+                base = CALLER_BASES[key]
+                base["name"] = regular["name"]
+                base["returning"] = True
+                base["regular_id"] = regular["id"]
+                # Keep the randomly assigned voice — regulars sound different each time
+            if returning:
+                names = [r["name"] for r in returning]
+                print(f"[Regulars] Injected returning callers: {', '.join(names)}")
+    except Exception as e:
+        print(f"[Regulars] Failed to inject returning callers: {e}")
 
 _randomize_callers()  # Initial assignment
 
@@ -1239,10 +1269,68 @@ def pick_location() -> str:
     return random.choice(LOCATIONS_OUT_OF_STATE)
 
 
+def _generate_returning_caller_background(base: dict) -> str:
+    """Generate background for a returning regular caller."""
+    regular_id = base.get("regular_id")
+    regulars = regular_caller_service.get_regulars()
+    regular = next((r for r in regulars if r["id"] == regular_id), None)
+    if not regular:
+        return generate_caller_background(base)
+
+    gender = regular["gender"]
+    age = regular["age"]
+    job = regular["job"]
+    location = regular["location"]
+    traits = regular.get("personality_traits", [])
+
+    # Build previous calls section
+    prev_calls = regular.get("call_history", [])
+    prev_section = ""
+    if prev_calls:
+        lines = [f"- {c['summary']}" for c in prev_calls[-3:]]
+        prev_section = "\nPREVIOUS CALLS:\n" + "\n".join(lines)
+        prev_section += "\nYou're calling back with an update — something has changed since last time. Reference your previous call(s) naturally."
+
+    # Reuse standard personality layers
+    interest1, interest2 = random.sample(INTERESTS, 2)
+    quirk1, quirk2 = random.sample(QUIRKS, 2)
+    people_pool = PEOPLE_MALE if gender == "male" else PEOPLE_FEMALE
+    person1, person2 = random.sample(people_pool, 2)
+    tic1, tic2 = random.sample(VERBAL_TICS, 2)
+    arc = random.choice(EMOTIONAL_ARCS)
+    vehicle = random.choice(VEHICLES)
+    having = random.choice(HAVING_RIGHT_NOW)
+
+    time_ctx = _get_time_context()
+    moon = _get_moon_phase()
+    season_ctx = _get_seasonal_context()
+
+    trait_str = ", ".join(traits) if traits else "a regular caller"
+
+    parts = [
+        f"{age}, {job} {location}. Returning caller — {trait_str}.",
+        f"{interest1.capitalize()}, {interest2}.",
+        f"{quirk1.capitalize()}, {quirk2}.",
+        f"\nRIGHT NOW: {time_ctx} Moon: {moon}.",
+        f"\nSEASON: {season_ctx}",
+        f"\nPEOPLE IN THEIR LIFE: {person1.capitalize()}. {person2.capitalize()}. Use their names when talking about them.",
+        f"\nDRIVES: {vehicle.capitalize()}.",
+        f"\nHAVING RIGHT NOW: {having}",
+        f"\nVERBAL HABITS: Tends to say \"{tic1}\" and \"{tic2}\" — use these naturally in conversation.",
+        f"\nEMOTIONAL ARC: {arc}",
+        f"\nRELATIONSHIP TO THE SHOW: Has called before. Comfortable on air. Knows Luke a bit. Might reference their last call.",
+        prev_section,
+    ]
+
+    return " ".join(parts[:3]) + "".join(parts[3:])
+
+
 def generate_caller_background(base: dict) -> str:
     """Generate a unique background for a caller (sync, no research).
     ~30% of callers are 'topic callers' who call about something interesting
     instead of a personal problem. Includes full personality layers for realism."""
+    if base.get("returning") and base.get("regular_id"):
+        return _generate_returning_caller_background(base)
     gender = base["gender"]
     age = random.randint(*base["age_range"])
     jobs = JOBS_MALE if gender == "male" else JOBS_FEMALE
@@ -1491,8 +1579,58 @@ async def enrich_caller_background(background: str) -> str:
 
     return background
 
+def detect_host_mood(messages: list[dict]) -> str:
+    """Analyze recent host messages to detect mood signals for caller adaptation."""
+    host_msgs = [m["content"] for m in messages if m.get("role") in ("user", "host")][-5:]
+    if not host_msgs:
+        return ""
+
+    signals = []
+
+    # Check average word count — short responses suggest dismissiveness
+    avg_words = sum(len(m.split()) for m in host_msgs) / len(host_msgs)
+    if avg_words < 8:
+        signals.append("The host is giving short responses — they might be losing interest, testing you, or waiting for you to bring something real. Don't ramble. Get to the point or change the subject.")
+
+    # Pushback patterns
+    pushback_phrases = ["i don't think", "that's not", "come on", "really?", "i disagree",
+                        "that doesn't", "are you sure", "i don't buy", "no way", "but that's",
+                        "hold on", "wait a minute", "let's be honest"]
+    pushback_count = sum(1 for m in host_msgs for p in pushback_phrases if p in m.lower())
+    if pushback_count >= 2:
+        signals.append("The host is pushing back — they're challenging you. Don't fold immediately. Defend your position or concede specifically, not generically.")
+
+    # Supportive patterns
+    supportive_phrases = ["i hear you", "that makes sense", "i get it", "that's real",
+                          "i feel you", "you're right", "absolutely", "exactly", "good for you",
+                          "i respect that", "that took guts", "i'm glad you"]
+    supportive_count = sum(1 for m in host_msgs for p in supportive_phrases if p in m.lower())
+    if supportive_count >= 2:
+        signals.append("The host is being supportive — they're with you. You can go deeper. Share something you've been holding back.")
+
+    # Joking patterns
+    joke_indicators = ["haha", "lmao", "lol", "that's hilarious", "no way", "you're killing me",
+                       "shut up", "get out", "are you serious", "you're joking"]
+    joke_count = sum(1 for m in host_msgs for p in joke_indicators if p in m.lower())
+    if joke_count >= 2:
+        signals.append("The host is in a playful mood — joking around. You can joke back, lean into the humor, but you can also use it as a door to something real.")
+
+    # Probing — lots of questions
+    question_count = sum(m.count("?") for m in host_msgs)
+    if question_count >= 3:
+        signals.append("The host is asking a lot of questions — they're digging. Give them real answers. Don't deflect.")
+
+    if not signals:
+        return ""
+
+    # Cap at 2 signals
+    signals = signals[:2]
+    return "\nEMOTIONAL READ ON THE HOST:\n" + "\n".join(f"- {s}" for s in signals) + "\n"
+
+
 def get_caller_prompt(caller: dict, conversation_summary: str = "", show_history: str = "",
-                      news_context: str = "", research_context: str = "") -> str:
+                      news_context: str = "", research_context: str = "",
+                      emotional_read: str = "") -> str:
     """Generate a natural system prompt for a caller"""
     context = ""
     if conversation_summary:
@@ -1519,7 +1657,7 @@ Continue naturally. Don't repeat yourself.
     return f"""You're {caller['name']}, calling a late-night radio show called "Luke at the Roost." It's late. You trust this host.
 
 {caller['vibe']}
-{history}{context}{world_context}
+{history}{context}{world_context}{emotional_read}
 HOW TO TALK:
 - Sound like a real person on the phone, not an essay. This is a conversation, not a monologue.
 - VARY YOUR LENGTH. Sometimes one sentence. Sometimes two or three. Match the moment.
@@ -1607,6 +1745,8 @@ class CallRecord:
     caller_name: str          # "Tony" or "Caller #3"
     summary: str              # LLM-generated summary after hangup
     transcript: list[dict] = field(default_factory=list)
+    started_at: float = 0.0
+    ended_at: float = 0.0
 
 
 class Session:
@@ -1616,6 +1756,7 @@ class Session:
         self.conversation: list[dict] = []
         self.caller_backgrounds: dict[str, str] = {}  # Generated backgrounds for this session
         self.call_history: list[CallRecord] = []
+        self._call_started_at: float = 0.0
         self.active_real_caller: dict | None = None
         self.ai_respond_mode: str = "manual"  # "manual" or "auto"
         self.auto_followup: bool = False
@@ -1626,13 +1767,14 @@ class Session:
     def start_call(self, caller_key: str):
         self.current_caller_key = caller_key
         self.conversation = []
+        self._call_started_at = time.time()
 
     def end_call(self):
         self.current_caller_key = None
         self.conversation = []
 
     def add_message(self, role: str, content: str):
-        self.conversation.append({"role": role, "content": content})
+        self.conversation.append({"role": role, "content": content, "timestamp": time.time()})
 
     def get_caller_background(self, caller_key: str) -> str:
         """Get or generate background for a caller in this session"""
@@ -1977,12 +2119,18 @@ async def get_callers():
     """Get list of available callers"""
     return {
         "callers": [
-            {"key": k, "name": v["name"]}
+            {"key": k, "name": v["name"], "returning": v.get("returning", False)}
             for k, v in CALLER_BASES.items()
         ],
         "current": session.current_caller_key,
         "session_id": session.id
     }
+
+
+@app.get("/api/regulars")
+async def get_regulars():
+    """Get list of regular callers"""
+    return {"regulars": regular_caller_service.get_regulars()}
 
 
 @app.post("/api/session/reset")
@@ -2037,6 +2185,9 @@ async def hangup():
         session._research_task = None
 
     caller_name = session.caller["name"] if session.caller else None
+    caller_key = session.current_caller_key
+    conversation_snapshot = list(session.conversation)
+    call_started = getattr(session, '_call_started_at', 0.0)
     session.end_call()
 
     # Play hangup sound in background so response returns immediately
@@ -2044,7 +2195,72 @@ async def hangup():
     if hangup_sound.exists():
         threading.Thread(target=audio_service.play_sfx, args=(str(hangup_sound),), daemon=True).start()
 
+    # Generate summary for AI caller in background
+    if caller_name and conversation_snapshot:
+        asyncio.create_task(_summarize_ai_call(caller_key, caller_name, conversation_snapshot, call_started))
+
     return {"status": "disconnected", "caller": caller_name}
+
+
+async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: list[dict], started_at: float):
+    """Background task: summarize AI caller conversation and store in history"""
+    ended_at = time.time()
+    summary = ""
+    if conversation:
+        transcript_text = "\n".join(
+            f"{msg['role']}: {msg['content']}" for msg in conversation
+        )
+        try:
+            summary = await llm_service.generate(
+                messages=[{"role": "user", "content": f"Summarize this radio show call in 1-2 sentences:\n{transcript_text}"}],
+                system_prompt="You summarize radio show conversations concisely. Focus on what the caller talked about and any emotional moments.",
+            )
+        except Exception as e:
+            print(f"[AI Summary] Failed to generate summary: {e}")
+            summary = f"{caller_name} called in."
+
+    session.call_history.append(CallRecord(
+        caller_type="ai",
+        caller_name=caller_name,
+        summary=summary,
+        transcript=conversation,
+        started_at=started_at,
+        ended_at=ended_at,
+    ))
+    print(f"[AI Summary] {caller_name} call summarized: {summary[:80]}...")
+
+    # Returning caller promotion/update logic
+    try:
+        base = CALLER_BASES.get(caller_key) if caller_key else None
+        if base and summary:
+            if base.get("returning") and base.get("regular_id"):
+                # Update existing regular's call history
+                regular_caller_service.update_after_call(base["regular_id"], summary)
+            elif len(conversation) >= 6 and random.random() < 0.20:
+                # 20% chance to promote first-timer with 6+ messages
+                bg = session.caller_backgrounds.get(caller_key, "")
+                traits = []
+                for label in ["QUIRK", "STRONG OPINION", "SECRET SIDE", "FOOD OPINION"]:
+                    for line in bg.split("\n"):
+                        if label in line:
+                            traits.append(line.split(":", 1)[-1].strip()[:80])
+                            break
+                # Extract job and location from first line of background
+                first_line = bg.split(".")[0] if bg else ""
+                parts = first_line.split(",", 1)
+                job_loc = parts[1].strip() if len(parts) > 1 else ""
+                job_parts = job_loc.rsplit(" in ", 1) if " in " in job_loc else (job_loc, "unknown")
+                regular_caller_service.add_regular(
+                    name=caller_name,
+                    gender=base.get("gender", "male"),
+                    age=random.randint(*base.get("age_range", (30, 50))),
+                    job=job_parts[0].strip() if isinstance(job_parts, tuple) else job_parts[0],
+                    location="in " + job_parts[1].strip() if isinstance(job_parts, tuple) and len(job_parts) > 1 else "unknown",
+                    personality_traits=traits[:4],
+                    first_call_summary=summary,
+                )
+    except Exception as e:
+        print(f"[Regulars] Promotion logic error: {e}")
 
 
 # --- Chat & TTS Endpoints ---
@@ -2174,7 +2390,8 @@ async def chat(request: ChatRequest):
 
         conversation_summary = session.get_conversation_summary()
         show_history = session.get_show_history()
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history)
+        mood = detect_host_mood(session.conversation)
+        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history, emotional_read=mood)
 
         messages = _normalize_messages_for_llm(session.conversation[-10:])
         response = await llm_service.generate(
@@ -2276,13 +2493,16 @@ async def get_music():
 
 @app.post("/api/music/play")
 async def play_music(request: MusicRequest):
-    """Load and play a music track"""
+    """Load and play a music track, crossfading if already playing"""
     track_path = settings.music_dir / request.track
     if not track_path.exists():
         raise HTTPException(404, "Track not found")
 
-    audio_service.load_music(str(track_path))
-    audio_service.play_music()
+    if audio_service.is_music_playing():
+        audio_service.crossfade_to(str(track_path))
+    else:
+        audio_service.load_music(str(track_path))
+        audio_service.play_music()
     return {"status": "playing", "track": request.track}
 
 
@@ -2352,6 +2572,9 @@ async def play_ad(request: MusicRequest):
     if not ad_path.exists():
         raise HTTPException(404, "Ad not found")
 
+    if audio_service._music_playing:
+        audio_service.stop_music(fade_duration=1.0)
+        await asyncio.sleep(1.1)
     audio_service.play_ad(str(ad_path))
     return {"status": "playing", "track": request.track}
 
@@ -2393,6 +2616,126 @@ async def update_settings(data: dict):
     return llm_service.get_settings()
 
 
+# --- Caller Screening ---
+
+SCREENING_PROMPT = """You are a friendly, brief phone screener for "Luke at the Roost" radio show.
+Your job: Get the caller's first name and what they want to talk about. That's it.
+
+Rules:
+- Be warm but brief (1-2 sentences per response)
+- First ask their name, then ask what they want to talk about
+- After you have both, say something like "Great, sit tight and we'll get you on with Luke!"
+- Never pretend to be Luke or the host
+- Keep it casual and conversational
+- If they're hard to understand, ask them to repeat"""
+
+_screening_audio_buffers: dict[str, bytearray] = {}
+
+
+async def _start_screening_greeting(caller_id: str):
+    """Send initial screening greeting to queued caller after brief delay"""
+    await asyncio.sleep(2)  # Wait for stream to stabilize
+
+    ws = caller_service._websockets.get(caller_id)
+    if not ws:
+        return
+
+    caller_service.start_screening(caller_id)
+    greeting = "Hey there! Thanks for calling Luke at the Roost. What's your name?"
+    caller_service.update_screening(caller_id, screener_text=greeting)
+
+    try:
+        audio_bytes = await generate_speech(greeting, "Sarah", "none")
+        if audio_bytes:
+            await caller_service.stream_audio_to_caller(caller_id, audio_bytes, 24000)
+    except Exception as e:
+        print(f"[Screening] Greeting TTS failed: {e}")
+
+
+async def _handle_screening_audio(caller_id: str, pcm_data: bytes, sample_rate: int):
+    """Process audio from a queued caller for screening conversation"""
+    state = caller_service.get_screening_state(caller_id)
+    if not state or state["status"] == "complete":
+        return
+
+    # Skip if TTS is currently streaming to this caller
+    if caller_service.is_streaming_tts(caller_id):
+        return
+
+    # Transcribe caller speech
+    try:
+        text = await transcribe_audio(pcm_data, source_sample_rate=sample_rate)
+    except Exception as e:
+        print(f"[Screening] Transcription failed: {e}")
+        return
+
+    if not text or not text.strip():
+        return
+
+    print(f"[Screening] Caller {caller_id}: {text}")
+    caller_service.update_screening(caller_id, caller_text=text)
+
+    # Build conversation for LLM
+    messages = []
+    for msg in state["conversation"]:
+        role = "assistant" if msg["role"] == "screener" else "user"
+        messages.append({"role": role, "content": msg["content"]})
+
+    # Generate screener response
+    try:
+        response = await llm_service.generate(
+            messages=messages,
+            system_prompt=SCREENING_PROMPT
+        )
+    except Exception as e:
+        print(f"[Screening] LLM failed: {e}")
+        return
+
+    if not response or not response.strip():
+        return
+
+    response = response.strip()
+    print(f"[Screening] Screener → {caller_id}: {response}")
+    caller_service.update_screening(caller_id, screener_text=response)
+
+    # After 2+ caller responses, try to extract name and topic
+    if state["response_count"] >= 2:
+        try:
+            extract_prompt = f"""From this screening conversation, extract the caller's name and topic.
+Conversation:
+{chr(10).join(f'{m["role"]}: {m["content"]}' for m in state["conversation"])}
+
+Respond with ONLY JSON: {{"name": "their first name or null", "topic": "brief topic or null"}}"""
+            extract = await llm_service.generate(
+                messages=[{"role": "user", "content": extract_prompt}],
+                system_prompt="You extract structured data from conversations. Respond with only valid JSON."
+            )
+            json_match = re.search(r'\{[^}]+\}', extract)
+            if json_match:
+                info = json.loads(json_match.group())
+                if info.get("name"):
+                    caller_service.update_screening(caller_id, caller_name=info["name"])
+                if info.get("topic"):
+                    caller_service.update_screening(caller_id, topic=info["topic"])
+                if info.get("name") and info.get("topic"):
+                    caller_service.end_screening(caller_id)
+                    broadcast_event("screening_complete", {
+                        "caller_id": caller_id,
+                        "name": info["name"],
+                        "topic": info["topic"]
+                    })
+        except Exception as e:
+            print(f"[Screening] Extract failed: {e}")
+
+    # TTS the screener response back to caller
+    try:
+        audio_bytes = await generate_speech(response, "Sarah", "none")
+        if audio_bytes:
+            await caller_service.stream_audio_to_caller(caller_id, audio_bytes, 24000)
+    except Exception as e:
+        print(f"[Screening] Response TTS failed: {e}")
+
+
 @app.websocket("/api/signalwire/stream")
 async def signalwire_audio_stream(websocket: WebSocket):
     """Handle SignalWire bidirectional audio stream"""
@@ -2402,6 +2745,7 @@ async def signalwire_audio_stream(websocket: WebSocket):
     caller_phone = "Unknown"
     call_sid = ""
     audio_buffer = bytearray()
+    screening_buffer = bytearray()
     CHUNK_DURATION_S = 3
     SAMPLE_RATE = 16000
     chunk_samples = CHUNK_DURATION_S * SAMPLE_RATE
@@ -2448,6 +2792,9 @@ async def signalwire_audio_stream(websocket: WebSocket):
                 if stream_sid:
                     caller_service.register_stream_sid(caller_id, stream_sid)
 
+                # Start screening conversation
+                asyncio.create_task(_start_screening_greeting(caller_id))
+
             elif event == "media" and stream_started:
                 try:
                     payload = msg.get("media", {}).get("payload", "")
@@ -2458,6 +2805,16 @@ async def signalwire_audio_stream(websocket: WebSocket):
 
                     call_info = caller_service.active_calls.get(caller_id)
                     if not call_info:
+                        # Caller is queued, not on air — route to screening
+                        screening_buffer.extend(pcm_data)
+                        if len(screening_buffer) >= chunk_samples * 2:
+                            pcm_chunk = bytes(screening_buffer[:chunk_samples * 2])
+                            screening_buffer = screening_buffer[chunk_samples * 2:]
+                            audio_check = np.frombuffer(pcm_chunk, dtype=np.int16).astype(np.float32) / 32768.0
+                            if np.abs(audio_check).max() >= 0.01:
+                                asyncio.create_task(
+                                    _handle_screening_audio(caller_id, pcm_chunk, SAMPLE_RATE)
+                                )
                         continue
 
                     audio_buffer.extend(pcm_data)
@@ -2713,7 +3070,8 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
 
         conversation_summary = session.get_conversation_summary()
         show_history = session.get_show_history()
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history)
+        mood = detect_host_mood(session.conversation)
+        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history, emotional_read=mood)
 
         messages = _normalize_messages_for_llm(session.conversation[-10:])
         response = await llm_service.generate(
@@ -2785,7 +3143,8 @@ async def ai_respond():
 
         conversation_summary = session.get_conversation_summary()
         show_history = session.get_show_history()
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history)
+        mood = detect_host_mood(session.conversation)
+        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history, emotional_read=mood)
 
         messages = _normalize_messages_for_llm(session.conversation[-10:])
         response = await llm_service.generate(
@@ -2856,6 +3215,7 @@ async def hangup_real_caller():
     caller_id = session.active_real_caller["caller_id"]
     caller_phone = session.active_real_caller["phone"]
     conversation_snapshot = list(session.conversation)
+    call_started = getattr(session, '_call_started_at', 0.0)
     auto_followup_enabled = session.auto_followup
 
     # End the phone call via SignalWire
@@ -2875,7 +3235,7 @@ async def hangup_real_caller():
         threading.Thread(target=audio_service.play_sfx, args=(str(hangup_sound),), daemon=True).start()
 
     asyncio.create_task(
-        _summarize_real_call(caller_phone, conversation_snapshot, auto_followup_enabled)
+        _summarize_real_call(caller_phone, conversation_snapshot, call_started, auto_followup_enabled)
     )
 
     return {
@@ -2884,8 +3244,9 @@ async def hangup_real_caller():
     }
 
 
-async def _summarize_real_call(caller_phone: str, conversation: list, auto_followup_enabled: bool):
+async def _summarize_real_call(caller_phone: str, conversation: list, started_at: float, auto_followup_enabled: bool):
     """Background task: summarize call and store in history"""
+    ended_at = time.time()
     summary = ""
     if conversation:
         transcript_text = "\n".join(
@@ -2901,6 +3262,8 @@ async def _summarize_real_call(caller_phone: str, conversation: list, auto_follo
         caller_name=caller_phone,
         summary=summary,
         transcript=conversation,
+        started_at=started_at,
+        ended_at=ended_at,
     ))
     print(f"[Real Caller] {caller_phone} call summarized: {summary[:80]}...")
 
@@ -2961,6 +3324,70 @@ async def set_auto_followup(data: dict):
     session.auto_followup = data.get("enabled", False)
     print(f"[Session] Auto follow-up: {session.auto_followup}")
     return {"enabled": session.auto_followup}
+
+
+# --- Transcript & Chapter Export ---
+
+@app.get("/api/session/export")
+async def export_session():
+    """Export session transcript with speaker labels and chapters from call boundaries"""
+    if not session.call_history:
+        raise HTTPException(400, "No calls in this session to export")
+
+    # Find the earliest call start as session base time
+    session_start = min(
+        (r.started_at for r in session.call_history if r.started_at > 0),
+        default=time.time()
+    )
+
+    transcript_lines = []
+    chapters = []
+
+    for i, record in enumerate(session.call_history):
+        # Chapter from call start time
+        offset_seconds = max(0, record.started_at - session_start) if record.started_at > 0 else 0
+        chapter_title = f"{record.caller_name}"
+        if record.summary:
+            # Use first sentence of summary for chapter title
+            short_summary = record.summary.split(".")[0].strip()
+            if short_summary:
+                chapter_title += f" \u2014 {short_summary}"
+        chapters.append({"startTime": round(offset_seconds), "title": chapter_title})
+
+        # Separator between calls
+        if i > 0:
+            transcript_lines.append("")
+            transcript_lines.append(f"--- Call {i + 1}: {record.caller_name} ---")
+            transcript_lines.append("")
+
+        # Transcript lines with timestamps
+        for msg in record.transcript:
+            msg_offset = msg.get("timestamp", 0) - session_start if msg.get("timestamp") else offset_seconds
+            if msg_offset < 0:
+                msg_offset = 0
+            mins = int(msg_offset // 60)
+            secs = int(msg_offset % 60)
+
+            role = msg.get("role", "")
+            if role in ("user", "host"):
+                speaker = "HOST"
+            elif role.startswith("real_caller:"):
+                speaker = role.split(":", 1)[1].upper()
+            elif role.startswith("ai_caller:"):
+                speaker = role.split(":", 1)[1].upper()
+            elif role == "assistant":
+                speaker = record.caller_name.upper()
+            else:
+                speaker = role.upper()
+
+            transcript_lines.append(f"[{mins:02d}:{secs:02d}] {speaker}: {msg['content']}")
+
+    return {
+        "session_id": session.id,
+        "transcript": "\n".join(transcript_lines),
+        "chapters": chapters,
+        "call_count": len(session.call_history),
+    }
 
 
 # --- Server Control Endpoints ---

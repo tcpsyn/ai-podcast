@@ -25,6 +25,7 @@ class CallerService:
         self._stream_sids: dict[str, str] = {}  # caller_id -> SignalWire streamSid
         self._send_locks: dict[str, asyncio.Lock] = {}  # per-caller send lock
         self._streaming_tts: set[str] = set()  # caller_ids currently receiving TTS
+        self._screening_state: dict[str, dict] = {}  # caller_id -> screening conversation
 
     def _get_send_lock(self, caller_id: str) -> asyncio.Lock:
         if caller_id not in self._send_locks:
@@ -50,18 +51,6 @@ class CallerService:
         with self._lock:
             self._queue = [c for c in self._queue if c["caller_id"] != caller_id]
         print(f"[Caller] {caller_id} removed from queue")
-
-    def get_queue(self) -> list[dict]:
-        now = time.time()
-        with self._lock:
-            return [
-                {
-                    "caller_id": c["caller_id"],
-                    "phone": c["phone"],
-                    "wait_time": int(now - c["queued_at"]),
-                }
-                for c in self._queue
-            ]
 
     def allocate_channel(self) -> int:
         with self._lock:
@@ -111,6 +100,7 @@ class CallerService:
         self._call_sids.pop(caller_id, None)
         self._stream_sids.pop(caller_id, None)
         self._send_locks.pop(caller_id, None)
+        self._screening_state.pop(caller_id, None)
 
     def reset(self):
         with self._lock:
@@ -125,7 +115,71 @@ class CallerService:
             self._stream_sids.clear()
             self._send_locks.clear()
             self._streaming_tts.clear()
+            self._screening_state.clear()
         print("[Caller] Service reset")
+
+    # --- Screening ---
+
+    def start_screening(self, caller_id: str):
+        """Initialize screening state for a queued caller"""
+        self._screening_state[caller_id] = {
+            "conversation": [],
+            "caller_name": None,
+            "topic": None,
+            "status": "screening",  # screening, complete
+            "response_count": 0,
+        }
+        print(f"[Screening] Started for {caller_id}")
+
+    def get_screening_state(self, caller_id: str) -> Optional[dict]:
+        return self._screening_state.get(caller_id)
+
+    def update_screening(self, caller_id: str, caller_text: str = None,
+                         screener_text: str = None, caller_name: str = None,
+                         topic: str = None):
+        """Update screening conversation and extracted info"""
+        state = self._screening_state.get(caller_id)
+        if not state:
+            return
+        if caller_text:
+            state["conversation"].append({"role": "caller", "content": caller_text})
+            state["response_count"] += 1
+        if screener_text:
+            state["conversation"].append({"role": "screener", "content": screener_text})
+        if caller_name:
+            state["caller_name"] = caller_name
+        if topic:
+            state["topic"] = topic
+
+    def end_screening(self, caller_id: str):
+        """Mark screening as complete"""
+        state = self._screening_state.get(caller_id)
+        if state:
+            state["status"] = "complete"
+            print(f"[Screening] Complete for {caller_id}: name={state.get('caller_name')}, topic={state.get('topic')}")
+
+    def get_queue(self) -> list[dict]:
+        """Get queue with screening info enrichment"""
+        now = time.time()
+        with self._lock:
+            result = []
+            for c in self._queue:
+                entry = {
+                    "caller_id": c["caller_id"],
+                    "phone": c["phone"],
+                    "wait_time": int(now - c["queued_at"]),
+                }
+                screening = self._screening_state.get(c["caller_id"])
+                if screening:
+                    entry["screening_status"] = screening["status"]
+                    entry["caller_name"] = screening.get("caller_name")
+                    entry["screening_summary"] = screening.get("topic")
+                else:
+                    entry["screening_status"] = None
+                    entry["caller_name"] = None
+                    entry["screening_summary"] = None
+                result.append(entry)
+            return result
 
     def register_websocket(self, caller_id: str, websocket):
         """Register a WebSocket for a caller"""
