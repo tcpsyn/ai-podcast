@@ -78,6 +78,9 @@ class AudioService:
         self.input_sample_rate = 16000  # For Whisper
         self.output_sample_rate = 24000  # For TTS
 
+        # Stem recording (opt-in, attached via API)
+        self.stem_recorder = None
+
         # Load saved settings
         self._load_settings()
 
@@ -355,6 +358,10 @@ class AudioService:
             # Apply fade to prevent clicks
             audio = self._apply_fade(audio, device_sr)
 
+            # Stem recording: caller TTS
+            if self.stem_recorder:
+                self.stem_recorder.write("caller", audio.copy(), device_sr)
+
             # Create multi-channel output with audio only on target channel
             multi_ch = np.zeros((len(audio), num_channels), dtype=np.float32)
             multi_ch[:, channel_idx] = audio
@@ -491,6 +498,10 @@ class AudioService:
                 indices = np.clip(indices, 0, len(audio) - 1)
                 audio = audio[indices]
 
+            # Stem recording: live caller
+            if self.stem_recorder:
+                self.stem_recorder.write("caller", audio.copy(), device_sr)
+
             if self._live_caller_write:
                 self._live_caller_write(audio)
 
@@ -523,6 +534,10 @@ class AudioService:
                 # Capture for push-to-talk recording if active
                 if self._recording and self._recorded_audio is not None:
                     self._recorded_audio.append(indata[:, record_channel].copy())
+
+                # Stem recording: host mic
+                if self.stem_recorder:
+                    self.stem_recorder.write("host", indata[:, record_channel].copy(), device_sr)
 
                 if not self._host_send_callback:
                     return
@@ -721,7 +736,10 @@ class AudioService:
                 fade_in = np.linspace(start_progress, end_progress, frames, dtype=np.float32)
                 fade_out = 1.0 - fade_in
 
-                outdata[:, channel_idx] = (old_samples * fade_out + new_samples * fade_in) * self._music_volume
+                mono_out = (old_samples * fade_out + new_samples * fade_in) * self._music_volume
+                outdata[:, channel_idx] = mono_out
+                if self.stem_recorder:
+                    self.stem_recorder.write("music", mono_out.copy(), device_sr)
                 self._crossfade_progress = end_progress
 
                 if self._crossfade_progress >= 1.0:
@@ -729,7 +747,10 @@ class AudioService:
                     self._crossfade_old_data = None
                     print("Crossfade complete")
             else:
-                outdata[:, channel_idx] = new_samples * self._music_volume
+                mono_out = new_samples * self._music_volume
+                outdata[:, channel_idx] = mono_out
+                if self.stem_recorder:
+                    self.stem_recorder.write("music", mono_out.copy(), device_sr)
 
         try:
             self._music_stream = sd.OutputStream(
@@ -836,7 +857,10 @@ class AudioService:
 
             remaining = len(self._ad_resampled) - self._ad_position
             if remaining >= frames:
-                outdata[:, channel_idx] = self._ad_resampled[self._ad_position:self._ad_position + frames]
+                chunk = self._ad_resampled[self._ad_position:self._ad_position + frames]
+                outdata[:, channel_idx] = chunk
+                if self.stem_recorder:
+                    self.stem_recorder.write("ads", chunk.copy(), device_sr)
                 self._ad_position += frames
             else:
                 if remaining > 0:
@@ -903,6 +927,10 @@ class AudioService:
 
                 audio, _ = librosa.load(str(path), sr=device_sr, mono=True)
                 audio = self._apply_fade(audio, device_sr)
+
+                # Stem recording: sfx
+                if self.stem_recorder:
+                    self.stem_recorder.write("sfx", audio.copy(), device_sr)
 
                 multi_ch = np.zeros((len(audio), num_channels), dtype=np.float32)
                 multi_ch[:, channel_idx] = audio

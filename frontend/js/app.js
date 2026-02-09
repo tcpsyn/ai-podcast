@@ -85,6 +85,31 @@ function initEventListeners() {
         });
     }
 
+    // Stem recording toggle
+    const recBtn = document.getElementById('rec-btn');
+    if (recBtn) {
+        let stemRecording = false;
+        recBtn.addEventListener('click', async () => {
+            try {
+                if (!stemRecording) {
+                    const res = await safeFetch('/api/recording/start', { method: 'POST' });
+                    stemRecording = true;
+                    recBtn.classList.add('recording');
+                    recBtn.textContent = '⏺ REC';
+                    log('Stem recording started: ' + res.dir);
+                } else {
+                    const res = await safeFetch('/api/recording/stop', { method: 'POST' });
+                    stemRecording = false;
+                    recBtn.classList.remove('recording');
+                    recBtn.textContent = 'REC';
+                    log('Stem recording stopped');
+                }
+            } catch (err) {
+                log('Recording error: ' + err.message);
+            }
+        });
+    }
+
     // Export session
     document.getElementById('export-session-btn')?.addEventListener('click', exportSession);
 
@@ -400,11 +425,12 @@ async function startCall(key, name) {
     if (aiInfo) aiInfo.classList.remove('hidden');
     if (aiName) aiName.textContent = name;
 
-    // Show caller background
+    // Show caller background in disclosure triangle
+    const bgDetails = document.getElementById('caller-background-details');
     const bgEl = document.getElementById('caller-background');
-    if (bgEl && data.background) {
+    if (bgDetails && bgEl && data.background) {
         bgEl.textContent = data.background;
-        bgEl.classList.remove('hidden');
+        bgDetails.classList.remove('hidden');
     }
 
     document.querySelectorAll('.caller-btn').forEach(btn => {
@@ -428,8 +454,8 @@ async function newSession() {
     conversationSince = 0;
 
     // Hide caller background
-    const bgEl = document.getElementById('caller-background');
-    if (bgEl) bgEl.classList.add('hidden');
+    const bgDetails = document.getElementById('caller-background-details');
+    if (bgDetails) bgDetails.classList.add('hidden');
 
     // Reload callers to get new session ID
     await loadCallers();
@@ -455,8 +481,8 @@ async function hangup() {
     document.querySelectorAll('.caller-btn').forEach(btn => btn.classList.remove('active'));
 
     // Hide caller background
-    const bgEl = document.getElementById('caller-background');
-    if (bgEl) bgEl.classList.add('hidden');
+    const bgDetails2 = document.getElementById('caller-background-details');
+    if (bgDetails2) bgDetails2.classList.add('hidden');
 
     // Hide AI caller indicator
     document.getElementById('ai-caller-info')?.classList.add('hidden');

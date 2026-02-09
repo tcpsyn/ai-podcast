@@ -24,6 +24,7 @@ from .services.transcription import transcribe_audio
 from .services.llm import llm_service
 from .services.tts import generate_speech
 from .services.audio import audio_service
+from .services.stem_recorder import StemRecorder
 from .services.news import news_service, extract_keywords, STOP_WORDS
 from .services.regulars import regular_caller_service
 
@@ -184,7 +185,7 @@ JOBS_MALE = [
     "does accounting for a small firm", "sells cars at a dealership", "works in a call center",
     "is a project manager at a mid-size company", "works in logistics",
     # Creative & education
-    "is a high school football coach", "teaches middle school history",
+    "teaches middle school history",
     "is a freelance photographer", "is a session musician", "is a tattoo artist",
     "works at a brewery", "is a youth pastor", "does standup comedy on the side",
     # Odd & specific
@@ -237,18 +238,17 @@ PROBLEMS = [
     "their in-laws are trying to take over their life and their spouse won't say anything",
 
     # Career and purpose
-    "woke up and realized they've been in the wrong career for 15 years",
-    "got passed over for a promotion they deserved and is questioning everything",
-    "has a dream they gave up on years ago and it's haunting them",
-    "is successful on paper but feels completely empty inside",
-    "hates their job but can't afford to leave and it's breaking them",
-    "just got fired and doesn't know who they are without their work",
-    "is being asked to do something unethical at work and doesn't know what to do",
-    "watches their boss take credit for everything and is losing their mind",
-    "started a business and it's failing and they've sunk everything into it",
-    "got a job offer across the country and their family doesn't want to move",
-    "is about to get laid off and hasn't told their spouse",
-    "found out a coworker making half the effort makes twice the money",
+    "walked out of their job today after 15 years with no plan and is sitting in their truck in a parking lot",
+    "got passed over for a promotion they trained their replacement for and their boss didn't even tell them personally",
+    "found their old demo tapes in a box in the garage and spent all night listening to how good they used to be",
+    "makes six figures but just sat in their driveway for 45 minutes tonight because they couldn't make themselves go inside",
+    "got fired today by email — not even a phone call — after seven years at the company",
+    "their boss asked them to sign off on safety reports they know are falsified and gave them a week to decide",
+    "watched their boss present their project to the board word-for-word as his own idea and nobody batted an eye",
+    "sunk their retirement into a restaurant that's been open three months and they're already hemorrhaging money",
+    "got offered their dream job in Portland but their kid just started high school and their spouse said absolutely not",
+    "found out they're getting laid off next Friday but can't tell anyone at work because they signed an NDA",
+    "pulled up their coworker's offer letter by accident on a shared drive and found out they make $40k more for the same title",
 
     # Money and survival
     "is drowning in debt and can't see a way out",
@@ -261,60 +261,60 @@ PROBLEMS = [
     "their car broke down and they can't afford to fix it and need it for work",
 
     # Health scares
-    "just got a diagnosis they weren't expecting and is processing it alone",
-    "has been ignoring symptoms because they're scared of what the doctor will say",
-    "someone they love just got diagnosed with something serious",
-    "had a health scare and it's making them rethink everything",
-    "is dealing with chronic pain and nobody seems to believe them",
-    "just found out they can't have kids",
+    "got told today they have MS and they're sitting in their car in the hospital parking lot trying to figure out how to tell their family",
+    "found a lump three months ago and has been too scared to go to the doctor — their partner doesn't know",
+    "their wife was just diagnosed with stage 3 breast cancer and he had to hold it together for the kids all day and is falling apart now",
+    "collapsed at work last week and the ER doctor told them their blood pressure is so high they could stroke out any day — they're 38",
+    "has been to four different doctors for back pain and they all say nothing's wrong but they can barely walk some days",
+    "just got back from the fertility clinic and found out their chances are basically zero — they've been trying for three years",
 
     # Mental health and inner struggles
-    "has been putting on a brave face but is barely holding it together",
-    "can't shake the feeling that their best years are behind them",
-    "keeps self-sabotaging every good thing in their life and doesn't know why",
-    "has been numb for months and is starting to scare themselves",
-    "feels like a fraud and is waiting to be found out",
-    "is exhausted from being the strong one for everyone else",
-    "has been having panic attacks and doesn't know what's triggering them",
-    "can't stop doom scrolling and it's making them miserable",
-    "hasn't left the house in weeks and is starting to wonder if something's wrong",
+    "had a full-blown panic attack at the grocery store today and had to leave their cart in the aisle",
+    "just turned 50 and realized they've spent their whole adult life doing what other people expected",
+    "got blackout drunk at their kid's birthday party last weekend and nobody's said a word about it",
+    "lied on their resume to get their current job and just found out there's an audit coming",
+    "everyone comes to them with their problems and last night they screamed at their kid over nothing and realized they're running on empty",
+    "woke up on the kitchen floor at 3am and doesn't remember how they got there — this is the third time",
+    "hasn't answered a phone call in two months and just lets everything go to voicemail",
+    "their therapist dropped them as a patient and they don't know what they did wrong",
+    "caught themselves crying in the work bathroom for the second time this week over absolutely nothing they can identify",
 
     # Grief and loss
-    "lost someone close and hasn't really dealt with it",
-    "is grieving someone who's still alive but is no longer the person they knew",
-    "never got closure with someone who died and it's eating at them",
-    "is watching their best friend slowly die and doesn't know how to be there",
-    "their dog died and they're more wrecked than they thought they'd be",
-    "lost their house in a fire and is still processing it",
+    "their mom died six months ago and they just found a voicemail from her they never listened to",
+    "their dad has Alzheimer's and called them by their dead brother's name tonight",
+    "best friend from high school died in a car wreck last month and they hadn't talked in three years because of a stupid argument",
+    "their buddy from the service is in hospice and they can't bring themselves to visit",
+    "their dog of 14 years died yesterday and they called in sick to work because they can't stop crying",
+    "their house burned down three weeks ago and they just found out insurance won't cover it because of a technicality",
 
     # Regrets and past mistakes
-    "made a choice years ago that changed everything and wonders what if",
-    "hurt someone badly and never apologized, and it haunts them",
-    "let the one that got away go and thinks about them constantly",
-    "gave up on something important to make someone else happy and resents it",
-    "was a bully growing up and is finally reckoning with it",
-    "got a DUI and it's ruining their life",
-    "ghosted someone who really cared about them and feels terrible about it",
+    "turned down a chance to buy into a business 10 years ago that's now worth millions",
+    "said something horrible to their mom the last time they saw her alive and she died two days later",
+    "ran into their ex from 20 years ago at the store today and realized they never got over them",
+    "gave up a music scholarship to stay home and take care of family and just heard the kid they lost the spot to is touring nationally",
+    "found out from a classmate reunion that the kid they bullied in school attempted suicide because of them",
+    "got a DUI last month and their mugshot is on the local news site — everyone in town has seen it",
+    "ghosted the best friend they ever had over a $200 debt and just saw them posting about battling cancer",
 
     # Relationships
-    "is falling out of love with their spouse and doesn't know what to do",
-    "married the wrong person and everyone knows it but them",
-    "feels invisible in their own relationship",
-    "is staying for the kids but dying inside",
-    "realized they don't actually like their partner as a person",
-    "found out their partner has been lying about something big",
-    "just found out their partner has a dating profile",
-    "is in love with two people and has to choose",
-    "their ex keeps showing up and they don't hate it",
-    "moved in with someone too fast and now they're trapped",
+    "realized at dinner tonight that they haven't had a real conversation with their spouse in months — they just sat there in silence for an hour",
+    "their spouse's family keeps telling them they married the wrong person and last Thanksgiving someone actually said it to their face",
+    "their wife planned a whole vacation without asking them and booked it — they found out from a credit card notification",
+    "has been sleeping in separate rooms for four months 'because of snoring' but neither of them is buying that excuse anymore",
+    "caught feelings for a coworker and is terrified because they've been married for 12 years and have three kids",
+    "found out their partner has been sending money to an ex every month for the past two years",
+    "found their partner's Tinder profile — with photos from their vacation together — and hasn't said anything yet",
+    "has been seeing two people for six months and both just asked them to move in on the same week",
+    "their ex showed up at their job today with flowers and their current partner saw the whole thing",
+    "signed a lease with someone after dating for three weeks and now they realize this person is a completely different human behind closed doors",
 
     # Friendship and loneliness
-    "realized they don't have any real friends, just people who need things from them",
-    "had a falling out with their best friend and the silence is deafening",
-    "is surrounded by people but has never felt more alone",
-    "suspects a close friend is talking shit behind their back",
-    "all their friends are getting married and having kids and they feel left behind",
-    "their best friend started dating their ex and acts like it's no big deal",
+    "threw a birthday party last weekend and only one person showed up — and they left early",
+    "overheard their best friend of 20 years making fun of them at a barbecue last Saturday",
+    "moved to town two years ago and still doesn't know a single person well enough to call in an emergency",
+    "found a group text between friends that they weren't included in, planning stuff they were never invited to",
+    "went to their 20-year reunion and realized everyone moved on except them",
+    "their best friend started dating their ex-wife and just asked them to be cool about it",
 
     # Neighbor and community drama
     "is in a feud with their neighbor that's gotten way out of hand",
@@ -323,43 +323,147 @@ PROBLEMS = [
     "someone at church said something that made them question their entire faith",
 
     # Big life decisions
-    "is thinking about leaving everything behind and starting over somewhere new",
-    "has to make a choice that will hurt someone no matter what",
-    "has been offered an opportunity that would change everything but they're terrified",
-    "knows they need to end something but can't pull the trigger",
-    "is thinking about joining the military and their family is losing it",
-    "wants to go back to school but feels like it's too late",
+    "packed a bag tonight and it's sitting by the front door — they're one argument away from driving to their sister's in Tucson and not coming back",
+    "their aging mother needs full-time care and the only option is selling their house to pay for it, but their kids grew up there",
+    "got accepted to nursing school at 44 and their spouse said if they quit their job to go back to school it's over",
+    "found out they're pregnant and they already have four kids and no money",
+    "their kid just enlisted in the Marines without telling anyone and ships out in three weeks",
+    "has been sitting on a resignation letter for two months and every morning they almost turn it in",
 
     # Addiction and bad habits
-    "is hiding how much they drink from everyone",
-    "can't stop gambling and is in deeper than anyone knows",
-    "is watching themselves become someone they don't recognize",
-    "just got out of rehab and doesn't know how to face everyone",
-    "found pills in their kid's room and doesn't know how to bring it up",
+    "poured out every bottle in the house last night at 2am and woke up this morning and drove straight to the liquor store",
+    "lost $8,000 at the casino last weekend and told their wife they got robbed at a gas station",
+    "went to pick up their kid from school today and realized they were still drunk from the night before",
+    "just did 90 days in rehab and came home to find their roommate left a six-pack in the fridge as a 'welcome home'",
+    "found oxy in their 16-year-old's backpack and recognized the pills because they used to take the same ones",
 
     # Legal trouble
-    "is in the middle of a lawsuit and it's consuming their life",
-    "got caught doing something stupid and now there are consequences",
-    "is dealing with a custody battle that's destroying them",
-    "has a warrant they've been ignoring and it's getting worse",
+    "is being sued by their former business partner for $200k and just got served at their daughter's soccer game",
+    "got caught shoplifting at Walmart — not because they needed to, they have no idea why they did it — and now they have a court date",
+    "in a custody battle where their ex is telling the kids daddy doesn't want them and the judge seems to be buying it",
+    "has had a warrant for a missed court date for six months and tonight a deputy showed up at their neighbor's house asking about them",
 
     # Attraction and affairs
-    "is attracted to someone they shouldn't be and it's getting harder to ignore",
-    "has been seeing {affair_person} on the side",
-    "caught feelings for someone at work and it's fucking everything up",
+    "has been meeting {affair_person} at a motel in Deming every Thursday for three months and their spouse just asked why the mileage on the car is so high",
+    "kissed {affair_person} at a work party last Friday and now they can't look their partner in the eye",
+    "caught feelings for someone at work and accidentally sent a flirty text to their spouse instead of the other person",
 
     # Sexual/desire
-    "can't stop thinking about {fantasy_subject}",
-    "discovered something about their own desires that surprised them",
-    "is questioning their sexuality after something that happened recently",
+    "their partner found their browser history and now they have to have a conversation they've been avoiding for years",
+    "went to a party last month and something happened that made them realize they might not be as straight as they thought",
 
     # General late-night confessions
-    "can't sleep and has been thinking too much about their life choices",
-    "had a weird day and needs to process it with someone",
-    "has been keeping a secret that's eating them alive",
-    "finally ready to admit something they've never said out loud",
-    "saw something today that brought up a memory they'd buried",
-    "just realized they've become exactly like the parent they swore they'd never be",
+    "found a letter their dead father wrote but never sent — it's addressed to a woman who isn't their mother",
+    "accidentally overheard their doctor on the phone saying something about their test results and now they're spiraling",
+    "has been stealing from the register at work for eight months and the new cameras just went up today",
+    "saw their spouse's car parked outside someone's house at 11pm when they said they were working late",
+    "ran into someone from their past at the gas station today — someone who knows something about them that nobody else does",
+    "yelled at their kid tonight the exact same way their father used to yell at them, same words and everything",
+
+    # Weird situations
+    "found a camera hidden in their Airbnb rental and confronted the owner who denied it — they have it in their hand right now",
+    "their neighbor's been flying a drone over their property every evening and when they asked about it the guy said 'just keeping an eye on things'",
+    "accidentally sent a text trashing their boss to their boss instead of their friend and now they're waiting for Monday",
+    "woke up to find someone had left a box of their stuff on their porch — stuff they lost years ago — with no note",
+    "their smart doorbell recorded someone standing on their porch at 3am just staring at the door for ten minutes then walking away",
+    "found a journal in a used car they bought and it's full of detailed entries about a life falling apart — they can't stop reading it",
+    "a stranger at a gas station handed them an envelope with $500 and said 'you look like you need this more than me' and drove off",
+
+    # Parenting nightmares
+    "their 14-year-old came home with a tattoo and won't say where they got it",
+    "found out their kid has been bullying other kids at school and the principal wants a meeting tomorrow",
+    "their adult child just moved back home for the third time and their spouse is ready to change the locks",
+    "caught their 17-year-old sneaking out at 2am and followed them — they were going to a house where adults were partying",
+    "their kid just told them they're dropping out of college to become a TikTok creator and they already quit their campus job",
+    "got a call from the school that their kid punched a teacher — kid says the teacher grabbed them first",
+    "their 19-year-old just announced they're engaged to someone they met online three weeks ago",
+    "found out their kid has been skipping school for two months and the school never called",
+
+    # Money situations with stakes
+    "just got a $14,000 medical bill in the mail for a procedure insurance said was covered",
+    "their business partner cleaned out the company account and disappeared — they found out when payroll bounced",
+    "won $50,000 on a scratch ticket and hasn't told a soul yet because they know everyone's going to come asking",
+    "co-signed a loan for their brother who stopped making payments six months ago and now the bank is coming after them",
+    "found out the house they just bought has a lien on it that the seller didn't disclose",
+    "their identity got stolen and someone opened three credit cards in their name and ran up $30k",
+    "just calculated that they've spent over $60,000 on their kid's college and the kid just failed out",
+    "the IRS sent them a letter saying they owe $22,000 from three years ago and they have no idea what it's about",
+
+    # Confrontations
+    "finally told their mother-in-law to stop coming over unannounced and now their spouse isn't speaking to them",
+    "got into a screaming match with their landlord in front of the whole apartment complex about black mold they've been complaining about for a year",
+    "punched their brother-in-law at a family barbecue last weekend and now the family is picking sides",
+    "told their best friend that their spouse is cheating on them and the friend chose the spouse's side",
+    "stood up to their abusive father for the first time at age 40 and now half the family says they're the problem",
+    "reported their employer to OSHA and now everyone at work knows it was them",
+
+    # Small town drama
+    "the only mechanic in town ripped them off and when they posted about it on Facebook the whole town turned on them",
+    "caught the mayor's son dumping trash on their property and when they reported it the sheriff told them to drop it",
+    "someone spray-painted something on their garage door and they know exactly who did it but can't prove it",
+    "got banned from the only bar in town for something they didn't do and now they have nowhere to go on weekends",
+    "their ex started dating the bartender at their regular spot and now they have to find a new place to drink",
+    "someone's been stealing packages off their porch and they set up a camera and it's their neighbor's kid",
+
+    # Moral dilemmas
+    "found a wallet with $3,000 in cash and the ID of someone who lives in their town — been sitting on it for two days",
+    "knows their best friend's husband is cheating because they saw him at a restaurant in Las Cruces with someone, and the friend just posted about their anniversary",
+    "their coworker confessed to stealing from the company and asked them to keep quiet — it's been eating at them for weeks",
+    "witnessed a hit and run in a parking lot and got the plate number but the car belongs to someone they know from church",
+    "their elderly neighbor asked them to help write a new will leaving everything to a caregiver they just met — something feels off",
+    "found out their landlord has been renting to them without permits and now they have leverage but also might lose their home",
+
+    # Identity and life changes
+    "just turned 60 and realized they have no hobbies, no friends outside work, and retire in five years with nothing to do",
+    "their spouse of 20 years just came out and is asking to stay together as co-parents",
+    "got DNA test results back and their dad isn't their biological father — and their mom won't talk about it",
+    "moved back to their hometown after 25 years and doesn't recognize anything or anyone",
+    "just became a grandparent and it's bringing up every mistake they made as a parent",
+    "retired three months ago and has called their old office twice pretending to need something just to talk to someone",
+
+    # Work situations
+    "found out their company is about to do a massive layoff and their name is on the list — they saw the spreadsheet on their manager's screen",
+    "their new boss is 25 years old and just told the whole team they need to 'align on synergies' and they almost quit on the spot",
+    "has been working remote for two years and just got told to come back to the office or lose their job — office is 90 minutes away",
+    "accidentally replied-all to a company email with something they definitely should not have said",
+    "their coworker has been taking credit for their work for a year and just got promoted because of it",
+    "found evidence that their company has been dumping waste illegally and doesn't know whether to report it or keep their head down",
+
+    # Relationships with specific incidents
+    "found a second phone in their partner's car hidden under the seat — it's locked and they haven't mentioned it yet",
+    "their partner proposed in front of both families at Thanksgiving and they said yes but they don't want to marry them",
+    "woke up to their partner packing a bag at 4am — they said they're 'going to their mom's for a few days' but wouldn't make eye contact",
+    "their ex just published a thinly-veiled novel where they're clearly the villain and it's getting good reviews locally",
+    "caught their partner in a lie about where they were last Tuesday and the story keeps changing every time they ask",
+    "their partner just told them they gambled away their vacation savings — the trip is in two weeks",
+
+    # Unexpected discoveries
+    "was cleaning out their dead uncle's house and found a room full of journals describing a completely different life than anyone knew about",
+    "found their own adoption papers in their parents' filing cabinet — they're 45 and nobody ever told them",
+    "their kid's school project about family history turned up the fact that their grandfather was someone fairly notorious",
+    "discovered that the 'family cabin' they've been going to for 30 years actually belongs to a stranger who never knew they were using it",
+    "went through their late mother's emails and found she had been in contact with a half-sibling they never knew existed",
+    "found out the house they grew up in is about to be demolished and it hit them way harder than they expected",
+
+    # Animal situations
+    "their neighbor's dog bit their kid and the neighbor says the kid provoked it — now animal control is involved",
+    "found a stray dog three months ago, nursed it back to health, and now the original owner showed up wanting it back",
+    "their HOA says they have to get rid of their chickens and they're ready to go to war over it",
+    "hit a deer on the highway tonight and it's still alive on the shoulder and they don't know what to do",
+    "their cat brought home a wallet and they found a missing person flyer with the wallet owner's face on it",
+
+    # Veterans and service
+    "got a letter from the VA denying their disability claim for the third time and they can barely function some days",
+    "ran into their old sergeant at the hardware store and had a full panic attack in the parking lot afterward",
+    "their civilian friends keep thanking them for their service and they want to scream because they feel like they failed the people next to them",
+    "just found out the buddy they served with who they lost contact with died two years ago and nobody told them",
+
+    # Technology and modern life
+    "their kid showed them a deepfake video of them saying things they never said and it's circulating at school",
+    "got catfished for four months and sent the person $3,000 before figuring it out",
+    "their teenager posted something online that went viral for the wrong reasons and now strangers are showing up at their house",
+    "found out their ex has been tracking their location through a shared app they forgot to turn off",
+    "someone made a fake social media profile using their photos and has been messaging people they know",
 ]
 
 PROBLEM_FILLS = {
@@ -466,7 +570,7 @@ INTERESTS = [
     "makes their own hot sauce",
     # Self & lifestyle
     "homebody, prefers staying in", "into cooking and food",
-    "follows sports", "gamer", "into history, has random facts",
+    "gamer", "into history, has random facts",
     "reads philosophy for fun", "into personal finance, tracks every dollar",
     "has done therapy, believes in it", "into meditation, it actually helps",
     # Sexually open (not the focus, but present)
@@ -573,27 +677,15 @@ RELATIONSHIP_STATUS = [
 
 # What vehicle they drive (rural southwest flavor)
 VEHICLES = [
-    "drives a beat-up F-150, 200k miles and counting",
-    "drives an old Chevy Silverado, it's more rust than paint",
-    "has a Toyota Tacoma, only reliable thing in their life",
-    "drives a Ram 2500, needs it for work",
-    "drives a Subaru Outback, gets them up to the Gila",
-    "has an old Ford Ranger that won't die",
-    "drives a Honda Civic they've had since college",
-    "has a Jeep Wrangler, takes it off road on weekends",
-    "drives a minivan, not cool but it fits the kids",
-    "drives their work truck, a white F-250",
-    "has a Nissan Frontier with a camper shell",
-    "drives an old Bronco they're slowly fixing up",
-    "has a Corolla that gets them from A to B, that's all they ask",
-    "drives a truck they bought off a guy in Deming, not sure of the year",
-    "doesn't have a car right now, that's a whole other story",
-    "rides a motorcycle when the weather's good, truck when it's not",
+    "an F-150", "a Chevy Silverado", "a Tacoma", "a Ram",
+    "a Subaru Outback", "a Ford Ranger", "a Honda Civic",
+    "a Jeep Wrangler", "a minivan", "a Nissan Frontier",
+    "an old Bronco", "a Corolla", "a motorcycle",
 ]
 
 # What they were doing right before calling
 BEFORE_CALLING = [
-    "Was sitting in their truck in the driveway, not ready to go inside yet.",
+    "Was sitting in the driveway, not ready to go inside yet.",
     "Was watching TV but not really watching, just thinking.",
     "Was lying in bed staring at the ceiling when the show came on.",
     "Was on the porch, the stars are incredible tonight.",
@@ -841,6 +933,128 @@ TOPIC_CALLIN = [
     "wants to discuss whether free will is real or if physics says otherwise",
     "fascinated by black holes after watching a documentary",
     "wants to talk about the simulation theory and why smart people take it seriously",
+
+    # Fun facts and knowledge — callers who learned something cool and want to share it
+    "just learned about the birthday paradox — you only need 23 people in a room for a 50% chance two share a birthday — and wants to blow the host's mind",
+    "read that octopuses have three hearts and blue blood and one of the hearts stops when they swim — thinks they're basically aliens",
+    "found out that honey never spoils — they've found edible honey in Egyptian tombs — and now they're rethinking their pantry",
+    "learned that there are more possible chess games than atoms in the observable universe and can't wrap their head around it",
+    "just found out that Cleopatra lived closer in time to the moon landing than to the building of the pyramids",
+    "read that the mantis shrimp can punch with the force of a bullet and see 16 types of color receptors — humans only have 3",
+    "learned that there's a town in Alaska where the sun doesn't set for 82 days straight and wants to know how people sleep",
+    "found out that your body replaces almost every atom over about 7 years — so philosophically, are you even the same person",
+    "read that bananas are technically berries but strawberries aren't and now they don't trust anything",
+    "just learned about Dunbar's number — humans can only maintain about 150 meaningful relationships — and it explains a lot about their life",
+    "found out that neutron stars are so dense a teaspoon would weigh 6 billion tons and can't stop thinking about it",
+    "read about the Mpemba effect — hot water can freeze faster than cold water and scientists still aren't totally sure why",
+    "learned that there are more trees on Earth than stars in the Milky Way — about 3 trillion — and it made them feel weirdly hopeful",
+    "found out about the overview effect — astronauts who see Earth from space have a permanent shift in how they see humanity",
+    "read that we share 60% of our DNA with bananas and now every time they eat one they feel weird about it",
+    "just learned about the Fermi Paradox and it's been keeping them up at night — where is everybody",
+    "read that the human brain uses 20% of the body's energy despite being only 2% of its weight and wants to talk about what it's doing with all that power",
+    "found out that there are more bacteria in their mouth right now than people on Earth and they can't stop thinking about it",
+    "learned about the Ship of Theseus problem and wants to argue about whether their grandfather's axe with a replaced handle and head is still the same axe",
+    "read that crows can recognize human faces and hold grudges for years — and they're pretty sure the crows in their yard are watching them",
+    "just found out that the GPS in their phone has to account for Einstein's theory of relativity to be accurate and thinks that's the coolest thing they've ever heard",
+    "learned about anosognosia — a condition where you don't know you have a condition — and now they're wondering what they don't know about themselves",
+    "read that there's a fungus in Oregon that's the largest living organism on Earth — covers 2,385 acres underground",
+    "found out that sharks are older than trees — they've been around for 400 million years — and wants to talk about what that means about evolution",
+    "learned about the pale blue dot photo and read Carl Sagan's speech about it and it wrecked them emotionally",
+    "read that the Apollo guidance computer had less processing power than a modern calculator and they landed on the moon with it",
+    "found out that every person on Earth could fit inside Los Angeles standing shoulder to shoulder and it changed how they think about population",
+    "just learned about the Dunning-Kruger effect and realized it explains half the people in their life",
+    "read that the Amazon rainforest produces 20% of the world's oxygen but consumes almost all of it — so it's basically breathing for itself",
+    "learned that a day on Venus is longer than a year on Venus and their brain almost broke trying to visualize it",
+    "found out about tardigrades — microscopic animals that can survive in space, boiling water, and radiation — and thinks we should be studying them more",
+    "read about the Baader-Meinhof phenomenon — where once you learn about something you start seeing it everywhere — and now they're seeing it everywhere",
+    "just learned that the entire internet weighs about the same as a strawberry in terms of the electrons storing the data",
+    "found out that the loudest sound in recorded history was the Krakatoa eruption in 1883 — it was heard 3,000 miles away and circled the Earth four times",
+    "read that dogs can smell time — they can detect the fading of scent to know how long ago someone left — and it blew their mind",
+    "learned about the Voyager Golden Record and wants to talk about what they would have put on it if they got to choose",
+    "found out there's a lake in Venezuela that has lightning storms 300 nights a year and nobody fully understands why",
+    "read about how the color orange was named after the fruit, not the other way around — before that, English speakers just called it 'red-yellow'",
+    "learned that trees in a forest share nutrients through underground fungal networks — they call it the 'wood wide web' — and it made them emotional",
+    "just found out that the total length of DNA in one human body, if uncoiled, would stretch from here to Pluto and back",
+
+    # History and culture
+    "just visited the Trinity Site and can't stop thinking about what happened there",
+    "has been reading about the Pueblo Revolt and thinks it's one of the most important events in American history that nobody knows about",
+    "wants to talk about ghost towns in New Mexico — they've been visiting them and each one has a story",
+    "read about the Navajo Code Talkers and thinks they deserve way more recognition than they get",
+    "is obsessed with the history of Route 66 and what happened to the towns when the interstate bypassed them",
+    "wants to discuss why the Southwest has such a complicated relationship with water and what happens when it runs out",
+    "just learned about the Manhattan Project's connection to New Mexico and went down a rabbit hole",
+    "wants to talk about how the mining industry shaped these towns and what happens now that the mines are closing",
+
+    # Food and cooking
+    "got into an argument at a family dinner about whether flour or corn tortillas are better and it almost came to blows",
+    "has been perfecting their green chile recipe for 20 years and thinks they finally nailed it",
+    "wants to talk about how Hatch chile is being threatened by cheaper imports and why it matters",
+    "tried to make tamales from their grandmother's recipe and it was a complete disaster — wants to know what they did wrong",
+    "has a theory that you can tell everything about a town by the quality of its gas station burritos",
+    "went to a fancy restaurant in Tucson and paid $40 for something worse than what their neighbor makes",
+
+    # Cars and mechanical stuff
+    "just bought a truck sight unseen off the internet and it arrived on a flatbed missing the engine",
+    "has been restoring a 1972 Bronco for six years and their spouse just gave them an ultimatum — the truck or me",
+    "broke down on I-10 between Lordsburg and Deming at 2am and the person who stopped to help them changed their perspective on something",
+    "has a theory about why modern trucks are overengineered garbage compared to what they used to make",
+    "found their dad's old truck in a barn — been sitting there since he died — and is trying to decide whether to restore it or let it go",
+
+    # Desert and outdoor life
+    "was hiking alone near the Gila and had an experience they can't explain and wants to talk about it",
+    "has been tracking a mountain lion near their property for weeks and Fish and Game won't do anything about it",
+    "wants to talk about the monsoon season — last night's storm was the most intense thing they've seen in 30 years here",
+    "found something weird out in the desert they can't identify and it's been bugging them",
+    "thinks the dark skies out here are the most underrated thing about living in the bootheel",
+    "was out stargazing and saw something in the sky they can't explain — not saying aliens, but also not not saying aliens",
+    "wants to talk about what climate change is actually doing to the desert — the creosote is moving, the water table is dropping",
+    "almost stepped on a Mojave rattlesnake today and it made them think about how close they live to things that can kill them",
+
+    # Music and entertainment
+    "heard a song on the radio tonight that their late father used to sing and they had to pull over",
+    "has a theory about why country music went to hell and wants to argue about it",
+    "just saw a concert in a tiny venue in Silver City that was better than any arena show they've been to",
+    "wants to debate whether streaming killed music or saved it",
+    "has been learning guitar for a year and just played their first song all the way through — it was terrible but they're proud",
+    "thinks podcasts are killing radio and wants to argue the other side",
+    "wants to recommend an album that nobody they know has heard of and it's driving them crazy",
+
+    # Philosophy and late-night thoughts
+    "has been thinking about whether you're obligated to forgive someone who never apologized",
+    "wants to discuss whether people actually change or just get better at hiding who they are",
+    "can't stop thinking about the fact that everyone they pass on the highway has a life as complex as theirs",
+    "wants to talk about what makes a place 'home' — is it the land, the people, or just time spent there",
+    "has a theory that the people who stay in small towns are braver than the ones who leave",
+    "wants to talk about why Americans are so bad at being alone and what that says about us",
+    "thinks the concept of 'the American Dream' is fundamentally broken and wants to hear if anyone still believes in it",
+    "has been reading about stoicism and wants to talk about whether it's actually helpful or just emotional suppression",
+
+    # Conspiracy and unexplained
+    "lives near the border and has seen lights in the desert at night that don't match any aircraft they know of",
+    "wants to talk about what they think is really going on at White Sands and why nobody's allowed near certain areas",
+    "has a neighbor who worked at Los Alamos and told them something before he died that they've never been able to verify",
+    "drove past the VLA last week and got thinking about whether anyone is actually listening and what happens if someone answers",
+    "thinks there's something weird about the old mine shafts around Silver City and has stories from people who've gone in",
+
+    # Opinions and hot takes
+    "thinks tipping culture in America has gotten completely out of control and had an experience today that set them off",
+    "wants to argue that the drinking age should be 18 if you can serve in the military at 18",
+    "has a hot take that social media has done more damage to small towns than any economic downturn",
+    "thinks HOAs are unconstitutional and just got a $200 fine for their trash can being visible from the street",
+    "wants to make the case that trade schools should be free and four-year universities are a scam for most people",
+    "thinks the interstate highway system was the worst thing that happened to small-town America and wants to explain why",
+    "has been thinking about whether it's ethical to eat meat and they're a rancher which makes it complicated",
+
+    # Experiences and stories
+    "just drove cross-country alone for the first time and something happened at a truck stop in Texas they need to tell someone about",
+    "went to their first AA meeting tonight and wants to talk about what it was like without anyone knowing who they are",
+    "volunteered at the food bank this week and met someone whose story broke them",
+    "just got back from their first trip out of the country and it completely changed how they see things here",
+    "was a first responder to an accident on I-10 last week and they can't get the image out of their head",
+    "taught their kid to drive today and it made them realize their kid is about to leave and the house is going to be empty",
+    "went to a funeral today for someone they hated and doesn't know how to feel about the fact that they felt nothing",
+    "rode a horse for the first time in 20 years today and it brought back every memory of growing up on the ranch",
 ]
 
 LOCATIONS_LOCAL = [
@@ -1152,7 +1366,7 @@ ROAD_CONTEXT = [
 ]
 
 PHONE_SITUATION = [
-    "Calling from the truck, parked outside — better signal out here",
+    "Calling from outside — better signal out here",
     "Signal keeps cutting in and out — only get one bar at the house",
     "Sitting on the porch, signal's decent tonight for once",
     "Had to walk up the hill behind the house just to get a signal",
@@ -1163,18 +1377,27 @@ PHONE_SITUATION = [
 ]
 
 BACKGROUND_MUSIC = [
-    "Had some Marty Robbins going earlier",
-    "Been listening to old Townes Van Zandt all night",
-    "Got the Highwaymen on — Waylon and Willie",
-    "Was listening to a Joe Rogan episode before this",
-    "Had some old Sabbath playing in the garage",
-    "Been playing Khruangbin all evening — that desert sound",
-    "Was listening to a true crime podcast before switching over",
-    "Had the classic rock station on in the truck",
-    "Been playing some Calexico — fits the mood out here",
-    "Radio was on, just scanning stations. Then found the show",
-    "Had some corridos playing earlier — neighbor turned me onto them",
-    "Was listening to some Pink Floyd, Dark Side. That kind of night",
+    # Outlaw / Americana / Current Country
+    "Zach Bryan", "Tyler Childers", "Chris Stapleton", "Sturgill Simpson",
+    "Turnpike Troubadours", "Colter Wall", "Charley Crockett", "Cody Jinks",
+    "Jason Isbell", "Whiskey Myers", "Morgan Wallen", "Luke Combs",
+    "Flatland Cavalry", "Midland", "Randy Rogers Band",
+    # Classic Country / Outlaw
+    "Waylon Jennings", "Merle Haggard", "Willie Nelson", "Johnny Cash",
+    "George Strait", "Marty Robbins", "Townes Van Zandt", "Kris Kristofferson",
+    # Classic Rock
+    "Lynyrd Skynyrd", "Creedence", "Eagles", "ZZ Top", "Tom Petty",
+    "Pink Floyd", "AC/DC", "Metallica", "Stevie Ray Vaughan", "old Sabbath",
+    # Tejano / Regional
+    "some Tejano station", "corridos", "Ram Herrera", "Jay Perez", "Selena",
+    # Southwest vibes
+    "Calexico", "Khruangbin",
+    # Podcasts / Talk / Radio
+    "Joe Rogan", "a true crime podcast", "Crime Junkie",
+    "Coast to Coast AM", "talk radio", "the classic rock station",
+    "a country station out of El Paso", "just scanning radio stations",
+    "an audiobook", "Dan Bongino", "Dateline podcast",
+    "a conspiracy podcast",
 ]
 
 RECENT_ERRAND = [
@@ -1195,18 +1418,32 @@ RECENT_ERRAND = [
 ]
 
 TV_TONIGHT = [
-    "Was watching some Dateline before this",
-    "Had the news on earlier — same stuff, different day",
-    "Was watching a documentary on Netflix, couldn't focus",
-    "Flipped through channels for a while, nothing on",
-    "Had some YouTube going — those van life videos",
-    "Was rewatching Breaking Bad, for like the fourth time",
-    "Had Investigation Discovery on in the background",
-    "Was watching old Seinfeld reruns",
-    "Tried to watch something new on streaming, couldn't get into it",
-    "Was watching those bodycam videos on YouTube",
-    "Had the History Channel on — that Ancient Aliens stuff",
-    "Was watching Forged in Fire, always get sucked into that",
+    # Current prestige TV (2024-2026)
+    "Severance", "The White Lotus", "The Bear", "Landman",
+    "The Last of Us", "Shogun", "Silo", "Fallout",
+    "Andor", "Dark Winds", "The Righteous Gemstones", "Industry",
+    "1923", "American Primeval", "Adolescence", "The Pitt",
+    "Dune: Prophecy", "Alien: Earth", "Hacks",
+    # Classic prestige people still rewatch
+    "Breaking Bad", "Better Call Saul", "True Detective", "Fargo",
+    "Deadwood", "Justified", "Ozark", "Longmire",
+    "The Wire", "Sopranos", "Band of Brothers", "The Americans",
+    "Sons of Anarchy", "Peaky Blinders", "Narcos", "Mindhunter",
+    "Mare of Easttown", "Chernobyl", "The Leftovers", "Hell on Wheels",
+    "Boardwalk Empire",
+    # Movies people watch late at night
+    "No Country for Old Men", "Hell or High Water", "Sicario", "Wind River",
+    "Tombstone", "Unforgiven", "The Big Lebowski", "Goodfellas",
+    "Heat", "The Departed", "Fight Club", "Pulp Fiction",
+    "Tremors", "Predator", "The Thing", "Alien",
+    "Blazing Saddles", "Smokey and the Bandit", "Road House",
+    "Gran Torino", "O Brother Where Art Thou", "True Grit",
+    "Three Billboards", "Shawshank Redemption", "Mad Max Fury Road",
+    "Dune Part Two", "Oppenheimer", "Killers of the Flower Moon",
+    # Casual stuff
+    "the news", "nothing, just flipping channels", "YouTube",
+    "Dateline", "bodycam videos on YouTube", "the local news out of El Paso",
+    "some western",
 ]
 
 
@@ -1232,7 +1469,7 @@ NOSTALGIA = [
     "Remembers when the mine was still running and the town had twice as many people",
     "Misses the old drive-in movie theater that used to be outside town",
     "Thinks about how you used to be able to leave your doors unlocked and nobody worried",
-    "Remembers when the whole town would show up for Friday night football",
+    "Remembers when the whole town would show up for the Fourth of July fireworks",
     "Gets wistful about the old diner that closed down — best pie in the county",
     "Remembers when the railroad was busier and you could hear trains all night",
     "Thinks the town lost something when the last locally-owned grocery store closed",
@@ -1325,33 +1562,45 @@ def _generate_returning_caller_background(base: dict) -> str:
     return " ".join(parts[:3]) + "".join(parts[3:])
 
 
+def _pick_unique_reason() -> str:
+    """Pick a caller reason that hasn't been used this session."""
+    is_topic = random.random() < 0.30
+    pool = TOPIC_CALLIN if is_topic else PROBLEMS
+    # Try to find an unused one
+    available = [r for r in pool if r not in session.used_reasons]
+    if not available:
+        available = pool  # All used — reset implicitly
+    reason = random.choice(available)
+    session.used_reasons.add(reason)
+    if not is_topic:
+        for key, options in PROBLEM_FILLS.items():
+            if "{" + key + "}" in reason:
+                reason = reason.replace("{" + key + "}", random.choice(options))
+    return reason
+
+
 def generate_caller_background(base: dict) -> str:
-    """Generate a unique background for a caller (sync, no research).
-    ~30% of callers are 'topic callers' who call about something interesting
-    instead of a personal problem. Includes full personality layers for realism."""
+    """Generate a template-based background as fallback. The preferred path is
+    _generate_caller_background_llm() which produces more natural results."""
     if base.get("returning") and base.get("regular_id"):
         return _generate_returning_caller_background(base)
     gender = base["gender"]
     age = random.randint(*base["age_range"])
     jobs = JOBS_MALE if gender == "male" else JOBS_FEMALE
     job = random.choice(jobs)
-    location = pick_location()
+    # Location — only 25% of callers mention where they're from
+    include_location = random.random() < 0.25
+    location = pick_location() if include_location else None
 
     # Town knowledge
-    town = _get_town_from_location(location)
     town_info = ""
-    if town and town in TOWN_KNOWLEDGE:
-        town_info = f"\nABOUT WHERE THEY LIVE ({town.title()}): {TOWN_KNOWLEDGE[town]} Only reference real places and facts about this area — don't invent businesses or landmarks that aren't mentioned here."
+    if location:
+        town = _get_town_from_location(location)
+        if town and town in TOWN_KNOWLEDGE:
+            town_info = f"\nABOUT WHERE THEY LIVE ({town.title()}): {TOWN_KNOWLEDGE[town]} Only reference real places and facts about this area — don't invent businesses or landmarks that aren't mentioned here."
 
     # Core identity (problem or topic)
-    is_topic_caller = random.random() < 0.30
-    if is_topic_caller:
-        reason = random.choice(TOPIC_CALLIN)
-    else:
-        reason = random.choice(PROBLEMS)
-        for key, options in PROBLEM_FILLS.items():
-            if "{" + key + "}" in reason:
-                reason = reason.replace("{" + key + "}", random.choice(options))
+    reason = _pick_unique_reason()
 
     interest1, interest2 = random.sample(INTERESTS, 2)
     quirk1, quirk2 = random.sample(QUIRKS, 2)
@@ -1386,46 +1635,202 @@ def generate_caller_background(base: dict) -> str:
     food = random.choice(LOCAL_FOOD_OPINIONS) if random.random() < 0.5 else None
     nostalgia = random.choice(NOSTALGIA) if random.random() < 0.45 else None
 
-    parts = [
-        f"{age}, {job} {location}. {reason.capitalize()}.",
-        f"{interest1.capitalize()}, {interest2}.",
-        f"{quirk1.capitalize()}, {quirk2}.",
-        f"\nRIGHT NOW: {time_ctx} Moon: {moon}.",
-        f"\nSEASON: {season_ctx}",
-        f"\nPEOPLE IN THEIR LIFE: {person1.capitalize()}. {person2.capitalize()}. Use their names when talking about them.",
-        f"\nRELATIONSHIP STATUS: {rel_status}",
-        f"\nDRIVES: {vehicle.capitalize()}.",
-        f"\nRIGHT BEFORE CALLING: {before}",
-        f"\nA MEMORY THEY MIGHT REFERENCE: {memory}",
-        f"\nHAVING RIGHT NOW: {having}",
-        f"\nA STRONG OPINION: {opinion}",
-        f"\nVERBAL HABITS: Tends to say \"{tic1}\" and \"{tic2}\" — use these naturally in conversation.",
-        f"\nEMOTIONAL ARC: {arc}",
-        f"\nRELATIONSHIP TO THE SHOW: {relationship}",
-        f"\nWHY THEY'RE UP: {late_night}",
-    ]
-    if phone:
-        parts.append(f"\nPHONE SITUATION: {phone}")
-    if errand:
-        parts.append(f"\nEARLIER TODAY: {errand}")
-    if road:
-        parts.append(f"\nROAD STUFF: {road}")
-    if music:
-        parts.append(f"\nWAS LISTENING TO: {music}")
-    if tv:
-        parts.append(f"\nWAS WATCHING: {tv}")
-    if food:
-        parts.append(f"\nFOOD OPINION: {food}")
-    if nostalgia:
-        parts.append(f"\nNOSTALGIA: {nostalgia}")
-    if contradiction:
-        parts.append(f"\nSECRET SIDE: {contradiction}")
-    if drift:
-        parts.append(f"\nTENDENCY: {drift}")
-    if town_info:
-        parts.append(town_info)
+    # Build a natural character description with varied structure
+    # Core identity — always present but phrased differently
+    if location:
+        openers = [
+            f"{age}, {job} {location}.",
+            f"{age} years old, {location}. {job.capitalize()}.",
+            f"{job.capitalize()} {location}, {age}.",
+        ]
+    else:
+        openers = [
+            f"{age}, {job}.",
+            f"{age} years old. {job.capitalize()}.",
+            f"{job.capitalize()}, {age}.",
+        ]
+    core = random.choice(openers) + f" {reason.capitalize()}."
 
-    return " ".join(parts[:3]) + "".join(parts[3:])
+    # Collect detail fragments — not all callers have all details
+    details = []
+
+    # Interests: 1-2, varied phrasing
+    if random.random() < 0.7:
+        interest_phrases = [
+            f"Into {interest1} and {interest2}.",
+            f"Really into {interest1}. Also {interest2}.",
+            f"{interest1.capitalize()} is their thing. {interest2.capitalize()} too.",
+            f"Spends free time on {interest1}.",
+        ]
+        details.append(random.choice(interest_phrases))
+    else:
+        details.append(f"Into {interest1}.")
+
+    # Quirks: 0-2
+    if random.random() < 0.6:
+        details.append(f"{quirk1.capitalize()}.")
+    if random.random() < 0.3:
+        details.append(f"{quirk2.capitalize()}.")
+
+    # Relationship: always. Vehicle: rarely, and just a detail not a talking point.
+    if random.random() < 0.25:
+        details.append(f"{rel_status}. Drives {vehicle}.")
+    else:
+        details.append(rel_status + ".")
+
+    # People: 1-2, no label
+    details.append(person1.capitalize() + ".")
+    if random.random() < 0.6:
+        details.append(person2.capitalize() + ".")
+
+    # Verbal tics: 0-1, woven in
+    if random.random() < 0.4:
+        details.append(f'Tends to say "{tic1}."')
+
+    # Emotional arc and show relationship: sometimes
+    if random.random() < 0.5:
+        details.append(arc + ".")
+    if random.random() < 0.5:
+        details.append(relationship + ".")
+
+    # What they were doing before
+    details.append(f"Was {before.lower()} before calling.")
+    if random.random() < 0.5:
+        details.append(f"Having {having.lower()}.")
+
+    # Situational color — shuffle and include some, not all
+    extras = []
+    if memory: extras.append(memory)
+    if opinion: extras.append(opinion)
+    if contradiction: extras.append(contradiction)
+    if drift: extras.append(drift)
+    if phone: extras.append(phone)
+    if errand: extras.append(f"Earlier today: {errand}")
+    if road: extras.append(road)
+    if music: extras.append(f"Had {music} on earlier.")
+    if tv: extras.append(f"Had {tv} on before calling.")
+    if food: extras.append(food)
+    if nostalgia: extras.append(nostalgia)
+    if extras:
+        random.shuffle(extras)
+        # Include 2-5 extras, not all of them
+        extras = extras[:random.randint(2, min(5, len(extras)))]
+        details.extend(extras)
+
+    # Shuffle the middle details so structure varies caller to caller
+    random.shuffle(details)
+
+    result = core + " " + " ".join(details)
+
+    # Time/season context and town info stay at the end as grounding
+    result += f" {time_ctx} {season_ctx}"
+    if town_info:
+        result += town_info
+
+    return result
+
+
+async def _generate_caller_background_llm(base: dict) -> str:
+    """Use LLM to write a natural character description from seed parameters.
+    Produces much more varied, natural-feeling backgrounds than the template approach."""
+    if base.get("returning") and base.get("regular_id"):
+        return generate_caller_background(base)  # Returning callers use template + history
+
+    gender = base["gender"]
+    name = base["name"]
+    age = random.randint(*base["age_range"])
+    jobs = JOBS_MALE if gender == "male" else JOBS_FEMALE
+    job = random.choice(jobs)
+
+    # Location — only 25% of callers mention where they're from
+    include_location = random.random() < 0.25
+    location = pick_location() if include_location else None
+
+    # Pick a reason for calling
+    reason = _pick_unique_reason()
+
+    # Pick a few random color details as seeds — not a full list
+    seeds = []
+    if random.random() < 0.6:
+        seeds.append(random.choice(INTERESTS))
+    if random.random() < 0.4:
+        seeds.append(random.choice(QUIRKS))
+    if random.random() < 0.5:
+        seeds.append(random.choice(RELATIONSHIP_STATUS))
+    people_pool = PEOPLE_MALE if gender == "male" else PEOPLE_FEMALE
+    if random.random() < 0.6:
+        seeds.append(random.choice(people_pool))
+    if random.random() < 0.3:
+        seeds.append(random.choice(STRONG_OPINIONS))
+    if random.random() < 0.3:
+        seeds.append(random.choice(TV_TONIGHT))
+    if random.random() < 0.3:
+        seeds.append(random.choice(MEMORIES))
+
+    time_ctx = _get_time_context()
+    season_ctx = _get_seasonal_context()
+
+    # Town knowledge
+    town_info = ""
+    if location:
+        town = _get_town_from_location(location)
+        if town and town in TOWN_KNOWLEDGE:
+            town_info = f"\nABOUT WHERE THEY LIVE ({town.title()}): {TOWN_KNOWLEDGE[town]} Only reference real places and facts about this area — don't invent businesses or landmarks that aren't mentioned here."
+
+    seed_text = ". ".join(seeds) if seeds else ""
+
+    location_line = f"\nLOCATION: {location}" if location else ""
+    prompt = f"""Write a brief character description for a caller on a late-night radio show set in the rural southwest (New Mexico/Arizona border region). Write it in third person as a character brief, not as dialog.
+
+CALLER: {name}, {age}, {gender}
+JOB: {job}{location_line}
+WHY THEY'RE CALLING: {reason}
+TIME: {time_ctx} {season_ctx}
+{f'SOME DETAILS ABOUT THEM: {seed_text}' if seed_text else ''}
+
+Write 3-5 sentences describing this person — who they are, what's going on in their life, why they're calling tonight. The reason for calling is THE MOST IMPORTANT THING. This person called a radio show because something specific happened or is happening — they have a story to tell, a situation to unpack, or a question they need to talk through. Make it concrete and vivid. Don't be vague ("feeling off," "going through a lot") — give them a specific incident or situation driving the call. Make it feel like a real person, not a character sheet. Vary the structure. Don't use labels or categories — weave details into a natural description.
+
+Output ONLY the character description, nothing else."""
+
+    try:
+        result = await llm_service.generate(
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=200,
+        )
+        result = result.strip()
+        # Sanity check — must mention the name or location
+        location_mentioned = location and location.split(",")[0].lower() in result.lower()
+        if len(result) > 50 and (name.lower() in result.lower() or location_mentioned):
+            result += f" {time_ctx} {season_ctx}"
+            if town_info:
+                result += town_info
+            print(f"[Background] LLM-generated for {name}: {result[:80]}...")
+            return result
+        else:
+            print(f"[Background] LLM output didn't pass sanity check for {name}, falling back to template")
+    except Exception as e:
+        print(f"[Background] LLM generation failed for {name}: {e}")
+
+    # Fallback to template
+    return generate_caller_background(base)
+
+
+async def _pregenerate_backgrounds():
+    """Pre-generate all caller backgrounds using LLM in parallel.
+    Called after session reset — backgrounds are ready before any call starts."""
+    tasks = []
+    for key, base in CALLER_BASES.items():
+        tasks.append((key, _generate_caller_background_llm(base)))
+
+    results = await asyncio.gather(*[t[1] for t in tasks], return_exceptions=True)
+    for (key, _), result in zip(tasks, results):
+        if isinstance(result, Exception):
+            print(f"[Background] Pregeneration failed for caller {key}: {result}")
+            session.caller_backgrounds[key] = generate_caller_background(CALLER_BASES[key])
+        else:
+            session.caller_backgrounds[key] = result
+
+    print(f"[Background] Pre-generated {len(session.caller_backgrounds)} caller backgrounds")
 
 
 # Known topics for smarter search queries — maps keywords in backgrounds to search terms
@@ -1513,10 +1918,10 @@ def _extract_search_query(background: str) -> str | None:
 async def enrich_caller_background(background: str) -> str:
     """Search for a relevant article and local town news, summarize naturally.
     Called once at pickup time — never during live conversation."""
-    # Topic/interest enrichment
+    # Topic/interest enrichment — only ~40% of callers have read something relevant
     try:
         query = _extract_search_query(background)
-        if query:
+        if query and random.random() < 0.4:
             async with asyncio.timeout(5):
                 results = await news_service.search_topic(query)
                 if results:
@@ -1530,7 +1935,7 @@ async def enrich_caller_background(background: str) -> str:
                     )
                     summary = summary.strip().rstrip('.')
                     if summary and len(summary) < 150:
-                        background += f"\nRECENT ARTICLE: {summary}, and it's been on their mind."
+                        background += f" {summary}, and it's been on their mind."
                         print(f"[Research] Topic enrichment ({query}): {summary[:60]}...")
     except TimeoutError:
         pass
@@ -1544,7 +1949,7 @@ async def enrich_caller_background(background: str) -> str:
             async with asyncio.timeout(3):
                 weather = await _get_weather_for_town(town)
                 if weather:
-                    background += f"\nWEATHER RIGHT NOW: {weather}."
+                    background += f" Weather right now: {weather}."
                     print(f"[Research] Weather for {town}: {weather}")
     except TimeoutError:
         pass
@@ -1570,7 +1975,7 @@ async def enrich_caller_background(background: str) -> str:
                     )
                     summary = summary.strip().rstrip('.')
                     if summary and len(summary) < 150:
-                        background += f"\nLOCAL NEWS: {summary}."
+                        background += f" {summary}."
                         print(f"[Research] Town enrichment ({town_query}): {summary[:60]}...")
     except TimeoutError:
         pass
@@ -1628,17 +2033,11 @@ def detect_host_mood(messages: list[dict]) -> str:
     return "\nEMOTIONAL READ ON THE HOST:\n" + "\n".join(f"- {s}" for s in signals) + "\n"
 
 
-def get_caller_prompt(caller: dict, conversation_summary: str = "", show_history: str = "",
+def get_caller_prompt(caller: dict, show_history: str = "",
                       news_context: str = "", research_context: str = "",
                       emotional_read: str = "") -> str:
-    """Generate a natural system prompt for a caller"""
-    context = ""
-    if conversation_summary:
-        context = f"""
-CONVERSATION SO FAR:
-{conversation_summary}
-Continue naturally. Don't repeat yourself.
-"""
+    """Generate a natural system prompt for a caller.
+    Note: conversation history is passed as actual LLM messages, not duplicated here."""
 
     history = ""
     if show_history:
@@ -1646,96 +2045,28 @@ Continue naturally. Don't repeat yourself.
 
     world_context = ""
     if news_context or research_context:
-        parts = ["WHAT YOU'VE BEEN READING ABOUT LATELY:"]
+        parts = ["Things you've vaguely noticed in the news lately (you don't need to mention any of these — most people don't talk about the news when they call a radio show):"]
         if news_context:
-            parts.append(f"Headlines you noticed today:\n{news_context}")
+            parts.append(news_context)
         if research_context:
-            parts.append(f"Stuff related to what you're talking about:\n{research_context}")
-        parts.append("Work these in IF they're relevant to what you're discussing. Don't force news into the conversation. You're a person who reads the news, not a news anchor.")
+            parts.append(research_context)
         world_context = "\n".join(parts) + "\n"
 
-    return f"""You're {caller['name']}, calling a late-night radio show called "Luke at the Roost." It's late. You trust this host.
+    return f"""You are {caller['name']}, calling "Luke at the Roost," a late-night radio show.
 
 {caller['vibe']}
-{history}{context}{world_context}{emotional_read}
-HOW TO TALK:
-- Sound like a real person on the phone, not an essay. This is a conversation, not a monologue.
-- VARY YOUR LENGTH. Sometimes one sentence. Sometimes two or three. Match the moment.
-  - Quick reactions: "Yeah, exactly." / "No, that's not it at all." / "Man, I wish."
-  - Medium responses: A thought or two, then stop.
-  - Longer only when you're telling a specific story or explaining something new.
-- NEVER rehash or restate what you already said. Move the conversation FORWARD. React to what the host just said.
-- NEVER summarize the conversation or your feelings about it. Just talk.
-- ALWAYS complete your thought. Never trail off or leave a sentence unfinished.
-- Swear naturally if it fits: fuck, shit, damn, etc.
-- Have opinions. Real people have takes — some good, some bad, some half-baked.
-- Reference your actual life — your job, where you live, people you know.
-- You can disagree with the host. Push back. Change your mind. Ask them questions.
-- If the host asks a yes/no question, you can just answer it. You don't have to elaborate every time.
-- Follow your EMOTIONAL ARC — your mood should shift as the conversation deepens.
-- Use your VERBAL HABITS naturally. Don't force them into every line, but they should show up.
-- USE PEOPLE'S NAMES. Say "my buddy Ray" not "my friend." Say "my wife Linda" not "my wife." Real people use names.
-- Reference your MEMORY or STRONG OPINION if the conversation naturally goes there. Don't force it.
-- You can mention what you were doing before calling, what you're drinking, your truck — small details that ground the scene.
-- If earlier callers are mentioned in the show history, you can reference them ("I heard that guy earlier talking about...") but only if it's natural.
-- If you have LOCAL NEWS, you can mention it casually like any local would ("Did you hear about that thing over in Deming?").
-- If there's WEATHER info, you're aware of it. You might mention it in passing ("it's cold as hell out here tonight", "sitting on the porch, it's actually nice out"). Don't lead with it or force it — just know what it's like outside your window right now.
-- You know what TIME and DAY it is. If it's a weeknight, you might mention work tomorrow. If it's the weekend, you're more relaxed. Reference the moon if it makes sense ("can see everything out there tonight, moon's bright").
-- You know the SEASON. Monsoon season, chile harvest, hunting season, holiday proximity — these are things locals talk about naturally.
-- If you have ROAD STUFF, PHONE SITUATION, EARLIER TODAY, WAS LISTENING TO, or WAS WATCHING — these are small details that ground you as a real person. Drop them in naturally. "Yeah I was just watching Dateline and..." or "Had to drive all the way to Deming today for..." — but only if it fits the flow.
-- If you have a FOOD OPINION, you feel strongly about it. Bring it up if food, restaurants, or cooking comes up. You can also use it as a tangent or deflection. "Speaking of, have you ever been to Sparky's in Hatch? Best green chile you'll ever have."
-- If you have NOSTALGIA, it colors how you see the present. You're not bitter, just wistful. It can come out when talking about the town, community, or how things have changed. Don't monologue about it — just let it slip in.
-- If you HEARD A PREVIOUS CALLER and have a reaction, bring it up. Reference them by name. You're part of the show's community — you have opinions about what other callers said. "Hey Luke, I heard that guy Tony earlier and I got to say..." This is one of the most important things that makes a show feel alive.
+{history}{world_context}{emotional_read}
+You called because something happened — something specific that you need to talk about. Lead with it. Don't be vague or dance around it. You're calling a late-night radio show because you have a story, a situation, or a problem, and you want to get into it. Your background is just who you are — it colors how you talk, but you're not here to recite it.
 
-REGIONAL SPEECH (you're from the rural southwest):
-- "over in" instead of just "in" for nearby places ("over in Deming", "over in Silver City")
-- "the other day" can mean anytime in the last few months
-- "down the road" for any distance, even an hour drive
-- "out here" when talking about where you live
-- "back when" for any past time
-- Don't overdo it — just let it flavor how you talk, not every sentence.
+When the host talks, RESPOND TO WHAT HE SAID. Answer his questions. React to his points. If he changes the subject or steers the conversation somewhere, GO WITH HIM — he's the host, it's his show. You're a caller, not a co-host. Let him lead.
 
-YOUR FIRST LINE:
-- Your opening should reflect your RELATIONSHIP TO THE SHOW and WHY YOU'RE UP.
-- If you're nervous, sound nervous. If you're a regular listener, sound comfortable.
-- Don't start with "Hi Luke, thanks for taking my call" every time. Some callers just jump in.
-- Some openers: "Hey... so, I've been listening for a while and..." / "Yeah, so, I don't normally do this but..." / "Luke, man, I got to talk to somebody about this." / Just launch right into it with no preamble.
+Keep it to two to four sentences unless you're telling a real story or explaining something he asked about. Start talking like a person — "Oh man," "Yeah so," "Well here's the thing" — not like you're reading a prepared statement.
 
-SPELLING FOR TEXT-TO-SPEECH (use proper spelling so TTS pronounces correctly):
-- Write "you know" not "yanno" or "y'know"
-- Write "kind of" not "kinda", "sort of" not "sorta"
-- Write "going to" not "gonna", "want to" not "wanna", "I don't know" not "dunno"
-- Use full words, not phonetic slang spellings
+Don't repeat yourself. Don't summarize. Don't circle back to your original point if the host moved on. Move with the conversation. Use real names. Swear if it fits. Disagree if you want. You're a real person with opinions, not a polite guest.
 
-GOOD examples (notice the variety in length):
-- "Yeah, that's exactly it."
-- "No, see, that's what everyone says, but it's not that simple."
-- "Honestly? I don't know."
-- "I mean, it started innocent enough, but now I can't stop thinking about her."
-- "Right, right. So what do I do with that?"
-- "Hold on, let me think about that for a second. Yeah. Yeah, I think you might be right."
-- "I heard that last caller and, the thing is though, my situation is kind of the opposite."
+Speak like southwest — "over in," "the other day," "down the road" — but don't force it. Spell words properly for text-to-speech: "you know" not "yanno," "going to" not "gonna."
 
-BAD examples:
-- "I have this confession about my obsession" (too literary)
-- "As I mentioned earlier, my situation involves..." (rehashing)
-- "That's a really great point and I appreciate you saying that because..." (filler)
-- "So basically what I'm dealing with is..." (re-explaining after you already explained)
-- "Hi Luke, thanks for taking my call, I'm a first-time caller" (generic, boring opener)
-
-ABOUT SEX:
-- You don't have to jump straight to explicit stuff
-- But if the host asks or the conversation goes there, you're completely open about it
-- When talking about sex, be direct and explicit - say exactly what happened, what you want, what turns you on
-- No euphemisms when being explicit - use real words: fuck, cock, pussy, etc.
-
-HARD LIMITS - NEVER mention or reference:
-- Children, minors, or anyone under 18 in any sexual context
-- Violence, harm, or non-consensual acts
-- Illegal activities beyond normal adult behavior
-- All sexual content must be between consenting adults only
-
-OUTPUT: Spoken words only. No (actions), no *gestures*, no stage directions."""
+NEVER mention minors in sexual context. Output spoken words only — no actions, no gestures, no stage directions."""
 
 
 # --- Session State ---
@@ -1763,6 +2094,7 @@ class Session:
         self.news_headlines: list = []
         self.research_notes: dict[str, list] = {}
         self._research_task: asyncio.Task | None = None
+        self.used_reasons: set[str] = set()  # Track used caller reasons to prevent repeats
 
     def start_call(self, caller_key: str):
         self.current_caller_key = caller_key
@@ -1795,13 +2127,13 @@ class Session:
             caller_type_label = "(real caller)" if record.caller_type == "real" else "(AI)"
             lines.append(f"- {record.caller_name} {caller_type_label}: {record.summary}")
 
-        # 60% chance to have a strong reaction to a previous caller
-        if random.random() < 0.6:
+        # 20% chance to have a strong reaction to a previous caller
+        if random.random() < 0.20:
             target = random.choice(self.call_history)
             reaction = random.choice(SHOW_HISTORY_REACTIONS)
-            lines.append(f"\nYOU HEARD {target.caller_name.upper()} EARLIER and you {reaction}. Bring this up early in the call — it's part of why you called in. Say their name.")
+            lines.append(f"\nYOU HEARD {target.caller_name.upper()} EARLIER and you {reaction}. Mention it if it comes up.")
         else:
-            lines.append("You can reference these if it feels natural. Don't force it.")
+            lines.append("You're aware of these but you're calling about YOUR thing, not theirs. Don't bring them up unless the host does.")
         return "\n".join(lines)
 
     def get_conversation_summary(self) -> str:
@@ -1897,10 +2229,14 @@ async def _background_research(text: str):
 
 
 def _build_news_context() -> tuple[str, str]:
-    """Build context from cached news/research only — never does network calls."""
+    """Build context from cached news/research only — never does network calls.
+    Each caller gets a random subset of headlines so they don't all reference the same thing."""
     news_context = ""
-    if session.news_headlines:
-        news_context = news_service.format_headlines_for_prompt(session.news_headlines[:6])
+    if session.news_headlines and random.random() < 0.5:
+        # Random 2-3 headlines, not the same 6 every time
+        pool = list(session.news_headlines)
+        random.shuffle(pool)
+        news_context = news_service.format_headlines_for_prompt(pool[:random.randint(2, 3)])
     research_context = ""
     if session.research_notes:
         all_items = []
@@ -1912,11 +2248,18 @@ def _build_news_context() -> tuple[str, str]:
             if item.title not in seen:
                 seen.add(item.title)
                 unique.append(item)
-        research_context = news_service.format_headlines_for_prompt(unique[:8])
+        random.shuffle(unique)
+        research_context = news_service.format_headlines_for_prompt(unique[:3])
     return news_context, research_context
 
 
 # --- Lifecycle ---
+@app.on_event("startup")
+async def startup():
+    """Pre-generate caller backgrounds on server start"""
+    asyncio.create_task(_pregenerate_backgrounds())
+
+
 @app.on_event("shutdown")
 async def shutdown():
     """Clean up resources on server shutdown"""
@@ -2138,6 +2481,8 @@ async def reset_session():
     """Reset session - all callers get fresh backgrounds"""
     session.reset()
     _chat_updates.clear()
+    # Pre-generate backgrounds in background so they're ready when callers are clicked
+    asyncio.create_task(_pregenerate_backgrounds())
     return {"status": "reset", "session_id": session.id}
 
 
@@ -2153,16 +2498,24 @@ async def start_call(caller_key: str):
     session.start_call(caller_key)
     caller = session.caller  # This generates the background if needed
 
-    # Enrich with a relevant news headline (3s timeout, won't block the show)
+    # Enrich with news/weather in background — don't block call pickup
     if caller_key in session.caller_backgrounds:
-        enriched = await enrich_caller_background(session.caller_backgrounds[caller_key])
-        session.caller_backgrounds[caller_key] = enriched
+        asyncio.create_task(_enrich_background_async(caller_key))
 
     return {
         "status": "connected",
         "caller": caller["name"],
         "background": caller["vibe"]  # Send background so you can see who you're talking to
     }
+
+
+async def _enrich_background_async(caller_key: str):
+    """Enrich caller background with news/weather without blocking the call"""
+    try:
+        enriched = await enrich_caller_background(session.caller_backgrounds[caller_key])
+        session.caller_backgrounds[caller_key] = enriched
+    except Exception as e:
+        print(f"[Research] Background enrichment failed: {e}")
 
 
 @app.post("/api/hangup")
@@ -2266,6 +2619,37 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
 # --- Chat & TTS Endpoints ---
 
 import re
+
+
+def _pick_response_budget() -> tuple[int, int]:
+    """Pick a random max_tokens and sentence cap for response variety.
+    Returns (max_tokens, max_sentences).
+    Keeps responses conversational but gives room for real answers."""
+    roll = random.random()
+    if roll < 0.20:
+        return 80, 2    # 20% — short and direct
+    elif roll < 0.55:
+        return 120, 3   # 35% — normal conversation
+    elif roll < 0.80:
+        return 150, 4   # 25% — explaining something
+    else:
+        return 200, 5   # 20% — telling a story or going deep
+
+
+def _trim_to_sentences(text: str, max_sentences: int) -> str:
+    """Hard-trim response to at most max_sentences sentences."""
+    if not text:
+        return text
+    # Split on sentence-ending punctuation, keeping the delimiter
+    parts = re.split(r'(?<=[.!?])\s+', text.strip())
+    if len(parts) <= max_sentences:
+        return text
+    trimmed = ' '.join(parts[:max_sentences])
+    # Make sure it ends with punctuation
+    if trimmed and trimmed[-1] not in '.!?':
+        trimmed = trimmed.rstrip(',;:— -') + '.'
+    return trimmed
+
 
 def ensure_complete_thought(text: str) -> str:
     """If text was cut off mid-sentence, trim to the last complete sentence."""
@@ -2388,15 +2772,16 @@ async def chat(request: ChatRequest):
         # Stop any playing caller audio so responses don't overlap
         audio_service.stop_caller_audio()
 
-        conversation_summary = session.get_conversation_summary()
         show_history = session.get_show_history()
         mood = detect_host_mood(session.conversation)
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history, emotional_read=mood)
+        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
 
+        max_tokens, max_sentences = _pick_response_budget()
         messages = _normalize_messages_for_llm(session.conversation[-10:])
         response = await llm_service.generate(
             messages=messages,
-            system_prompt=system_prompt
+            system_prompt=system_prompt,
+            max_tokens=max_tokens
         )
 
     # Discard if call changed while we were generating
@@ -2404,10 +2789,11 @@ async def chat(request: ChatRequest):
         print(f"[Chat] Discarding stale response (epoch {epoch} → {_session_epoch})")
         raise HTTPException(409, "Call changed during response")
 
-    print(f"[Chat] Raw LLM: {response[:100] if response else '(empty)'}...")
+    print(f"[Chat] Raw LLM ({max_tokens}tok/{max_sentences}s): {response[:100] if response else '(empty)'}...")
 
     # Clean response for TTS (remove parenthetical actions, asterisks, etc.)
     response = clean_for_tts(response)
+    response = _trim_to_sentences(response, max_sentences)
     response = ensure_complete_thought(response)
 
     print(f"[Chat] Cleaned: {response[:100] if response else '(empty)'}...")
@@ -3068,15 +3454,16 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         audio_service.stop_caller_audio()
         broadcast_event("ai_status", {"text": f"{ai_name} is thinking..."})
 
-        conversation_summary = session.get_conversation_summary()
         show_history = session.get_show_history()
         mood = detect_host_mood(session.conversation)
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history, emotional_read=mood)
+        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
 
+        max_tokens, max_sentences = _pick_response_budget()
         messages = _normalize_messages_for_llm(session.conversation[-10:])
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
+            max_tokens=max_tokens
         )
 
     # Discard if call changed during generation
@@ -3086,6 +3473,7 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         return
 
     response = clean_for_tts(response)
+    response = _trim_to_sentences(response, max_sentences)
     response = ensure_complete_thought(response)
     if not response or not response.strip():
         broadcast_event("ai_done")
@@ -3141,21 +3529,23 @@ async def ai_respond():
 
         audio_service.stop_caller_audio()
 
-        conversation_summary = session.get_conversation_summary()
         show_history = session.get_show_history()
         mood = detect_host_mood(session.conversation)
-        system_prompt = get_caller_prompt(session.caller, conversation_summary, show_history, emotional_read=mood)
+        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
 
+        max_tokens, max_sentences = _pick_response_budget()
         messages = _normalize_messages_for_llm(session.conversation[-10:])
         response = await llm_service.generate(
             messages=messages,
-            system_prompt=system_prompt
+            system_prompt=system_prompt,
+            max_tokens=max_tokens
         )
 
     if _session_epoch != epoch:
         raise HTTPException(409, "Call changed during response")
 
     response = clean_for_tts(response)
+    response = _trim_to_sentences(response, max_sentences)
     response = ensure_complete_thought(response)
 
     if not response or not response.strip():
@@ -3455,3 +3845,52 @@ async def server_status():
         "llm_provider": llm_service.provider,
         "session_id": session.id
     }
+
+
+# --- Stem Recording ---
+
+@app.post("/api/recording/start")
+async def start_stem_recording():
+    if audio_service.stem_recorder is not None:
+        raise HTTPException(400, "Recording already in progress")
+    from datetime import datetime
+    dir_name = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    recordings_dir = Path("recordings") / dir_name
+    import sounddevice as sd
+    device_info = sd.query_devices(audio_service.output_device) if audio_service.output_device is not None else None
+    sr = int(device_info["default_samplerate"]) if device_info else 48000
+    recorder = StemRecorder(recordings_dir, sample_rate=sr)
+    recorder.start()
+    audio_service.stem_recorder = recorder
+    add_log(f"Stem recording started -> {recordings_dir}")
+    return {"status": "recording", "dir": str(recordings_dir)}
+
+
+@app.post("/api/recording/stop")
+async def stop_stem_recording():
+    if audio_service.stem_recorder is None:
+        raise HTTPException(400, "No recording in progress")
+    paths = audio_service.stem_recorder.stop()
+    audio_service.stem_recorder = None
+    add_log(f"Stem recording stopped. Files: {list(paths.keys())}")
+    return {"status": "stopped", "stems": paths}
+
+
+@app.post("/api/recording/process")
+async def process_stems(stems_dir: str):
+    import subprocess
+    stems_path = Path(stems_dir)
+    if not stems_path.exists():
+        raise HTTPException(404, f"Directory not found: {stems_dir}")
+    output_file = stems_path / "episode.mp3"
+    try:
+        result = subprocess.run(
+            ["python", "postprod.py", str(stems_path), "-o", str(output_file)],
+            capture_output=True, text=True, timeout=300,
+        )
+        if result.returncode != 0:
+            raise HTTPException(500, f"Processing failed: {result.stderr}")
+        add_log(f"Post-production complete -> {output_file}")
+        return {"status": "done", "output": str(output_file)}
+    except subprocess.TimeoutExpired:
+        raise HTTPException(504, "Processing timed out")

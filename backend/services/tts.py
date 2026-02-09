@@ -598,7 +598,7 @@ async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray,
     payload = {
         "text": text,
         "voice_id": voice,
-        "model_id": "inworld-tts-1.5-mini",
+        "model_id": "inworld-tts-1.5-max",
         "audio_config": {
             "encoding": "LINEAR16",
             "sample_rate_hertz": 48000,

@@ -7,21 +7,28 @@ from ..config import settings
 
 # Available OpenRouter models
 OPENROUTER_MODELS = [
+    # Best for natural dialog (ranked)
+    "minimax/minimax-m2-her",
+    "mistralai/mistral-small-creative",
+    "x-ai/grok-4-fast",
+    "deepseek/deepseek-v3.2",
+    # Updated standard models
+    "anthropic/claude-haiku-4.5",
+    "anthropic/claude-sonnet-4-5",
+    "google/gemini-2.5-flash",
     "openai/gpt-4o-mini",
     "openai/gpt-4o",
+    # Legacy
     "anthropic/claude-3-haiku",
-    "anthropic/claude-3.5-sonnet",
     "google/gemini-flash-1.5",
-    "google/gemini-pro-1.5",
     "meta-llama/llama-3.1-8b-instruct",
-    "mistralai/mistral-7b-instruct",
 ]
 
 # Fast models to try as fallbacks (cheap, fast, good enough for conversation)
 FALLBACK_MODELS = [
-    "google/gemini-flash-1.5",
+    "mistralai/mistral-small-creative",
+    "google/gemini-2.5-flash",
     "openai/gpt-4o-mini",
-    "meta-llama/llama-3.1-8b-instruct",
 ]
 
 
@@ -103,21 +110,22 @@ class LLMService:
     async def generate(
         self,
         messages: list[dict],
-        system_prompt: Optional[str] = None
+        system_prompt: Optional[str] = None,
+        max_tokens: Optional[int] = None
     ) -> str:
         if system_prompt:
             messages = [{"role": "system", "content": system_prompt}] + messages
 
         if self.provider == "openrouter":
-            return await self._call_openrouter_with_fallback(messages)
+            return await self._call_openrouter_with_fallback(messages, max_tokens=max_tokens)
         else:
-            return await self._call_ollama(messages)
+            return await self._call_ollama(messages, max_tokens=max_tokens)
 
-    async def _call_openrouter_with_fallback(self, messages: list[dict]) -> str:
+    async def _call_openrouter_with_fallback(self, messages: list[dict], max_tokens: Optional[int] = None) -> str:
         """Try primary model, then fallback models. Always returns a response."""
 
         # Try primary model first
-        result = await self._call_openrouter_once(messages, self.openrouter_model)
+        result = await self._call_openrouter_once(messages, self.openrouter_model, max_tokens=max_tokens)
         if result is not None:
             return result
 
@@ -126,7 +134,7 @@ class LLMService:
             if model == self.openrouter_model:
                 continue  # Already tried
             print(f"[LLM] Falling back to {model}...")
-            result = await self._call_openrouter_once(messages, model, timeout=10.0)
+            result = await self._call_openrouter_once(messages, model, timeout=10.0, max_tokens=max_tokens)
             if result is not None:
                 return result
 
@@ -134,7 +142,7 @@ class LLMService:
         print("[LLM] All models failed, using canned response")
         return "Sorry, I totally blanked out for a second. What were you saying?"
 
-    async def _call_openrouter_once(self, messages: list[dict], model: str, timeout: float = 15.0) -> str | None:
+    async def _call_openrouter_once(self, messages: list[dict], model: str, timeout: float = 15.0, max_tokens: Optional[int] = None) -> str | None:
         """Single attempt to call OpenRouter. Returns None on failure (not a fallback string)."""
         try:
             response = await self.client.post(
@@ -146,7 +154,11 @@ class LLMService:
                 json={
                     "model": model,
                     "messages": messages,
-                    "max_tokens": 150,
+                    "max_tokens": max_tokens or 150,
+                    "temperature": 0.8,
+                    "top_p": 0.92,
+                    "frequency_penalty": 0.5,
+                    "presence_penalty": 0.3,
                 },
                 timeout=timeout,
             )
@@ -164,7 +176,7 @@ class LLMService:
             print(f"[LLM] {model} error: {e}")
             return None
 
-    async def _call_ollama(self, messages: list[dict]) -> str:
+    async def _call_ollama(self, messages: list[dict], max_tokens: Optional[int] = None) -> str:
         """Call Ollama API"""
         try:
             async with httpx.AsyncClient() as client:
@@ -175,7 +187,7 @@ class LLMService:
                         "messages": messages,
                         "stream": False,
                         "options": {
-                            "num_predict": 100,
+                            "num_predict": max_tokens or 100,
                             "temperature": 0.8,
                             "top_p": 0.9,
                             "repeat_penalty": 1.3,

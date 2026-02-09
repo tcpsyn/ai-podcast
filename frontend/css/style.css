@@ -75,6 +75,19 @@ header button {
     50% { opacity: 0.7; }
 }
 
+.rec-btn {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: #555 !important;
+    transition: background 0.2s;
+}
+
+.rec-btn.recording {
+    background: #cc2222 !important;
+    animation: on-air-pulse 2s ease-in-out infinite;
+}
+
 .new-session-btn {
     background: var(--accent) !important;
 }
@@ -85,17 +98,29 @@ header button {
     font-weight: normal;
 }
 
-.caller-background {
+details.caller-background {
     font-size: 0.85rem;
     color: var(--text-muted);
-    padding: 10px;
     background: var(--bg);
     border-radius: var(--radius);
     margin-bottom: 12px;
     line-height: 1.4;
 }
 
-.caller-background.hidden {
+details.caller-background summary {
+    cursor: pointer;
+    padding: 8px 10px;
+    font-weight: bold;
+    color: var(--text);
+    font-size: 0.8rem;
+}
+
+details.caller-background > div {
+    padding: 0 10px 10px;
+    white-space: pre-wrap;
+}
+
+details.caller-background.hidden {
     display: none;
 }
 

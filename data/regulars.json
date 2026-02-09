@@ -1,1 +1,143 @@
-{"regulars": []}
+{
+  "regulars": [
+    {
+      "id": "be244306",
+      "name": "Dale",
+      "gender": "male",
+      "age": 44,
+      "job": "runs a food truck",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Briefly explain the universe's expansion to a child who wants to know what happens when it stops expanding. Please don't suggest unusual topics; keep the explanation simple.",
+          "timestamp": 1770515097.24686
+        },
+        {
+          "summary": "Dale updates the host on explaining the universe's expansion to his buddy's kid, who now worries if it could \"pop,\" but shifts to his temptation to bet on Super Bowl 60 predictions after reading an article, critiquing a prior caller's gambling mindset while reflecting emotionally on his brother Eddie's fruitless horse-betting habit and his own exhaustion from long taco truck shifts in the cold desert. He ultimately considers a small, affordable wager on the Chiefs as a low-stakes thrill.",
+          "timestamp": 1770522741.049846
+        }
+      ],
+      "last_call": 1770522741.049846,
+      "created_at": 1770515097.24686
+    },
+    {
+      "id": "584767e8",
+      "name": "Carl",
+      "gender": "male",
+      "age": 36,
+      "job": "is a firefighter",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Carl, a firefighter from Lordsburg, New Mexico, called to confess his 20-year gambling addiction, which began with casual poker games at the station and escalated to frequent casino visits and online sessions, draining his finances and leaving him with overdue bills and the fear of losing his home. Emotionally raw, he admitted the habit's destructive hold\u2014like an unquenchable fire\u2014and his pride in avoiding help, but agreed to consider support groups and an 800 hotline after the host suggested productive alternatives like gym workouts or extra volunteer shifts.",
+          "timestamp": 1770522170.1887732
+        },
+        {
+          "summary": "Here is a 1-2 sentence summary of the radio call:\n\nThe caller, Carl, discusses his progress in overcoming his gambling addiction, including rewatching The Sopranos, but the host, Luke, disagrees with Carl's high opinion of the show's ending, leading to a back-and-forth debate between the two about the merits and predictability of the Sopranos finale.",
+          "timestamp": 1770573289.82847
+        }
+      ],
+      "last_call": 1770573289.828471,
+      "created_at": 1770522170.1887732
+    },
+    {
+      "id": "d97cb6f9",
+      "name": "Carla",
+      "gender": "female",
+      "age": 26,
+      "job": "is a vet tech",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Carla, separated from her husband but not yet divorced, vented about her intrusive in-laws who relentlessly call and dictate her life\u2014from finances and household matters to her clothing choices\u2014while her spineless spouse relays their demands, making her feel trapped in a one-sided war. With her own parents unavailable (father deceased, mother distant), she leans on her bickering but honest sister for support, underscoring her deep frustration and sense of isolation.",
+          "timestamp": 1770522530.8554251
+        },
+        {
+          "summary": "Carla dismissed celebrity science theories like Terrence Howard's after watching Neil deGrasse Tyson's critique, then marveled at JWST's exoplanet discoveries before sharing her relief at finally cutting off her toxic in-laws amid her ongoing divorce. She expressed deep heartbreak over actor James Ransone's suicide at 46, reflecting on life's fragility, her late father's death, and the need to eliminate family drama, leaving her contemplative and planning a solo desert drive for clarity.",
+          "timestamp": 1770526316.004708
+        }
+      ],
+      "last_call": 1770526316.004709,
+      "created_at": 1770522530.855426
+    },
+    {
+      "id": "5ccaea00",
+      "name": "Jerome",
+      "gender": "male",
+      "age": 52,
+      "job": "works at a cemetery",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Jerome called in to discuss Neil deGrasse Tyson's dismissal of Terrence Howard's unconventional scientific theories, agreeing they don't hold up to real science, before opening up about his emotional turmoil over an unanswered text from his ex, Laura, following a recent blowout that left him questioning his life choices while drinking mezcal in his truck late at night. He reflected on their breakup due to his workaholic tendencies at the cemetery and her desire for more, but found hope in his child's insightful comment about the stars from the Silo books, suggesting they might both be better off apart.",
+          "timestamp": 1770522903.5809002
+        },
+        {
+          "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller, Jerome, recounts a humorous customer service interaction where a woman came to the cemetery he works at late at night frantically trying to find her husband's plot, leading to an amusing back-and-forth.",
+          "timestamp": 1770523944.299309
+        }
+      ],
+      "last_call": 1770523944.29931,
+      "created_at": 1770522903.5809002
+    },
+    {
+      "id": "49147bd5",
+      "name": "Keith",
+      "gender": "male",
+      "age": 61,
+      "job": "south of Silver City",
+      "location": "in unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "The caller, Luke, kicked off by sharing a humorous clip of Terrence Howard's Tree of Life Theory being critiqued by Neil deGrasse Tyson, which left Howard visibly hurt, before pivoting to economic woes, blaming overspending and Federal Reserve money printing for devaluing the currency and harming everyday people. He advocated abolishing the Fed, echoing Ron Paul's ideas, to let markets stabilize money, potentially boosting innovation and new industries in rural spots like Silver City despite uncertain local impacts.",
+          "timestamp": 1770524506.3390348
+        },
+        {
+          "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller, who works at a bank, has been reflecting on his tendency to blame the government and economic system for his problems, rather than taking responsibility for his own role. He had an epiphany while eating leftover enchiladas in his minivan, realizing he needs to be more proactive instead of just complaining.",
+          "timestamp": 1770574890.1296651
+        }
+      ],
+      "last_call": 1770574890.1296651,
+      "created_at": 1770524506.339036
+    },
+    {
+      "id": "4f4612c7",
+      "name": "Dale",
+      "gender": "male",
+      "age": 38,
+      "job": "is a cop, 12 years on the force",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Dale from Globe called in to express skepticism about Terrence Howard's Tree of Life theory, arguing it lacks peer-reviewed experiments and scientific consensus, much like how he trusts quantum entanglement based on reliable sources without reading every paper himself. The conversation shifted to an emotional discussion of his grief over Uncle Hector, the man who raised him like a father but changed after a stroke, leaving Dale feeling a profound loss without closure, though he found solace in the host's validation and hope for lucid moments ahead.",
+          "timestamp": 1770526114.530777
+        }
+      ],
+      "last_call": 1770526114.5307782,
+      "created_at": 1770526114.5307782
+    },
+    {
+      "id": "60053b38",
+      "name": "Lorraine",
+      "gender": "female",
+      "age": 42,
+      "job": "New Mexico",
+      "location": "in unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller has an outstanding warrant for a DUI charge from a few years ago that they have been avoiding dealing with, which has been causing them a lot of stress and guilt. The host encourages the caller to take responsibility and go to the sheriff's office to get the warrant cleared up, as driving drunk is extremely dangerous and unacceptable.",
+          "timestamp": 1770573956.570584
+        }
+      ],
+      "last_call": 1770573956.570584,
+      "created_at": 1770573956.570584
+    }
+  ]
+}

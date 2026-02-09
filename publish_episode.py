@@ -18,8 +18,33 @@ import sys
 import base64
 from pathlib import Path
 
+import ssl
 import requests
+import urllib3
+from requests.adapters import HTTPAdapter
+from urllib3.util.ssl_ import create_urllib3_context
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from dotenv import load_dotenv
+
+
+class TLSAdapter(HTTPAdapter):
+    """Adapter to handle servers with older TLS configurations."""
+    def init_poolmanager(self, *args, **kwargs):
+        ctx = create_urllib3_context()
+        ctx.set_ciphers('DEFAULT@SECLEVEL=1')
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        kwargs['ssl_context'] = ctx
+        return super().init_poolmanager(*args, **kwargs)
+
+    def send(self, *args, **kwargs):
+        kwargs['verify'] = False
+        return super().send(*args, **kwargs)
+
+
+# Use a session with TLS compatibility for all Castopod requests
+_session = requests.Session()
+_session.mount('https://', TLSAdapter())
 
 # Load environment variables
 load_dotenv(Path(__file__).parent / ".env")
@@ -156,41 +181,45 @@ Respond with ONLY valid JSON, no markdown or explanation."""
 
 
 def create_episode(audio_path: str, metadata: dict, episode_number: int) -> dict:
-    """Create episode on Castopod."""
+    """Create episode on Castopod using curl (handles large file uploads better)."""
     print("[3/5] Creating episode on Castopod...")
 
-    headers = get_auth_header()
+    credentials = base64.b64encode(
+        f"{CASTOPOD_USERNAME}:{CASTOPOD_PASSWORD}".encode()
+    ).decode()
     slug = re.sub(r'[^a-z0-9]+', '-', metadata["title"].lower()).strip('-')
 
-    # Upload audio and create episode
-    with open(audio_path, "rb") as f:
-        files = {
-            "audio_file": (Path(audio_path).name, f, "audio/mpeg")
-        }
-        data = {
-            "title": metadata["title"],
-            "slug": slug,
-            "description": metadata["description"],
-            "parental_advisory": "explicit",
-            "type": "full",
-            "podcast_id": str(PODCAST_ID),
-            "created_by": "1",
-            "updated_by": "1",
-            "episode_number": str(episode_number),
-        }
+    cmd = [
+        "curl", "-sk", "-X", "POST",
+        f"{CASTOPOD_URL}/api/rest/v1/episodes",
+        "-H", f"Authorization: Basic {credentials}",
+        "-F", f"audio_file=@{audio_path};type=audio/mpeg",
+        "-F", f"title={metadata['title']}",
+        "-F", f"slug={slug}",
+        "-F", f"description={metadata['description']}",
+        "-F", "parental_advisory=explicit",
+        "-F", "type=full",
+        "-F", f"podcast_id={PODCAST_ID}",
+        "-F", "created_by=1",
+        "-F", "updated_by=1",
+        "-F", f"episode_number={episode_number}",
+    ]
 
-        response = requests.post(
-            f"{CASTOPOD_URL}/api/rest/v1/episodes",
-            headers=headers,
-            files=files,
-            data=data
-        )
-
-    if response.status_code not in (200, 201):
-        print(f"Error creating episode: {response.status_code} {response.text}")
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    if result.returncode != 0:
+        print(f"Error uploading: {result.stderr}")
         sys.exit(1)
 
-    episode = response.json()
+    try:
+        episode = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        print(f"Error parsing response: {result.stdout[:500]}")
+        sys.exit(1)
+
+    if "id" not in episode:
+        print(f"Error creating episode: {result.stdout[:500]}")
+        sys.exit(1)
+
     print(f"    Created episode ID: {episode['id']}")
     print(f"    Slug: {episode['slug']}")
 
@@ -203,13 +232,13 @@ def publish_episode(episode_id: int) -> dict:
 
     headers = get_auth_header()
 
-    response = requests.post(
+    response = _session.post(
         f"{CASTOPOD_URL}/api/rest/v1/episodes/{episode_id}/publish",
         headers=headers,
         data={
             "publication_method": "now",
             "created_by": "1"
-        }
+        },
     )
 
     if response.status_code != 200:
@@ -316,9 +345,9 @@ def get_next_episode_number() -> int:
     """Get the next episode number from Castopod."""
     headers = get_auth_header()
 
-    response = requests.get(
+    response = _session.get(
         f"{CASTOPOD_URL}/api/rest/v1/episodes",
-        headers=headers
+        headers=headers,
     )
 
     if response.status_code != 200:

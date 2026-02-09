@@ -12,6 +12,7 @@
             <h1>Luke at The Roost</h1>
             <div class="header-buttons">
                 <button id="on-air-btn" class="on-air-btn off">OFF AIR</button>
+                <button id="rec-btn" class="rec-btn" title="Record stems for post-production">REC</button>
                 <button id="new-session-btn" class="new-session-btn">New Session</button>
                 <button id="export-session-btn">Export</button>
                 <button id="settings-btn">Settings</button>
@@ -49,7 +50,10 @@
                     </label>
                 </div>
                 <div id="call-status" class="call-status">No active call</div>
-                <div id="caller-background" class="caller-background hidden"></div>
+                <details id="caller-background-details" class="caller-background hidden">
+                    <summary>Caller Background</summary>
+                    <div id="caller-background"></div>
+                </details>
                 <button id="hangup-btn" class="hangup-btn" disabled>Hang Up</button>
             </section>
 
