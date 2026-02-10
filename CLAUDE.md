@@ -42,3 +42,24 @@ Required in `.env`:
 - OPENROUTER_API_KEY
 - ELEVENLABS_API_KEY (optional)
 - INWORLD_API_KEY (for Inworld TTS)
+
+## Post-Production Pipeline (added Feb 2026)
+- **Branch**: `feature/real-callers` — all current work is here, pushed to gitea
+- **Stem Recorder** (`backend/services/stem_recorder.py`): Records 5 WAV stems (host, caller, music, sfx, ads) during live shows. Uses lock-free deque architecture — audio callbacks just append to deques, a background writer thread drains to disk. `write()` for continuous streams (host mic, music, ads), `write_sporadic()` for burst sources (caller TTS, SFX) with time-aligned silence padding.
+- **Audio hooks** in `backend/services/audio.py`: 7 tap points guarded by `if self.stem_recorder:`. Persistent mic stream (`start_stem_mic`/`stop_stem_mic`) runs during recording to capture host voice continuously, not just during push-to-talk.
+- **API endpoints**: `POST /api/recording/start`, `POST /api/recording/stop` (auto-runs postprod in background thread), `POST /api/recording/process`
+- **Frontend**: REC button in header with red pulse animation when recording
+- **Post-prod script** (`postprod.py`): 6-step pipeline — load stems → gap removal → voice compression (ffmpeg acompressor) → music ducking → stereo mix → EBU R128 loudness normalization to -16 LUFS. All steps skippable via CLI flags.
+- **Known issues resolved**: Lock-free recorder (old version used threading.Lock in audio callbacks causing crashes), scipy.signal.resample replaced with nearest-neighbor (was producing artifacts on small chunks), sys import bug in auto-postprod, host mic not captured without persistent stream
+
+## LLM Settings
+- `_pick_response_budget()` in main.py controls caller dialog token limits (150-450 tokens). MiniMax respects limits strictly — if responses seem short, check these values.
+- Default max_tokens in llm.py is 300 (for non-caller uses)
+- Grok (`x-ai/grok-4-fast`) works well for natural dialog; MiniMax tends toward terse responses
+
+## Website
+- **Domain**: lukeattheroost.com (behind Cloudflare)
+- **Analytics**: Cloudflare Web Analytics (enable in Cloudflare dashboard, no code changes needed)
+
+## Episodes Published
+- Episode 6 published 2026-02-08 (podcast6.mp3, ~31 min)

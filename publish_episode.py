@@ -15,6 +15,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import base64
 from pathlib import Path
 
@@ -59,6 +60,11 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 WHISPER_MODEL = "base"  # Options: tiny, base, small, medium, large
 
 # NAS Configuration for chapters upload
+# BunnyCDN Storage
+BUNNY_STORAGE_ZONE = "lukeattheroost"
+BUNNY_STORAGE_KEY = "REDACTED_BUNNY_STORAGE_KEY"
+BUNNY_STORAGE_REGION = "la"  # Los Angeles
+
 NAS_HOST = "mmgnas-10g"
 NAS_USER = "luke"
 NAS_SSH_PORT = 8001
@@ -268,7 +274,7 @@ def save_chapters(metadata: dict, output_path: str):
     print(f"    Chapters saved to: {output_path}")
 
 
-def run_ssh_command(command: str) -> tuple[bool, str]:
+def run_ssh_command(command: str, timeout: int = 30) -> tuple[bool, str]:
     """Run a command on the NAS via SSH."""
     ssh_cmd = [
         "ssh", "-p", str(NAS_SSH_PORT),
@@ -276,7 +282,7 @@ def run_ssh_command(command: str) -> tuple[bool, str]:
         command
     ]
     try:
-        result = subprocess.run(ssh_cmd, capture_output=True, text=True, timeout=30)
+        result = subprocess.run(ssh_cmd, capture_output=True, text=True, timeout=timeout)
         return result.returncode == 0, result.stdout.strip() or result.stderr.strip()
     except subprocess.TimeoutExpired:
         return False, "SSH command timed out"
@@ -339,6 +345,86 @@ def upload_chapters_to_castopod(episode_slug: str, episode_id: int, chapters_pat
 
     print(f"    Chapters uploaded and linked (media_id: {media_id})")
     return True
+
+
+def upload_to_bunny(local_path: str, remote_path: str, content_type: str = None) -> bool:
+    """Upload a file to BunnyCDN Storage."""
+    if not content_type:
+        ext = Path(local_path).suffix.lower()
+        content_type = {
+            ".mp3": "audio/mpeg", ".png": "image/png", ".jpg": "image/jpeg",
+            ".json": "application/json", ".srt": "application/x-subrip",
+        }.get(ext, "application/octet-stream")
+
+    url = f"https://{BUNNY_STORAGE_REGION}.storage.bunnycdn.com/{BUNNY_STORAGE_ZONE}/{remote_path}"
+    with open(local_path, "rb") as f:
+        resp = requests.put(url, data=f, headers={
+            "AccessKey": BUNNY_STORAGE_KEY,
+            "Content-Type": content_type,
+        })
+    if resp.status_code == 201:
+        return True
+    print(f"    Warning: BunnyCDN upload failed ({resp.status_code}): {resp.text[:200]}")
+    return False
+
+
+def download_from_castopod(file_key: str, local_path: str) -> bool:
+    """Download a file from Castopod's container storage to local filesystem."""
+    remote_filename = Path(file_key).name
+    remote_tmp = f"/tmp/castopod_{remote_filename}"
+    cp_cmd = f'{DOCKER_PATH} cp {CASTOPOD_CONTAINER}:/var/www/castopod/public/media/{file_key} {remote_tmp}'
+    success, _ = run_ssh_command(cp_cmd, timeout=120)
+    if not success:
+        return False
+    scp_cmd = [
+        "scp", "-P", str(NAS_SSH_PORT),
+        f"{NAS_USER}@{NAS_HOST}:{remote_tmp}",
+        local_path
+    ]
+    try:
+        result = subprocess.run(scp_cmd, capture_output=True, text=True, timeout=300)
+        ok = result.returncode == 0
+    except (subprocess.TimeoutExpired, Exception):
+        ok = False
+    run_ssh_command(f"rm -f {remote_tmp}")
+    return ok
+
+
+def sync_episode_media_to_bunny(episode_id: int, already_uploaded: set):
+    """Ensure all media linked to an episode exists on BunnyCDN."""
+    ep_id = episode_id
+    query = (
+        "SELECT DISTINCT m.file_key FROM cp_media m WHERE m.id IN ("
+        f"SELECT audio_id FROM cp_episodes WHERE id = {ep_id} "
+        f"UNION ALL SELECT cover_id FROM cp_episodes WHERE id = {ep_id} AND cover_id IS NOT NULL "
+        f"UNION ALL SELECT transcript_id FROM cp_episodes WHERE id = {ep_id} AND transcript_id IS NOT NULL "
+        f"UNION ALL SELECT chapters_id FROM cp_episodes WHERE id = {ep_id} AND chapters_id IS NOT NULL)"
+    )
+    cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -N -e "{query};"'
+    success, output = run_ssh_command(cmd)
+    if not success or not output:
+        return
+    file_keys = [line.strip() for line in output.strip().split('\n') if line.strip()]
+    for file_key in file_keys:
+        if file_key in already_uploaded:
+            continue
+        cdn_url = f"https://cdn.lukeattheroost.com/media/{file_key}"
+        try:
+            resp = requests.head(cdn_url, timeout=10)
+            if resp.status_code == 200:
+                continue
+        except Exception:
+            pass
+        with tempfile.NamedTemporaryFile(suffix=Path(file_key).suffix, delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            if download_from_castopod(file_key, tmp_path):
+                print(f"    Syncing to CDN: {file_key}")
+                upload_to_bunny(tmp_path, f"media/{file_key}")
+            else:
+                print(f"    Warning: Could not sync {file_key} to CDN")
+        finally:
+            Path(tmp_path).unlink(missing_ok=True)
 
 
 def get_next_episode_number() -> int:
@@ -438,6 +524,39 @@ def main():
     # Step 3: Create episode
     episode = create_episode(str(audio_path), metadata, episode_number)
 
+    # Step 3.5: Upload to BunnyCDN
+    print("[3.5/5] Uploading to BunnyCDN...")
+    uploaded_keys = set()
+
+    # Audio: download Castopod's copy (ensures byte-exact match with RSS metadata)
+    ep_id = episode["id"]
+    audio_media_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -N -e "SELECT m.file_key FROM cp_media m JOIN cp_episodes e ON e.audio_id = m.id WHERE e.id = {ep_id};"'
+    success, audio_file_key = run_ssh_command(audio_media_cmd)
+    if success and audio_file_key:
+        audio_file_key = audio_file_key.strip()
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+            tmp_audio = tmp.name
+        try:
+            print(f"    Downloading from Castopod: {audio_file_key}")
+            if download_from_castopod(audio_file_key, tmp_audio):
+                print(f"    Uploading audio to BunnyCDN")
+                upload_to_bunny(tmp_audio, f"media/{audio_file_key}", "audio/mpeg")
+            else:
+                print(f"    Castopod download failed, uploading original file")
+                upload_to_bunny(str(audio_path), f"media/{audio_file_key}", "audio/mpeg")
+        finally:
+            Path(tmp_audio).unlink(missing_ok=True)
+        uploaded_keys.add(audio_file_key)
+    else:
+        print(f"    Error: Could not determine audio file_key from Castopod DB")
+        print(f"    Audio will be served from Castopod directly (not CDN)")
+
+    # Chapters
+    chapters_key = f"podcasts/{PODCAST_HANDLE}/{episode['slug']}-chapters.json"
+    print(f"    Uploading chapters to BunnyCDN")
+    upload_to_bunny(str(chapters_path), f"media/{chapters_key}")
+    uploaded_keys.add(chapters_key)
+
     # Step 4: Publish
     episode = publish_episode(episode["id"])
 
@@ -447,6 +566,10 @@ def main():
         episode["id"],
         str(chapters_path)
     )
+
+    # Sync any remaining episode media to BunnyCDN (cover art, transcripts, etc.)
+    print("    Syncing episode media to CDN...")
+    sync_episode_media_to_bunny(episode["id"], uploaded_keys)
 
     # Step 5: Summary
     print("\n[5/5] Done!")

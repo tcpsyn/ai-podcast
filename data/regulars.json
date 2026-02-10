@@ -58,9 +58,13 @@
         {
           "summary": "Carla dismissed celebrity science theories like Terrence Howard's after watching Neil deGrasse Tyson's critique, then marveled at JWST's exoplanet discoveries before sharing her relief at finally cutting off her toxic in-laws amid her ongoing divorce. She expressed deep heartbreak over actor James Ransone's suicide at 46, reflecting on life's fragility, her late father's death, and the need to eliminate family drama, leaving her contemplative and planning a solo desert drive for clarity.",
           "timestamp": 1770526316.004708
+        },
+        {
+          "summary": "In this call, Carla discovered some explicit photos of her ex-husband and his old girlfriend in a box of his old ham radio equipment. She is feeling very uncomfortable about the situation and is seeking advice from the radio host, Luke, on how to best handle and dispose of the photos.",
+          "timestamp": 1770602323.234795
         }
       ],
-      "last_call": 1770526316.004709,
+      "last_call": 1770602323.234796,
       "created_at": 1770522530.855426
     },
     {
@@ -138,6 +142,23 @@
       ],
       "last_call": 1770573956.570584,
       "created_at": 1770573956.570584
+    },
+    {
+      "id": "d4bdda2e",
+      "name": "Bobby",
+      "gender": "male",
+      "age": 32,
+      "job": "a 61-year-old repo man, sits in his truck",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "In summary, the caller learned he has been diagnosed with multiple sclerosis, which he is worried will make it difficult for him to continue his job as a self-employed repo man. He is trying to process the news and figure out how to adapt and keep working, despite the uncertainty about how the condition will progress. The host provides some encouragement, suggesting the caller focus on learning about MS and finding ways to adapt, rather than getting too worked up about the future.",
+          "timestamp": 1770602129.500858
+        }
+      ],
+      "last_call": 1770602129.5008588,
+      "created_at": 1770602129.5008588
     }
   ]
 }

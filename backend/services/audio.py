@@ -80,6 +80,7 @@ class AudioService:
 
         # Stem recording (opt-in, attached via API)
         self.stem_recorder = None
+        self._stem_mic_stream: Optional[sd.InputStream] = None
 
         # Load saved settings
         self._load_settings()
@@ -282,6 +283,8 @@ class AudioService:
                     stream_ready.set()
                 if self._recording:
                     self._recorded_audio.append(indata[:, record_channel].copy())
+                if self.stem_recorder:
+                    self.stem_recorder.write("host", indata[:, record_channel].copy(), device_sr)
 
             print(f"Recording: opening stream on device {self.input_device} ch {self.input_channel} @ {device_sr}Hz ({max_channels} ch)")
 
@@ -360,7 +363,7 @@ class AudioService:
 
             # Stem recording: caller TTS
             if self.stem_recorder:
-                self.stem_recorder.write("caller", audio.copy(), device_sr)
+                self.stem_recorder.write_sporadic("caller", audio.copy(), device_sr)
 
             # Create multi-channel output with audio only on target channel
             multi_ch = np.zeros((len(audio), num_channels), dtype=np.float32)
@@ -500,7 +503,7 @@ class AudioService:
 
             # Stem recording: live caller
             if self.stem_recorder:
-                self.stem_recorder.write("caller", audio.copy(), device_sr)
+                self.stem_recorder.write_sporadic("caller", audio.copy(), device_sr)
 
             if self._live_caller_write:
                 self._live_caller_write(audio)
@@ -930,7 +933,7 @@ class AudioService:
 
                 # Stem recording: sfx
                 if self.stem_recorder:
-                    self.stem_recorder.write("sfx", audio.copy(), device_sr)
+                    self.stem_recorder.write_sporadic("sfx", audio.copy(), device_sr)
 
                 multi_ch = np.zeros((len(audio), num_channels), dtype=np.float32)
                 multi_ch[:, channel_idx] = audio
@@ -949,6 +952,45 @@ class AudioService:
             print(f"Playing SFX: {path.name} on ch {self.sfx_channel}")
         except Exception as e:
             print(f"SFX playback error: {e}")
+
+    # --- Stem Mic Capture ---
+
+    def start_stem_mic(self):
+        """Start a persistent mic capture stream for stem recording.
+        Runs independently of push-to-talk and host streaming."""
+        if self._stem_mic_stream is not None:
+            return
+        if self.input_device is None:
+            print("[StemRecorder] No input device configured, skipping host mic capture")
+            return
+
+        device_info = sd.query_devices(self.input_device)
+        max_channels = device_info['max_input_channels']
+        device_sr = int(device_info['default_samplerate'])
+        record_channel = min(self.input_channel, max_channels) - 1
+
+        def callback(indata, frames, time_info, status):
+            if self.stem_recorder:
+                self.stem_recorder.write("host", indata[:, record_channel].copy(), device_sr)
+
+        self._stem_mic_stream = sd.InputStream(
+            device=self.input_device,
+            channels=max_channels,
+            samplerate=device_sr,
+            dtype=np.float32,
+            blocksize=1024,
+            callback=callback,
+        )
+        self._stem_mic_stream.start()
+        print(f"[StemRecorder] Host mic capture started (device {self.input_device} ch {self.input_channel} @ {device_sr}Hz)")
+
+    def stop_stem_mic(self):
+        """Stop the persistent stem mic capture."""
+        if self._stem_mic_stream:
+            self._stem_mic_stream.stop()
+            self._stem_mic_stream.close()
+            self._stem_mic_stream = None
+            print("[StemRecorder] Host mic capture stopped")
 
 
 # Global instance

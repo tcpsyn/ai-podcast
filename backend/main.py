@@ -2258,6 +2258,7 @@ def _build_news_context() -> tuple[str, str]:
 async def startup():
     """Pre-generate caller backgrounds on server start"""
     asyncio.create_task(_pregenerate_backgrounds())
+    threading.Thread(target=_update_on_air_cdn, args=(False,), daemon=True).start()
 
 
 @app.on_event("shutdown")
@@ -2265,6 +2266,7 @@ async def shutdown():
     """Clean up resources on server shutdown"""
     global _host_audio_task
     print("[Server] Shutting down — cleaning up resources...")
+    _update_on_air_cdn(False)
     # Stop host mic streaming
     audio_service.stop_host_stream()
     # Cancel host audio sender task
@@ -2296,12 +2298,48 @@ async def index():
 
 # --- On-Air Toggle ---
 
+# BunnyCDN config for public on-air status
+_BUNNY_STORAGE_ZONE = "lukeattheroost"
+_BUNNY_STORAGE_KEY = "REDACTED_BUNNY_STORAGE_KEY"
+_BUNNY_STORAGE_REGION = "la"
+_BUNNY_ACCOUNT_KEY = "REDACTED_BUNNY_ACCOUNT_KEY"
+
+
+def _update_on_air_cdn(on_air: bool):
+    """Upload on-air status to BunnyCDN so the public website can poll it."""
+    from datetime import datetime, timezone
+    data = {"on_air": on_air}
+    if on_air:
+        data["since"] = datetime.now(timezone.utc).isoformat()
+    url = f"https://{_BUNNY_STORAGE_REGION}.storage.bunnycdn.com/{_BUNNY_STORAGE_ZONE}/status.json"
+    try:
+        resp = httpx.put(url, content=json.dumps(data), headers={
+            "AccessKey": _BUNNY_STORAGE_KEY,
+            "Content-Type": "application/json",
+        }, timeout=5)
+        if resp.status_code == 201:
+            print(f"[CDN] On-air status updated: {on_air}")
+        else:
+            print(f"[CDN] Failed to update on-air status: {resp.status_code}")
+            return
+        httpx.get(
+            "https://api.bunny.net/purge",
+            params={"url": "https://cdn.lukeattheroost.com/status.json", "async": "false"},
+            headers={"AccessKey": _BUNNY_ACCOUNT_KEY},
+            timeout=10,
+        )
+        print(f"[CDN] Cache purged")
+    except Exception as e:
+        print(f"[CDN] Error updating on-air status: {e}")
+
+
 @app.post("/api/on-air")
 async def set_on_air(state: dict):
     """Toggle whether the show is on air (accepting phone calls)"""
     global _show_on_air
     _show_on_air = bool(state.get("on_air", False))
     print(f"[Show] On-air: {_show_on_air}")
+    threading.Thread(target=_update_on_air_cdn, args=(_show_on_air,), daemon=True).start()
     return {"on_air": _show_on_air}
 
 @app.get("/api/on-air")
@@ -2627,13 +2665,13 @@ def _pick_response_budget() -> tuple[int, int]:
     Keeps responses conversational but gives room for real answers."""
     roll = random.random()
     if roll < 0.20:
-        return 80, 2    # 20% — short and direct
+        return 150, 2   # 20% — short and direct
     elif roll < 0.55:
-        return 120, 3   # 35% — normal conversation
+        return 250, 3   # 35% — normal conversation
     elif roll < 0.80:
-        return 150, 4   # 25% — explaining something
+        return 350, 4   # 25% — explaining something
     else:
-        return 200, 5   # 20% — telling a story or going deep
+        return 450, 5   # 20% — telling a story or going deep
 
 
 def _trim_to_sentences(text: str, max_sentences: int) -> str:
@@ -3862,6 +3900,7 @@ async def start_stem_recording():
     recorder = StemRecorder(recordings_dir, sample_rate=sr)
     recorder.start()
     audio_service.stem_recorder = recorder
+    audio_service.start_stem_mic()
     add_log(f"Stem recording started -> {recordings_dir}")
     return {"status": "recording", "dir": str(recordings_dir)}
 
@@ -3870,10 +3909,31 @@ async def start_stem_recording():
 async def stop_stem_recording():
     if audio_service.stem_recorder is None:
         raise HTTPException(400, "No recording in progress")
+    audio_service.stop_stem_mic()
+    stems_dir = audio_service.stem_recorder.output_dir
     paths = audio_service.stem_recorder.stop()
     audio_service.stem_recorder = None
-    add_log(f"Stem recording stopped. Files: {list(paths.keys())}")
-    return {"status": "stopped", "stems": paths}
+    add_log(f"Stem recording stopped. Running post-production...")
+
+    # Auto-run postprod in background
+    import subprocess, sys
+    python = sys.executable
+    output_file = stems_dir / "episode.mp3"
+    def _run_postprod():
+        try:
+            result = subprocess.run(
+                [python, "postprod.py", str(stems_dir), "-o", str(output_file)],
+                capture_output=True, text=True, timeout=300,
+            )
+            if result.returncode == 0:
+                add_log(f"Post-production complete -> {output_file}")
+            else:
+                add_log(f"Post-production failed: {result.stderr[:300]}")
+        except Exception as e:
+            add_log(f"Post-production error: {e}")
+
+    threading.Thread(target=_run_postprod, daemon=True).start()
+    return {"status": "stopped", "stems": paths, "processing": str(output_file)}
 
 
 @app.post("/api/recording/process")

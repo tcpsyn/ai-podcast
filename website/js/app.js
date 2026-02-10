@@ -300,6 +300,24 @@ function initTestimonials() {
   resetAutoplay();
 }
 
+// On-Air Status
+function checkOnAir() {
+  fetch(`https://cdn.lukeattheroost.com/status.json?_=${Date.now()}`)
+    .then(r => r.json())
+    .then(data => {
+      const badge = document.getElementById('on-air-badge');
+      const offBadge = document.getElementById('off-air-badge');
+      const phone = document.getElementById('phone-section');
+      const live = !!data.on_air;
+      if (badge) badge.classList.toggle('visible', live);
+      if (offBadge) offBadge.classList.toggle('hidden', live);
+      if (phone) phone.classList.toggle('live', live);
+    })
+    .catch(() => {});
+}
+
 // Init
 fetchEpisodes();
 initTestimonials();
+checkOnAir();
+setInterval(checkOnAir, 15000);

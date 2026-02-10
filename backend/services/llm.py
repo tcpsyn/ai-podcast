@@ -154,7 +154,7 @@ class LLMService:
                 json={
                     "model": model,
                     "messages": messages,
-                    "max_tokens": max_tokens or 150,
+                    "max_tokens": max_tokens or 300,
                     "temperature": 0.8,
                     "top_p": 0.92,
                     "frequency_penalty": 0.5,
