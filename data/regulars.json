@@ -37,9 +37,13 @@
         {
           "summary": "Here is a 1-2 sentence summary of the radio call:\n\nThe caller, Carl, discusses his progress in overcoming his gambling addiction, including rewatching The Sopranos, but the host, Luke, disagrees with Carl's high opinion of the show's ending, leading to a back-and-forth debate between the two about the merits and predictability of the Sopranos finale.",
           "timestamp": 1770573289.82847
+        },
+        {
+          "summary": "Carl, a firefighter, called to discuss finding $15-20,000 in cash at a house fire and struggling with the temptation to keep it despite doing the right thing by returning it to the family. He's been gambling-free for three months but is financially struggling, and though he returned the money, he's been losing sleep for three nights obsessing over what he could have done with it and fearing he might have blown it at a casino anyway.",
+          "timestamp": 1770694065.5629818
         }
       ],
-      "last_call": 1770573289.828471,
+      "last_call": 1770694065.5629828,
       "created_at": 1770522170.1887732
     },
     {
@@ -159,6 +163,40 @@
       ],
       "last_call": 1770602129.5008588,
       "created_at": 1770602129.5008588
+    },
+    {
+      "id": "7be7317c",
+      "name": "Jerome",
+      "gender": "male",
+      "age": 53,
+      "job": "phone",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Jerome, a police officer in Texas, called from a DQ parking lot worried about AI writing police reports after his son sent him an article suggesting it might replace him. Through the conversation, he moved from fear about accountability and accuracy in criminal cases to acknowledging that AI handling routine paperwork (like cattle complaints) could free him up to do more meaningful police work in his understaffed county, though he remains uncertain about where this technology will lead.",
+          "timestamp": 1770692087.560522
+        }
+      ],
+      "last_call": 1770692087.560523,
+      "created_at": 1770692087.560523
+    },
+    {
+      "id": "dc4916a7",
+      "name": "Leon",
+      "gender": "male",
+      "age": 56,
+      "job": "and last week his daughter asked him why he never went back to school for programming like he always talked about\u2014she found his old acceptance letter from UNM's CS program tucked",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Leon, a 63-year-old tow truck driver, called in feeling regretful after pulling a young remote worker's Tesla from a ditch, which reminded him of the computer science acceptance letter he never acted on in 1996 when his girlfriend got pregnant. The conversation became emotional as Leon realized he's the same age his father was when he died, and the host challenged him to stop making excuses and finally pursue the tech career he's been thinking about for decades instead of just \"wondering what could have been.\"",
+          "timestamp": 1770693549.697355
+        }
+      ],
+      "last_call": 1770693549.697355,
+      "created_at": 1770693549.697355
     }
   ]
 }
