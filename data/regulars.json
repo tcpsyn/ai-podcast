@@ -1,136 +1,6 @@
 {
   "regulars": [
     {
-      "id": "be244306",
-      "name": "Dale",
-      "gender": "male",
-      "age": 44,
-      "job": "runs a food truck",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Briefly explain the universe's expansion to a child who wants to know what happens when it stops expanding. Please don't suggest unusual topics; keep the explanation simple.",
-          "timestamp": 1770515097.24686
-        },
-        {
-          "summary": "Dale updates the host on explaining the universe's expansion to his buddy's kid, who now worries if it could \"pop,\" but shifts to his temptation to bet on Super Bowl 60 predictions after reading an article, critiquing a prior caller's gambling mindset while reflecting emotionally on his brother Eddie's fruitless horse-betting habit and his own exhaustion from long taco truck shifts in the cold desert. He ultimately considers a small, affordable wager on the Chiefs as a low-stakes thrill.",
-          "timestamp": 1770522741.049846
-        }
-      ],
-      "last_call": 1770522741.049846,
-      "created_at": 1770515097.24686
-    },
-    {
-      "id": "584767e8",
-      "name": "Carl",
-      "gender": "male",
-      "age": 36,
-      "job": "is a firefighter",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Carl, a firefighter from Lordsburg, New Mexico, called to confess his 20-year gambling addiction, which began with casual poker games at the station and escalated to frequent casino visits and online sessions, draining his finances and leaving him with overdue bills and the fear of losing his home. Emotionally raw, he admitted the habit's destructive hold\u2014like an unquenchable fire\u2014and his pride in avoiding help, but agreed to consider support groups and an 800 hotline after the host suggested productive alternatives like gym workouts or extra volunteer shifts.",
-          "timestamp": 1770522170.1887732
-        },
-        {
-          "summary": "Here is a 1-2 sentence summary of the radio call:\n\nThe caller, Carl, discusses his progress in overcoming his gambling addiction, including rewatching The Sopranos, but the host, Luke, disagrees with Carl's high opinion of the show's ending, leading to a back-and-forth debate between the two about the merits and predictability of the Sopranos finale.",
-          "timestamp": 1770573289.82847
-        },
-        {
-          "summary": "Carl, a firefighter, called to discuss finding $15-20,000 in cash at a house fire and struggling with the temptation to keep it despite doing the right thing by returning it to the family. He's been gambling-free for three months but is financially struggling, and though he returned the money, he's been losing sleep for three nights obsessing over what he could have done with it and fearing he might have blown it at a casino anyway.",
-          "timestamp": 1770694065.5629818
-        }
-      ],
-      "last_call": 1770694065.5629828,
-      "created_at": 1770522170.1887732
-    },
-    {
-      "id": "d97cb6f9",
-      "name": "Carla",
-      "gender": "female",
-      "age": 26,
-      "job": "is a vet tech",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Carla, separated from her husband but not yet divorced, vented about her intrusive in-laws who relentlessly call and dictate her life\u2014from finances and household matters to her clothing choices\u2014while her spineless spouse relays their demands, making her feel trapped in a one-sided war. With her own parents unavailable (father deceased, mother distant), she leans on her bickering but honest sister for support, underscoring her deep frustration and sense of isolation.",
-          "timestamp": 1770522530.8554251
-        },
-        {
-          "summary": "Carla dismissed celebrity science theories like Terrence Howard's after watching Neil deGrasse Tyson's critique, then marveled at JWST's exoplanet discoveries before sharing her relief at finally cutting off her toxic in-laws amid her ongoing divorce. She expressed deep heartbreak over actor James Ransone's suicide at 46, reflecting on life's fragility, her late father's death, and the need to eliminate family drama, leaving her contemplative and planning a solo desert drive for clarity.",
-          "timestamp": 1770526316.004708
-        },
-        {
-          "summary": "In this call, Carla discovered some explicit photos of her ex-husband and his old girlfriend in a box of his old ham radio equipment. She is feeling very uncomfortable about the situation and is seeking advice from the radio host, Luke, on how to best handle and dispose of the photos.",
-          "timestamp": 1770602323.234795
-        }
-      ],
-      "last_call": 1770602323.234796,
-      "created_at": 1770522530.855426
-    },
-    {
-      "id": "5ccaea00",
-      "name": "Jerome",
-      "gender": "male",
-      "age": 52,
-      "job": "works at a cemetery",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Jerome called in to discuss Neil deGrasse Tyson's dismissal of Terrence Howard's unconventional scientific theories, agreeing they don't hold up to real science, before opening up about his emotional turmoil over an unanswered text from his ex, Laura, following a recent blowout that left him questioning his life choices while drinking mezcal in his truck late at night. He reflected on their breakup due to his workaholic tendencies at the cemetery and her desire for more, but found hope in his child's insightful comment about the stars from the Silo books, suggesting they might both be better off apart.",
-          "timestamp": 1770522903.5809002
-        },
-        {
-          "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller, Jerome, recounts a humorous customer service interaction where a woman came to the cemetery he works at late at night frantically trying to find her husband's plot, leading to an amusing back-and-forth.",
-          "timestamp": 1770523944.299309
-        }
-      ],
-      "last_call": 1770523944.29931,
-      "created_at": 1770522903.5809002
-    },
-    {
-      "id": "49147bd5",
-      "name": "Keith",
-      "gender": "male",
-      "age": 61,
-      "job": "south of Silver City",
-      "location": "in unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "The caller, Luke, kicked off by sharing a humorous clip of Terrence Howard's Tree of Life Theory being critiqued by Neil deGrasse Tyson, which left Howard visibly hurt, before pivoting to economic woes, blaming overspending and Federal Reserve money printing for devaluing the currency and harming everyday people. He advocated abolishing the Fed, echoing Ron Paul's ideas, to let markets stabilize money, potentially boosting innovation and new industries in rural spots like Silver City despite uncertain local impacts.",
-          "timestamp": 1770524506.3390348
-        },
-        {
-          "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller, who works at a bank, has been reflecting on his tendency to blame the government and economic system for his problems, rather than taking responsibility for his own role. He had an epiphany while eating leftover enchiladas in his minivan, realizing he needs to be more proactive instead of just complaining.",
-          "timestamp": 1770574890.1296651
-        }
-      ],
-      "last_call": 1770574890.1296651,
-      "created_at": 1770524506.339036
-    },
-    {
-      "id": "4f4612c7",
-      "name": "Dale",
-      "gender": "male",
-      "age": 38,
-      "job": "is a cop, 12 years on the force",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Dale from Globe called in to express skepticism about Terrence Howard's Tree of Life theory, arguing it lacks peer-reviewed experiments and scientific consensus, much like how he trusts quantum entanglement based on reliable sources without reading every paper himself. The conversation shifted to an emotional discussion of his grief over Uncle Hector, the man who raised him like a father but changed after a stroke, leaving Dale feeling a profound loss without closure, though he found solace in the host's validation and hope for lucid moments ahead.",
-          "timestamp": 1770526114.530777
-        }
-      ],
-      "last_call": 1770526114.5307782,
-      "created_at": 1770526114.5307782
-    },
-    {
       "id": "60053b38",
       "name": "Lorraine",
       "gender": "female",
@@ -165,6 +35,31 @@
       "created_at": 1770602129.5008588
     },
     {
+      "id": "d97cb6f9",
+      "name": "Carla",
+      "gender": "female",
+      "age": 26,
+      "job": "is a vet tech",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Carla, separated from her husband but not yet divorced, vented about her intrusive in-laws who relentlessly call and dictate her life\u2014from finances and household matters to her clothing choices\u2014while her spineless spouse relays their demands, making her feel trapped in a one-sided war. With her own parents unavailable (father deceased, mother distant), she leans on her bickering but honest sister for support, underscoring her deep frustration and sense of isolation.",
+          "timestamp": 1770522530.8554251
+        },
+        {
+          "summary": "Carla dismissed celebrity science theories like Terrence Howard's after watching Neil deGrasse Tyson's critique, then marveled at JWST's exoplanet discoveries before sharing her relief at finally cutting off her toxic in-laws amid her ongoing divorce. She expressed deep heartbreak over actor James Ransone's suicide at 46, reflecting on life's fragility, her late father's death, and the need to eliminate family drama, leaving her contemplative and planning a solo desert drive for clarity.",
+          "timestamp": 1770526316.004708
+        },
+        {
+          "summary": "In this call, Carla discovered some explicit photos of her ex-husband and his old girlfriend in a box of his old ham radio equipment. She is feeling very uncomfortable about the situation and is seeking advice from the radio host, Luke, on how to best handle and dispose of the photos.",
+          "timestamp": 1770602323.234795
+        }
+      ],
+      "last_call": 1770602323.234796,
+      "created_at": 1770522530.855426
+    },
+    {
       "id": "7be7317c",
       "name": "Jerome",
       "gender": "male",
@@ -197,6 +92,141 @@
       ],
       "last_call": 1770693549.697355,
       "created_at": 1770693549.697355
+    },
+    {
+      "id": "584767e8",
+      "name": "Carl",
+      "gender": "male",
+      "age": 36,
+      "job": "is a firefighter",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Carl, a firefighter from Lordsburg, New Mexico, called to confess his 20-year gambling addiction, which began with casual poker games at the station and escalated to frequent casino visits and online sessions, draining his finances and leaving him with overdue bills and the fear of losing his home. Emotionally raw, he admitted the habit's destructive hold\u2014like an unquenchable fire\u2014and his pride in avoiding help, but agreed to consider support groups and an 800 hotline after the host suggested productive alternatives like gym workouts or extra volunteer shifts.",
+          "timestamp": 1770522170.1887732
+        },
+        {
+          "summary": "Here is a 1-2 sentence summary of the radio call:\n\nThe caller, Carl, discusses his progress in overcoming his gambling addiction, including rewatching The Sopranos, but the host, Luke, disagrees with Carl's high opinion of the show's ending, leading to a back-and-forth debate between the two about the merits and predictability of the Sopranos finale.",
+          "timestamp": 1770573289.82847
+        },
+        {
+          "summary": "Carl, a firefighter, called to discuss finding $15-20,000 in cash at a house fire and struggling with the temptation to keep it despite doing the right thing by returning it to the family. He's been gambling-free for three months but is financially struggling, and though he returned the money, he's been losing sleep for three nights obsessing over what he could have done with it and fearing he might have blown it at a casino anyway.",
+          "timestamp": 1770694065.5629818
+        }
+      ],
+      "last_call": 1770694065.5629828,
+      "created_at": 1770522170.1887732
+    },
+    {
+      "id": "04b1a69c",
+      "name": "Reggie",
+      "gender": "male",
+      "age": 51,
+      "job": "a 39-year-old food truck operator, is reeling from a troubling discovery this morning",
+      "location": "in unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Reggie called in worried because his partner suddenly packed a bag and left for her mom's house without explanation and won't answer his calls, making him fear something is wrong with their relationship. The host advised him to stop calling repeatedly and have a calm conversation with her when she's ready to talk, reassuring him he's likely overreacting.",
+          "timestamp": 1770769705.511872
+        }
+      ],
+      "last_call": 1770769705.511872,
+      "created_at": 1770769705.511872
+    },
+    {
+      "id": "747c6464",
+      "name": "Brenda",
+      "gender": "female",
+      "age": 44,
+      "job": "a 41-year-old ambulance driver, is fed up with the tipping culture",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Brenda called in to vent about being frustrated with automatic tipping at a diner, where a 20% tip was already added to her bill but the card reader prompted her to add an additional 25-35% while the waitress watched. She expressed feeling pressured and annoyed as an ambulance driver with two kids, struggling with whether to look cheap by reducing the tip, before playing a quick real-or-fake news game with the host.",
+          "timestamp": 1770770008.684104
+        }
+      ],
+      "last_call": 1770770008.684105,
+      "created_at": 1770770008.684105
+    },
+    {
+      "id": "49147bd5",
+      "name": "Keith",
+      "gender": "male",
+      "age": 61,
+      "job": "south of Silver City",
+      "location": "in unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "The caller, Luke, kicked off by sharing a humorous clip of Terrence Howard's Tree of Life Theory being critiqued by Neil deGrasse Tyson, which left Howard visibly hurt, before pivoting to economic woes, blaming overspending and Federal Reserve money printing for devaluing the currency and harming everyday people. He advocated abolishing the Fed, echoing Ron Paul's ideas, to let markets stabilize money, potentially boosting innovation and new industries in rural spots like Silver City despite uncertain local impacts.",
+          "timestamp": 1770524506.3390348
+        },
+        {
+          "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller, who works at a bank, has been reflecting on his tendency to blame the government and economic system for his problems, rather than taking responsibility for his own role. He had an epiphany while eating leftover enchiladas in his minivan, realizing he needs to be more proactive instead of just complaining.",
+          "timestamp": 1770574890.1296651
+        },
+        {
+          "summary": "Keith called in with an update about a widow who has been showing up weekly at the cemetery where he works nights, but she sits by the maintenance shed rather than visiting her husband's grave, and recently started asking Keith's neighbor personal questions about him. Luke dismissively suggested Keith just talk to the woman and called him a coward for being concerned, leading to some tension before they moved on to playing the real or fake news game.",
+          "timestamp": 1770770394.0436218
+        }
+      ],
+      "last_call": 1770770394.0436218,
+      "created_at": 1770524506.339036
+    },
+    {
+      "id": "f21d1346",
+      "name": "Andre",
+      "gender": "male",
+      "age": 54,
+      "job": "is a firefighter unknown",
+      "location": "in unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Andre called into a radio game show but first shared that he's upset about being named in court documents related to a lawsuit involving a family he helped in December by returning $15,000 after a house fire. Though the host reassured him he has nothing to worry about since he did the right thing, Andre expressed frustration that his good deed led to him being dragged into an insurance dispute.",
+          "timestamp": 1770770944.7940538
+        }
+      ],
+      "last_call": 1770770944.7940538,
+      "created_at": 1770770944.7940538
+    },
+    {
+      "id": "add59d4a",
+      "name": "Rick",
+      "gender": "male",
+      "age": 65,
+      "job": "south of Silver City",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Rick called in to play \"real news or fake news\" and correctly identified a headline about a geothermal plant sale. He then shared that he's troubled about an elderly bank customer who withdrew $8,000 cash while appearing scared and mentioning his daughter's boyfriend was pressuring him about finances\u2014Rick processed the withdrawal but later learned he should have flagged it as potential elder exploitation, and he's feeling guilty about not intervening.",
+          "timestamp": 1770771655.536344
+        }
+      ],
+      "last_call": 1770771655.536344,
+      "created_at": 1770771655.536344
+    },
+    {
+      "id": "13ff1736",
+      "name": "Jasmine",
+      "gender": "female",
+      "age": 36,
+      "job": "a 61-year-old woman who runs a small bakery in the rural Southwest, finds herself at a crossroads",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Jasmine called in to defend an earlier caller (Rick) whom she felt the host was too hard on, explaining she's been feeling guilty herself lately. She emotionally revealed that she chose her 1972 Ford Bronco restoration project over her marriage when given an ultimatum, and now regrets sleeping in the guest room with Valentine's Day approaching.",
+          "timestamp": 1770772286.1733272
+        }
+      ],
+      "last_call": 1770772286.1733272,
+      "created_at": 1770772286.1733272
     }
   ]
 }

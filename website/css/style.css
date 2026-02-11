@@ -704,6 +704,15 @@ a:hover {
   line-height: 1;
 }
 
+.diagram-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+  margin-top: 0.5rem;
+}
+
 /* Steps */
 .hiw-steps {
   display: flex;
@@ -874,6 +883,113 @@ a:hover {
 
 .hiw-cta-phone strong {
   color: var(--accent);
+}
+
+/* Episode Page */
+.ep-header {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 2rem;
+}
+
+.ep-header-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ep-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.ep-title {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.ep-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.ep-actions {
+  margin-top: 0.5rem;
+}
+
+.ep-play-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.ep-play-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.ep-play-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Transcript */
+.transcript-section {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.transcript-section h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #2a2015;
+}
+
+.transcript-body {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+.transcript-body p {
+  margin-bottom: 1.25rem;
+}
+
+.speaker-label {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+}
+
+.transcript-unavailable {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.episode-transcript-link {
+  font-size: 0.8rem;
+  color: var(--accent);
+  margin-top: 0.25rem;
+  display: inline-block;
+}
+
+.episode-transcript-link:hover {
+  color: var(--accent-hover);
 }
 
 /* Desktop */

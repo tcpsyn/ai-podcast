@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Episode — Luke at the Roost</title>
+  <meta name="description" id="page-description" content="Full transcript of this episode of Luke at the Roost, the late-night call-in radio show.">
+  <link rel="canonical" id="page-canonical" href="https://lukeattheroost.com/episode.html">
+
+  <!-- OG / Social -->
+  <meta property="og:title" id="og-title" content="Episode — Luke at the Roost">
+  <meta property="og:description" id="og-description" content="Full transcript of this episode of Luke at the Roost.">
+  <meta property="og:image" content="https://cdn.lukeattheroost.com/media/podcasts/LukeAtTheRoost/cover_feed.png?v=3">
+  <meta property="og:url" id="og-url" content="https://lukeattheroost.com/episode.html">
+  <meta property="og:type" content="article">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <link rel="alternate" type="application/rss+xml" title="Luke at the Roost RSS Feed" href="https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="page-nav">
+    <a href="/" class="nav-home">&larr; Luke at the Roost</a>
+  </nav>
+
+  <!-- Episode Header -->
+  <section class="ep-header" id="ep-header">
+    <div class="ep-header-inner">
+      <div class="ep-meta" id="ep-meta"></div>
+      <h1 class="ep-title" id="ep-title">Loading...</h1>
+      <p class="ep-desc" id="ep-desc"></p>
+      <div class="ep-actions">
+        <button class="ep-play-btn" id="ep-play-btn" style="display:none" aria-label="Play Episode">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <span>Play Episode</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Transcript -->
+  <section class="transcript-section" id="transcript-section">
+    <h2>Full Transcript</h2>
+    <div class="transcript-body" id="transcript-body">
+      <div class="episodes-loading">Loading transcript...</div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="/how-it-works">How It Works</a>
+      <a href="https://open.spotify.com/show/0ZrpMigG1fo0CCN7F4YmuF" target="_blank" rel="noopener">Spotify</a>
+      <a href="https://www.youtube.com/watch?v=xryGLifMBTY&list=PLGq4uZyNV1yYH_rcitTTPVysPbC6-7pe-" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml" target="_blank" rel="noopener">RSS</a>
+    </div>
+    <p>&copy; 2026 Luke at the Roost</p>
+  </footer>
+
+  <!-- Sticky Audio Player -->
+  <div class="sticky-player" id="sticky-player">
+    <div class="player-inner">
+      <button class="player-play-btn" id="player-play-btn" aria-label="Play/Pause">
+        <svg class="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg class="icon-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <div class="player-info">
+        <div class="player-title" id="player-title">—</div>
+        <div class="player-progress-row">
+          <div class="player-progress" id="player-progress">
+            <div class="player-progress-fill" id="player-progress-fill"></div>
+          </div>
+          <span class="player-time" id="player-time">0:00 / 0:00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio-element" preload="none"></audio>
+
+  <script>
+    const FEED_URL = '/feed';
+    const CDN_BASE = 'https://cdn.lukeattheroost.com';
+
+    const audio = document.getElementById('audio-element');
+    const stickyPlayer = document.getElementById('sticky-player');
+    const playerPlayBtn = document.getElementById('player-play-btn');
+    const playerTitle = document.getElementById('player-title');
+    const playerProgress = document.getElementById('player-progress');
+    const playerProgressFill = document.getElementById('player-progress-fill');
+    const playerTime = document.getElementById('player-time');
+
+    function formatTime(seconds) {
+      if (!seconds || isNaN(seconds)) return '0:00';
+      const s = Math.floor(seconds);
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+      return `${m}:${String(sec).padStart(2, '0')}`;
+    }
+
+    function formatDate(dateStr) {
+      return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function parseDuration(raw) {
+      if (!raw) return '';
+      if (raw.includes(':')) {
+        const parts = raw.split(':').map(Number);
+        let t = 0;
+        if (parts.length === 3) t = parts[0]*3600 + parts[1]*60 + parts[2];
+        else if (parts.length === 2) t = parts[0]*60 + parts[1];
+        return `${Math.round(t/60)} min`;
+      }
+      const sec = parseInt(raw, 10);
+      return isNaN(sec) ? '' : `${Math.round(sec/60)} min`;
+    }
+
+    function stripHtml(html) {
+      const div = document.createElement('div');
+      div.innerHTML = html || '';
+      return div.textContent || '';
+    }
+
+    // Get slug from URL
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('slug');
+
+    if (!slug) {
+      document.getElementById('ep-title').textContent = 'Episode not found';
+      document.getElementById('transcript-body').innerHTML = '<p>No episode specified. <a href="/">Go back to episodes.</a></p>';
+    } else {
+      loadEpisode(slug);
+    }
+
+    async function loadEpisode(slug) {
+      // Fetch episode info from RSS
+      try {
+        const res = await fetch(FEED_URL);
+        const xml = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(xml, 'text/xml');
+        const items = doc.querySelectorAll('item');
+
+        let episode = null;
+        for (const item of items) {
+          const link = item.querySelector('link')?.textContent || '';
+          const itemSlug = link.split('/episodes/').pop()?.replace(/\/$/, '');
+          if (itemSlug === slug) {
+            episode = {
+              title: item.querySelector('title')?.textContent || 'Untitled',
+              description: item.querySelector('description')?.textContent || '',
+              audioUrl: item.querySelector('enclosure')?.getAttribute('url') || '',
+              pubDate: item.querySelector('pubDate')?.textContent || '',
+              duration: item.getElementsByTagNameNS('http://www.itunes.com/dtds/podcast-1.0.dtd', 'duration')[0]?.textContent || '',
+              episodeNum: item.getElementsByTagNameNS('http://www.itunes.com/dtds/podcast-1.0.dtd', 'episode')[0]?.textContent || '',
+            };
+            break;
+          }
+        }
+
+        if (!episode) {
+          document.getElementById('ep-title').textContent = 'Episode not found';
+          document.getElementById('transcript-body').innerHTML = '<p>Could not find this episode. <a href="/">Go back to episodes.</a></p>';
+          return;
+        }
+
+        // Populate header
+        const metaParts = [
+          episode.episodeNum ? `Episode ${episode.episodeNum}` : '',
+          episode.pubDate ? formatDate(episode.pubDate) : '',
+          parseDuration(episode.duration),
+        ].filter(Boolean).join(' \u00b7 ');
+
+        document.getElementById('ep-meta').textContent = metaParts;
+        document.getElementById('ep-title').textContent = episode.title;
+        document.getElementById('ep-desc').innerHTML = episode.description || '';
+
+        // Update page meta
+        document.title = `${episode.title} — Luke at the Roost`;
+        document.getElementById('page-description')?.setAttribute('content', `Full transcript of ${episode.title} from Luke at the Roost.`);
+        document.getElementById('og-title')?.setAttribute('content', episode.title);
+        document.getElementById('og-description')?.setAttribute('content', stripHtml(episode.description).slice(0, 200));
+        const canonicalUrl = `https://lukeattheroost.com/episode.html?slug=${slug}`;
+        document.getElementById('page-canonical')?.setAttribute('href', canonicalUrl);
+        document.getElementById('og-url')?.setAttribute('content', canonicalUrl);
+
+        // Play button
+        if (episode.audioUrl) {
+          const playBtn = document.getElementById('ep-play-btn');
+          playBtn.style.display = 'inline-flex';
+          playBtn.addEventListener('click', () => {
+            audio.src = episode.audioUrl;
+            audio.play();
+            playerTitle.textContent = episode.title;
+            stickyPlayer.classList.add('active');
+          });
+        }
+      } catch (e) {
+        document.getElementById('ep-title').textContent = 'Error loading episode';
+      }
+
+      // Fetch transcript
+      try {
+        const txRes = await fetch(`/transcripts/${slug}.txt`);
+        if (!txRes.ok) throw new Error('Not found');
+        const text = await txRes.text();
+        const paragraphs = text.split(/\n\n+/).filter(Boolean);
+        const html = paragraphs.map(p => {
+          // Style speaker labels (LUKE:, REGGIE:, etc.)
+          const labeled = p.replace(/^([A-Z][A-Z\s'-]+?):\s*/, '<span class="speaker-label">$1:</span> ');
+          return `<p>${labeled.replace(/\n/g, '<br>')}</p>`;
+        }).join('');
+        document.getElementById('transcript-body').innerHTML = html;
+      } catch (e) {
+        document.getElementById('transcript-body').innerHTML = '<p class="transcript-unavailable">Transcript not yet available for this episode.</p>';
+      }
+    }
+
+    // Audio player controls
+    audio.addEventListener('play', () => updatePlayIcons(true));
+    audio.addEventListener('pause', () => updatePlayIcons(false));
+    audio.addEventListener('ended', () => updatePlayIcons(false));
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        playerProgressFill.style.width = (audio.currentTime / audio.duration * 100) + '%';
+        playerTime.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+      }
+    });
+
+    function updatePlayIcons(playing) {
+      const iconPlay = playerPlayBtn.querySelector('.icon-play');
+      const iconPause = playerPlayBtn.querySelector('.icon-pause');
+      if (iconPlay) iconPlay.style.display = playing ? 'none' : 'block';
+      if (iconPause) iconPause.style.display = playing ? 'block' : 'none';
+    }
+
+    playerPlayBtn.addEventListener('click', () => {
+      if (audio.src) { audio.paused ? audio.play() : audio.pause(); }
+    });
+
+    playerProgress.addEventListener('click', (e) => {
+      if (audio.duration) {
+        const rect = playerProgress.getBoundingClientRect();
+        audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -515,6 +515,9 @@ class AudioService:
 
     def start_host_stream(self, send_callback: Callable):
         """Start continuous host mic capture for streaming to real callers"""
+        if self._host_stream is not None:
+            self._host_send_callback = send_callback
+            return
         if self.input_device is None:
             print("[Audio] No input device configured for host streaming")
             return

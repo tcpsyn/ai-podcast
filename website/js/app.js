@@ -119,6 +119,7 @@ function renderEpisodes(episodes) {
     const durStr = parseDuration(ep.duration);
 
     const metaParts = [epLabel, dateStr, durStr].filter(Boolean).join(' &middot; ');
+    const epSlug = ep.link ? ep.link.split('/episodes/').pop()?.replace(/\/$/, '') : '';
 
     card.innerHTML = `
       <button class="episode-play-btn" aria-label="Play ${ep.title}" data-url="${ep.audioUrl}" data-title="${ep.title.replace(/"/g, '&quot;')}">
@@ -128,6 +129,7 @@ function renderEpisodes(episodes) {
         <div class="episode-meta">${metaParts}</div>
         <div class="episode-title">${ep.title}</div>
         <div class="episode-desc">${truncate(ep.description, 150)}</div>
+        ${epSlug ? `<a href="/episode.html?slug=${epSlug}" class="episode-transcript-link">Read Transcript</a>` : ''}
       </div>
     `;
 

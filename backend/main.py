@@ -2339,6 +2339,11 @@ async def set_on_air(state: dict):
     global _show_on_air
     _show_on_air = bool(state.get("on_air", False))
     print(f"[Show] On-air: {_show_on_air}")
+    if _show_on_air:
+        _start_host_audio_sender()
+        audio_service.start_host_stream(_host_audio_sync_callback)
+    else:
+        audio_service.stop_host_stream()
     threading.Thread(target=_update_on_air_cdn, args=(_show_on_air,), daemon=True).start()
     return {"on_air": _show_on_air}
 
@@ -3285,8 +3290,6 @@ async def signalwire_audio_stream(websocket: WebSocket):
             caller_service.hangup(caller_id)
             if session.active_real_caller and session.active_real_caller.get("caller_id") == caller_id:
                 session.active_real_caller = None
-                if len(caller_service.active_calls) == 0:
-                    audio_service.stop_host_stream()
             broadcast_event("caller_disconnected", {"phone": caller_phone, "reason": disconnect_reason})
             broadcast_chat("System", f"{caller_phone} disconnected ({disconnect_reason})")
 
@@ -3393,11 +3396,6 @@ async def take_call_from_queue(caller_id: str):
         "channel": call_info["channel"],
         "phone": call_info["phone"],
     }
-
-    # Start host mic streaming if this is the first real caller
-    if len(caller_service.active_calls) == 1:
-        _start_host_audio_sender()
-        audio_service.start_host_stream(_host_audio_sync_callback)
 
     return {
         "status": "on_air",
@@ -3651,10 +3649,6 @@ async def hangup_real_caller():
     caller_service.hangup(caller_id)
     if call_sid:
         asyncio.create_task(_signalwire_end_call(call_sid))
-
-    # Stop host streaming if no more active callers
-    if len(caller_service.active_calls) == 0:
-        audio_service.stop_host_stream()
 
     session.active_real_caller = None
 

@@ -84,6 +84,94 @@ def get_auth_header():
     return {"Authorization": f"Basic {credentials}"}
 
 
+def label_transcript_speakers(text):
+    """Add LUKE:/CALLER: speaker labels to transcript using LLM."""
+    import time as _time
+
+    prompt = """Insert speaker labels into this radio show transcript. The show is "Luke at the Roost". The host is LUKE. Callers call in one at a time.
+
+CRITICAL: Output EVERY SINGLE WORD from the input. Do NOT summarize, shorten, paraphrase, or skip ANY text. The output must contain the EXACT SAME words as the input, with ONLY speaker labels and line breaks added.
+
+At each speaker change, insert a blank line and the new speaker's label (e.g., "LUKE:" or "REGGIE:").
+
+Speaker identification:
+- LUKE is the host — he introduces callers, asks questions, does sponsor reads, opens and closes the show
+- Callers are introduced by name by Luke (e.g., "let's talk to Earl", "next up Brenda")
+- Use caller FIRST NAME in caps as the label
+- When Luke says "Tell me about..." or asks a question, that's LUKE
+- When someone responds with their story/opinion/answer, that's the CALLER
+
+Output format — ONLY the labeled transcript with blank lines between turns. No notes, no commentary.
+
+TRANSCRIPT:
+"""
+    # Chunk text into ~8000 char segments
+    chunks = []
+    remaining = text
+    while remaining:
+        if len(remaining) <= 8000:
+            if chunks and len(remaining) < 1000:
+                chunks[-1] = chunks[-1] + " " + remaining
+            else:
+                chunks.append(remaining)
+            break
+        pos = remaining[:8000].rfind('. ')
+        if pos < 4000:
+            pos = remaining[:8000].rfind('? ')
+        if pos < 4000:
+            pos = remaining[:8000].rfind('! ')
+        if pos < 4000:
+            pos = 8000
+        chunks.append(remaining[:pos + 1].strip())
+        remaining = remaining[pos + 1:].strip()
+
+    labeled_parts = []
+    context = ""
+    for i, chunk in enumerate(chunks):
+        full_prompt = prompt + chunk
+        if context:
+            full_prompt += f"\n\nCONTEXT: The previous section ended with speaker {context}"
+
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "anthropic/claude-3.5-sonnet",
+                "messages": [{"role": "user", "content": full_prompt}],
+                "max_tokens": 8192,
+                "temperature": 0
+            }
+        )
+        if response.status_code != 200:
+            print(f"    Warning: Speaker labeling failed for chunk {i+1}, using raw text")
+            labeled_parts.append(chunk)
+        else:
+            content = response.json()["choices"][0]["message"]["content"].strip()
+            if content.startswith("```"):
+                content = re.sub(r'^```\w*\n?', '', content)
+                content = re.sub(r'\n?```$', '', content)
+            labeled_parts.append(content)
+
+            # Extract last speaker for context
+            for line in reversed(content.strip().split('\n')):
+                m = re.match(r'^([A-Z][A-Z\s\'-]+?):', line.strip())
+                if m:
+                    context = m.group(1)
+                    break
+
+        if i < len(chunks) - 1:
+            _time.sleep(0.5)
+
+    result = "\n\n".join(labeled_parts)
+    result = re.sub(r'\n{3,}', '\n\n', result)
+    # Normalize: SPEAKER:\ntext -> SPEAKER: text
+    result = re.sub(r'^([A-Z][A-Z\s\'-]+?):\s*\n(?!\n)', r'\1: ', result, flags=re.MULTILINE)
+    return result
+
+
 def transcribe_audio(audio_path: str) -> dict:
     """Transcribe audio using faster-whisper with timestamps."""
     print(f"[1/5] Transcribing {audio_path}...")
@@ -506,12 +594,20 @@ def main():
     chapters_path = audio_path.with_suffix(".chapters.json")
     save_chapters(metadata, str(chapters_path))
 
-    # Save transcript alongside episode if session data available
+    # Save transcript text file with LUKE:/CALLER: speaker labels
+    transcript_path = audio_path.with_suffix(".transcript.txt")
+    raw_text = transcript["full_text"]
+    labeled_text = label_transcript_speakers(raw_text)
+    with open(transcript_path, "w") as f:
+        f.write(labeled_text)
+    print(f"    Transcript saved to: {transcript_path}")
+
+    # Save session transcript alongside episode if available (has speaker labels)
     if session_data and session_data.get("transcript"):
-        transcript_path = audio_path.with_suffix(".transcript.txt")
-        with open(transcript_path, "w") as f:
+        session_transcript_path = audio_path.with_suffix(".session_transcript.txt")
+        with open(session_transcript_path, "w") as f:
             f.write(session_data["transcript"])
-        print(f"    Transcript saved to: {transcript_path}")
+        print(f"    Session transcript saved to: {session_transcript_path}")
 
     if args.dry_run:
         print("\n[DRY RUN] Would publish with:")
@@ -556,6 +652,18 @@ def main():
     print(f"    Uploading chapters to BunnyCDN")
     upload_to_bunny(str(chapters_path), f"media/{chapters_key}")
     uploaded_keys.add(chapters_key)
+
+    # Transcript
+    print(f"    Uploading transcript to BunnyCDN")
+    upload_to_bunny(str(transcript_path), f"transcripts/{episode['slug']}.txt", "text/plain")
+
+    # Copy transcript to website dir for Cloudflare Pages
+    import shutil
+    website_transcript_dir = Path(__file__).parent / "website" / "transcripts"
+    website_transcript_dir.mkdir(exist_ok=True)
+    website_transcript_path = website_transcript_dir / f"{episode['slug']}.txt"
+    shutil.copy2(str(transcript_path), str(website_transcript_path))
+    print(f"    Transcript copied to website/transcripts/")
 
     # Step 4: Publish
     episode = publish_episode(episode["id"])
