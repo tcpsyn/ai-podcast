@@ -1,23 +1,6 @@
 {
   "regulars": [
     {
-      "id": "60053b38",
-      "name": "Lorraine",
-      "gender": "female",
-      "age": 42,
-      "job": "New Mexico",
-      "location": "in unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller has an outstanding warrant for a DUI charge from a few years ago that they have been avoiding dealing with, which has been causing them a lot of stress and guilt. The host encourages the caller to take responsibility and go to the sheriff's office to get the warrant cleared up, as driving drunk is extremely dangerous and unacceptable.",
-          "timestamp": 1770573956.570584
-        }
-      ],
-      "last_call": 1770573956.570584,
-      "created_at": 1770573956.570584
-    },
-    {
       "id": "d4bdda2e",
       "name": "Bobby",
       "gender": "male",
@@ -32,7 +15,8 @@
         }
       ],
       "last_call": 1770602129.5008588,
-      "created_at": 1770602129.5008588
+      "created_at": 1770602129.5008588,
+      "voice": "onwK4e9ZLuTAKqWW03F9"
     },
     {
       "id": "d97cb6f9",
@@ -54,10 +38,15 @@
         {
           "summary": "In this call, Carla discovered some explicit photos of her ex-husband and his old girlfriend in a box of his old ham radio equipment. She is feeling very uncomfortable about the situation and is seeking advice from the radio host, Luke, on how to best handle and dispose of the photos.",
           "timestamp": 1770602323.234795
+        },
+        {
+          "summary": "Carla called with an update about burning the explicit photos of her ex-husband and his old girlfriend, revealing that the girlfriend unexpectedly messaged her on Facebook to \"clear the air\" after apparently hearing about the situation through Carla's previous radio call. When Luke asked about her most embarrassing masturbation material, Carla admitted to using historical romance novels during her failing marriage, explaining she was drawn to the fantasy of men who actually cared and paid attention, unlike her ex-husband who ignored her to play video games.",
+          "timestamp": 1770871317.049056
         }
       ],
-      "last_call": 1770602323.234796,
-      "created_at": 1770522530.855426
+      "last_call": 1770871317.049056,
+      "created_at": 1770522530.855426,
+      "voice": "FGY2WhTYpPnrIDTdsKH5"
     },
     {
       "id": "7be7317c",
@@ -74,7 +63,8 @@
         }
       ],
       "last_call": 1770692087.560523,
-      "created_at": 1770692087.560523
+      "created_at": 1770692087.560523,
+      "voice": "IKne3meq5aSn9XLyUdCD"
     },
     {
       "id": "dc4916a7",
@@ -91,7 +81,8 @@
         }
       ],
       "last_call": 1770693549.697355,
-      "created_at": 1770693549.697355
+      "created_at": 1770693549.697355,
+      "voice": "CwhRBWXzGAHq8TQ4Fs17"
     },
     {
       "id": "584767e8",
@@ -116,7 +107,8 @@
         }
       ],
       "last_call": 1770694065.5629828,
-      "created_at": 1770522170.1887732
+      "created_at": 1770522170.1887732,
+      "voice": "SOYHLrjzK2X1ezoPC6cr"
     },
     {
       "id": "04b1a69c",
@@ -133,7 +125,8 @@
         }
       ],
       "last_call": 1770769705.511872,
-      "created_at": 1770769705.511872
+      "created_at": 1770769705.511872,
+      "voice": "N2lVS1w4EtoT3dr4eOWO"
     },
     {
       "id": "747c6464",
@@ -150,7 +143,8 @@
         }
       ],
       "last_call": 1770770008.684105,
-      "created_at": 1770770008.684105
+      "created_at": 1770770008.684105,
+      "voice": "hpp4J3VqNfWAUOO0d1Us"
     },
     {
       "id": "49147bd5",
@@ -175,7 +169,8 @@
         }
       ],
       "last_call": 1770770394.0436218,
-      "created_at": 1770524506.339036
+      "created_at": 1770524506.339036,
+      "voice": "nPczCjzI2devNBz1zQrb"
     },
     {
       "id": "f21d1346",
@@ -189,10 +184,15 @@
         {
           "summary": "Andre called into a radio game show but first shared that he's upset about being named in court documents related to a lawsuit involving a family he helped in December by returning $15,000 after a house fire. Though the host reassured him he has nothing to worry about since he did the right thing, Andre expressed frustration that his good deed led to him being dragged into an insurance dispute.",
           "timestamp": 1770770944.7940538
+        },
+        {
+          "summary": "Andre calls back with an update: the lawsuit against him was dropped, and the family he helped sent him a card with $500 cash, which makes him feel conflicted about accepting payment for doing the right thing. On a positive note, he's been gambling-free for two months and attending meetings, and Luke encourages him to keep the money or donate it, celebrating his progress.",
+          "timestamp": 1770870907.493257
         }
       ],
-      "last_call": 1770770944.7940538,
-      "created_at": 1770770944.7940538
+      "last_call": 1770870907.493258,
+      "created_at": 1770770944.7940538,
+      "voice": "JBFqnCBsd6RMkjVDRZzb"
     },
     {
       "id": "add59d4a",
@@ -209,7 +209,8 @@
         }
       ],
       "last_call": 1770771655.536344,
-      "created_at": 1770771655.536344
+      "created_at": 1770771655.536344,
+      "voice": "TX3LPaxmHKxFdv7VOQHJ"
     },
     {
       "id": "13ff1736",
@@ -226,7 +227,26 @@
         }
       ],
       "last_call": 1770772286.1733272,
-      "created_at": 1770772286.1733272
+      "created_at": 1770772286.1733272,
+      "voice": "pFZP5JQG7iQjIQuC4Bku"
+    },
+    {
+      "id": "f383d29b",
+      "name": "Megan",
+      "gender": "female",
+      "age": 34,
+      "job": "which got her thinking about her sister Crystal up in Flagstaff who hasn't seen a truly dark sky",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Megan, a kindergarten teacher from the bootheel, called in after one of her students asked if stars know we're looking at them, which led her to reflect on how her sister Crystal in Flagstaff has stopped appreciating the night sky despite having access to it. The conversation took an unexpected turn when Luke challenged her to admit a gross habit, and after some prodding, she confessed to picking dry skin off her feet while watching TV and flicking it on the floor.",
+          "timestamp": 1770870641.723117
+        }
+      ],
+      "last_call": 1770870641.723117,
+      "created_at": 1770870641.723117,
+      "voice": "cgSgspJ2msm6clMCkdW9"
     }
   ]
 }

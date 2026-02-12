@@ -522,6 +522,13 @@ class AudioService:
             print("[Audio] No input device configured for host streaming")
             return
 
+        # Close stem_mic if active — this stream's callback handles stem recording too
+        if self._stem_mic_stream is not None:
+            self._stem_mic_stream.stop()
+            self._stem_mic_stream.close()
+            self._stem_mic_stream = None
+            print("[Audio] Closed stem_mic (host stream takes over)")
+
         self._host_send_callback = send_callback
 
         def _start():
@@ -960,8 +967,11 @@ class AudioService:
 
     def start_stem_mic(self):
         """Start a persistent mic capture stream for stem recording.
-        Runs independently of push-to-talk and host streaming."""
+        Skips if _host_stream is already active (it writes to the host stem too)."""
         if self._stem_mic_stream is not None:
+            return
+        if self._host_stream is not None:
+            print("[StemRecorder] Host stream already capturing mic, skipping stem_mic")
             return
         if self.input_device is None:
             print("[StemRecorder] No input device configured, skipping host mic capture")

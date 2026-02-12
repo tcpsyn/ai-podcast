@@ -58,6 +58,7 @@ CASTOPOD_PASSWORD = "REDACTED_CASTOPOD_PASSWORD"
 PODCAST_ID = 1
 PODCAST_HANDLE = "LukeAtTheRoost"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
 WHISPER_MODEL = "base"  # Options: tiny, base, small, medium, large
 
 # NAS Configuration for chapters upload
@@ -541,6 +542,7 @@ def add_episode_to_sitemap(slug: str):
     content = content.replace("</urlset>", new_entry)
     sitemap_path.write_text(content)
     print(f"    Added episode to sitemap.xml")
+
 
 
 def get_next_episode_number() -> int:

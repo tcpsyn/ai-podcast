@@ -67,11 +67,23 @@ function initEventListeners() {
     // New Session
     document.getElementById('new-session-btn')?.addEventListener('click', newSession);
 
-    // On-Air toggle
+    // On-Air + Recording (linked — toggling one toggles both)
     const onAirBtn = document.getElementById('on-air-btn');
+    const recBtn = document.getElementById('rec-btn');
+    let stemRecording = false;
+
+    function updateRecBtn(recording) {
+        stemRecording = recording;
+        if (recBtn) {
+            recBtn.classList.toggle('recording', recording);
+            recBtn.textContent = recording ? '⏺ REC' : 'REC';
+        }
+    }
+
     if (onAirBtn) {
         fetch('/api/on-air').then(r => r.json()).then(data => {
             updateOnAirBtn(onAirBtn, data.on_air);
+            updateRecBtn(data.recording);
         });
         onAirBtn.addEventListener('click', async () => {
             const isOn = onAirBtn.classList.contains('on');
@@ -81,28 +93,24 @@ function initEventListeners() {
                 body: JSON.stringify({ on_air: !isOn }),
             });
             updateOnAirBtn(onAirBtn, res.on_air);
-            log(res.on_air ? 'Show is ON AIR — accepting calls' : 'Show is OFF AIR — calls get off-air message');
+            updateRecBtn(res.recording);
+            log(res.on_air ? 'Show is ON AIR + Recording' : 'Show is OFF AIR + Recording stopped');
         });
     }
 
-    // Stem recording toggle
-    const recBtn = document.getElementById('rec-btn');
     if (recBtn) {
-        let stemRecording = false;
         recBtn.addEventListener('click', async () => {
             try {
                 if (!stemRecording) {
                     const res = await safeFetch('/api/recording/start', { method: 'POST' });
-                    stemRecording = true;
-                    recBtn.classList.add('recording');
-                    recBtn.textContent = '⏺ REC';
-                    log('Stem recording started: ' + res.dir);
+                    updateRecBtn(true);
+                    if (onAirBtn) updateOnAirBtn(onAirBtn, res.on_air);
+                    log('Recording started + ON AIR: ' + res.dir);
                 } else {
                     const res = await safeFetch('/api/recording/stop', { method: 'POST' });
-                    stemRecording = false;
-                    recBtn.classList.remove('recording');
-                    recBtn.textContent = 'REC';
-                    log('Stem recording stopped');
+                    updateRecBtn(false);
+                    if (onAirBtn) updateOnAirBtn(onAirBtn, res.on_air);
+                    log('Recording stopped + OFF AIR');
                 }
             } catch (err) {
                 log('Recording error: ' + err.message);

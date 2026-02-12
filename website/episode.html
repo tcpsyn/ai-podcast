@@ -28,6 +28,23 @@
 
   <link rel="alternate" type="application/rss+xml" title="Luke at the Roost RSS Feed" href="https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml">
   <link rel="stylesheet" href="css/style.css?v=2">
+
+  <!-- Structured Data (dynamically updated by JS) -->
+  <script type="application/ld+json" id="episode-jsonld">
+  {
+    "@context": "https://schema.org",
+    "@type": "PodcastEpisode",
+    "partOfSeries": {
+      "@type": "PodcastSeries",
+      "name": "Luke at the Roost",
+      "url": "https://lukeattheroost.com"
+    },
+    "name": "Episode — Luke at the Roost",
+    "url": "https://lukeattheroost.com/episode.html",
+    "description": "Full transcript of this episode of Luke at the Roost.",
+    "inLanguage": "en"
+  }
+  </script>
 </head>
 <body>
 
@@ -59,15 +76,32 @@
     </div>
   </section>
 
+  <noscript>
+    <section class="transcript-section">
+      <p>This page requires JavaScript to load the episode transcript. Please enable JavaScript or listen on <a href="https://open.spotify.com/show/0ZrpMigG1fo0CCN7F4YmuF">Spotify</a>, <a href="https://podcasts.apple.com/us/podcast/luke-at-the-roost/id1875205848">Apple Podcasts</a>, or <a href="https://www.youtube.com/watch?v=xryGLifMBTY&list=PLGq4uZyNV1yYH_rcitTTPVysPbC6-7pe-">YouTube</a>.</p>
+    </section>
+  </noscript>
+
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-links">
       <a href="/">Home</a>
       <a href="/how-it-works">How It Works</a>
-      <a href="https://open.spotify.com/show/0ZrpMigG1fo0CCN7F4YmuF" target="_blank" rel="noopener">Spotify</a>
+      <a href="/stats">Stats</a>
+      <a href="https://discord.gg/5CnQZxDM" target="_blank" rel="noopener">Discord</a>
+      <a href="https://open.spotify.com/show/0ZrpMigG1fo0CCN7F4YmuF?si=f990713adce84ba4" target="_blank" rel="noopener">Spotify</a>
       <a href="https://www.youtube.com/watch?v=xryGLifMBTY&list=PLGq4uZyNV1yYH_rcitTTPVysPbC6-7pe-" target="_blank" rel="noopener">YouTube</a>
       <a href="https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml" target="_blank" rel="noopener">RSS</a>
     </div>
+    <div class="footer-projects">
+      <span class="footer-projects-label">More from Luke</span>
+      <div class="footer-projects-links">
+        <a href="https://macneilmediagroup.com" target="_blank" rel="noopener">MacNeil Media Group</a>
+        <a href="https://prints.macneilmediagroup.com" target="_blank" rel="noopener">Photography Prints</a>
+        <a href="https://youtube.com/lukemacneil" target="_blank" rel="noopener">YouTube</a>
+      </div>
+    </div>
+    <p class="footer-contact">Sales &amp; Collaboration: <a href="mailto:luke@macneilmediagroup.com">luke@macneilmediagroup.com</a></p>
     <p>&copy; 2026 Luke at the Roost</p>
   </footer>
 
@@ -199,6 +233,26 @@
         const canonicalUrl = `https://lukeattheroost.com/episode.html?slug=${slug}`;
         document.getElementById('page-canonical')?.setAttribute('href', canonicalUrl);
         document.getElementById('og-url')?.setAttribute('content', canonicalUrl);
+        document.getElementById('tw-title')?.setAttribute('content', episode.title);
+        document.getElementById('tw-description')?.setAttribute('content', stripHtml(episode.description).slice(0, 200));
+
+        // Update JSON-LD structured data
+        const jsonLd = document.getElementById('episode-jsonld');
+        if (jsonLd) {
+          const ld = JSON.parse(jsonLd.textContent);
+          ld.name = episode.title;
+          ld.url = canonicalUrl;
+          ld.description = stripHtml(episode.description).slice(0, 300);
+          if (episode.pubDate) ld.datePublished = new Date(episode.pubDate).toISOString().split('T')[0];
+          if (episode.episodeNum) ld.episodeNumber = parseInt(episode.episodeNum, 10);
+          if (episode.audioUrl) {
+            ld.associatedMedia = {
+              "@type": "MediaObject",
+              "contentUrl": episode.audioUrl
+            };
+          }
+          jsonLd.textContent = JSON.stringify(ld);
+        }
 
         // Play button
         if (episode.audioUrl) {

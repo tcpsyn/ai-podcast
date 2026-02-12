@@ -158,7 +158,9 @@ def _randomize_callers():
                 base["name"] = regular["name"]
                 base["returning"] = True
                 base["regular_id"] = regular["id"]
-                # Keep the randomly assigned voice — regulars sound different each time
+                # Restore their stored voice so they sound the same every time
+                if regular.get("voice"):
+                    base["voice"] = regular["voice"]
             if returning:
                 names = [r["name"] for r in returning]
                 print(f"[Regulars] Injected returning callers: {', '.join(names)}")
@@ -2335,21 +2337,64 @@ def _update_on_air_cdn(on_air: bool):
 
 @app.post("/api/on-air")
 async def set_on_air(state: dict):
-    """Toggle whether the show is on air (accepting phone calls)"""
+    """Toggle whether the show is on air (accepting phone calls). Also toggles recording."""
     global _show_on_air
     _show_on_air = bool(state.get("on_air", False))
     print(f"[Show] On-air: {_show_on_air}")
     if _show_on_air:
+        # Auto-start recording FIRST (before host stream, which takes over mic capture)
+        if audio_service.stem_recorder is None:
+            try:
+                from datetime import datetime
+                dir_name = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+                recordings_dir = Path("recordings") / dir_name
+                import sounddevice as sd
+                device_info = sd.query_devices(audio_service.output_device) if audio_service.output_device is not None else None
+                sr = int(device_info["default_samplerate"]) if device_info else 48000
+                recorder = StemRecorder(recordings_dir, sample_rate=sr)
+                recorder.start()
+                audio_service.stem_recorder = recorder
+                audio_service.start_stem_mic()
+                add_log(f"Stem recording auto-started -> {recordings_dir}")
+            except Exception as e:
+                print(f"[Show] Failed to auto-start recording: {e}")
         _start_host_audio_sender()
+        # Host stream takes over mic capture (closes stem_mic if active)
         audio_service.start_host_stream(_host_audio_sync_callback)
     else:
         audio_service.stop_host_stream()
+        # Auto-stop recording
+        if audio_service.stem_recorder is not None:
+            try:
+                audio_service.stop_stem_mic()
+                stems_dir = audio_service.stem_recorder.output_dir
+                paths = audio_service.stem_recorder.stop()
+                audio_service.stem_recorder = None
+                add_log(f"Stem recording auto-stopped. Running post-production...")
+                import subprocess, sys
+                python = sys.executable
+                output_file = stems_dir / "episode.mp3"
+                def _run_postprod():
+                    try:
+                        result = subprocess.run(
+                            [python, "postprod.py", str(stems_dir), "-o", str(output_file)],
+                            capture_output=True, text=True, timeout=300,
+                        )
+                        if result.returncode == 0:
+                            add_log(f"Post-production complete -> {output_file}")
+                        else:
+                            add_log(f"Post-production failed: {result.stderr[:300]}")
+                    except Exception as e:
+                        add_log(f"Post-production error: {e}")
+                threading.Thread(target=_run_postprod, daemon=True).start()
+            except Exception as e:
+                print(f"[Show] Failed to auto-stop recording: {e}")
     threading.Thread(target=_update_on_air_cdn, args=(_show_on_air,), daemon=True).start()
-    return {"on_air": _show_on_air}
+    return {"on_air": _show_on_air, "recording": audio_service.stem_recorder is not None}
 
 @app.get("/api/on-air")
 async def get_on_air():
-    return {"on_air": _show_on_air}
+    return {"on_air": _show_on_air, "recording": audio_service.stem_recorder is not None}
 
 
 # --- SignalWire Endpoints ---
@@ -2654,6 +2699,7 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
                     location="in " + job_parts[1].strip() if isinstance(job_parts, tuple) and len(job_parts) > 1 else "unknown",
                     personality_traits=traits[:4],
                     first_call_summary=summary,
+                    voice=base.get("voice"),
                 )
     except Exception as e:
         print(f"[Regulars] Promotion logic error: {e}")
@@ -3896,7 +3942,15 @@ async def start_stem_recording():
     audio_service.stem_recorder = recorder
     audio_service.start_stem_mic()
     add_log(f"Stem recording started -> {recordings_dir}")
-    return {"status": "recording", "dir": str(recordings_dir)}
+    # Auto go on-air
+    global _show_on_air
+    if not _show_on_air:
+        _show_on_air = True
+        _start_host_audio_sender()
+        audio_service.start_host_stream(_host_audio_sync_callback)
+        threading.Thread(target=_update_on_air_cdn, args=(True,), daemon=True).start()
+        add_log("Show auto-set to ON AIR")
+    return {"status": "recording", "dir": str(recordings_dir), "on_air": _show_on_air}
 
 
 @app.post("/api/recording/stop")
@@ -3908,6 +3962,14 @@ async def stop_stem_recording():
     paths = audio_service.stem_recorder.stop()
     audio_service.stem_recorder = None
     add_log(f"Stem recording stopped. Running post-production...")
+
+    # Auto go off-air
+    global _show_on_air
+    if _show_on_air:
+        _show_on_air = False
+        audio_service.stop_host_stream()
+        threading.Thread(target=_update_on_air_cdn, args=(False,), daemon=True).start()
+        add_log("Show auto-set to OFF AIR")
 
     # Auto-run postprod in background
     import subprocess, sys
@@ -3927,7 +3989,7 @@ async def stop_stem_recording():
             add_log(f"Post-production error: {e}")
 
     threading.Thread(target=_run_postprod, daemon=True).start()
-    return {"status": "stopped", "stems": paths, "processing": str(output_file)}
+    return {"status": "stopped", "stems": paths, "processing": str(output_file), "on_air": _show_on_air}
 
 
 @app.post("/api/recording/process")
