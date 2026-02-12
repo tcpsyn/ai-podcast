@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 import base64
+from datetime import datetime
 from pathlib import Path
 
 import ssl
@@ -515,6 +516,33 @@ def sync_episode_media_to_bunny(episode_id: int, already_uploaded: set):
             Path(tmp_path).unlink(missing_ok=True)
 
 
+def add_episode_to_sitemap(slug: str):
+    """Add episode transcript page to sitemap.xml."""
+    sitemap_path = Path(__file__).parent / "website" / "sitemap.xml"
+    if not sitemap_path.exists():
+        return
+
+    url = f"https://lukeattheroost.com/episode.html?slug={slug}"
+    content = sitemap_path.read_text()
+
+    if url in content:
+        print(f"    Episode already in sitemap")
+        return
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    new_entry = f"""  <url>
+    <loc>{url}</loc>
+    <lastmod>{today}</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+</urlset>"""
+
+    content = content.replace("</urlset>", new_entry)
+    sitemap_path.write_text(content)
+    print(f"    Added episode to sitemap.xml")
+
+
 def get_next_episode_number() -> int:
     """Get the next episode number from Castopod."""
     headers = get_auth_header()
@@ -664,6 +692,9 @@ def main():
     website_transcript_path = website_transcript_dir / f"{episode['slug']}.txt"
     shutil.copy2(str(transcript_path), str(website_transcript_path))
     print(f"    Transcript copied to website/transcripts/")
+
+    # Add to sitemap
+    add_episode_to_sitemap(episode["slug"])
 
     # Step 4: Publish
     episode = publish_episode(episode["id"])

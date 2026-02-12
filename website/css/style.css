@@ -992,6 +992,154 @@ a:hover {
   color: var(--accent-hover);
 }
 
+/* Stats Page */
+.stats-updated {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.stats-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.stats-loading, .stats-error {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 3rem 0;
+}
+
+.stats-error {
+  color: var(--accent);
+}
+
+.stats-section {
+  margin-bottom: 2.5rem;
+}
+
+.stats-section h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2015;
+}
+
+.stats-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.stat-big {
+  background: var(--bg-light);
+  border-radius: var(--radius-sm);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 120px;
+}
+
+.stat-number {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stats-list-item {
+  background: var(--bg-light);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.stats-list-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.stats-list-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.stats-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.review-card {
+  background: var(--bg-light);
+  border-radius: var(--radius-sm);
+  padding: 1.15rem;
+  border-left: 3px solid var(--accent);
+}
+
+.review-stars {
+  color: var(--accent);
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  margin-bottom: 0.4rem;
+}
+
+.review-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
+}
+
+.review-content {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.review-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.stats-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 1rem 0;
+}
+
+.stats-link {
+  margin-top: 0.5rem;
+}
+
+.stats-link a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.stats-link a:hover {
+  color: var(--accent-hover);
+}
+
 /* Desktop */
 @media (min-width: 768px) {
   .hero {
@@ -1035,5 +1183,9 @@ a:hover {
 
   .diagram-row-split {
     flex-wrap: nowrap;
+  }
+
+  .stats-container {
+    padding: 0 2rem 3rem;
   }
 }

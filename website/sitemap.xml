@@ -2,7 +2,68 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://lukeattheroost.com</loc>
+    <lastmod>2026-02-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/how-it-works</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/stats</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-8-real-news-or-fake-news</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-7-ai-takeover-and-honey-endurance</loc>
+    <lastmod>2026-02-10</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-6-late-night-woes-and-cosmic-contemplations</loc>
+    <lastmod>2026-02-09</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-5-cosmic-theories-and-calling-for-change</loc>
+    <lastmod>2026-02-08</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-4-navigating-life-s-challenges</loc>
+    <lastmod>2026-02-07</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-3-desire-burnout-and-friendship-woes</loc>
+    <lastmod>2026-02-06</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-2-late-night-confessions</loc>
+    <lastmod>2026-02-05</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=quantum-physics-pluto-relationship-blunders</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>

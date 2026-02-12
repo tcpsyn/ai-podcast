@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Podcast Stats & Downloads — Luke at the Roost</title>
+  <meta name="description" content="Podcast stats for Luke at the Roost — total downloads, unique listeners, Apple Podcasts reviews, YouTube views and subscribers, updated daily.">
+  <meta name="theme-color" content="#1a1209">
+  <link rel="canonical" href="https://lukeattheroost.com/stats">
+
+  <meta property="og:site_name" content="Luke at the Roost">
+  <meta property="og:title" content="Podcast Stats & Downloads — Luke at the Roost">
+  <meta property="og:description" content="Podcast stats for Luke at the Roost — total downloads, unique listeners, Apple Podcasts reviews, YouTube views and subscribers, updated daily.">
+  <meta property="og:image" content="https://cdn.lukeattheroost.com/media/podcasts/LukeAtTheRoost/cover_feed.png?v=3">
+  <meta property="og:url" content="https://lukeattheroost.com/stats">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Podcast Stats & Downloads — Luke at the Roost">
+  <meta name="twitter:description" content="Podcast stats for Luke at the Roost — total downloads, unique listeners, Apple Podcasts reviews, YouTube views and subscribers, updated daily.">
+  <meta name="twitter:image" content="https://cdn.lukeattheroost.com/media/podcasts/LukeAtTheRoost/cover_feed.png?v=3">
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <link rel="stylesheet" href="css/style.css?v=2">
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="page-nav">
+    <a href="/" class="nav-home">Luke at the Roost</a>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <h1>Stats</h1>
+    <p class="page-subtitle">Downloads, reviews, and audience numbers across all platforms.</p>
+    <p class="stats-updated" id="stats-updated"></p>
+  </section>
+
+  <!-- Stats Content -->
+  <div class="stats-container" id="stats-container">
+    <div class="stats-loading" id="stats-loading">Loading stats...</div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="/how-it-works">How It Works</a>
+      <a href="https://open.spotify.com/show/0ZrpMigG1fo0CCN7F4YmuF?si=f990713adce84ba4" target="_blank" rel="noopener">Spotify</a>
+      <a href="https://www.youtube.com/watch?v=xryGLifMBTY&list=PLGq4uZyNV1yYH_rcitTTPVysPbC6-7pe-" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml" target="_blank" rel="noopener">RSS</a>
+    </div>
+    <div class="footer-projects">
+      <span class="footer-projects-label">More from Luke</span>
+      <div class="footer-projects-links">
+        <a href="https://macneilmediagroup.com" target="_blank" rel="noopener">MacNeil Media Group</a>
+        <a href="https://prints.macneilmediagroup.com" target="_blank" rel="noopener">Photography Prints</a>
+        <a href="https://youtube.com/lukemacneil" target="_blank" rel="noopener">YouTube</a>
+      </div>
+    </div>
+    <p class="footer-contact">Sales &amp; Collaboration: <a href="mailto:luke@macneilmediagroup.com">luke@macneilmediagroup.com</a></p>
+    <p>&copy; 2026 Luke at the Roost</p>
+  </footer>
+
+  <script>
+  (async function() {
+    const container = document.getElementById('stats-container');
+    const loading = document.getElementById('stats-loading');
+    const updatedEl = document.getElementById('stats-updated');
+
+    try {
+      const resp = await fetch('https://cdn.lukeattheroost.com/stats.json');
+      if (!resp.ok) throw new Error('Failed to load stats');
+      const data = await resp.json();
+
+      if (data.updated_at) {
+        const d = new Date(data.updated_at);
+        updatedEl.textContent = 'Last updated ' + d.toLocaleDateString('en-US', {
+          month: 'long', day: 'numeric', year: 'numeric',
+          hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+        });
+      }
+
+      let html = '';
+
+      // Downloads (Castopod)
+      if (data.castopod) {
+        const c = data.castopod;
+        html += '<section class="stats-section">';
+        html += '<h2>Downloads</h2>';
+        html += '<div class="stats-summary">';
+        html += '<div class="stat-big"><span class="stat-number">' + (c.total_downloads || 0).toLocaleString() + '</span><span class="stat-label">Total Downloads</span></div>';
+        html += '<div class="stat-big"><span class="stat-number">' + (c.unique_listeners || 0).toLocaleString() + '</span><span class="stat-label">Unique Listeners</span></div>';
+        html += '</div>';
+        if (c.episodes && c.episodes.length) {
+          html += '<div class="stats-list">';
+          c.episodes.forEach(function(ep) {
+            html += '<div class="stats-list-item">';
+            html += '<span class="stats-list-title">' + escapeHtml(ep.title) + '</span>';
+            html += '<span class="stats-list-meta">' + (ep.downloads || 0).toLocaleString() + ' downloads &middot; ' + escapeHtml(ep.date) + '</span>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+        html += '</section>';
+      }
+
+      // Apple Reviews
+      if (data.apple) {
+        const a = data.apple;
+        html += '<section class="stats-section">';
+        html += '<h2>Apple Podcasts</h2>';
+        if (a.review_count > 0) {
+          html += '<div class="stats-summary">';
+          html += '<div class="stat-big"><span class="stat-number">' + (a.avg_rating || 0) + '/5</span><span class="stat-label">Average Rating</span></div>';
+          html += '<div class="stat-big"><span class="stat-number">' + a.review_count + '</span><span class="stat-label">Reviews</span></div>';
+          html += '</div>';
+          if (a.reviews && a.reviews.length) {
+            html += '<div class="stats-reviews">';
+            a.reviews.forEach(function(r) {
+              const stars = '\u2605'.repeat(r.rating) + '\u2606'.repeat(5 - r.rating);
+              html += '<div class="review-card">';
+              html += '<div class="review-stars">' + stars + '</div>';
+              html += '<div class="review-title">' + escapeHtml(r.title) + '</div>';
+              if (r.content && r.content !== r.title) {
+                html += '<div class="review-content">' + escapeHtml(r.content) + '</div>';
+              }
+              html += '<div class="review-meta">' + escapeHtml(r.author) + ' &middot; ' + escapeHtml(r.date) + ' &middot; ' + escapeHtml(r.storefront) + '</div>';
+              html += '</div>';
+            });
+            html += '</div>';
+          }
+        } else {
+          html += '<p class="stats-empty">No reviews yet</p>';
+        }
+        html += '</section>';
+      }
+
+      // Spotify
+      if (data.spotify) {
+        const s = data.spotify;
+        html += '<section class="stats-section">';
+        html += '<h2>Spotify</h2>';
+        html += '<div class="stats-summary">';
+        if (s.rating) {
+          html += '<div class="stat-big"><span class="stat-number">' + s.rating + '/5</span><span class="stat-label">Rating</span></div>';
+        } else {
+          html += '<div class="stat-big"><span class="stat-number">&mdash;</span><span class="stat-label">Rating (not public)</span></div>';
+        }
+        html += '</div>';
+        if (s.url) {
+          html += '<p class="stats-link"><a href="' + escapeHtml(s.url) + '" target="_blank" rel="noopener">Listen on Spotify</a></p>';
+        }
+        html += '</section>';
+      }
+
+      // YouTube
+      if (data.youtube) {
+        const y = data.youtube;
+        html += '<section class="stats-section">';
+        html += '<h2>YouTube</h2>';
+        html += '<div class="stats-summary">';
+        html += '<div class="stat-big"><span class="stat-number">' + (y.total_views || 0).toLocaleString() + '</span><span class="stat-label">Views</span></div>';
+        html += '<div class="stat-big"><span class="stat-number">' + (y.total_likes || 0).toLocaleString() + '</span><span class="stat-label">Likes</span></div>';
+        html += '<div class="stat-big"><span class="stat-number">' + (y.total_comments || 0).toLocaleString() + '</span><span class="stat-label">Comments</span></div>';
+        if (y.subscribers != null) {
+          html += '<div class="stat-big"><span class="stat-number">' + y.subscribers.toLocaleString() + '</span><span class="stat-label">Subscribers</span></div>';
+        }
+        html += '</div>';
+        if (y.videos && y.videos.length) {
+          html += '<div class="stats-list">';
+          y.videos.forEach(function(v) {
+            html += '<div class="stats-list-item">';
+            html += '<span class="stats-list-title">' + escapeHtml(v.title) + '</span>';
+            html += '<span class="stats-list-meta">' + (v.views || 0).toLocaleString() + ' views &middot; ' + (v.likes || 0).toLocaleString() + ' likes &middot; ' + escapeHtml(v.date) + '</span>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+        html += '</section>';
+      }
+
+      loading.style.display = 'none';
+      container.innerHTML = html;
+    } catch (e) {
+      loading.textContent = 'Unable to load stats. Try again later.';
+      loading.className = 'stats-error';
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  })();
+  </script>
+</body>
+</html>
