@@ -84,7 +84,7 @@ def remove_gaps(stems: dict[str, np.ndarray], sr: int,
     min_silent_windows = int(threshold_s / (window_ms / 1000))
     max_silent_windows = int(max_gap_s / (window_ms / 1000))
 
-    # Only cut gaps between 1.5-8s — targets TTS latency, not long breaks
+    # Only cut gaps between threshold-8s — targets TTS latency, not long breaks
     cuts = []
     i = 0
     while i < len(is_silent):
@@ -159,20 +159,16 @@ def remove_gaps(stems: dict[str, np.ndarray], sr: int,
 
 
 def denoise(audio: np.ndarray, sr: int, tmp_dir: Path) -> np.ndarray:
-    """High-quality noise reduction using ffmpeg afftdn (adaptive Wiener filter)."""
+    """High-quality noise reduction with HPF + adaptive FFT denoiser."""
     in_path = tmp_dir / "host_pre_denoise.wav"
     out_path = tmp_dir / "host_post_denoise.wav"
     sf.write(str(in_path), audio, sr)
 
-    # afftdn: adaptive FFT denoiser with Wiener filter
-    #   nt=w  - Wiener filter (best quality)
-    #   om=o  - output cleaned signal
-    #   nr=10 - noise reduction in dB (10 = moderate, preserves voice naturalness)
-    #   nf=-30 - noise floor estimate in dB
-    # anlmdn: non-local means denoiser for residual broadband noise
-    #   s=4   - patch size
-    #   p=0.002 - strength (gentle to avoid artifacts)
+    # highpass: cut rumble below 80Hz (plosives, HVAC, handling noise)
+    # afftdn: adaptive FFT Wiener filter for steady-state noise
+    # anlmdn: non-local means for residual broadband noise
     af = (
+        "highpass=f=80:poles=2,"
         "afftdn=nt=w:om=o:nr=12:nf=-30,"
         "anlmdn=s=4:p=0.002"
     )
@@ -184,6 +180,93 @@ def denoise(audio: np.ndarray, sr: int, tmp_dir: Path) -> np.ndarray:
 
     denoised, _ = sf.read(str(out_path), dtype="float32")
     return denoised
+
+
+def deess(audio: np.ndarray, sr: int, tmp_dir: Path) -> np.ndarray:
+    """Reduce sibilance (harsh s/sh/ch sounds) in voice audio."""
+    in_path = tmp_dir / "host_pre_deess.wav"
+    out_path = tmp_dir / "host_post_deess.wav"
+    sf.write(str(in_path), audio, sr)
+
+    # Split-band de-esser: compress the 4-9kHz sibilance band aggressively
+    # while leaving everything else untouched, then recombine.
+    # Uses ffmpeg's crossfeed-style approach with bandpass + compressor.
+    af = (
+        "asplit=2[full][sib];"
+        "[sib]highpass=f=4000:poles=2,lowpass=f=9000:poles=2,"
+        "acompressor=threshold=-30dB:ratio=6:attack=1:release=50:makeup=0dB[compressed_sib];"
+        "[full][compressed_sib]amix=inputs=2:weights=1 0.4:normalize=0"
+    )
+    cmd = ["ffmpeg", "-y", "-i", str(in_path), "-af", af, str(out_path)]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"  WARNING: de-essing failed: {result.stderr[:200]}")
+        return audio
+
+    deessed, _ = sf.read(str(out_path), dtype="float32")
+    return deessed
+
+
+def reduce_breaths(audio: np.ndarray, sr: int, reduction_db: float = -12) -> np.ndarray:
+    """Reduce loud breaths between speech phrases."""
+    window_ms = 30
+    window_samples = int(sr * window_ms / 1000)
+    rms = compute_rms(audio, window_samples)
+
+    if not np.any(rms > 0):
+        return audio
+
+    # Speech threshold: breaths are quieter than speech but louder than silence
+    nonzero = rms[rms > 0]
+    speech_level = np.percentile(nonzero, 70)
+    silence_level = np.percentile(nonzero, 10)
+    breath_upper = speech_level * 0.3  # below 30% of speech level
+    breath_lower = silence_level * 2   # above 2x silence
+
+    if breath_upper <= breath_lower:
+        return audio
+
+    # Detect breath-length bursts (0.15-0.8s) in the breath amplitude range
+    min_windows = int(150 / window_ms)
+    max_windows = int(800 / window_ms)
+
+    breath_gain = 10 ** (reduction_db / 20)
+    gain_envelope = np.ones(len(rms), dtype=np.float32)
+
+    i = 0
+    breath_count = 0
+    while i < len(rms):
+        if breath_lower < rms[i] < breath_upper:
+            start = i
+            while i < len(rms) and breath_lower < rms[i] < breath_upper:
+                i += 1
+            length = i - start
+            if min_windows <= length <= max_windows:
+                gain_envelope[start:i] = breath_gain
+                breath_count += 1
+        else:
+            i += 1
+
+    if breath_count == 0:
+        return audio
+
+    print(f"  Reduced {breath_count} breaths by {reduction_db}dB")
+
+    # Smooth transitions (10ms ramp)
+    ramp = max(1, int(10 / window_ms))
+    smoothed = gain_envelope.copy()
+    for i in range(1, len(smoothed)):
+        if smoothed[i] < smoothed[i - 1]:
+            smoothed[i] = smoothed[i - 1] + (smoothed[i] - smoothed[i - 1]) / ramp
+        elif smoothed[i] > smoothed[i - 1]:
+            smoothed[i] = smoothed[i - 1] + (smoothed[i] - smoothed[i - 1]) / ramp
+
+    # Expand to sample level
+    gain_samples = np.repeat(smoothed, window_samples)[:len(audio)]
+    if len(gain_samples) < len(audio):
+        gain_samples = np.pad(gain_samples, (0, len(audio) - len(gain_samples)), constant_values=1.0)
+
+    return (audio * gain_samples).astype(np.float32)
 
 
 def compress_voice(audio: np.ndarray, sr: int, tmp_dir: Path,
@@ -305,31 +388,215 @@ def match_voice_levels(stems: dict[str, np.ndarray], target_rms: float = 0.1) ->
 
 
 def mix_stems(stems: dict[str, np.ndarray],
-              levels: dict[str, float] | None = None) -> np.ndarray:
+              levels: dict[str, float] | None = None,
+              stereo_imaging: bool = True) -> np.ndarray:
     if levels is None:
         levels = {"host": 0, "caller": 0, "music": -6, "sfx": -6, "ads": 0}
 
     gains = {name: 10 ** (db / 20) for name, db in levels.items()}
 
-    # Find max length
     max_len = max(len(s) for s in stems.values())
 
-    mix = np.zeros(max_len, dtype=np.float64)
-    for name in STEM_NAMES:
-        audio = stems[name]
-        if len(audio) < max_len:
-            audio = np.pad(audio, (0, max_len - len(audio)))
-        mix += audio.astype(np.float64) * gains.get(name, 1.0)
+    if stereo_imaging:
+        # Pan positions: -1.0 = full left, 0.0 = center, 1.0 = full right
+        # Using constant-power panning law
+        pans = {"host": 0.0, "caller": 0.15, "music": 0.0, "sfx": 0.0, "ads": 0.0}
+        # Music gets stereo width via slight L/R decorrelation
+        music_width = 0.3
 
-    # Stereo (mono duplicated to both channels)
-    mix = np.clip(mix, -1.0, 1.0).astype(np.float32)
-    stereo = np.column_stack([mix, mix])
+        left = np.zeros(max_len, dtype=np.float64)
+        right = np.zeros(max_len, dtype=np.float64)
+
+        for name in STEM_NAMES:
+            audio = stems[name]
+            if len(audio) < max_len:
+                audio = np.pad(audio, (0, max_len - len(audio)))
+            signal = audio.astype(np.float64) * gains.get(name, 1.0)
+
+            if name == "music" and music_width > 0:
+                # Widen music: delay right channel by ~0.5ms for Haas effect
+                delay_samples = int(0.0005 * 44100)  # ~22 samples at 44.1kHz
+                left += signal * (1 + music_width * 0.5)
+                right_delayed = np.zeros_like(signal)
+                right_delayed[delay_samples:] = signal[:-delay_samples] if delay_samples > 0 else signal
+                right += right_delayed * (1 + music_width * 0.5)
+            else:
+                pan = pans.get(name, 0.0)
+                # Constant-power pan: L = cos(angle), R = sin(angle)
+                angle = (pan + 1) * np.pi / 4  # 0 to pi/2
+                l_gain = np.cos(angle)
+                r_gain = np.sin(angle)
+                left += signal * l_gain
+                right += signal * r_gain
+
+        left = np.clip(left, -1.0, 1.0).astype(np.float32)
+        right = np.clip(right, -1.0, 1.0).astype(np.float32)
+        stereo = np.column_stack([left, right])
+    else:
+        mix = np.zeros(max_len, dtype=np.float64)
+        for name in STEM_NAMES:
+            audio = stems[name]
+            if len(audio) < max_len:
+                audio = np.pad(audio, (0, max_len - len(audio)))
+            mix += audio.astype(np.float64) * gains.get(name, 1.0)
+        mix = np.clip(mix, -1.0, 1.0).astype(np.float32)
+        stereo = np.column_stack([mix, mix])
+
     return stereo
+
+
+def trim_silence(audio: np.ndarray, sr: int, pad_s: float = 0.5,
+                 threshold_db: float = -50) -> np.ndarray:
+    """Trim leading and trailing silence from stereo audio."""
+    threshold = 10 ** (threshold_db / 20)
+    # Use the louder channel for detection
+    mono = np.max(np.abs(audio), axis=1) if audio.ndim > 1 else np.abs(audio)
+
+    # Smoothed envelope for more reliable detection
+    window = int(sr * 0.05)  # 50ms window
+    if len(mono) > window:
+        kernel = np.ones(window) / window
+        envelope = np.convolve(mono, kernel, mode='same')
+    else:
+        envelope = mono
+
+    above = np.where(envelope > threshold)[0]
+    if len(above) == 0:
+        return audio
+
+    pad_samples = int(pad_s * sr)
+    start = max(0, above[0] - pad_samples)
+    end = min(len(audio), above[-1] + pad_samples)
+
+    trimmed_start = start / sr
+    trimmed_end = (len(audio) - end) / sr
+    if trimmed_start > 0.1 or trimmed_end > 0.1:
+        print(f"  Trimmed {trimmed_start:.1f}s from start, {trimmed_end:.1f}s from end")
+    else:
+        print("  No significant silence to trim")
+
+    return audio[start:end]
+
+
+def apply_fades(audio: np.ndarray, sr: int,
+                fade_in_s: float = 1.5, fade_out_s: float = 3.0) -> np.ndarray:
+    """Apply fade in/out to stereo audio using equal-power curve."""
+    audio = audio.copy()
+
+    # Fade in
+    fade_in_samples = int(fade_in_s * sr)
+    if fade_in_samples > 0 and fade_in_samples < len(audio):
+        # Equal-power: sine curve for smooth perceived volume change
+        curve = np.sin(np.linspace(0, np.pi / 2, fade_in_samples)).astype(np.float32)
+        if audio.ndim > 1:
+            audio[:fade_in_samples] *= curve[:, np.newaxis]
+        else:
+            audio[:fade_in_samples] *= curve
+
+    # Fade out
+    fade_out_samples = int(fade_out_s * sr)
+    if fade_out_samples > 0 and fade_out_samples < len(audio):
+        curve = np.sin(np.linspace(np.pi / 2, 0, fade_out_samples)).astype(np.float32)
+        if audio.ndim > 1:
+            audio[-fade_out_samples:] *= curve[:, np.newaxis]
+        else:
+            audio[-fade_out_samples:] *= curve
+
+    print(f"  Fade in: {fade_in_s}s, fade out: {fade_out_s}s")
+    return audio
+
+
+def detect_chapters(stems: dict[str, np.ndarray], sr: int) -> list[dict]:
+    """Auto-detect chapter boundaries from stem activity."""
+    window_s = 2  # 2-second analysis windows
+    window_samples = int(sr * window_s)
+    n_windows = min(len(s) for s in stems.values()) // window_samples
+
+    if n_windows == 0:
+        return []
+
+    chapters = []
+    current_type = None
+    chapter_start = 0
+
+    for w in range(n_windows):
+        start = w * window_samples
+        end = start + window_samples
+
+        ads_rms = np.sqrt(np.mean(stems["ads"][start:end] ** 2))
+        caller_rms = np.sqrt(np.mean(stems["caller"][start:end] ** 2))
+        host_rms = np.sqrt(np.mean(stems["host"][start:end] ** 2))
+
+        # Classify this window
+        if ads_rms > 0.005:
+            seg_type = "Ad Break"
+        elif caller_rms > 0.005:
+            seg_type = "Caller"
+        elif host_rms > 0.005:
+            seg_type = "Host"
+        else:
+            seg_type = current_type  # keep current during silence
+
+        if seg_type != current_type and seg_type is not None:
+            if current_type is not None:
+                chapters.append({
+                    "title": current_type,
+                    "start_ms": int(chapter_start * 1000),
+                    "end_ms": int(w * window_s * 1000),
+                })
+            current_type = seg_type
+            chapter_start = w * window_s
+
+    # Final chapter
+    if current_type is not None:
+        chapters.append({
+            "title": current_type,
+            "start_ms": int(chapter_start * 1000),
+            "end_ms": int(n_windows * window_s * 1000),
+        })
+
+    # Merge consecutive chapters of same type
+    merged = []
+    for ch in chapters:
+        if merged and merged[-1]["title"] == ch["title"]:
+            merged[-1]["end_ms"] = ch["end_ms"]
+        else:
+            merged.append(ch)
+
+    # Number duplicate types (Caller 1, Caller 2, etc.)
+    type_counts = {}
+    for ch in merged:
+        base = ch["title"]
+        type_counts[base] = type_counts.get(base, 0) + 1
+        if type_counts[base] > 1 or base in ("Caller", "Ad Break"):
+            ch["title"] = f"{base} {type_counts[base]}"
+
+    # Filter out very short chapters (< 10s)
+    merged = [ch for ch in merged if ch["end_ms"] - ch["start_ms"] >= 10000]
+
+    return merged
+
+
+def write_ffmpeg_chapters(chapters: list[dict], output_path: Path):
+    """Write an ffmpeg-format metadata file with chapter markers."""
+    lines = [";FFMETADATA1"]
+    for ch in chapters:
+        lines.append("[CHAPTER]")
+        lines.append("TIMEBASE=1/1000")
+        lines.append(f"START={ch['start_ms']}")
+        lines.append(f"END={ch['end_ms']}")
+        lines.append(f"title={ch['title']}")
+    output_path.write_text("\n".join(lines) + "\n")
 
 
 def normalize_and_export(audio: np.ndarray, sr: int, output_path: Path,
                          target_lufs: float = -16, bitrate: str = "128k",
-                         tmp_dir: Path = None):
+                         tmp_dir: Path = None,
+                         metadata: dict | None = None,
+                         chapters_file: Path | None = None):
+    import json
+    import shutil
+
     tmp_wav = tmp_dir / "pre_loudnorm.wav"
     sf.write(str(tmp_wav), audio, sr)
 
@@ -342,8 +609,6 @@ def normalize_and_export(audio: np.ndarray, sr: int, output_path: Path,
     result = subprocess.run(measure_cmd, capture_output=True, text=True)
     stderr = result.stderr
 
-    # Parse loudnorm output
-    import json
     json_start = stderr.rfind("{")
     json_end = stderr.rfind("}") + 1
     if json_start >= 0 and json_end > json_start:
@@ -355,7 +620,7 @@ def normalize_and_export(audio: np.ndarray, sr: int, output_path: Path,
             "input_thresh": "-34",
         }
 
-    # Pass 2: apply normalization + limiter + export MP3
+    # Pass 2: normalize + limiter + export MP3
     loudnorm_filter = (
         f"loudnorm=I={target_lufs}:TP=-1:LRA=11"
         f":measured_I={stats['input_i']}"
@@ -364,16 +629,47 @@ def normalize_and_export(audio: np.ndarray, sr: int, output_path: Path,
         f":measured_thresh={stats['input_thresh']}"
         f":linear=true"
     )
-    export_cmd = [
-        "ffmpeg", "-y", "-i", str(tmp_wav),
+
+    export_cmd = ["ffmpeg", "-y", "-i", str(tmp_wav)]
+
+    if chapters_file and chapters_file.exists():
+        export_cmd += ["-i", str(chapters_file), "-map_metadata", "1"]
+
+    export_cmd += [
         "-af", f"{loudnorm_filter},alimiter=limit=-1dB:level=false",
         "-ab", bitrate, "-ar", str(sr),
-        str(output_path),
     ]
+
+    if metadata:
+        for key, value in metadata.items():
+            if value and not key.startswith("_"):
+                export_cmd += ["-metadata", f"{key}={value}"]
+
+    export_cmd.append(str(output_path))
     result = subprocess.run(export_cmd, capture_output=True, text=True)
     if result.returncode != 0:
         print(f"  ERROR: export failed: {result.stderr[:300]}")
         sys.exit(1)
+
+    # Embed artwork as a second pass (avoids complex multi-input mapping)
+    artwork = metadata.get("_artwork") if metadata else None
+    if artwork and Path(artwork).exists():
+        tmp_mp3 = tmp_dir / "with_art.mp3"
+        art_cmd = [
+            "ffmpeg", "-y", "-i", str(output_path), "-i", artwork,
+            "-map", "0:a", "-map", "1:0",
+            "-c:a", "copy", "-id3v2_version", "3",
+            "-metadata:s:v", "title=Album cover",
+            "-metadata:s:v", "comment=Cover (front)",
+            "-disposition:v", "attached_pic",
+            str(tmp_mp3),
+        ]
+        art_result = subprocess.run(art_cmd, capture_output=True, text=True)
+        if art_result.returncode == 0:
+            shutil.move(str(tmp_mp3), str(output_path))
+            print(f"  Embedded artwork: {artwork}")
+        else:
+            print(f"  WARNING: artwork embedding failed: {art_result.stderr[:200]}")
 
 
 def main():
@@ -384,9 +680,28 @@ def main():
     parser.add_argument("--duck-amount", type=float, default=-20, help="Music duck in dB")
     parser.add_argument("--target-lufs", type=float, default=-16, help="Target loudness (LUFS)")
     parser.add_argument("--bitrate", type=str, default="128k", help="MP3 bitrate")
+    parser.add_argument("--fade-in", type=float, default=1.5, help="Fade in duration (seconds)")
+    parser.add_argument("--fade-out", type=float, default=3.0, help="Fade out duration (seconds)")
+
+    # Metadata
+    parser.add_argument("--title", type=str, help="Episode title (ID3 tag)")
+    parser.add_argument("--artist", type=str, default="Luke at the Roost", help="Artist name")
+    parser.add_argument("--album", type=str, default="Luke at the Roost", help="Album/show name")
+    parser.add_argument("--episode-num", type=str, help="Episode number (track tag)")
+    parser.add_argument("--artwork", type=str, help="Path to artwork image (embedded in MP3)")
+
+    # Skip flags
     parser.add_argument("--no-gap-removal", action="store_true", help="Skip gap removal")
+    parser.add_argument("--no-denoise", action="store_true", help="Skip noise reduction + HPF")
+    parser.add_argument("--no-deess", action="store_true", help="Skip de-essing")
+    parser.add_argument("--no-breath-reduction", action="store_true", help="Skip breath reduction")
     parser.add_argument("--no-compression", action="store_true", help="Skip voice compression")
+    parser.add_argument("--no-phone-eq", action="store_true", help="Skip caller phone EQ")
     parser.add_argument("--no-ducking", action="store_true", help="Skip music ducking")
+    parser.add_argument("--no-stereo", action="store_true", help="Skip stereo imaging (mono mix)")
+    parser.add_argument("--no-trim", action="store_true", help="Skip silence trimming")
+    parser.add_argument("--no-fade", action="store_true", help="Skip fade in/out")
+    parser.add_argument("--no-chapters", action="store_true", help="Skip chapter markers")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be done")
     args = parser.parse_args()
 
@@ -401,37 +716,51 @@ def main():
         output_path = stems_dir / output_path
 
     print(f"Post-production: {stems_dir} -> {output_path}")
-    print(f"  Gap removal: {'skip' if args.no_gap_removal else f'threshold={args.gap_threshold}s'}")
-    print(f"  Compression: {'skip' if args.no_compression else 'on'}")
-    print(f"  Ducking: {'skip' if args.no_ducking else f'{args.duck_amount}dB'}")
-    print(f"  Loudness: {args.target_lufs} LUFS, bitrate: {args.bitrate}")
 
     if args.dry_run:
         print("Dry run — exiting")
         return
 
+    total_steps = 13
+
     # Step 1: Load
-    print("\n[1/9] Loading stems...")
+    print(f"\n[1/{total_steps}] Loading stems...")
     stems, sr = load_stems(stems_dir)
 
     # Step 2: Gap removal
-    print("\n[2/9] Gap removal...")
+    print(f"\n[2/{total_steps}] Gap removal...")
     if not args.no_gap_removal:
         stems = remove_gaps(stems, sr, threshold_s=args.gap_threshold)
     else:
         print("  Skipped")
 
-    # Step 3: Host mic noise reduction
-    print("\n[3/9] Host mic noise reduction...")
-    if np.any(stems["host"] != 0):
+    # Step 3: Host mic noise reduction + HPF
+    print(f"\n[3/{total_steps}] Host noise reduction + HPF...")
+    if not args.no_denoise and np.any(stems["host"] != 0):
         with tempfile.TemporaryDirectory() as tmp:
             stems["host"] = denoise(stems["host"], sr, Path(tmp))
             print("  Applied")
     else:
-        print("  No host audio")
+        print("  Skipped" if args.no_denoise else "  No host audio")
 
-    # Step 4: Voice compression
-    print("\n[4/9] Voice compression...")
+    # Step 4: De-essing
+    print(f"\n[4/{total_steps}] De-essing host...")
+    if not args.no_deess and np.any(stems["host"] != 0):
+        with tempfile.TemporaryDirectory() as tmp:
+            stems["host"] = deess(stems["host"], sr, Path(tmp))
+            print("  Applied")
+    else:
+        print("  Skipped" if args.no_deess else "  No host audio")
+
+    # Step 5: Breath reduction
+    print(f"\n[5/{total_steps}] Breath reduction...")
+    if not args.no_breath_reduction and np.any(stems["host"] != 0):
+        stems["host"] = reduce_breaths(stems["host"], sr)
+    else:
+        print("  Skipped" if args.no_breath_reduction else "  No host audio")
+
+    # Step 6: Voice compression
+    print(f"\n[6/{total_steps}] Voice compression...")
     if not args.no_compression:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_dir = Path(tmp)
@@ -442,21 +771,21 @@ def main():
     else:
         print("  Skipped")
 
-    # Step 5: Phone EQ on caller
-    print("\n[5/9] Phone EQ on caller...")
-    if np.any(stems["caller"] != 0):
+    # Step 7: Phone EQ on caller
+    print(f"\n[7/{total_steps}] Phone EQ on caller...")
+    if not args.no_phone_eq and np.any(stems["caller"] != 0):
         with tempfile.TemporaryDirectory() as tmp:
             stems["caller"] = phone_eq(stems["caller"], sr, Path(tmp))
             print("  Applied")
     else:
-        print("  No caller audio")
+        print("  Skipped" if args.no_phone_eq else "  No caller audio")
 
-    # Step 6: Match voice levels
-    print("\n[6/9] Matching voice levels...")
+    # Step 8: Match voice levels
+    print(f"\n[8/{total_steps}] Matching voice levels...")
     stems = match_voice_levels(stems)
 
-    # Step 7: Music ducking
-    print("\n[7/9] Music ducking...")
+    # Step 9: Music ducking
+    print(f"\n[9/{total_steps}] Music ducking...")
     if not args.no_ducking:
         dialog = stems["host"] + stems["caller"]
         if np.any(dialog != 0) and np.any(stems["music"] != 0):
@@ -468,18 +797,71 @@ def main():
     else:
         print("  Skipped")
 
-    # Step 8: Mix
-    print("\n[8/9] Mixing...")
-    stereo = mix_stems(stems)
-    print(f"  Mixed to stereo: {len(stereo)} samples ({len(stereo)/sr:.1f}s)")
+    # Step 10: Stereo mix
+    print(f"\n[10/{total_steps}] Mixing...")
+    stereo = mix_stems(stems, stereo_imaging=not args.no_stereo)
+    imaging = "stereo" if not args.no_stereo else "mono"
+    print(f"  Mixed to {imaging}: {len(stereo)} samples ({len(stereo)/sr:.1f}s)")
 
-    # Step 9: Normalize + export
-    print("\n[9/9] Loudness normalization + export...")
+    # Step 11: Silence trimming
+    print(f"\n[11/{total_steps}] Trimming silence...")
+    if not args.no_trim:
+        stereo = trim_silence(stereo, sr)
+    else:
+        print("  Skipped")
+
+    # Step 12: Fade in/out
+    print(f"\n[12/{total_steps}] Fades...")
+    if not args.no_fade:
+        stereo = apply_fades(stereo, sr, fade_in_s=args.fade_in, fade_out_s=args.fade_out)
+    else:
+        print("  Skipped")
+
+    # Step 13: Normalize + export with metadata and chapters
+    print(f"\n[13/{total_steps}] Loudness normalization + export...")
+
+    # Build metadata dict
+    meta = {}
+    if args.title:
+        meta["title"] = args.title
+    if args.artist:
+        meta["artist"] = args.artist
+    if args.album:
+        meta["album"] = args.album
+    if args.episode_num:
+        meta["track"] = args.episode_num
+    if args.artwork:
+        meta["_artwork"] = args.artwork
+
+    # Auto-detect chapters
+    chapters = []
+    if not args.no_chapters:
+        chapters = detect_chapters(stems, sr)
+        if chapters:
+            print(f"  Detected {len(chapters)} chapters:")
+            for ch in chapters:
+                start_s = ch["start_ms"] / 1000
+                end_s = ch["end_ms"] / 1000
+                print(f"    {start_s:6.1f}s - {end_s:6.1f}s  {ch['title']}")
+        else:
+            print("  No chapters detected")
+    else:
+        print("  Skipped")
+
     with tempfile.TemporaryDirectory() as tmp:
+        tmp_dir = Path(tmp)
+
+        chapters_file = None
+        if chapters:
+            chapters_file = tmp_dir / "chapters.txt"
+            write_ffmpeg_chapters(chapters, chapters_file)
+
         normalize_and_export(stereo, sr, output_path,
                              target_lufs=args.target_lufs,
                              bitrate=args.bitrate,
-                             tmp_dir=Path(tmp))
+                             tmp_dir=tmp_dir,
+                             metadata=meta if meta else None,
+                             chapters_file=chapters_file)
 
     print(f"\nDone! Output: {output_path}")
 
