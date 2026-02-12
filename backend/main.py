@@ -2377,8 +2377,8 @@ async def set_on_air(state: dict):
                 def _run_postprod():
                     try:
                         result = subprocess.run(
-                            [python, "postprod.py", str(stems_dir), "-o", str(output_file)],
-                            capture_output=True, text=True, timeout=300,
+                            [python, "postprod.py", str(stems_dir), "-o", "episode.mp3"],
+                            capture_output=True, text=True, timeout=600,
                         )
                         if result.returncode == 0:
                             add_log(f"Post-production complete -> {output_file}")
@@ -3927,44 +3927,37 @@ async def server_status():
 
 # --- Stem Recording ---
 
-@app.post("/api/recording/start")
-async def start_stem_recording():
-    if audio_service.stem_recorder is not None:
-        raise HTTPException(400, "Recording already in progress")
-    from datetime import datetime
-    dir_name = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    recordings_dir = Path("recordings") / dir_name
-    import sounddevice as sd
-    device_info = sd.query_devices(audio_service.output_device) if audio_service.output_device is not None else None
-    sr = int(device_info["default_samplerate"]) if device_info else 48000
-    recorder = StemRecorder(recordings_dir, sample_rate=sr)
-    recorder.start()
-    audio_service.stem_recorder = recorder
-    audio_service.start_stem_mic()
-    add_log(f"Stem recording started -> {recordings_dir}")
-    # Auto go on-air
+@app.post("/api/recording/toggle")
+async def toggle_stem_recording():
+    """Toggle recording on/off. Also toggles on-air state."""
     global _show_on_air
-    if not _show_on_air:
-        _show_on_air = True
-        _start_host_audio_sender()
-        audio_service.start_host_stream(_host_audio_sync_callback)
-        threading.Thread(target=_update_on_air_cdn, args=(True,), daemon=True).start()
-        add_log("Show auto-set to ON AIR")
-    return {"status": "recording", "dir": str(recordings_dir), "on_air": _show_on_air}
-
-
-@app.post("/api/recording/stop")
-async def stop_stem_recording():
     if audio_service.stem_recorder is None:
-        raise HTTPException(400, "No recording in progress")
+        # START recording
+        from datetime import datetime
+        dir_name = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+        recordings_dir = Path("recordings") / dir_name
+        import sounddevice as sd
+        device_info = sd.query_devices(audio_service.output_device) if audio_service.output_device is not None else None
+        sr = int(device_info["default_samplerate"]) if device_info else 48000
+        recorder = StemRecorder(recordings_dir, sample_rate=sr)
+        recorder.start()
+        audio_service.stem_recorder = recorder
+        audio_service.start_stem_mic()
+        add_log(f"Stem recording started -> {recordings_dir}")
+        if not _show_on_air:
+            _show_on_air = True
+            _start_host_audio_sender()
+            audio_service.start_host_stream(_host_audio_sync_callback)
+            threading.Thread(target=_update_on_air_cdn, args=(True,), daemon=True).start()
+            add_log("Show auto-set to ON AIR")
+        return {"on_air": _show_on_air, "recording": True}
+    # STOP recording
     audio_service.stop_stem_mic()
     stems_dir = audio_service.stem_recorder.output_dir
     paths = audio_service.stem_recorder.stop()
     audio_service.stem_recorder = None
     add_log(f"Stem recording stopped. Running post-production...")
 
-    # Auto go off-air
-    global _show_on_air
     if _show_on_air:
         _show_on_air = False
         audio_service.stop_host_stream()
@@ -3978,8 +3971,8 @@ async def stop_stem_recording():
     def _run_postprod():
         try:
             result = subprocess.run(
-                [python, "postprod.py", str(stems_dir), "-o", str(output_file)],
-                capture_output=True, text=True, timeout=300,
+                [python, "postprod.py", str(stems_dir), "-o", "episode.mp3"],
+                capture_output=True, text=True, timeout=600,
             )
             if result.returncode == 0:
                 add_log(f"Post-production complete -> {output_file}")
@@ -3989,7 +3982,7 @@ async def stop_stem_recording():
             add_log(f"Post-production error: {e}")
 
     threading.Thread(target=_run_postprod, daemon=True).start()
-    return {"status": "stopped", "stems": paths, "processing": str(output_file), "on_air": _show_on_air}
+    return {"on_air": _show_on_air, "recording": False}
 
 
 @app.post("/api/recording/process")

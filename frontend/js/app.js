@@ -101,17 +101,10 @@ function initEventListeners() {
     if (recBtn) {
         recBtn.addEventListener('click', async () => {
             try {
-                if (!stemRecording) {
-                    const res = await safeFetch('/api/recording/start', { method: 'POST' });
-                    updateRecBtn(true);
-                    if (onAirBtn) updateOnAirBtn(onAirBtn, res.on_air);
-                    log('Recording started + ON AIR: ' + res.dir);
-                } else {
-                    const res = await safeFetch('/api/recording/stop', { method: 'POST' });
-                    updateRecBtn(false);
-                    if (onAirBtn) updateOnAirBtn(onAirBtn, res.on_air);
-                    log('Recording stopped + OFF AIR');
-                }
+                const res = await safeFetch('/api/recording/toggle', { method: 'POST' });
+                updateRecBtn(res.recording);
+                if (onAirBtn) updateOnAirBtn(onAirBtn, res.on_air);
+                log(res.recording ? 'Recording started + ON AIR' : 'Recording stopped + OFF AIR');
             } catch (err) {
                 log('Recording error: ' + err.message);
             }

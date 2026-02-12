@@ -86,18 +86,28 @@ DEFAULT_VITS_SPEAKER = "p225"
 # Dennis, Dominus, Edward, Elizabeth, Hades, Hana, Julia, Luna, Mark, Olivia,
 # Pixie, Priya, Ronald, Sarah, Shaun, Theodore, Timothy, Wendy
 INWORLD_VOICES = {
-    # Male voices - each caller gets a unique voice matching their personality
+    # Original voice IDs
     "VR6AewLTigWG4xSOukaG": "Edward",    # Tony - fast-talking, emphatic, streetwise
     "TxGEqnHWrfWFTfGW9XjX": "Shaun",     # Rick - friendly, dynamic, conversational
     "pNInz6obpgDQGcFmaJgB": "Alex",      # Dennis - energetic, expressive, mildly nasal
     "ODq5zmih8GrVes37Dizd": "Craig",     # Earl - older British, refined, articulate
-    "IKne3meq5aSn9XLyUdCD": "Timothy",   # Marcus - lively, upbeat American
-    # Female voices - each caller gets a unique voice matching their personality
+    "IKne3meq5aSn9XLyUdCD": "Timothy",   # Marcus/Jerome - lively, upbeat American
     "jBpfuIE2acCO8z3wKNLl": "Hana",      # Jasmine - bright, expressive young female
     "EXAVITQu4vr4xnSDxMaL": "Ashley",    # Megan - warm, natural female
     "21m00Tcm4TlvDq8ikWAM": "Wendy",     # Tanya - posh, middle-aged British
     "XB0fDUnXU5powFXDhCwa": "Sarah",     # Carla - fast-talking, questioning tone
-    "pFZP5JQG7iQjIQuC4Bku": "Deborah",   # Brenda - gentle, elegant
+    "pFZP5JQG7iQjIQuC4Bku": "Deborah",   # Brenda (original) - gentle, elegant
+    # Regular caller voice IDs (backfilled)
+    "onwK4e9ZLuTAKqWW03F9": "Ronald",    # Bobby - repo man
+    "FGY2WhTYpPnrIDTdsKH5": "Julia",     # Carla (regular) - Jersey mom
+    "CwhRBWXzGAHq8TQ4Fs17": "Mark",      # Leon - male caller
+    "SOYHLrjzK2X1ezoPC6cr": "Carter",    # Carl - male caller
+    "N2lVS1w4EtoT3dr4eOWO": "Clive",     # Reggie - male caller
+    "hpp4J3VqNfWAUOO0d1Us": "Olivia",    # Brenda (regular) - ambulance driver
+    "nPczCjzI2devNBz1zQrb": "Theodore",  # Keith - male caller
+    "JBFqnCBsd6RMkjVDRZzb": "Blake",     # Andre - male caller
+    "TX3LPaxmHKxFdv7VOQHJ": "Dennis",    # Rick (regular) - male caller
+    "cgSgspJ2msm6clMCkdW9": "Priya",     # Megan (regular) - female caller
 }
 DEFAULT_INWORLD_VOICE = "Dennis"
 

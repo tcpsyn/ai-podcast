@@ -361,10 +361,6 @@ class AudioService:
             # Apply fade to prevent clicks
             audio = self._apply_fade(audio, device_sr)
 
-            # Stem recording: caller TTS
-            if self.stem_recorder:
-                self.stem_recorder.write_sporadic("caller", audio.copy(), device_sr)
-
             # Create multi-channel output with audio only on target channel
             multi_ch = np.zeros((len(audio), num_channels), dtype=np.float32)
             multi_ch[:, channel_idx] = audio
@@ -384,6 +380,9 @@ class AudioService:
                 while pos < len(multi_ch) and not self._caller_stop_event.is_set():
                     end = min(pos + chunk_size, len(multi_ch))
                     stream.write(multi_ch[pos:end])
+                    # Record each chunk as it plays so hangups cut the stem too
+                    if self.stem_recorder:
+                        self.stem_recorder.write_sporadic("caller", audio[pos:end].copy(), device_sr)
                     pos = end
 
             if self._caller_stop_event.is_set():
@@ -752,7 +751,7 @@ class AudioService:
                 mono_out = (old_samples * fade_out + new_samples * fade_in) * self._music_volume
                 outdata[:, channel_idx] = mono_out
                 if self.stem_recorder:
-                    self.stem_recorder.write("music", mono_out.copy(), device_sr)
+                    self.stem_recorder.write_sporadic("music", mono_out.copy(), device_sr)
                 self._crossfade_progress = end_progress
 
                 if self._crossfade_progress >= 1.0:
@@ -763,7 +762,7 @@ class AudioService:
                 mono_out = new_samples * self._music_volume
                 outdata[:, channel_idx] = mono_out
                 if self.stem_recorder:
-                    self.stem_recorder.write("music", mono_out.copy(), device_sr)
+                    self.stem_recorder.write_sporadic("music", mono_out.copy(), device_sr)
 
         try:
             self._music_stream = sd.OutputStream(
@@ -873,7 +872,7 @@ class AudioService:
                 chunk = self._ad_resampled[self._ad_position:self._ad_position + frames]
                 outdata[:, channel_idx] = chunk
                 if self.stem_recorder:
-                    self.stem_recorder.write("ads", chunk.copy(), device_sr)
+                    self.stem_recorder.write_sporadic("ads", chunk.copy(), device_sr)
                 self._ad_position += frames
             else:
                 if remaining > 0:
