@@ -46,12 +46,26 @@ MALE_NAMES = [
     "Tony", "Rick", "Dennis", "Earl", "Marcus", "Keith", "Darnell", "Wayne",
     "Greg", "Andre", "Ray", "Jerome", "Hector", "Travis", "Vince", "Leon",
     "Dale", "Frank", "Terrence", "Bobby", "Cliff", "Nate", "Reggie", "Carl",
+    "Donnie", "Mitch", "Lamar", "Tyrone", "Russell", "Cedric", "Marvin", "Curtis",
+    "Rodney", "Clarence", "Floyd", "Otis", "Chester", "Leroy", "Melvin", "Vernon",
+    "Dwight", "Benny", "Elvin", "Alonzo", "Dexter", "Roland", "Wendell", "Clyde",
+    "Luther", "Virgil", "Ernie", "Lenny", "Sal", "Gus", "Moe", "Archie",
+    "Duke", "Sonny", "Red", "Butch", "Skeeter", "T-Bone", "Slim", "Big Mike",
+    "Chip", "Ricky", "Darryl", "Pete", "Artie", "Stu", "Phil", "Murray",
+    "Norm", "Woody", "Rocco", "Paulie", "Vinnie", "Frankie", "Mikey", "Joey",
 ]
 
 FEMALE_NAMES = [
     "Jasmine", "Megan", "Tanya", "Carla", "Brenda", "Sheila", "Denise", "Tamika",
     "Lorraine", "Crystal", "Angie", "Renee", "Monique", "Gina", "Patrice", "Deb",
     "Shonda", "Marlene", "Yolanda", "Stacy", "Jackie", "Carmen", "Rita", "Val",
+    "Diane", "Connie", "Wanda", "Doris", "Maxine", "Gladys", "Pearl", "Lucille",
+    "Rochelle", "Bernadette", "Thelma", "Dolores", "Naomi", "Bonnie", "Francine", "Irene",
+    "Estelle", "Charlene", "Yvonne", "Roberta", "Darlene", "Adrienne", "Vivian", "Rosalie",
+    "Pam", "Barb", "Cheryl", "Jolene", "Mavis", "Faye", "Luann", "Peggy",
+    "Dot", "Bev", "Tina", "Lori", "Sandy", "Debbie", "Terri", "Cindy",
+    "Tonya", "Keisha", "Latoya", "Shaniqua", "Aaliyah", "Ebony", "Lakisha", "Shanice",
+    "Nikki", "Candy", "Misty", "Brandy", "Tiffany", "Amber", "Heather", "Jen",
 ]
 
 # Voice pools per TTS provider
@@ -121,8 +135,20 @@ def _randomize_callers():
     Overrides 2-3 slots with returning regulars when available."""
     num_m = sum(1 for c in CALLER_BASES.values() if c["gender"] == "male")
     num_f = sum(1 for c in CALLER_BASES.values() if c["gender"] == "female")
-    males = random.sample(MALE_NAMES, num_m)
-    females = random.sample(FEMALE_NAMES, num_f)
+
+    # Get returning callers first so we can exclude their names from random pool
+    returning = []
+    try:
+        returning = regular_caller_service.get_returning_callers(random.randint(2, 3))
+    except Exception as e:
+        print(f"[Regulars] Failed to get returning callers: {e}")
+
+    returning_names = {r["name"] for r in returning}
+    avail_males = [n for n in MALE_NAMES if n not in returning_names]
+    avail_females = [n for n in FEMALE_NAMES if n not in returning_names]
+
+    males = random.sample(avail_males, num_m)
+    females = random.sample(avail_females, num_f)
     male_pool, female_pool = _get_voice_pools()
     m_voices = random.sample(male_pool, min(num_m, len(male_pool)))
     f_voices = random.sample(female_pool, min(num_f, len(female_pool)))
@@ -141,7 +167,6 @@ def _randomize_callers():
 
     # Override 2-3 random slots with returning callers
     try:
-        returning = regular_caller_service.get_returning_callers(random.randint(2, 3))
         if returning:
             keys_by_gender = {"male": [], "female": []}
             for k, v in CALLER_BASES.items():

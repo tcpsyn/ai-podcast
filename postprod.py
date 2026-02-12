@@ -159,19 +159,12 @@ def remove_gaps(stems: dict[str, np.ndarray], sr: int,
 
 
 def denoise(audio: np.ndarray, sr: int, tmp_dir: Path) -> np.ndarray:
-    """High-quality noise reduction with HPF + adaptive FFT denoiser."""
+    """HPF to cut rumble below 80Hz (plosives, HVAC, handling noise)."""
     in_path = tmp_dir / "host_pre_denoise.wav"
     out_path = tmp_dir / "host_post_denoise.wav"
     sf.write(str(in_path), audio, sr)
 
-    # highpass: cut rumble below 80Hz (plosives, HVAC, handling noise)
-    # afftdn: adaptive FFT Wiener filter for steady-state noise
-    # anlmdn: non-local means for residual broadband noise
-    af = (
-        "highpass=f=80:poles=2,"
-        "afftdn=nt=w:om=o:nr=12:nf=-30,"
-        "anlmdn=s=4:p=0.002"
-    )
+    af = "highpass=f=80:poles=2"
     cmd = ["ffmpeg", "-y", "-i", str(in_path), "-af", af, str(out_path)]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
@@ -188,15 +181,9 @@ def deess(audio: np.ndarray, sr: int, tmp_dir: Path) -> np.ndarray:
     out_path = tmp_dir / "host_post_deess.wav"
     sf.write(str(in_path), audio, sr)
 
-    # Split-band de-esser: compress the 4-9kHz sibilance band aggressively
-    # while leaving everything else untouched, then recombine.
-    # Uses ffmpeg's crossfeed-style approach with bandpass + compressor.
-    af = (
-        "asplit=2[full][sib];"
-        "[sib]highpass=f=4000:poles=2,lowpass=f=9000:poles=2,"
-        "acompressor=threshold=-30dB:ratio=6:attack=1:release=50:makeup=0dB[compressed_sib];"
-        "[full][compressed_sib]amix=inputs=2:weights=1 0.4:normalize=0"
-    )
+    # Gentle high-shelf reduction at 5kHz (-4dB) to tame sibilance
+    # Single-pass, no phase issues unlike split-band approaches
+    af = "equalizer=f=5500:t=h:w=2000:g=-4"
     cmd = ["ffmpeg", "-y", "-i", str(in_path), "-af", af, str(out_path)]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
@@ -269,6 +256,30 @@ def reduce_breaths(audio: np.ndarray, sr: int, reduction_db: float = -12) -> np.
     return (audio * gain_samples).astype(np.float32)
 
 
+def limit_stem(audio: np.ndarray, sr: int, tmp_dir: Path,
+               stem_name: str) -> np.ndarray:
+    """Hard-limit a stem to -1dB true peak to prevent clipping."""
+    peak = np.max(np.abs(audio))
+    if peak <= 0.89:  # already below -1dB
+        return audio
+    in_path = tmp_dir / f"{stem_name}_pre_limit.wav"
+    out_path = tmp_dir / f"{stem_name}_post_limit.wav"
+    sf.write(str(in_path), audio, sr)
+    cmd = [
+        "ffmpeg", "-y", "-i", str(in_path),
+        "-af", "alimiter=limit=-1dB:level=false:attack=0.1:release=50",
+        str(out_path),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"  WARNING: limiting failed for {stem_name}: {result.stderr[:200]}")
+        return audio
+    limited, _ = sf.read(str(out_path), dtype="float32")
+    peak_db = 20 * np.log10(peak)
+    print(f"  {stem_name}: peak was {peak_db:+.1f}dB, limited to -1dB")
+    return limited
+
+
 def compress_voice(audio: np.ndarray, sr: int, tmp_dir: Path,
                    stem_name: str) -> np.ndarray:
     in_path = tmp_dir / f"{stem_name}_pre_comp.wav"
@@ -276,9 +287,15 @@ def compress_voice(audio: np.ndarray, sr: int, tmp_dir: Path,
 
     sf.write(str(in_path), audio, sr)
 
+    if stem_name == "host":
+        # Spoken word compression: lower threshold, higher ratio, more makeup
+        af = "acompressor=threshold=-28dB:ratio=4:attack=5:release=600:makeup=8dB"
+    else:
+        af = "acompressor=threshold=-24dB:ratio=2.5:attack=10:release=800:makeup=6dB"
+
     cmd = [
         "ffmpeg", "-y", "-i", str(in_path),
-        "-af", "acompressor=threshold=-24dB:ratio=2.5:attack=10:release=800:makeup=6dB",
+        "-af", af,
         str(out_path),
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -391,7 +408,7 @@ def mix_stems(stems: dict[str, np.ndarray],
               levels: dict[str, float] | None = None,
               stereo_imaging: bool = True) -> np.ndarray:
     if levels is None:
-        levels = {"host": 0, "caller": 0, "music": -6, "sfx": -6, "ads": 0}
+        levels = {"host": 0, "caller": 0, "music": -6, "sfx": -10, "ads": 0}
 
     gains = {name: 10 ** (db / 20) for name, db in levels.items()}
 
@@ -443,6 +460,25 @@ def mix_stems(stems: dict[str, np.ndarray],
         stereo = np.column_stack([mix, mix])
 
     return stereo
+
+
+def bus_compress(audio: np.ndarray, sr: int, tmp_dir: Path) -> np.ndarray:
+    """Gentle bus compression on the final stereo mix to glue everything together."""
+    in_path = tmp_dir / "bus_pre.wav"
+    out_path = tmp_dir / "bus_post.wav"
+    sf.write(str(in_path), audio, sr)
+
+    # Gentle glue compressor: slow attack lets transients through,
+    # low ratio just levels out the overall dynamics
+    af = "acompressor=threshold=-20dB:ratio=2:attack=20:release=300:makeup=2dB"
+    cmd = ["ffmpeg", "-y", "-i", str(in_path), "-af", af, str(out_path)]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"  WARNING: bus compression failed: {result.stderr[:200]}")
+        return audio
+
+    compressed, _ = sf.read(str(out_path), dtype="float32")
+    return compressed
 
 
 def trim_silence(audio: np.ndarray, sr: int, pad_s: float = 0.5,
@@ -721,7 +757,7 @@ def main():
         print("Dry run — exiting")
         return
 
-    total_steps = 13
+    total_steps = 15
 
     # Step 1: Load
     print(f"\n[1/{total_steps}] Loading stems...")
@@ -734,8 +770,16 @@ def main():
     else:
         print("  Skipped")
 
-    # Step 3: Host mic noise reduction + HPF
-    print(f"\n[3/{total_steps}] Host noise reduction + HPF...")
+    # Step 3: Limit ads + SFX (prevent clipping)
+    print(f"\n[3/{total_steps}] Limiting ads + SFX...")
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_dir = Path(tmp)
+        for name in ["ads", "sfx"]:
+            if np.any(stems[name] != 0):
+                stems[name] = limit_stem(stems[name], sr, tmp_dir, name)
+
+    # Step 4: Host mic noise reduction + HPF
+    print(f"\n[4/{total_steps}] Host noise reduction + HPF...")
     if not args.no_denoise and np.any(stems["host"] != 0):
         with tempfile.TemporaryDirectory() as tmp:
             stems["host"] = denoise(stems["host"], sr, Path(tmp))
@@ -743,8 +787,8 @@ def main():
     else:
         print("  Skipped" if args.no_denoise else "  No host audio")
 
-    # Step 4: De-essing
-    print(f"\n[4/{total_steps}] De-essing host...")
+    # Step 5: De-essing
+    print(f"\n[5/{total_steps}] De-essing host...")
     if not args.no_deess and np.any(stems["host"] != 0):
         with tempfile.TemporaryDirectory() as tmp:
             stems["host"] = deess(stems["host"], sr, Path(tmp))
@@ -752,15 +796,15 @@ def main():
     else:
         print("  Skipped" if args.no_deess else "  No host audio")
 
-    # Step 5: Breath reduction
-    print(f"\n[5/{total_steps}] Breath reduction...")
+    # Step 6: Breath reduction
+    print(f"\n[6/{total_steps}] Breath reduction...")
     if not args.no_breath_reduction and np.any(stems["host"] != 0):
         stems["host"] = reduce_breaths(stems["host"], sr)
     else:
         print("  Skipped" if args.no_breath_reduction else "  No host audio")
 
-    # Step 6: Voice compression
-    print(f"\n[6/{total_steps}] Voice compression...")
+    # Step 7: Voice compression
+    print(f"\n[7/{total_steps}] Voice compression...")
     if not args.no_compression:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_dir = Path(tmp)
@@ -771,8 +815,8 @@ def main():
     else:
         print("  Skipped")
 
-    # Step 7: Phone EQ on caller
-    print(f"\n[7/{total_steps}] Phone EQ on caller...")
+    # Step 8: Phone EQ on caller
+    print(f"\n[8/{total_steps}] Phone EQ on caller...")
     if not args.no_phone_eq and np.any(stems["caller"] != 0):
         with tempfile.TemporaryDirectory() as tmp:
             stems["caller"] = phone_eq(stems["caller"], sr, Path(tmp))
@@ -780,12 +824,12 @@ def main():
     else:
         print("  Skipped" if args.no_phone_eq else "  No caller audio")
 
-    # Step 8: Match voice levels
-    print(f"\n[8/{total_steps}] Matching voice levels...")
+    # Step 9: Match voice levels
+    print(f"\n[9/{total_steps}] Matching voice levels...")
     stems = match_voice_levels(stems)
 
-    # Step 9: Music ducking
-    print(f"\n[9/{total_steps}] Music ducking...")
+    # Step 10: Music ducking
+    print(f"\n[10/{total_steps}] Music ducking...")
     if not args.no_ducking:
         dialog = stems["host"] + stems["caller"]
         if np.any(dialog != 0) and np.any(stems["music"] != 0):
@@ -797,28 +841,34 @@ def main():
     else:
         print("  Skipped")
 
-    # Step 10: Stereo mix
-    print(f"\n[10/{total_steps}] Mixing...")
+    # Step 11: Stereo mix
+    print(f"\n[11/{total_steps}] Mixing...")
     stereo = mix_stems(stems, stereo_imaging=not args.no_stereo)
     imaging = "stereo" if not args.no_stereo else "mono"
     print(f"  Mixed to {imaging}: {len(stereo)} samples ({len(stereo)/sr:.1f}s)")
 
-    # Step 11: Silence trimming
-    print(f"\n[11/{total_steps}] Trimming silence...")
+    # Step 12: Bus compression
+    print(f"\n[12/{total_steps}] Bus compression...")
+    with tempfile.TemporaryDirectory() as tmp:
+        stereo = bus_compress(stereo, sr, Path(tmp))
+        print("  Applied")
+
+    # Step 13: Silence trimming
+    print(f"\n[13/{total_steps}] Trimming silence...")
     if not args.no_trim:
         stereo = trim_silence(stereo, sr)
     else:
         print("  Skipped")
 
-    # Step 12: Fade in/out
-    print(f"\n[12/{total_steps}] Fades...")
+    # Step 14: Fade in/out
+    print(f"\n[14/{total_steps}] Fades...")
     if not args.no_fade:
         stereo = apply_fades(stereo, sr, fade_in_s=args.fade_in, fade_out_s=args.fade_out)
     else:
         print("  Skipped")
 
-    # Step 13: Normalize + export with metadata and chapters
-    print(f"\n[13/{total_steps}] Loudness normalization + export...")
+    # Step 15: Normalize + export with metadata and chapters
+    print(f"\n[15/{total_steps}] Loudness normalization + export...")
 
     # Build metadata dict
     meta = {}

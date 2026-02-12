@@ -130,27 +130,6 @@
             <span>Audio Router</span>
           </div>
         </div>
-        <div class="diagram-row diagram-row-split">
-          <div class="diagram-box">
-            <div class="diagram-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-            </div>
-            <span>Music</span>
-          </div>
-          <div class="diagram-box">
-            <div class="diagram-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-            </div>
-            <span>SFX</span>
-          </div>
-          <div class="diagram-box">
-            <div class="diagram-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v3"/></svg>
-            </div>
-            <span>Ads</span>
-          </div>
-        </div>
-        <div class="diagram-arrow">&#8595;</div>
         <!-- Row 4: Recording -->
         <div class="diagram-row">
           <div class="diagram-box">
@@ -255,10 +234,11 @@
         <div class="hiw-step-content">
           <h3>A Person Is Born</h3>
           <p>Every caller starts as a blank slate. The system generates a complete identity: name, age, job, hometown, and personality. Each caller gets a unique speaking style — some ramble, some are blunt, some deflect with humor. They have relationships, vehicles, strong food opinions, nostalgic memories, and reasons for being up this late. They know what they were watching on TV, what errand they ran today, and what song was on the radio before they called.</p>
+          <p>Some callers become regulars. The system tracks returning callers across episodes — they remember past conversations, reference things they talked about before, and their stories evolve over time. You'll hear Carla update you on her divorce, or Carl check in about his gambling recovery. They're not reset between shows.</p>
           <div class="hiw-detail-grid">
             <div class="hiw-detail">
               <span class="hiw-detail-label">Unique Names</span>
-              <span class="hiw-detail-value">48 names</span>
+              <span class="hiw-detail-value">160 names</span>
             </div>
             <div class="hiw-detail">
               <span class="hiw-detail-label">Personality Layers</span>
@@ -269,8 +249,8 @@
               <span class="hiw-detail-value">32</span>
             </div>
             <div class="hiw-detail">
-              <span class="hiw-detail-label">Unique Voices</span>
-              <span class="hiw-detail-value">25</span>
+              <span class="hiw-detail-label">Returning Regulars</span>
+              <span class="hiw-detail-value">12+ callers</span>
             </div>
           </div>
         </div>
@@ -381,23 +361,23 @@
         <div class="hiw-step-number">8</div>
         <div class="hiw-step-content">
           <h3>Post-Production Pipeline</h3>
-          <p>Once the show ends, an automated six-stage pipeline processes the raw stems into a broadcast-ready episode. Dead air and long silences are removed with crossfaded cuts. Voice tracks get dynamic range compression. Music automatically ducks under dialog. All five stems are mixed into stereo and loudness-normalized to broadcast standards. The whole process runs without manual intervention.</p>
+          <p>Once the show ends, a 15-step automated pipeline processes the raw stems into a broadcast-ready episode. Ads and sound effects are hard-limited to prevent clipping. The host mic gets a high-pass filter, de-essing, and breath reduction. Voice tracks are compressed — the host gets aggressive spoken-word compression for consistent levels, callers get telephone EQ to sound like real phone calls. All stems are level-matched, music is ducked under dialog and muted during ads, then everything is mixed to stereo with panning and width. A bus compressor glues the final mix together before silence trimming, fades, and EBU R128 loudness normalization.</p>
           <div class="hiw-detail-grid">
             <div class="hiw-detail">
-              <span class="hiw-detail-label">Pipeline Stages</span>
-              <span class="hiw-detail-value">6 steps</span>
+              <span class="hiw-detail-label">Pipeline Steps</span>
+              <span class="hiw-detail-value">15</span>
             </div>
             <div class="hiw-detail">
               <span class="hiw-detail-label">Loudness Target</span>
               <span class="hiw-detail-value">-16 LUFS</span>
             </div>
             <div class="hiw-detail">
-              <span class="hiw-detail-label">Music Ducking</span>
-              <span class="hiw-detail-value">Automatic</span>
+              <span class="hiw-detail-label">Loudness Range</span>
+              <span class="hiw-detail-value">~5.5 LU</span>
             </div>
             <div class="hiw-detail">
               <span class="hiw-detail-label">Output</span>
-              <span class="hiw-detail-value">Broadcast MP3</span>
+              <span class="hiw-detail-value">Stereo MP3</span>
             </div>
           </div>
         </div>
@@ -494,7 +474,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
         </div>
         <h3>Broadcast-Grade Audio</h3>
-        <p>Every episode goes through a professional post-production pipeline: five isolated stems are individually processed with dynamic compression, automatic music ducking, and EBU R128 loudness normalization before being mixed to stereo and encoded for distribution.</p>
+        <p>Every episode runs through a 15-step post-production pipeline: stem limiting, high-pass filtering, de-essing, breath reduction, spoken-word compression, telephone EQ, level matching, music ducking with ad muting, stereo imaging, bus compression, and EBU R128 loudness normalization.</p>
       </div>
       <div class="hiw-feature">
         <div class="hiw-feature-icon">
