@@ -187,6 +187,12 @@
             </div>
             <span>Website</span>
           </div>
+          <div class="diagram-box">
+            <div class="diagram-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="11" rx="2"/><path d="M7 21h10"/><path d="M12 14v7"/><polygon points="10 8 16 11 10 14 10 8"/></svg>
+            </div>
+            <span>Social Clips</span>
+          </div>
         </div>
         <div class="diagram-arrow">&#8595;</div>
         <!-- Row 7: Distribution -->
@@ -215,6 +221,18 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.503 20.752c0 1.794-1.456 3.248-3.251 3.248S0 22.546 0 20.752s1.456-3.248 3.252-3.248 3.251 1.454 3.251 3.248z"/><path d="M.002 9.473v4.594c5.508.163 9.929 4.584 10.092 10.091h4.594"/><path d="M.006 0v4.604C10.81 4.77 19.23 13.19 19.396 24h4.604"/></svg>
             </div>
             <span>RSS</span>
+          </div>
+          <div class="diagram-box diagram-accent">
+            <div class="diagram-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm3.1 14.5c-1.7 1-3.8.6-4.8-1.1-1-1.7-.6-3.8 1.1-4.8 1.7-1 3.8-.6 4.8 1.1 1 1.7.5 3.8-1.1 4.8z"/></svg>
+            </div>
+            <span>Instagram</span>
+          </div>
+          <div class="diagram-box diagram-accent">
+            <div class="diagram-icon">
+              <svg viewBox="0 0 568 501" fill="currentColor"><path d="M123.121 33.664C188.241 82.553 258.281 181.68 284 234.873c25.719-53.192 95.759-152.32 160.879-201.21C491.866-1.611 568-28.906 568 57.947c0 17.346-9.945 145.713-15.778 166.555-20.275 72.453-94.155 90.933-159.875 79.748C507.222 323.8 536.444 388.56 473.333 453.32c-119.86 122.992-172.272-30.859-185.702-70.281-2.462-7.227-3.614-10.608-3.631-7.733-.017-2.875-1.169.506-3.631 7.733-13.43 39.422-65.842 193.273-185.702 70.281-63.111-64.76-33.89-129.52 80.986-149.071-65.72 11.185-139.6-7.295-159.875-79.748C10.945 203.659 1 75.291 1 57.946 1-28.906 76.134-1.612 123.121 33.664z"/></svg>
+            </div>
+            <span>Bluesky</span>
           </div>
           <div class="diagram-box diagram-accent">
             <div class="diagram-icon">
@@ -414,6 +432,32 @@
 
       <div class="hiw-step">
         <div class="hiw-step-number">10</div>
+        <div class="hiw-step-content">
+          <h3>Automated Social Clips</h3>
+          <p>No manual editing, no scheduling tools. After each episode, an LLM reads the full transcript and picks the best moments — funny exchanges, wild confessions, heated debates. Each clip is automatically extracted, captioned with word-level timing, and rendered as a vertical video with the show's branding. A second LLM pass writes platform-specific descriptions and hashtags. Then a single script blasts every clip to Instagram Reels, YouTube Shorts, Facebook, Bluesky, and Mastodon simultaneously — six platforms, zero manual work.</p>
+          <div class="hiw-detail-grid">
+            <div class="hiw-detail">
+              <span class="hiw-detail-label">Human Effort</span>
+              <span class="hiw-detail-value">Zero</span>
+            </div>
+            <div class="hiw-detail">
+              <span class="hiw-detail-label">Video Format</span>
+              <span class="hiw-detail-value">1080x1920 MP4</span>
+            </div>
+            <div class="hiw-detail">
+              <span class="hiw-detail-label">Captions</span>
+              <span class="hiw-detail-value">Word-level sync</span>
+            </div>
+            <div class="hiw-detail">
+              <span class="hiw-detail-label">Simultaneous Push</span>
+              <span class="hiw-detail-value">6 platforms</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hiw-step">
+        <div class="hiw-step-number">11</div>
         <div class="hiw-step-content">
           <h3>Global Distribution</h3>
           <p>Episodes are served through a CDN edge network for fast, reliable playback worldwide. The RSS feed is automatically updated and picked up by Spotify, Apple Podcasts, YouTube, and every other podcast app. The website pulls the live feed to show episodes with embedded playback, full transcripts, and chapter navigation — all served through Cloudflare with edge caching. From recording to available on every platform, the whole pipeline is automated end-to-end.</p>
