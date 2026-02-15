@@ -38,6 +38,18 @@ BUNNY_STORAGE_REGION = "la"
 BUNNY_ACCOUNT_KEY = "REDACTED_BUNNY_ACCOUNT_KEY"
 
 
+def _find_ytdlp():
+    """Find yt-dlp: check local venv first, then fall back to PATH."""
+    import shutil
+    venv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "venv", "bin", "yt-dlp")
+    if os.path.exists(venv_path):
+        return venv_path
+    path_bin = shutil.which("yt-dlp")
+    if path_bin:
+        return path_bin
+    return "yt-dlp"
+
+
 def gather_apple_reviews():
     all_reviews = []
     seen_ids = set()
@@ -129,7 +141,7 @@ def gather_youtube(include_comments=False):
 
     try:
         proc = subprocess.run(
-            [os.path.join(os.path.dirname(os.path.abspath(__file__)), "venv", "bin", "yt-dlp"), "--dump-json", "--flat-playlist",
+            [_find_ytdlp(), "--dump-json", "--flat-playlist",
              f"https://www.youtube.com/playlist?list={YOUTUBE_PLAYLIST}"],
             capture_output=True, text=True, timeout=60
         )
@@ -160,7 +172,7 @@ def gather_youtube(include_comments=False):
 
     for vid in video_ids:
         try:
-            cmd = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "venv", "bin", "yt-dlp"), "--dump-json", "--no-download", f"https://www.youtube.com/watch?v={vid}"]
+            cmd = [_find_ytdlp(), "--dump-json", "--no-download", f"https://www.youtube.com/watch?v={vid}"]
             if include_comments:
                 cmd.insert(2, "--write-comments")
             vr = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
@@ -204,7 +216,7 @@ def gather_youtube(include_comments=False):
     if videos:
         try:
             vr = subprocess.run(
-                [os.path.join(os.path.dirname(os.path.abspath(__file__)), "venv", "bin", "yt-dlp"), "--dump-json", "--no-download", "--playlist-items", "1",
+                [_find_ytdlp(), "--dump-json", "--no-download", "--playlist-items", "1",
                  f"https://www.youtube.com/playlist?list={YOUTUBE_PLAYLIST}"],
                 capture_output=True, text=True, timeout=30
             )
@@ -224,10 +236,21 @@ def gather_youtube(include_comments=False):
 
 
 def _run_db_query(sql):
-    cmd = [
-        "ssh", "-p", NAS_SSH_PORT, NAS_SSH,
-        f"{DOCKER_BIN} exec -i {CASTOPOD_DB_CONTAINER} mysql -u castopod -pREDACTED_DB_PASSWORD castopod -N"
-    ]
+    # If running on NAS (docker socket available), exec directly
+    docker_bin = None
+    for path in [DOCKER_BIN, "/usr/bin/docker", "/usr/local/bin/docker"]:
+        if os.path.exists(path):
+            docker_bin = path
+            break
+
+    if docker_bin:
+        cmd = [docker_bin, "exec", "-i", CASTOPOD_DB_CONTAINER,
+               "mysql", "-u", "castopod", "-pREDACTED_DB_PASSWORD", "castopod", "-N"]
+    else:
+        cmd = [
+            "ssh", "-p", NAS_SSH_PORT, NAS_SSH,
+            f"{DOCKER_BIN} exec -i {CASTOPOD_DB_CONTAINER} mysql -u castopod -pREDACTED_DB_PASSWORD castopod -N"
+        ]
     try:
         proc = subprocess.run(cmd, input=sql, capture_output=True, text=True, timeout=30)
         stderr = proc.stderr.strip()
@@ -236,7 +259,7 @@ def _run_db_query(sql):
             return None, stderr
         return stdout, None
     except subprocess.TimeoutExpired:
-        return None, "SSH timeout"
+        return None, "timeout"
     except Exception as e:
         return None, str(e)
 

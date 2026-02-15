@@ -60,7 +60,7 @@ PODCAST_ID = 1
 PODCAST_HANDLE = "LukeAtTheRoost"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-WHISPER_MODEL = "base"  # Options: tiny, base, small, medium, large
+WHISPER_MODEL = "large-v3"
 
 # Postiz (social media posting)
 POSTIZ_URL = "https://social.lukeattheroost.com"
