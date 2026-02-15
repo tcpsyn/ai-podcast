@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     # LLM Settings
     llm_provider: str = "openrouter"  # "openrouter" or "ollama"
-    openrouter_model: str = "anthropic/claude-3-haiku"
+    openrouter_model: str = "anthropic/claude-sonnet-4-5"
     ollama_model: str = "llama3.2"
     ollama_host: str = "http://localhost:11434"
 

@@ -376,9 +376,19 @@ section h2 {
 }
 
 /* Soundboard */
+.sounds-section {
+    grid-column: span 2;
+}
+
+@media (max-width: 700px) {
+    .sounds-section {
+        grid-column: span 1;
+    }
+}
+
 .soundboard {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 8px;
 }
 

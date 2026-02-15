@@ -15,6 +15,7 @@ Usage:
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -128,7 +129,7 @@ def gather_youtube(include_comments=False):
 
     try:
         proc = subprocess.run(
-            ["yt-dlp", "--dump-json", "--flat-playlist",
+            [os.path.join(os.path.dirname(os.path.abspath(__file__)), "venv", "bin", "yt-dlp"), "--dump-json", "--flat-playlist",
              f"https://www.youtube.com/playlist?list={YOUTUBE_PLAYLIST}"],
             capture_output=True, text=True, timeout=60
         )
@@ -159,7 +160,7 @@ def gather_youtube(include_comments=False):
 
     for vid in video_ids:
         try:
-            cmd = ["yt-dlp", "--dump-json", "--no-download", f"https://www.youtube.com/watch?v={vid}"]
+            cmd = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "venv", "bin", "yt-dlp"), "--dump-json", "--no-download", f"https://www.youtube.com/watch?v={vid}"]
             if include_comments:
                 cmd.insert(2, "--write-comments")
             vr = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
@@ -203,7 +204,7 @@ def gather_youtube(include_comments=False):
     if videos:
         try:
             vr = subprocess.run(
-                ["yt-dlp", "--dump-json", "--no-download", "--playlist-items", "1",
+                [os.path.join(os.path.dirname(os.path.abspath(__file__)), "venv", "bin", "yt-dlp"), "--dump-json", "--no-download", "--playlist-items", "1",
                  f"https://www.youtube.com/playlist?list={YOUTUBE_PLAYLIST}"],
                 capture_output=True, text=True, timeout=30
             )

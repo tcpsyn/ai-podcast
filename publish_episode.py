@@ -10,14 +10,15 @@ Usage:
 """
 
 import argparse
+import base64
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
-import base64
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import ssl
@@ -60,6 +61,19 @@ PODCAST_HANDLE = "LukeAtTheRoost"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 WHISPER_MODEL = "base"  # Options: tiny, base, small, medium, large
+
+# Postiz (social media posting)
+POSTIZ_URL = "https://social.lukeattheroost.com"
+POSTIZ_JWT_SECRET = "REDACTED_POSTIZ_JWT_SECRET"
+POSTIZ_USER_ID = "REDACTED_POSTIZ_USER_ID"
+POSTIZ_INTEGRATIONS = {
+    "facebook": {"id": "REDACTED_FB_ID"},
+    "instagram": {"id": "REDACTED_IG_ID"},
+    "discord": {"id": "REDACTED_DISCORD_ID", "channel": "REDACTED_DISCORD_CHANNEL"},
+    "bluesky": {"id": "REDACTED_BSKY_ID"},
+    "mastodon": {"id": "REDACTED_MASTODON_ID"},
+    "nostr": {"id": "REDACTED_NOSTR_ID"},
+}
 
 # NAS Configuration for chapters upload
 # BunnyCDN Storage
@@ -276,10 +290,23 @@ Respond with ONLY valid JSON, no markdown or explanation."""
     return metadata
 
 
-def create_episode(audio_path: str, metadata: dict, episode_number: int) -> dict:
-    """Create episode on Castopod using curl (handles large file uploads better)."""
-    print("[3/5] Creating episode on Castopod...")
+CLOUDFLARE_UPLOAD_LIMIT = 100 * 1024 * 1024  # 100 MB
 
+
+def create_episode(audio_path: str, metadata: dict, episode_number: int, duration: int = 0) -> dict:
+    """Create episode on Castopod. Bypasses Cloudflare for large files."""
+    file_size = os.path.getsize(audio_path)
+
+    if file_size > CLOUDFLARE_UPLOAD_LIMIT:
+        print(f"[3/5] Creating episode on Castopod (direct, {file_size / 1024 / 1024:.0f} MB > 100 MB limit)...")
+        return _create_episode_direct(audio_path, metadata, episode_number, file_size, duration)
+
+    print("[3/5] Creating episode on Castopod...")
+    return _create_episode_api(audio_path, metadata, episode_number)
+
+
+def _create_episode_api(audio_path: str, metadata: dict, episode_number: int) -> dict:
+    """Create episode via Castopod REST API (through Cloudflare)."""
     credentials = base64.b64encode(
         f"{CASTOPOD_USERNAME}:{CASTOPOD_PASSWORD}".encode()
     ).decode()
@@ -301,7 +328,7 @@ def create_episode(audio_path: str, metadata: dict, episode_number: int) -> dict
         "-F", f"episode_number={episode_number}",
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
     if result.returncode != 0:
         print(f"Error uploading: {result.stderr}")
         sys.exit(1)
@@ -320,6 +347,107 @@ def create_episode(audio_path: str, metadata: dict, episode_number: int) -> dict
     print(f"    Slug: {episode['slug']}")
 
     return episode
+
+
+def _create_episode_direct(audio_path: str, metadata: dict, episode_number: int,
+                           file_size: int, duration: int) -> dict:
+    """Create episode by uploading directly to NAS and inserting into DB."""
+    import time as _time
+    slug = re.sub(r'[^a-z0-9]+', '-', metadata["title"].lower()).strip('-')
+    timestamp = int(_time.time())
+    rand_hex = os.urandom(10).hex()
+    filename = f"{timestamp}_{rand_hex}.mp3"
+    file_key = f"podcasts/{PODCAST_HANDLE}/{filename}"
+    nas_tmp = f"/share/CACHEDEV1_DATA/tmp/{filename}"
+    guid = f"{CASTOPOD_URL}/@{PODCAST_HANDLE}/episodes/{slug}"
+    desc_md = metadata["description"]
+    desc_html = f"<p>{desc_md}</p>"
+    duration_json = json.dumps({"playtime_seconds": duration, "avdataoffset": 85})
+
+    # SCP audio to NAS
+    print("    Uploading audio to NAS...")
+    scp_cmd = ["scp", "-P", str(NAS_SSH_PORT), audio_path, f"{NAS_USER}@{NAS_HOST}:{nas_tmp}"]
+    result = subprocess.run(scp_cmd, capture_output=True, text=True, timeout=600)
+    if result.returncode != 0:
+        print(f"Error: SCP failed: {result.stderr}")
+        sys.exit(1)
+
+    # Docker cp into Castopod container
+    print("    Copying into Castopod container...")
+    media_path = f"/var/www/castopod/public/media/{file_key}"
+    cp_cmd = f'{DOCKER_PATH} cp {nas_tmp} {CASTOPOD_CONTAINER}:{media_path}'
+    success, output = run_ssh_command(cp_cmd, timeout=120)
+    if not success:
+        print(f"Error: docker cp failed: {output}")
+        sys.exit(1)
+    run_ssh_command(f'{DOCKER_PATH} exec {CASTOPOD_CONTAINER} chown www-data:www-data {media_path}')
+    run_ssh_command(f"rm -f {nas_tmp}")
+
+    # Build SQL and transfer via base64 to avoid shell escaping issues
+    print("    Inserting media and episode records...")
+
+    def _mysql_escape(s: str) -> str:
+        """Escape a string for MySQL single-quoted literals."""
+        return s.replace("\\", "\\\\").replace("'", "\\'")
+
+    title_esc = _mysql_escape(metadata["title"])
+    desc_md_esc = _mysql_escape(desc_md)
+    desc_html_esc = _mysql_escape(desc_html)
+    duration_json_esc = _mysql_escape(duration_json)
+
+    sql = (
+        f"INSERT INTO cp_media (file_key, file_size, file_mimetype, file_metadata, type, "
+        f"uploaded_by, updated_by, uploaded_at, updated_at) VALUES "
+        f"('{file_key}', {file_size}, 'audio/mpeg', '{duration_json_esc}', 'audio', 1, 1, NOW(), NOW());\n"
+        f"SET @audio_id = LAST_INSERT_ID();\n"
+        f"INSERT INTO cp_episodes (podcast_id, guid, title, slug, audio_id, "
+        f"description_markdown, description_html, parental_advisory, number, type, "
+        f"is_blocked, is_published_on_hubs, is_premium, created_by, updated_by, "
+        f"published_at, created_at, updated_at) VALUES "
+        f"(1, '{guid}', '{title_esc}', '{slug}', @audio_id, "
+        f"'{desc_md_esc}', '{desc_html_esc}', 'explicit', {episode_number}, 'full', "
+        f"0, 0, 0, 1, 1, NOW(), NOW(), NOW());\n"
+        f"SELECT LAST_INSERT_ID();\n"
+    )
+
+    # Write SQL to local temp file, SCP to NAS, docker cp into MariaDB
+    local_sql_path = "/tmp/_castopod_insert.sql"
+    nas_sql_path = "/share/CACHEDEV1_DATA/tmp/_castopod_insert.sql"
+    with open(local_sql_path, "w") as f:
+        f.write(sql)
+    scp_sql = ["scp", "-P", str(NAS_SSH_PORT), local_sql_path, f"{NAS_USER}@{NAS_HOST}:{nas_sql_path}"]
+    result = subprocess.run(scp_sql, capture_output=True, text=True, timeout=30)
+    os.remove(local_sql_path)
+    if result.returncode != 0:
+        print(f"Error: failed to SCP SQL file: {result.stderr}")
+        sys.exit(1)
+
+    # Copy SQL into MariaDB container and execute
+    run_ssh_command(f'{DOCKER_PATH} cp {nas_sql_path} {MARIADB_CONTAINER}:/tmp/_insert.sql')
+    exec_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} sh -c "mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -N < /tmp/_insert.sql"'
+    success, output = run_ssh_command(exec_cmd, timeout=30)
+    run_ssh_command(f'rm -f {nas_sql_path}')
+    run_ssh_command(f'{DOCKER_PATH} exec {MARIADB_CONTAINER} rm -f /tmp/_insert.sql')
+
+    if not success:
+        print(f"Error: DB insert failed: {output}")
+        sys.exit(1)
+
+    episode_id = int(output.strip().split('\n')[-1])
+    # Get the audio media ID for CDN upload
+    audio_id_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -N -e "SELECT audio_id FROM cp_episodes WHERE id = {episode_id};"'
+    success, audio_id_str = run_ssh_command(audio_id_cmd)
+    audio_id = int(audio_id_str.strip()) if success else None
+    if audio_id:
+        print(f"    Audio media ID: {audio_id}")
+
+    # Clear cache
+    run_ssh_command(f'{DOCKER_PATH} exec {CASTOPOD_CONTAINER} php spark cache:clear')
+
+    print(f"    Created episode ID: {episode_id}")
+    print(f"    Slug: {slug}")
+
+    return {"id": episode_id, "slug": slug}
 
 
 def publish_episode(episode_id: int) -> dict:
@@ -451,7 +579,7 @@ def upload_to_bunny(local_path: str, remote_path: str, content_type: str = None)
         resp = requests.put(url, data=f, headers={
             "AccessKey": BUNNY_STORAGE_KEY,
             "Content-Type": content_type,
-        })
+        }, timeout=600)
     if resp.status_code == 201:
         return True
     print(f"    Warning: BunnyCDN upload failed ({resp.status_code}): {resp.text[:200]}")
@@ -461,7 +589,7 @@ def upload_to_bunny(local_path: str, remote_path: str, content_type: str = None)
 def download_from_castopod(file_key: str, local_path: str) -> bool:
     """Download a file from Castopod's container storage to local filesystem."""
     remote_filename = Path(file_key).name
-    remote_tmp = f"/tmp/castopod_{remote_filename}"
+    remote_tmp = f"/share/CACHEDEV1_DATA/tmp/castopod_{remote_filename}"
     cp_cmd = f'{DOCKER_PATH} cp {CASTOPOD_CONTAINER}:/var/www/castopod/public/media/{file_key} {remote_tmp}'
     success, _ = run_ssh_command(cp_cmd, timeout=120)
     if not success:
@@ -543,6 +671,174 @@ def add_episode_to_sitemap(slug: str):
     sitemap_path.write_text(content)
     print(f"    Added episode to sitemap.xml")
 
+
+
+def generate_social_image(episode_number: int, description: str, output_path: str) -> str:
+    """Generate a social media image with cover art, episode number, and description."""
+    from PIL import Image, ImageDraw, ImageFont
+    import textwrap
+
+    COVER_ART = Path(__file__).parent / "website" / "images" / "cover.png"
+    SIZE = 1080
+
+    img = Image.open(COVER_ART).convert("RGBA")
+    img = img.resize((SIZE, SIZE), Image.LANCZOS)
+
+    # Dark gradient overlay on the bottom ~45%
+    gradient = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+    draw_grad = ImageDraw.Draw(gradient)
+    gradient_start = int(SIZE * 0.50)
+    for y in range(gradient_start, SIZE):
+        progress = (y - gradient_start) / (SIZE - gradient_start)
+        alpha = int(210 * progress)
+        draw_grad.line([(0, y), (SIZE, y)], fill=(0, 0, 0, alpha))
+
+    img = Image.alpha_composite(img, gradient)
+    draw = ImageDraw.Draw(img)
+
+    # Fonts
+    try:
+        font_episode = ImageFont.truetype("/Library/Fonts/Montserrat-ExtraBold.ttf", 64)
+        font_desc = ImageFont.truetype("/Library/Fonts/Montserrat-Medium.ttf", 36)
+        font_url = ImageFont.truetype("/Library/Fonts/Montserrat-SemiBold.ttf", 28)
+    except OSError:
+        font_episode = ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 64)
+        font_desc = ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 36)
+        font_url = ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 28)
+
+    margin = 60
+    max_width = SIZE - margin * 2
+
+    # Episode number
+    ep_text = f"EPISODE {episode_number}"
+    draw.text((margin, SIZE - 300), ep_text, font=font_episode, fill=(255, 200, 80))
+
+    # Description — word-wrap to fit
+    wrapped = textwrap.fill(description, width=45)
+    lines = wrapped.split("\n")[:4]  # max 4 lines
+    if len(wrapped.split("\n")) > 4:
+        lines[-1] = lines[-1][:lines[-1].rfind(" ")] + "..."
+    desc_text = "\n".join(lines)
+    draw.text((margin, SIZE - 220), desc_text, font=font_desc, fill=(255, 255, 255, 230),
+              spacing=8)
+
+    # Website URL — bottom right
+    url_text = "lukeattheroost.com"
+    bbox = draw.textbbox((0, 0), url_text, font=font_url)
+    url_width = bbox[2] - bbox[0]
+    draw.text((SIZE - margin - url_width, SIZE - 50), url_text, font=font_url,
+              fill=(255, 200, 80, 200))
+
+    img = img.convert("RGB")
+    img.save(output_path, "JPEG", quality=92)
+    print(f"    Social image saved: {output_path}")
+    return output_path
+
+
+def _get_postiz_token():
+    """Generate a JWT token for Postiz API authentication."""
+    import jwt
+    return jwt.encode(
+        {"id": POSTIZ_USER_ID, "email": "luke@macneilmediagroup.com",
+         "providerName": "LOCAL", "activated": True, "isSuperAdmin": False},
+        POSTIZ_JWT_SECRET, algorithm="HS256"
+    )
+
+
+def upload_image_to_postiz(image_path: str) -> dict | None:
+    """Upload an image to Postiz and return the media object."""
+    token = _get_postiz_token()
+    try:
+        with open(image_path, "rb") as f:
+            resp = requests.post(
+                f"{POSTIZ_URL}/api/media/upload-simple",
+                headers={"auth": token},
+                files={"file": ("social.jpg", f, "image/jpeg")},
+                timeout=30,
+            )
+        if resp.status_code in (200, 201):
+            media = resp.json()
+            print(f"    Uploaded image to Postiz (id: {media.get('id', 'unknown')})")
+            return media
+        else:
+            print(f"    Warning: Postiz image upload returned {resp.status_code}: {resp.text[:200]}")
+    except Exception as e:
+        print(f"    Warning: Postiz image upload failed: {e}")
+    return None
+
+
+def post_to_social(metadata: dict, episode_slug: str, image_path: str = None):
+    """Post episode announcement to all connected social channels via Postiz."""
+    print("[5.5/5] Posting to social media...")
+
+    token = _get_postiz_token()
+
+    # Upload image if provided
+    image_ids = []
+    if image_path:
+        media = upload_image_to_postiz(image_path)
+        if media and media.get("id"):
+            image_ids = [{"id": media["id"], "path": media.get("path", "")}]
+
+    episode_url = f"https://lukeattheroost.com/episode.html?slug={episode_slug}"
+    base_content = f"{metadata['title']}\n\n{metadata['description']}\n\n{episode_url}"
+
+    hashtags = "#podcast #LukeAtTheRoost #talkradio #callinshow #newepisode"
+    hashtag_platforms = {"instagram", "facebook", "bluesky", "mastodon", "nostr"}
+
+    # Platform-specific content length limits
+    PLATFORM_MAX_LENGTH = {"bluesky": 300}
+
+    # Post to each platform individually so one failure doesn't block others
+    posted = 0
+    for platform, intg_config in POSTIZ_INTEGRATIONS.items():
+        content = base_content
+        if platform in hashtag_platforms:
+            content += f"\n\n{hashtags}"
+
+        # Truncate for platforms with short limits
+        max_len = PLATFORM_MAX_LENGTH.get(platform)
+        if max_len and len(content) > max_len:
+            # Keep title + URL, truncate description
+            short = f"{metadata['title']}\n\n{episode_url}"
+            if platform in hashtag_platforms:
+                short += f"\n\n{hashtags}"
+            content = short[:max_len]
+
+        settings = {"post_type": "post"}
+        if "channel" in intg_config:
+            settings["channel"] = intg_config["channel"]
+
+        post = {
+            "integration": {"id": intg_config["id"]},
+            "value": [{"content": content, "image": image_ids}],
+            "settings": settings,
+        }
+
+        payload = {
+            "type": "now",
+            "shortLink": False,
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+            "tags": [],
+            "posts": [post],
+        }
+
+        try:
+            resp = requests.post(
+                f"{POSTIZ_URL}/api/posts",
+                headers={"auth": token, "Content-Type": "application/json"},
+                json=payload,
+                timeout=60,
+            )
+            if resp.status_code in (200, 201):
+                posted += 1
+                print(f"    Posted to {platform}")
+            else:
+                print(f"    Warning: {platform} failed ({resp.status_code}): {resp.text[:150]}")
+        except Exception as e:
+            print(f"    Warning: {platform} failed: {e}")
+
+    print(f"    Posted to {posted}/{len(POSTIZ_INTEGRATIONS)} channels")
 
 
 def get_next_episode_number() -> int:
@@ -648,30 +944,37 @@ def main():
         return
 
     # Step 3: Create episode
-    episode = create_episode(str(audio_path), metadata, episode_number)
+    direct_upload = os.path.getsize(str(audio_path)) > CLOUDFLARE_UPLOAD_LIMIT
+    episode = create_episode(str(audio_path), metadata, episode_number, duration=transcript["duration"])
 
     # Step 3.5: Upload to BunnyCDN
     print("[3.5/5] Uploading to BunnyCDN...")
     uploaded_keys = set()
 
-    # Audio: download Castopod's copy (ensures byte-exact match with RSS metadata)
+    # Audio: query file_key from DB, then upload to CDN
     ep_id = episode["id"]
     audio_media_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -N -e "SELECT m.file_key FROM cp_media m JOIN cp_episodes e ON e.audio_id = m.id WHERE e.id = {ep_id};"'
     success, audio_file_key = run_ssh_command(audio_media_cmd)
     if success and audio_file_key:
         audio_file_key = audio_file_key.strip()
-        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
-            tmp_audio = tmp.name
-        try:
-            print(f"    Downloading from Castopod: {audio_file_key}")
-            if download_from_castopod(audio_file_key, tmp_audio):
-                print(f"    Uploading audio to BunnyCDN")
-                upload_to_bunny(tmp_audio, f"media/{audio_file_key}", "audio/mpeg")
-            else:
-                print(f"    Castopod download failed, uploading original file")
-                upload_to_bunny(str(audio_path), f"media/{audio_file_key}", "audio/mpeg")
-        finally:
-            Path(tmp_audio).unlink(missing_ok=True)
+        if direct_upload:
+            # Direct upload: we have the original file locally, upload straight to CDN
+            print(f"    Uploading audio to BunnyCDN")
+            upload_to_bunny(str(audio_path), f"media/{audio_file_key}", "audio/mpeg")
+        else:
+            # API upload: download Castopod's copy (ensures byte-exact match with RSS metadata)
+            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+                tmp_audio = tmp.name
+            try:
+                print(f"    Downloading from Castopod: {audio_file_key}")
+                if download_from_castopod(audio_file_key, tmp_audio):
+                    print(f"    Uploading audio to BunnyCDN")
+                    upload_to_bunny(tmp_audio, f"media/{audio_file_key}", "audio/mpeg")
+                else:
+                    print(f"    Castopod download failed, uploading original file")
+                    upload_to_bunny(str(audio_path), f"media/{audio_file_key}", "audio/mpeg")
+            finally:
+                Path(tmp_audio).unlink(missing_ok=True)
         uploaded_keys.add(audio_file_key)
     else:
         print(f"    Error: Could not determine audio file_key from Castopod DB")
@@ -688,7 +991,6 @@ def main():
     upload_to_bunny(str(transcript_path), f"transcripts/{episode['slug']}.txt", "text/plain")
 
     # Copy transcript to website dir for Cloudflare Pages
-    import shutil
     website_transcript_dir = Path(__file__).parent / "website" / "transcripts"
     website_transcript_dir.mkdir(exist_ok=True)
     website_transcript_path = website_transcript_dir / f"{episode['slug']}.txt"
@@ -698,8 +1000,16 @@ def main():
     # Add to sitemap
     add_episode_to_sitemap(episode["slug"])
 
-    # Step 4: Publish
-    episode = publish_episode(episode["id"])
+    # Step 4: Publish via API (triggers RSS rebuild, federation, etc.)
+    try:
+        published = publish_episode(episode["id"])
+        if "slug" in published:
+            episode = published
+    except SystemExit:
+        if direct_upload:
+            print("    Warning: Publish API failed, but episode is in DB with published_at set")
+        else:
+            raise
 
     # Step 4.5: Upload chapters via SSH
     chapters_uploaded = upload_chapters_to_castopod(
@@ -712,8 +1022,26 @@ def main():
     print("    Syncing episode media to CDN...")
     sync_episode_media_to_bunny(episode["id"], uploaded_keys)
 
-    # Step 5: Summary
-    print("\n[5/5] Done!")
+    # Step 5: Deploy website (transcript + sitemap must be live before social links go out)
+    print("[5/5] Deploying website...")
+    project_dir = Path(__file__).parent
+    deploy_result = subprocess.run(
+        ["npx", "wrangler", "pages", "deploy", "website/",
+         "--project-name=lukeattheroost", "--branch=main", "--commit-dirty=true"],
+        capture_output=True, text=True, cwd=project_dir, timeout=120
+    )
+    if deploy_result.returncode == 0:
+        print("    Website deployed")
+    else:
+        print(f"    Warning: Website deploy failed: {deploy_result.stderr[:200]}")
+
+    # Step 5.5: Generate social image and post
+    social_image_path = str(audio_path.with_suffix(".social.jpg"))
+    generate_social_image(episode_number, metadata["description"], social_image_path)
+    post_to_social(metadata, episode["slug"], social_image_path)
+
+    # Step 6: Summary
+    print("\n[6/6] Done!")
     print("=" * 50)
     print(f"Episode URL: {CASTOPOD_URL}/@{PODCAST_HANDLE}/episodes/{episode['slug']}")
     print(f"RSS Feed: {CASTOPOD_URL}/@{PODCAST_HANDLE}/feed.xml")

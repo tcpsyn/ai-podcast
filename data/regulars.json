@@ -1,76 +1,6 @@
 {
   "regulars": [
     {
-      "id": "d4bdda2e",
-      "name": "Bobby",
-      "gender": "male",
-      "age": 32,
-      "job": "a 61-year-old repo man, sits in his truck",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "In summary, the caller learned he has been diagnosed with multiple sclerosis, which he is worried will make it difficult for him to continue his job as a self-employed repo man. He is trying to process the news and figure out how to adapt and keep working, despite the uncertainty about how the condition will progress. The host provides some encouragement, suggesting the caller focus on learning about MS and finding ways to adapt, rather than getting too worked up about the future.",
-          "timestamp": 1770602129.500858
-        }
-      ],
-      "last_call": 1770602129.5008588,
-      "created_at": 1770602129.5008588,
-      "voice": "onwK4e9ZLuTAKqWW03F9"
-    },
-    {
-      "id": "d97cb6f9",
-      "name": "Carla",
-      "gender": "female",
-      "age": 26,
-      "job": "is a vet tech",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Carla, separated from her husband but not yet divorced, vented about her intrusive in-laws who relentlessly call and dictate her life\u2014from finances and household matters to her clothing choices\u2014while her spineless spouse relays their demands, making her feel trapped in a one-sided war. With her own parents unavailable (father deceased, mother distant), she leans on her bickering but honest sister for support, underscoring her deep frustration and sense of isolation.",
-          "timestamp": 1770522530.8554251
-        },
-        {
-          "summary": "Carla dismissed celebrity science theories like Terrence Howard's after watching Neil deGrasse Tyson's critique, then marveled at JWST's exoplanet discoveries before sharing her relief at finally cutting off her toxic in-laws amid her ongoing divorce. She expressed deep heartbreak over actor James Ransone's suicide at 46, reflecting on life's fragility, her late father's death, and the need to eliminate family drama, leaving her contemplative and planning a solo desert drive for clarity.",
-          "timestamp": 1770526316.004708
-        },
-        {
-          "summary": "In this call, Carla discovered some explicit photos of her ex-husband and his old girlfriend in a box of his old ham radio equipment. She is feeling very uncomfortable about the situation and is seeking advice from the radio host, Luke, on how to best handle and dispose of the photos.",
-          "timestamp": 1770602323.234795
-        },
-        {
-          "summary": "Carla called with an update about burning the explicit photos of her ex-husband and his old girlfriend, revealing that the girlfriend unexpectedly messaged her on Facebook to \"clear the air\" after apparently hearing about the situation through Carla's previous radio call. When Luke asked about her most embarrassing masturbation material, Carla admitted to using historical romance novels during her failing marriage, explaining she was drawn to the fantasy of men who actually cared and paid attention, unlike her ex-husband who ignored her to play video games.",
-          "timestamp": 1770871317.049056
-        }
-      ],
-      "last_call": 1770871317.049056,
-      "created_at": 1770522530.855426,
-      "voice": "FGY2WhTYpPnrIDTdsKH5"
-    },
-    {
-      "id": "7be7317c",
-      "name": "Jerome",
-      "gender": "male",
-      "age": 53,
-      "job": "phone",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Jerome, a police officer in Texas, called from a DQ parking lot worried about AI writing police reports after his son sent him an article suggesting it might replace him. Through the conversation, he moved from fear about accountability and accuracy in criminal cases to acknowledging that AI handling routine paperwork (like cattle complaints) could free him up to do more meaningful police work in his understaffed county, though he remains uncertain about where this technology will lead.",
-          "timestamp": 1770692087.560522
-        },
-        {
-          "summary": "The caller described a turbulent couple of weeks, mentioning an issue with AI writing police reports, which he suggested was just the beginning of a larger problem. He seemed concerned about the developments and wanted to discuss the topic further with the host.",
-          "timestamp": 1770892192.893108
-        }
-      ],
-      "last_call": 1770892192.89311,
-      "created_at": 1770692087.560523,
-      "voice": "IKne3meq5aSn9XLyUdCD"
-    },
-    {
       "id": "dc4916a7",
       "name": "Leon",
       "gender": "male",
@@ -82,9 +12,21 @@
         {
           "summary": "Leon, a 63-year-old tow truck driver, called in feeling regretful after pulling a young remote worker's Tesla from a ditch, which reminded him of the computer science acceptance letter he never acted on in 1996 when his girlfriend got pregnant. The conversation became emotional as Leon realized he's the same age his father was when he died, and the host challenged him to stop making excuses and finally pursue the tech career he's been thinking about for decades instead of just \"wondering what could have been.\"",
           "timestamp": 1770693549.697355
+        },
+        {
+          "summary": "Leon called back to share that he reached out to UNM about their computer science program and is now deciding between an online bootcamp (which he and his wife Amber can afford without loans) versus a full degree program, ultimately leaning toward the bootcamp since he struggles with self-teaching. He expressed nervousness but appreciation for his daughter holding him accountable, and emotionally shared that buying his reliable used Subaru five years ago changed his life by giving him confidence and reducing stress at his towing job.",
+          "timestamp": 1770951992.186027
+        },
+        {
+          "summary": "In this brief clip, the host begins to set up a game with caller Vence, starting to explain the rules before the audio cuts off. There's no substantive conversation or emotional content to summarize.",
+          "timestamp": 1771119313.497329
+        },
+        {
+          "summary": "Leon called in to play a dating profile game but revealed he's struggling with his coding bootcamp because he's more interested in studying poker strategy than Python. The host encouraged him that at 56, he could pursue becoming a poker pro just as much as anything else, which seemed to resonate with Leon emotionally as he realized poker is what he actually wants to do rather than what he thinks he should do.",
+          "timestamp": 1771119607.065818
         }
       ],
-      "last_call": 1770693549.697355,
+      "last_call": 1771119607.065818,
       "created_at": 1770693549.697355,
       "voice": "CwhRBWXzGAHq8TQ4Fs17"
     },
@@ -144,37 +86,59 @@
         {
           "summary": "Brenda called in to vent about being frustrated with automatic tipping at a diner, where a 20% tip was already added to her bill but the card reader prompted her to add an additional 25-35% while the waitress watched. She expressed feeling pressured and annoyed as an ambulance driver with two kids, struggling with whether to look cheap by reducing the tip, before playing a quick real-or-fake news game with the host.",
           "timestamp": 1770770008.684104
+        },
+        {
+          "summary": "Brenda called in still thinking about whether a waitress remembered her tipping situation from two weeks ago, admitting she cares too much about what strangers think of her. The conversation revealed she's been avoiding dating entirely while working long shifts and dealing with family obligations, acknowledging she obsesses over small social interactions instead of actually putting herself out there romantically.",
+          "timestamp": 1771120062.169228
         }
       ],
-      "last_call": 1770770008.684105,
+      "last_call": 1771120062.169229,
       "created_at": 1770770008.684105,
       "voice": "hpp4J3VqNfWAUOO0d1Us"
     },
     {
-      "id": "49147bd5",
-      "name": "Keith",
+      "id": "add59d4a",
+      "name": "Rick",
       "gender": "male",
-      "age": 61,
+      "age": 65,
       "job": "south of Silver City",
-      "location": "in unknown",
+      "location": "unknown",
       "personality_traits": [],
       "call_history": [
         {
-          "summary": "The caller, Luke, kicked off by sharing a humorous clip of Terrence Howard's Tree of Life Theory being critiqued by Neil deGrasse Tyson, which left Howard visibly hurt, before pivoting to economic woes, blaming overspending and Federal Reserve money printing for devaluing the currency and harming everyday people. He advocated abolishing the Fed, echoing Ron Paul's ideas, to let markets stabilize money, potentially boosting innovation and new industries in rural spots like Silver City despite uncertain local impacts.",
-          "timestamp": 1770524506.3390348
+          "summary": "Rick called in to play \"real news or fake news\" and correctly identified a headline about a geothermal plant sale. He then shared that he's troubled about an elderly bank customer who withdrew $8,000 cash while appearing scared and mentioning his daughter's boyfriend was pressuring him about finances\u2014Rick processed the withdrawal but later learned he should have flagged it as potential elder exploitation, and he's feeling guilty about not intervening.",
+          "timestamp": 1770771655.536344
         },
         {
-          "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller, who works at a bank, has been reflecting on his tendency to blame the government and economic system for his problems, rather than taking responsibility for his own role. He had an epiphany while eating leftover enchiladas in his minivan, realizing he needs to be more proactive instead of just complaining.",
-          "timestamp": 1770574890.1296651
-        },
-        {
-          "summary": "Keith called in with an update about a widow who has been showing up weekly at the cemetery where he works nights, but she sits by the maintenance shed rather than visiting her husband's grave, and recently started asking Keith's neighbor personal questions about him. Luke dismissively suggested Keith just talk to the woman and called him a coward for being concerned, leading to some tension before they moved on to playing the real or fake news game.",
-          "timestamp": 1770770394.0436218
+          "summary": "Rick, a 65-year-old caller, is asked to evaluate a dating profile for 29-year-old Angela, a \"girl mom\" and MLM skin care seller with strong Christian values. He quickly passes due to the extreme age gap and her intense focus on recruiting for her \"not a pyramid scheme\" business, though he says he'd reconsider if she toned down the sales pitch and religious intensity.",
+          "timestamp": 1771126337.585641
         }
       ],
-      "last_call": 1770770394.0436218,
-      "created_at": 1770524506.339036,
-      "voice": "nPczCjzI2devNBz1zQrb"
+      "last_call": 1771126337.585642,
+      "created_at": 1770771655.536344,
+      "voice": "TX3LPaxmHKxFdv7VOQHJ"
+    },
+    {
+      "id": "13ff1736",
+      "name": "Jasmine",
+      "gender": "female",
+      "age": 36,
+      "job": "a 61-year-old woman who runs a small bakery in the rural Southwest, finds herself at a crossroads",
+      "location": "unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "Jasmine called in to defend an earlier caller (Rick) whom she felt the host was too hard on, explaining she's been feeling guilty herself lately. She emotionally revealed that she chose her 1972 Ford Bronco restoration project over her marriage when given an ultimatum, and now regrets sleeping in the guest room with Valentine's Day approaching.",
+          "timestamp": 1770772286.1733272
+        },
+        {
+          "summary": "Jasmine called to update Luke about her relationship with David after previously discussing their issues over her Ford Bronco obsession. David invited her to watch a SpaceX launch together before Valentine's Day, but she's anxious it will be awkward since they've barely talked in weeks, though Luke convinces her to just enjoy the moment together without forcing conversation.",
+          "timestamp": 1771033676.7729769
+        }
+      ],
+      "last_call": 1771033676.7729769,
+      "created_at": 1770772286.1733272,
+      "voice": "pFZP5JQG7iQjIQuC4Bku"
     },
     {
       "id": "f21d1346",
@@ -199,40 +163,60 @@
       "voice": "JBFqnCBsd6RMkjVDRZzb"
     },
     {
-      "id": "add59d4a",
-      "name": "Rick",
-      "gender": "male",
-      "age": 65,
-      "job": "south of Silver City",
+      "id": "d97cb6f9",
+      "name": "Carla",
+      "gender": "female",
+      "age": 26,
+      "job": "is a vet tech",
       "location": "unknown",
       "personality_traits": [],
       "call_history": [
         {
-          "summary": "Rick called in to play \"real news or fake news\" and correctly identified a headline about a geothermal plant sale. He then shared that he's troubled about an elderly bank customer who withdrew $8,000 cash while appearing scared and mentioning his daughter's boyfriend was pressuring him about finances\u2014Rick processed the withdrawal but later learned he should have flagged it as potential elder exploitation, and he's feeling guilty about not intervening.",
-          "timestamp": 1770771655.536344
+          "summary": "Carla, separated from her husband but not yet divorced, vented about her intrusive in-laws who relentlessly call and dictate her life\u2014from finances and household matters to her clothing choices\u2014while her spineless spouse relays their demands, making her feel trapped in a one-sided war. With her own parents unavailable (father deceased, mother distant), she leans on her bickering but honest sister for support, underscoring her deep frustration and sense of isolation.",
+          "timestamp": 1770522530.8554251
+        },
+        {
+          "summary": "Carla dismissed celebrity science theories like Terrence Howard's after watching Neil deGrasse Tyson's critique, then marveled at JWST's exoplanet discoveries before sharing her relief at finally cutting off her toxic in-laws amid her ongoing divorce. She expressed deep heartbreak over actor James Ransone's suicide at 46, reflecting on life's fragility, her late father's death, and the need to eliminate family drama, leaving her contemplative and planning a solo desert drive for clarity.",
+          "timestamp": 1770526316.004708
+        },
+        {
+          "summary": "In this call, Carla discovered some explicit photos of her ex-husband and his old girlfriend in a box of his old ham radio equipment. She is feeling very uncomfortable about the situation and is seeking advice from the radio host, Luke, on how to best handle and dispose of the photos.",
+          "timestamp": 1770602323.234795
+        },
+        {
+          "summary": "Carla called with an update about burning the explicit photos of her ex-husband and his old girlfriend, revealing that the girlfriend unexpectedly messaged her on Facebook to \"clear the air\" after apparently hearing about the situation through Carla's previous radio call. When Luke asked about her most embarrassing masturbation material, Carla admitted to using historical romance novels during her failing marriage, explaining she was drawn to the fantasy of men who actually cared and paid attention, unlike her ex-husband who ignored her to play video games.",
+          "timestamp": 1770871317.049056
+        },
+        {
+          "summary": "Okay, here's a 1-2 sentence summary of the radio call:\n\nThe caller, Carla, was asked to give her honest opinion on a dating profile for a man named Todd. After reviewing the profile, Carla politely declined, explaining that the profile seemed a bit \"try-hard\" for her tastes, and outlined the qualities she would prefer in a potential date, such as a good sense of humor and an adventurous spirit. The host acknowledged that Carla was not interested in dating Todd.",
+          "timestamp": 1771121545.873672
         }
       ],
-      "last_call": 1770771655.536344,
-      "created_at": 1770771655.536344,
-      "voice": "TX3LPaxmHKxFdv7VOQHJ"
+      "last_call": 1771121545.873673,
+      "created_at": 1770522530.855426,
+      "voice": "FGY2WhTYpPnrIDTdsKH5"
     },
     {
-      "id": "13ff1736",
-      "name": "Jasmine",
-      "gender": "female",
-      "age": 36,
-      "job": "a 61-year-old woman who runs a small bakery in the rural Southwest, finds herself at a crossroads",
+      "id": "7be7317c",
+      "name": "Jerome",
+      "gender": "male",
+      "age": 53,
+      "job": "phone",
       "location": "unknown",
       "personality_traits": [],
       "call_history": [
         {
-          "summary": "Jasmine called in to defend an earlier caller (Rick) whom she felt the host was too hard on, explaining she's been feeling guilty herself lately. She emotionally revealed that she chose her 1972 Ford Bronco restoration project over her marriage when given an ultimatum, and now regrets sleeping in the guest room with Valentine's Day approaching.",
-          "timestamp": 1770772286.1733272
+          "summary": "Jerome, a police officer in Texas, called from a DQ parking lot worried about AI writing police reports after his son sent him an article suggesting it might replace him. Through the conversation, he moved from fear about accountability and accuracy in criminal cases to acknowledging that AI handling routine paperwork (like cattle complaints) could free him up to do more meaningful police work in his understaffed county, though he remains uncertain about where this technology will lead.",
+          "timestamp": 1770692087.560522
+        },
+        {
+          "summary": "The caller described a turbulent couple of weeks, mentioning an issue with AI writing police reports, which he suggested was just the beginning of a larger problem. He seemed concerned about the developments and wanted to discuss the topic further with the host.",
+          "timestamp": 1770892192.893108
         }
       ],
-      "last_call": 1770772286.1733272,
-      "created_at": 1770772286.1733272,
-      "voice": "pFZP5JQG7iQjIQuC4Bku"
+      "last_call": 1770892192.89311,
+      "created_at": 1770692087.560523,
+      "voice": "IKne3meq5aSn9XLyUdCD"
     },
     {
       "id": "f383d29b",
@@ -250,11 +234,63 @@
         {
           "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller, Megan, is following up on a previous call about her sister Crystal, who lives in Flagstaff and has lost appreciation for the night sky. Megan seems eager to provide an update on the situation with her sister.",
           "timestamp": 1770894505.175125
+        },
+        {
+          "summary": "In summary, the caller presented a dating profile for a 63-year-old man named Frank who loves making birdhouses. The host, Megan, gave her honest assessment - she appreciated some aspects of Frank's profile, like his openness about his situation, but had reservations about his intense birdhouse obsession. Megan seemed unsure if they would be a good match, despite the host's attempts to get her to consider dating Frank under different hypothetical circumstances. The conversation focused on Megan's reaction to Frank's profile and her hesitation about pursuing a relationship with him.",
+          "timestamp": 1771122973.966489
         }
       ],
-      "last_call": 1770894505.175125,
+      "last_call": 1771122973.96649,
       "created_at": 1770870641.723117,
       "voice": "cgSgspJ2msm6clMCkdW9"
+    },
+    {
+      "id": "49147bd5",
+      "name": "Keith",
+      "gender": "male",
+      "age": 61,
+      "job": "south of Silver City",
+      "location": "in unknown",
+      "personality_traits": [],
+      "call_history": [
+        {
+          "summary": "The caller, Luke, kicked off by sharing a humorous clip of Terrence Howard's Tree of Life Theory being critiqued by Neil deGrasse Tyson, which left Howard visibly hurt, before pivoting to economic woes, blaming overspending and Federal Reserve money printing for devaluing the currency and harming everyday people. He advocated abolishing the Fed, echoing Ron Paul's ideas, to let markets stabilize money, potentially boosting innovation and new industries in rural spots like Silver City despite uncertain local impacts.",
+          "timestamp": 1770524506.3390348
+        },
+        {
+          "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller, who works at a bank, has been reflecting on his tendency to blame the government and economic system for his problems, rather than taking responsibility for his own role. He had an epiphany while eating leftover enchiladas in his minivan, realizing he needs to be more proactive instead of just complaining.",
+          "timestamp": 1770574890.1296651
+        },
+        {
+          "summary": "Keith called in with an update about a widow who has been showing up weekly at the cemetery where he works nights, but she sits by the maintenance shed rather than visiting her husband's grave, and recently started asking Keith's neighbor personal questions about him. Luke dismissively suggested Keith just talk to the woman and called him a coward for being concerned, leading to some tension before they moved on to playing the real or fake news game.",
+          "timestamp": 1770770394.0436218
+        },
+        {
+          "summary": "Keith called back to update the host about a widow he befriended at the cemetery where he works, revealing she's been seeking him out during his shifts, bringing him coffee, and has now invited him to her apartment\u2014which he's conflicted about because his marriage to Teresa has become cold and distant, though he's scared to address it. The conversation shifted from the widow situation to Keith admitting he needs to have hard conversations with his wife about their deteriorating relationship, and he got emotional reflecting on how he and Teresa \"stopped being on the same team\" and how terrifying it would be to split up after being together for over half his life.",
+          "timestamp": 1770950476.527814
+        }
+      ],
+      "last_call": 1770950476.527814,
+      "created_at": 1770524506.339036,
+      "voice": "nPczCjzI2devNBz1zQrb"
+    },
+    {
+      "id": "0d244eeb",
+      "name": "Gus",
+      "gender": "male",
+      "age": 33,
+      "job": "",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Alex",
+      "call_history": [
+        {
+          "summary": "Gus called because his ex Melissa showed up at his pawn shop job with flowers wanting to reconcile, and his current girlfriend Sara saw it through the window and now won't talk to him. Despite the host's dismissive advice (including sarcastically suggesting he regift the same flowers), Gus insisted he wants to be with Sara and acknowledged he should have shut down his ex immediately instead of freezing up, though he defended that Sara's reaction to seeing this wasn't unreasonable jealousy.",
+          "timestamp": 1770951226.534601
+        }
+      ],
+      "last_call": 1770951226.534601,
+      "created_at": 1770951226.534601
     }
   ]
 }

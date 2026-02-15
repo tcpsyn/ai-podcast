@@ -7,14 +7,15 @@ from ..config import settings
 
 # Available OpenRouter models
 OPENROUTER_MODELS = [
-    # Best for natural dialog (ranked)
+    # Default
+    "anthropic/claude-sonnet-4-5",
+    # Best for natural dialog
+    "x-ai/grok-4-fast",
     "minimax/minimax-m2-her",
     "mistralai/mistral-small-creative",
-    "x-ai/grok-4-fast",
     "deepseek/deepseek-v3.2",
-    # Updated standard models
+    # Other
     "anthropic/claude-haiku-4.5",
-    "anthropic/claude-sonnet-4-5",
     "google/gemini-2.5-flash",
     "openai/gpt-4o-mini",
     "openai/gpt-4o",

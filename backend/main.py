@@ -491,6 +491,28 @@ PROBLEMS = [
     "their teenager posted something online that went viral for the wrong reasons and now strangers are showing up at their house",
     "found out their ex has been tracking their location through a shared app they forgot to turn off",
     "someone made a fake social media profile using their photos and has been messaging people they know",
+
+    # Layered / morally ambiguous / weird-but-real
+    "has been pretending to be a widower for sympathy at a grief support group but they actually just got divorced — and now they've made real friends there and don't know how to come clean",
+    "accidentally got cc'd on an email chain where their entire friend group is planning an intervention for them and they don't think they have a problem",
+    "their therapist ran into them at a bar and they had a totally normal conversation for 20 minutes before it got weird — now they feel like they can't go back to sessions",
+    "has been writing letters to their dead wife every week for three years and mailing them to her old address — the new tenant just wrote back",
+    "took a DNA ancestry test as a Christmas gift and matched with a half-sibling who lives four miles from them — they've been shopping at the same grocery store",
+    "works as a 911 dispatcher and took a call last week from someone in a situation almost identical to one they went through — they froze up and can't stop replaying it",
+    "has been tipping a waitress at a diner $100 every Friday for a year because she reminds them of their daughter they haven't spoken to — the waitress just asked them why",
+    "found out the guy they've been playing online chess with every night for two years is their estranged brother — recognized a phrase he used in the chat",
+    "coached their kid's little league team to an undefeated season but just found out the other parents have been complaining they're too intense and the league isn't renewing them",
+    "got a thank-you card from someone they don't remember — it says they saved their life ten years ago at a gas station in Tucson and they have no memory of it",
+    "has been secretly paying their adult kid's rent for six months because they're too proud to admit they're struggling — spouse just found the bank statements",
+    "went to their high school reunion and the person who bullied them for four years came up and apologized in tears — and they felt nothing, which scares them more than the bullying did",
+    "started a small business selling furniture they build by hand and just got a huge order from a company that turns out to be owned by their ex-wife's new husband",
+    "volunteers at a soup kitchen every Saturday and just realized one of the regulars is their old college roommate who ghosted everyone 15 years ago",
+    "kept their grandmother's house exactly the way she left it after she died — they go there and sit in her chair every Sunday — and now their siblings want to sell it",
+    "has been lying about being bilingual on their resume for years and just got assigned to lead a project in Mexico City next month",
+    "ran a red light last month and caused a fender bender — nobody was hurt but they drove off, and now they keep seeing the other car around town with the damage they caused",
+    "their elderly neighbor asked them to be their emergency contact because they have no family — it's been six months and they're basically this person's whole support system now and it's a lot",
+    "found their dad's old ham radio in the attic, got it working, and has been talking to strangers at 2am — one of them just said something that makes them think it's someone they know",
+    "won a local chili cookoff with their dead mother's recipe and now everyone wants it — but sharing it feels like giving away the last private thing they have of hers",
 ]
 
 PROBLEM_FILLS = {
@@ -1360,8 +1382,12 @@ def _get_seasonal_context() -> str:
         contexts.append("Just got past Thanksgiving.")
     elif month == 1 and day < 7:
         contexts.append("New Year's just happened.")
-    elif month == 2 and 10 <= day <= 14:
-        contexts.append("Valentine's Day is coming.")
+    elif month == 2 and day == 14:
+        contexts.append("It's Valentine's Day today. Everyone's thinking about love, relationships, being single, past heartbreaks, first dates, terrible dates, great dates. It's everywhere — social media, restaurants packed, flowers at every gas station. Hard to ignore even if you want to.")
+    elif month == 2 and day == 13:
+        contexts.append("Valentine's Day is tomorrow. It's on everyone's mind — couples making plans, single people bracing for it, exes crossing your mind whether you want them to or not. Every store has hearts and chocolates in the window.")
+    elif month == 2 and 10 <= day <= 12:
+        contexts.append("Valentine's Day is in a few days.")
     elif month == 7 and day <= 5:
         contexts.append("Fourth of July.")
     elif month == 11 and 20 <= day <= 28:
@@ -2079,19 +2105,30 @@ def get_caller_prompt(caller: dict, show_history: str = "",
             parts.append(research_context)
         world_context = "\n".join(parts) + "\n"
 
-    return f"""You are {caller['name']}, calling "Luke at the Roost," a late-night radio show.
+    now = datetime.now(_MST)
+    date_str = now.strftime("%A, %B %d")
+
+    return f"""You are {caller['name']}, calling "Luke at the Roost," a late-night radio show. Today is {date_str}.
 
 {caller['vibe']}
 {history}{world_context}{emotional_read}
-You called because something happened — something specific that you need to talk about. Lead with it. Don't be vague or dance around it. You're calling a late-night radio show because you have a story, a situation, or a problem, and you want to get into it. Your background is just who you are — it colors how you talk, but you're not here to recite it.
+You're a real person calling a late-night radio show. You have personality. You're funny, or sharp, or a little messy, or flirty — whatever fits who you are. You're not calling to read a script. You're calling because you've got something to say and you want to be heard.
 
-When the host talks, RESPOND TO WHAT HE SAID. Answer his questions. React to his points. If he changes the subject or steers the conversation somewhere, GO WITH HIM — he's the host, it's his show. You're a caller, not a co-host. Let him lead.
+ENERGY AND VIBE: This is late-night radio — it's loose, it's fun, it's a little dangerous. You can be edgy. You can flirt with the host or joke about things that would make your mother blush. You can be sarcastic, dark-humored, self-deprecating, or wildly opinionated. You have a PERSONALITY that comes through in how you talk — not just what you talk about. Some callers are loud and chaotic. Some are dry and deadpan. Some are sweet but say outrageous things casually. Figure out who you are and commit to it.
 
-Keep it to two to four sentences unless you're telling a real story or explaining something he asked about. Start talking like a person — "Oh man," "Yeah so," "Well here's the thing" — not like you're reading a prepared statement.
+PLAY ALONG WITH THE HOST. This is the most important rule. When Luke is running a game, a bit, or a segment — you are ALL IN. You play the game. You give real answers. You riff with him. You build on what he's doing. If he asks you a question, you answer it with enthusiasm and detail — don't give one-word answers, give him something to work with. If he's being funny, be funny back. If he's setting you up, take the swing. You're a great radio caller — the kind that makes listeners lean in.
 
-Don't repeat yourself. Don't summarize. Don't circle back to your original point if the host moved on. Move with the conversation. Use real names. Swear if it fits. Disagree if you want. You're a real person with opinions, not a polite guest.
+When he asks "what's going on" or "what's on your mind," THAT's when you bring your thing. But if he's already steering somewhere, ride with him and bring your energy to HIS topic. Your stuff can come up naturally.
 
-Speak like southwest — "over in," "the other day," "down the road" — but don't force it. Spell words properly for text-to-speech: "you know" not "yanno," "going to" not "gonna."
+YOUR STORY: You've got something real going on — a situation, a story, a confession, something juicy. It's not generic. It's got specific names, specific details, the kind of thing that makes someone say "wait, WHAT?" Don't just state it flat — tell it like you'd tell your friend at a bar. There are parts you're not proud of. There are parts that are kind of funny even though they shouldn't be. You've got conflicting feelings about it.
+
+HOW YOU TALK: Talk like a real person on the phone — "Oh man," "So get this," "I swear to God," "No but seriously." Give full answers, not clipped ones. When something's funny, laugh at it. When something's awkward, own it. React to what Luke says — agree, push back, get excited, get embarrassed. You're having a CONVERSATION, not delivering a monologue.
+
+Be specific. Use real names. Swear if it fits. Be a little inappropriate sometimes — you're calling late-night radio, not a church hotline. Flirt if the moment's right. Say the quiet part out loud once in a while.
+
+Southwest voice — "over in," "the other day," "down the road" — but don't force it. Spell words properly for text-to-speech: "you know" not "yanno," "going to" not "gonna."
+
+Don't repeat yourself. Don't summarize what you already said. Don't circle back if the host moved on. Keep it moving.
 
 NEVER mention minors in sexual context. Output spoken words only — no actions, no gestures, no stage directions."""
 
@@ -2740,14 +2777,14 @@ def _pick_response_budget() -> tuple[int, int]:
     Returns (max_tokens, max_sentences).
     Keeps responses conversational but gives room for real answers."""
     roll = random.random()
-    if roll < 0.20:
-        return 150, 2   # 20% — short and direct
-    elif roll < 0.55:
-        return 250, 3   # 35% — normal conversation
-    elif roll < 0.80:
-        return 350, 4   # 25% — explaining something
+    if roll < 0.15:
+        return 200, 3   # 15% — quick reaction
+    elif roll < 0.45:
+        return 350, 4   # 30% — normal conversation
+    elif roll < 0.75:
+        return 450, 5   # 30% — room to breathe
     else:
-        return 450, 5   # 20% — telling a story or going deep
+        return 550, 6   # 25% — telling a story or riffing
 
 
 def _trim_to_sentences(text: str, max_sentences: int) -> str:
@@ -3023,6 +3060,11 @@ async def set_music_volume(request: MusicRequest):
 
 # --- Sound Effects Endpoints ---
 
+SFX_DISPLAY_NAMES = {
+    "cheer": "correct",
+}
+SFX_PRIORITY = ["sad_trombone", "cheer"]
+
 @app.get("/api/sounds")
 async def get_sounds():
     """Get available sound effects"""
@@ -3030,11 +3072,14 @@ async def get_sounds():
     if settings.sounds_dir.exists():
         for f in settings.sounds_dir.glob('*.wav'):
             sounds.append({
-                "name": f.stem,
+                "name": SFX_DISPLAY_NAMES.get(f.stem, f.stem),
                 "file": f.name,
                 "path": str(f)
             })
-    return {"sounds": sounds}
+    priority_set = {p + ".wav" for p in SFX_PRIORITY}
+    priority = [s for p in SFX_PRIORITY for s in sounds if s["file"] == p + ".wav"]
+    rest = sorted([s for s in sounds if s["file"] not in priority_set], key=lambda s: s["name"])
+    return {"sounds": priority + rest}
 
 
 @app.post("/api/sfx/play")

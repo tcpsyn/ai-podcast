@@ -61,7 +61,7 @@ def compute_rms(audio: np.ndarray, window_samples: int) -> np.ndarray:
 
 
 def remove_gaps(stems: dict[str, np.ndarray], sr: int,
-                threshold_s: float = 2.0, max_gap_s: float = 8.0,
+                threshold_s: float = 2.0, max_gap_s: float = 15.0,
                 crossfade_ms: float = 30, pad_s: float = 0.5) -> dict[str, np.ndarray]:
     window_ms = 50
     window_samples = int(sr * window_ms / 1000)
