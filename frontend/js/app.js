@@ -62,6 +62,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         initEventListeners();
         loadVoicemails();
         setInterval(loadVoicemails, 30000);
+        loadEmails();
+        setInterval(loadEmails, 30000);
         log('Ready. Configure audio devices in Settings, then click a caller to start.');
         console.log('AI Radio Show ready');
     } catch (err) {
@@ -1358,5 +1360,87 @@ async function deleteVoicemail(id) {
         loadVoicemails();
     } catch (err) {
         log('Failed to delete voicemail: ' + err.message);
+    }
+}
+
+
+// --- Listener Emails ---
+async function loadEmails() {
+    try {
+        const res = await fetch('/api/emails');
+        const data = await res.json();
+        renderEmails(data);
+    } catch (err) {}
+}
+
+function renderEmails(emails) {
+    const list = document.getElementById('email-list');
+    const badge = document.getElementById('email-badge');
+    if (!list) return;
+
+    const unread = emails.filter(e => !e.read_on_air).length;
+    if (badge) {
+        badge.textContent = unread;
+        badge.classList.toggle('hidden', unread === 0);
+    }
+
+    if (emails.length === 0) {
+        list.innerHTML = '<div class="queue-empty">No emails</div>';
+        return;
+    }
+
+    list.innerHTML = emails.map(e => {
+        const date = new Date(e.timestamp * 1000);
+        const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const preview = e.body.length > 120 ? e.body.substring(0, 120) + '…' : e.body;
+        const unreadCls = e.read_on_air ? '' : ' vm-unlistened';
+        const senderName = e.sender.replace(/<.*>/, '').trim() || e.sender;
+        return `<div class="email-item${unreadCls}" data-id="${e.id}">
+            <div class="email-header">
+                <span class="email-sender">${escapeHtml(senderName)}</span>
+                <span class="vm-time">${timeStr}</span>
+            </div>
+            <div class="email-subject">${escapeHtml(e.subject)}</div>
+            <div class="email-preview">${escapeHtml(preview)}</div>
+            <div class="vm-actions">
+                <button class="vm-btn listen" onclick="viewEmail('${e.id}')">View</button>
+                <button class="vm-btn on-air" onclick="playEmailOnAir('${e.id}')">On Air (TTS)</button>
+                <button class="vm-btn delete" onclick="deleteEmail('${e.id}')">Del</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function viewEmail(id) {
+    fetch('/api/emails').then(r => r.json()).then(emails => {
+        const em = emails.find(e => e.id === id);
+        if (!em) return;
+        alert(`From: ${em.sender}\nSubject: ${em.subject}\n\n${em.body}`);
+    });
+}
+
+async function playEmailOnAir(id) {
+    try {
+        await safeFetch(`/api/email/${id}/play-on-air`, { method: 'POST' });
+        log('Reading email on air (TTS)');
+        loadEmails();
+    } catch (err) {
+        log('Failed to play email: ' + err.message);
+    }
+}
+
+async function deleteEmail(id) {
+    if (!confirm('Delete this email?')) return;
+    try {
+        await safeFetch(`/api/email/${id}`, { method: 'DELETE' });
+        loadEmails();
+    } catch (err) {
+        log('Failed to delete email: ' + err.message);
     }
 }

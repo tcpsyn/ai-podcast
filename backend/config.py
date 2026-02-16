@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     signalwire_phone: str = os.getenv("SIGNALWIRE_PHONE", "")
     signalwire_stream_url: str = os.getenv("SIGNALWIRE_STREAM_URL", "")
 
+    # Email (IMAP)
+    submissions_imap_host: str = os.getenv("SUBMISSIONS_IMAP_HOST", "")
+    submissions_imap_user: str = os.getenv("SUBMISSIONS_IMAP_USER", "")
+    submissions_imap_pass: str = os.getenv("SUBMISSIONS_IMAP_PASS", "")
+
     # LLM Settings
     llm_provider: str = "openrouter"  # "openrouter" or "ollama"
     openrouter_model: str = "anthropic/claude-sonnet-4-5"

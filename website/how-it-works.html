@@ -147,6 +147,14 @@
       <div class="hiw-step">
         <div class="hiw-step-number">6</div>
         <div class="hiw-step-content">
+          <h3>Listener Emails</h3>
+          <p>Listeners can send emails to <a href="mailto:submissions@lukeattheroost.com" style="color:var(--accent)">submissions@lukeattheroost.com</a> and have them read on the show. A background poller checks for new messages every 30 seconds — they show up in the control room as soon as they arrive. Luke can read them himself on the mic, or hit a button to have an AI voice read them aloud on the caller channel. It's like a call-in show meets a letters segment — listeners who can't call in can still be part of the conversation.</p>
+        </div>
+      </div>
+
+      <div class="hiw-step">
+        <div class="hiw-step-number">7</div>
+        <div class="hiw-step-content">
           <h3>The Control Room</h3>
           <p>The entire show runs through a custom-built control panel. Luke manages callers, plays music and sound effects, runs ads, monitors the call queue, and controls everything from one screen. Audio is routed across multiple channels simultaneously — caller voices, music, sound effects, and live phone audio all on separate tracks. The website shows a live on-air indicator so listeners know when to call in.</p>
           <div class="hiw-detail-grid">
@@ -202,6 +210,12 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="16" rx="2"/><path d="M2 6l10 7 10-7"/></svg>
             </div>
             <span>Voicemails</span>
+          </div>
+          <div class="diagram-box diagram-accent">
+            <div class="diagram-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <span>Listener Emails</span>
           </div>
         </div>
         <div class="diagram-arrow">&#8595;</div>
@@ -396,7 +410,7 @@
 
     <div class="hiw-steps">
       <div class="hiw-step">
-        <div class="hiw-step-number">7</div>
+        <div class="hiw-step-number">8</div>
         <div class="hiw-step-content">
           <h3>Multi-Stem Recording</h3>
           <p>During every show, the system records five separate audio stems simultaneously: host microphone, AI caller voices, music, sound effects, and ads. Each stem is captured as an independent WAV file with sample-accurate alignment. This gives full control over the final mix — like having a recording studio's multitrack session, not just a flat recording.</p>
@@ -422,7 +436,7 @@
       </div>
 
       <div class="hiw-step">
-        <div class="hiw-step-number">8</div>
+        <div class="hiw-step-number">9</div>
         <div class="hiw-step-content">
           <h3>Post-Production Pipeline</h3>
           <p>Once the show ends, a 15-step automated pipeline processes the raw stems into a broadcast-ready episode. Ads and sound effects are hard-limited to prevent clipping. The host mic gets a high-pass filter, de-essing, and breath reduction. Voice tracks are compressed — the host gets aggressive spoken-word compression for consistent levels, callers get telephone EQ to sound like real phone calls. All stems are level-matched, music is ducked under dialog and muted during ads, then everything is mixed to stereo with panning and width. A bus compressor glues the final mix together before silence trimming, fades, and EBU R128 loudness normalization.</p>
@@ -448,7 +462,7 @@
       </div>
 
       <div class="hiw-step">
-        <div class="hiw-step-number">9</div>
+        <div class="hiw-step-number">10</div>
         <div class="hiw-step-content">
           <h3>Automated Publishing</h3>
           <p>A single command takes a finished episode and handles everything: the audio is transcribed using MLX Whisper running on Apple Silicon GPU to generate full-text transcripts, then an LLM analyzes the transcript to write the episode title, description, and chapter markers with timestamps. The episode is uploaded to the podcast server, chapters and transcripts are attached to the metadata, and all media is synced to a global CDN so listeners everywhere get fast downloads.</p>
@@ -474,7 +488,7 @@
       </div>
 
       <div class="hiw-step">
-        <div class="hiw-step-number">10</div>
+        <div class="hiw-step-number">11</div>
         <div class="hiw-step-content">
           <h3>Automated Social Clips</h3>
           <p>No manual editing, no scheduling tools. After each episode, an LLM reads the full transcript and picks the best moments — funny exchanges, wild confessions, heated debates. Each clip is automatically extracted, transcribed with word-level timestamps, then polished by a second LLM pass that fixes punctuation, capitalization, and misheard words while preserving timing. The clips are rendered as vertical video with speaker-labeled captions and the show's branding. A third LLM writes platform-specific descriptions and hashtags. Then clips are uploaded directly to YouTube Shorts and Bluesky via their APIs, and pushed to Instagram Reels, Facebook, and Mastodon — six platforms, zero manual work.</p>
@@ -500,7 +514,7 @@
       </div>
 
       <div class="hiw-step">
-        <div class="hiw-step-number">11</div>
+        <div class="hiw-step-number">12</div>
         <div class="hiw-step-content">
           <h3>Global Distribution</h3>
           <p>Episodes are served through a CDN edge network for fast, reliable playback worldwide. The RSS feed is automatically updated and picked up by Spotify, Apple Podcasts, YouTube, and every other podcast app. The website pulls the live feed to show episodes with embedded playback, full transcripts, and chapter navigation — all served through Cloudflare with edge caching. From recording to available on every platform, the whole pipeline is automated end-to-end.</p>
@@ -610,7 +624,7 @@
       </div>
     </div>
     <p class="footer-contact"><a href="https://ko-fi.com/lukemacneil" target="_blank" rel="noopener">Support the Show</a></p>
-    <p class="footer-contact">Sales &amp; Collaboration: <a href="mailto:luke@macneilmediagroup.com">luke@macneilmediagroup.com</a></p>
+    <p class="footer-contact">Sales &amp; Collaboration: <a href="mailto:luke@lukeattheroost.com">luke@lukeattheroost.com</a></p>
     <p>&copy; 2026 Luke at the Roost &middot; <a href="/privacy">Privacy Policy</a> &middot; <a href="https://monitoring.macneilmediagroup.com/status/lukeattheroost" target="_blank" rel="noopener">System Status</a></p>
   </footer>
 
