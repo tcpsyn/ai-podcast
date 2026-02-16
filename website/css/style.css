@@ -817,7 +817,9 @@ a:hover {
   color: var(--text-muted);
   font-size: 0.95rem;
   line-height: 1.7;
+  margin-bottom: 0.75rem;
 }
+.hiw-step-content p:last-of-type { margin-bottom: 0; }
 
 .hiw-detail-grid {
   display: grid;
