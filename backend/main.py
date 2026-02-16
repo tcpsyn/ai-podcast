@@ -4215,7 +4215,36 @@ async def set_music_volume(request: MusicRequest):
 # --- Sound Effects Endpoints ---
 
 SFX_DISPLAY_NAMES = {
-    "cheer": "correct",
+    "airhorn": "📢 Airhorn",
+    "applause": "👏 Applause",
+    "boo": "👎 Boo",
+    "busy": "📞 Busy",
+    "buzzer": "🚫 Buzzer",
+    "car_crash": "💥 Car Crash",
+    "cheer": "✅ Correct",
+    "clock_ticking": "⏰ Clock Ticking",
+    "commercial_jingle": "🎵 Jingle",
+    "crickets": "🦗 Crickets",
+    "ding": "🔔 Ding",
+    "doorbell": "🚪 Doorbell",
+    "drumroll": "🥁 Drumroll",
+    "dun_dun_dun": "😱 Dun Dun Dun",
+    "explosion": "💣 Explosion",
+    "fart": "💨 Fart",
+    "gasp": "😮 Gasp",
+    "glass_shatter": "🪟 Glass Shatter",
+    "hangup": "📵 Hangup",
+    "hold_music": "🎶 Hold Music",
+    "laugh_track": "😂 Laugh Track",
+    "news_stinger": "📰 News Stinger",
+    "phone_ring": "☎️ Phone Ring",
+    "record_scratch": "💿 Record Scratch",
+    "rimshot": "🪘 Rimshot",
+    "sad_trombone": "😢 Sad Trombone",
+    "thunder": "⛈️ Thunder",
+    "victory_fanfare": "🏆 Victory Fanfare",
+    "whoosh": "🌀 Whoosh",
+    "wolf_whistle": "😏 Wolf Whistle",
 }
 SFX_PRIORITY = ["sad_trombone", "cheer"]
 

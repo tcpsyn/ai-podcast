@@ -771,3 +771,4 @@ section h2 {
 .email-subject { font-size: 0.85rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .email-preview { font-size: 0.8rem; color: var(--text-muted); line-height: 1.3; }
 .email-item .vm-actions { margin-top: 0.25rem; }
+.email-body-expanded { margin-top: 0.4rem; padding: 0.5rem; background: rgba(232, 121, 29, 0.08); border-radius: var(--radius-sm); font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; max-height: 200px; overflow-y: auto; }

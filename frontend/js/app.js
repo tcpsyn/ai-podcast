@@ -1418,10 +1418,17 @@ function escapeHtml(str) {
 }
 
 function viewEmail(id) {
+    const item = document.querySelector(`.email-item[data-id="${id}"]`);
+    if (!item) return;
+    const existing = item.querySelector('.email-body-expanded');
+    if (existing) { existing.remove(); return; }
     fetch('/api/emails').then(r => r.json()).then(emails => {
         const em = emails.find(e => e.id === id);
         if (!em) return;
-        alert(`From: ${em.sender}\nSubject: ${em.subject}\n\n${em.body}`);
+        const div = document.createElement('div');
+        div.className = 'email-body-expanded';
+        div.textContent = em.body;
+        item.appendChild(div);
     });
 }
 
