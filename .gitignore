@@ -50,5 +50,9 @@ voices-v1.0.bin
 # Reference voices for TTS
 ref_audio/
 
+# YouTube OAuth credentials
+youtube_client_secrets.json
+youtube_token.json
+
 # Claude settings (local)
 .claude/

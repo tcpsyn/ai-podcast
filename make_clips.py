@@ -31,8 +31,8 @@ load_dotenv(Path(__file__).parent / ".env")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 RSS_FEED_URL = "https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml"
 EPISODE_CACHE_DIR = Path(__file__).parent / "clips" / ".episode-cache"
-WHISPER_MODEL_FAST = "base"
-WHISPER_MODEL_QUALITY = "large-v3"
+WHISPER_MODEL_FAST = "distil-large-v3"
+WHISPER_MODEL_QUALITY = "distil-large-v3"
 COVER_ART = Path(__file__).parent / "website" / "images" / "cover.png"
 
 # Fonts
@@ -71,7 +71,7 @@ def _build_whisper_prompt(labeled_transcript: str) -> str:
 
 def transcribe_with_timestamps(audio_path: str, whisper_model: str = None,
                                labeled_transcript: str = "") -> list[dict]:
-    """Transcribe audio with word-level timestamps using faster-whisper.
+    """Transcribe audio with word-level timestamps using mlx-whisper (Apple Silicon GPU).
 
     Returns list of segments: [{start, end, text, words: [{word, start, end}]}]
     """
@@ -83,43 +83,51 @@ def transcribe_with_timestamps(audio_path: str, whisper_model: str = None,
             return json.load(f)
 
     try:
-        from faster_whisper import WhisperModel
+        import mlx_whisper
     except ImportError:
-        print("Error: faster-whisper not installed. Run: pip install faster-whisper")
+        print("Error: mlx-whisper not installed. Run: pip install mlx-whisper")
         sys.exit(1)
 
+    MODEL_HF_REPOS = {
+        "distil-large-v3": "mlx-community/distil-whisper-large-v3",
+        "large-v3": "mlx-community/whisper-large-v3-mlx",
+        "medium": "mlx-community/whisper-medium-mlx",
+        "small": "mlx-community/whisper-small-mlx",
+        "base": "mlx-community/whisper-base-mlx",
+    }
+    hf_repo = MODEL_HF_REPOS.get(model_name, f"mlx-community/whisper-{model_name}-mlx")
+
     initial_prompt = _build_whisper_prompt(labeled_transcript)
-    print(f"    Model: {model_name}")
+    print(f"    Model: {model_name} (MLX GPU)")
     if labeled_transcript:
         print(f"    Prompt: {initial_prompt[:100]}...")
-    model = WhisperModel(model_name, compute_type="float32")
-    segments_iter, info = model.transcribe(
+
+    result = mlx_whisper.transcribe(
         audio_path,
+        path_or_hf_repo=hf_repo,
+        language="en",
         word_timestamps=True,
         initial_prompt=initial_prompt,
-        language="en",
-        beam_size=5,
-        vad_filter=True,
     )
 
     segments = []
-    for seg in segments_iter:
+    for seg in result.get("segments", []):
         words = []
-        if seg.words:
-            for w in seg.words:
-                words.append({
-                    "word": w.word.strip(),
-                    "start": round(w.start, 3),
-                    "end": round(w.end, 3),
-                })
+        for w in seg.get("words", []):
+            words.append({
+                "word": w["word"].strip(),
+                "start": round(w["start"], 3),
+                "end": round(w["end"], 3),
+            })
         segments.append({
-            "start": round(seg.start, 3),
-            "end": round(seg.end, 3),
-            "text": seg.text.strip(),
+            "start": round(seg["start"], 3),
+            "end": round(seg["end"], 3),
+            "text": seg["text"].strip(),
             "words": words,
         })
 
-    print(f"    Transcribed {info.duration:.1f}s ({len(segments)} segments)")
+    duration = segments[-1]["end"] if segments else 0
+    print(f"    Transcribed {duration:.1f}s ({len(segments)} segments)")
 
     with open(cache_path, "w") as f:
         json.dump(segments, f)
@@ -131,33 +139,39 @@ def transcribe_with_timestamps(audio_path: str, whisper_model: str = None,
 def refine_clip_timestamps(audio_path: str, clips: list[dict],
                            quality_model: str, labeled_transcript: str = "",
                            ) -> dict[int, list[dict]]:
-    """Re-transcribe just the selected clip ranges with a high-quality model.
+    """Re-transcribe just the selected clip ranges with mlx-whisper (GPU).
 
     Extracts each clip segment, runs the quality model on it, and returns
-    refined segments with timestamps mapped back to the original timeline.
+    refined segments with word-level timestamps mapped back to the original timeline.
 
     Returns: {clip_index: [segments]} keyed by clip index
     """
     try:
-        from faster_whisper import WhisperModel
+        import mlx_whisper
     except ImportError:
-        print("Error: faster-whisper not installed. Run: pip install faster-whisper")
+        print("Error: mlx-whisper not installed. Run: pip install mlx-whisper")
         sys.exit(1)
 
-    initial_prompt = _build_whisper_prompt(labeled_transcript)
-    print(f"    Refinement model: {quality_model}")
+    MODEL_HF_REPOS = {
+        "distil-large-v3": "mlx-community/distil-whisper-large-v3",
+        "large-v3": "mlx-community/whisper-large-v3-mlx",
+        "medium": "mlx-community/whisper-medium-mlx",
+        "small": "mlx-community/whisper-small-mlx",
+        "base": "mlx-community/whisper-base-mlx",
+    }
+    hf_repo = MODEL_HF_REPOS.get(quality_model, f"mlx-community/whisper-{quality_model}-mlx")
 
-    model = None  # Lazy-load so we skip if all cached
+    print(f"    Refinement model: {quality_model} (MLX GPU)")
+
+    initial_prompt = _build_whisper_prompt(labeled_transcript)
     refined = {}
 
     with tempfile.TemporaryDirectory() as tmp:
         for i, clip in enumerate(clips):
-            # Add padding around clip for context (Whisper does better with some lead-in)
             pad = 3.0
             seg_start = max(0, clip["start_time"] - pad)
             seg_end = clip["end_time"] + pad
 
-            # Check cache first
             cache_key = f"{Path(audio_path).stem}_clip{i}_{seg_start:.1f}-{seg_end:.1f}"
             cache_path = Path(audio_path).parent / f".whisper_refine_{quality_model}_{cache_key}.json"
             if cache_path.exists():
@@ -166,7 +180,6 @@ def refine_clip_timestamps(audio_path: str, clips: list[dict],
                     refined[i] = json.load(f)
                 continue
 
-            # Extract clip segment to temp WAV
             seg_path = os.path.join(tmp, f"segment_{i}.wav")
             cmd = [
                 "ffmpeg", "-y", "-ss", str(seg_start), "-t", str(seg_end - seg_start),
@@ -178,39 +191,35 @@ def refine_clip_timestamps(audio_path: str, clips: list[dict],
                 refined[i] = []
                 continue
 
-            # Lazy-load model on first non-cached clip
-            if model is None:
-                model = WhisperModel(quality_model, compute_type="float32")
-
-            segments_iter, info = model.transcribe(
+            mlx_result = mlx_whisper.transcribe(
                 seg_path,
+                path_or_hf_repo=hf_repo,
+                language="en",
                 word_timestamps=True,
                 initial_prompt=initial_prompt,
-                language="en",
-                beam_size=5,
-                vad_filter=True,
             )
 
-            # Collect segments and offset timestamps back to original timeline
             segments = []
-            for seg in segments_iter:
+            for seg_data in mlx_result.get("segments", []):
+                text = seg_data["text"].strip()
                 words = []
-                if seg.words:
-                    for w in seg.words:
-                        words.append({
-                            "word": w.word.strip(),
-                            "start": round(w.start + seg_start, 3),
-                            "end": round(w.end + seg_start, 3),
-                        })
+                for w in seg_data.get("words", []):
+                    words.append({
+                        "word": w["word"].strip(),
+                        "start": round(w["start"] + seg_start, 3),
+                        "end": round(w["end"] + seg_start, 3),
+                    })
+
                 segments.append({
-                    "start": round(seg.start + seg_start, 3),
-                    "end": round(seg.end + seg_start, 3),
-                    "text": seg.text.strip(),
+                    "start": round(seg_data["start"] + seg_start, 3),
+                    "end": round(seg_data["end"] + seg_start, 3),
+                    "text": text,
                     "words": words,
                 })
 
             refined[i] = segments
-            print(f"      Clip {i+1}: Refined {info.duration:.1f}s → {len(segments)} segments")
+            seg_duration = segments[-1]["end"] - segments[0]["start"] if segments else 0
+            print(f"      Clip {i+1}: Refined {seg_duration:.1f}s → {len(segments)} segments")
 
             with open(cache_path, "w") as f:
                 json.dump(segments, f)
@@ -694,32 +703,116 @@ def _interpolate_speaker(idx: int, matched: dict, n_words: int) -> str | None:
     return None
 
 
+def polish_clip_words(words: list[dict], labeled_transcript: str = "") -> list[dict]:
+    """Use LLM to fix punctuation, capitalization, and misheard words.
+
+    Sends the raw whisper words to an LLM, gets back a corrected version,
+    and maps corrections back to the original timed words.
+    """
+    if not words or not OPENROUTER_API_KEY:
+        return words
+
+    raw_text = " ".join(w["word"] for w in words)
+
+    context = ""
+    if labeled_transcript:
+        context = f"\nFor reference, here's the speaker-labeled transcript of this section (use it to correct misheard words and names):\n{labeled_transcript[:3000]}\n"
+
+    prompt = f"""Fix this podcast transcript excerpt so it reads as proper sentences. Fix punctuation, capitalization, and obvious misheard words.
+
+RULES:
+- Keep the EXACT same number of words in the EXACT same order
+- Only change capitalization, punctuation attached to words, and obvious mishearings
+- Do NOT add, remove, merge, or reorder words
+- Contractions count as one word (don't = 1 word)
+- Return ONLY the corrected text, nothing else
+{context}
+RAW TEXT ({len(words)} words):
+{raw_text}"""
+
+    try:
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "anthropic/claude-sonnet-4-5",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 2048,
+                "temperature": 0,
+            },
+            timeout=30,
+        )
+        if response.status_code != 200:
+            print(f"      Polish failed ({response.status_code}), using raw text")
+            return words
+
+        polished = response.json()["choices"][0]["message"]["content"].strip()
+        polished_words = polished.split()
+
+        if len(polished_words) != len(words):
+            print(f"      Polish word count mismatch ({len(polished_words)} vs {len(words)}), using raw text")
+            return words
+
+        changes = 0
+        for i, pw in enumerate(polished_words):
+            if pw != words[i]["word"]:
+                changes += 1
+                words[i]["word"] = pw
+
+        if changes:
+            print(f"      Polished {changes} words")
+
+    except Exception as e:
+        print(f"      Polish error: {e}")
+
+    return words
+
+
 def group_words_into_lines(words: list[dict], clip_start: float,
                            clip_duration: float) -> list[dict]:
     """Group words into timed caption lines for rendering.
 
+    Splits at speaker changes so each line has a single, correct speaker label.
     Returns list of: {start, end, speaker, words: [{word, highlighted}]}
     """
     if not words:
         return []
 
-    # Group words into display lines (5-7 words per line)
-    raw_lines = []
-    current_line = []
+    # First split at speaker boundaries, then group into display lines
+    speaker_groups = []
+    current_group = []
+    current_speaker = words[0].get("speaker", "")
     for w in words:
-        current_line.append(w)
-        if len(current_line) >= 6 or w["word"].rstrip().endswith(('.', '?', '!', ',')):
-            if len(current_line) >= 3:
-                raw_lines.append(current_line)
-                current_line = []
-    if current_line:
-        if raw_lines and len(current_line) < 3:
-            raw_lines[-1].extend(current_line)
-        else:
-            raw_lines.append(current_line)
+        speaker = w.get("speaker", "")
+        if speaker and speaker != current_speaker and current_group:
+            speaker_groups.append((current_speaker, current_group))
+            current_group = []
+            current_speaker = speaker
+        current_group.append(w)
+    if current_group:
+        speaker_groups.append((current_speaker, current_group))
+
+    # Now group each speaker's words into display lines (5-7 words)
+    raw_lines = []
+    for speaker, group_words in speaker_groups:
+        current_line = []
+        for w in group_words:
+            current_line.append(w)
+            if len(current_line) >= 6 or w["word"].rstrip().endswith(('.', '?', '!', ',')):
+                if len(current_line) >= 3:
+                    raw_lines.append((speaker, current_line))
+                    current_line = []
+        if current_line:
+            if raw_lines and len(current_line) < 3 and raw_lines[-1][0] == speaker:
+                raw_lines[-1] = (speaker, raw_lines[-1][1] + current_line)
+            else:
+                raw_lines.append((speaker, current_line))
 
     lines = []
-    for line_words in raw_lines:
+    for speaker, line_words in raw_lines:
         line_start = line_words[0]["start"] - clip_start
         line_end = line_words[-1]["end"] - clip_start
 
@@ -733,7 +826,7 @@ def group_words_into_lines(words: list[dict], clip_start: float,
         lines.append({
             "start": line_start,
             "end": line_end,
-            "speaker": line_words[0].get("speaker", ""),
+            "speaker": speaker,
             "words": line_words,
         })
 
@@ -1333,6 +1426,9 @@ def main():
             clip_words = add_speaker_labels(clip_words, labeled_transcript,
                                             clip["start_time"], clip["end_time"],
                                             word_source)
+
+            # Polish text with LLM (fix punctuation, capitalization, mishearings)
+            clip_words = polish_clip_words(clip_words, labeled_transcript)
 
             # Group words into timed caption lines
             caption_lines = group_words_into_lines(
