@@ -96,4 +96,10 @@
     <changefreq>never</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-13-navigating-life-s-unexpected-turns</loc>
+    <lastmod>2026-02-16</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>

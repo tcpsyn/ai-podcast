@@ -24,9 +24,8 @@
 
 ## Running the App
 ```bash
-# Start backend
-cd /Users/lukemacneil/ai-podcast
-python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+# Start backend — ALWAYS use --reload-dir to avoid CPU thrashing from file watchers
+python -m uvicorn backend.main:app --reload --reload-dir backend --host 0.0.0.0 --port 8000
 
 # Or use run.sh
 ./run.sh

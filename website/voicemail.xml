@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Say voice="woman">Luke at the Roost is off the air right now. Leave a message after the beep and we may play it on the next show!</Say>
+    <Record maxLength="120" action="https://radioshow.macneilmediagroup.com/api/signalwire/voicemail-complete" playBeep="true" />
+    <Say voice="woman">Thank you for calling. Goodbye!</Say>
+    <Hangup/>
+</Response>

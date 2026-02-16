@@ -71,11 +71,11 @@ FEMALE_NAMES = [
 # Voice pools per TTS provider
 INWORLD_MALE_VOICES = [
     "Alex", "Blake", "Carter", "Clive", "Craig", "Dennis",
-    "Dominus", "Edward", "Hades", "Mark", "Ronald", "Shaun", "Theodore", "Timothy",
+    "Edward", "Hades", "Mark", "Ronald", "Shaun", "Theodore", "Timothy",
 ]
 INWORLD_FEMALE_VOICES = [
     "Ashley", "Deborah", "Elizabeth", "Hana", "Julia",
-    "Luna", "Olivia", "Pixie", "Priya", "Sarah", "Wendy",
+    "Luna", "Olivia", "Priya", "Sarah", "Wendy",
 ]
 
 ELEVENLABS_MALE_VOICES = [
@@ -139,7 +139,7 @@ def _randomize_callers():
     # Get returning callers first so we can exclude their names from random pool
     returning = []
     try:
-        returning = regular_caller_service.get_returning_callers(random.randint(2, 3))
+        returning = regular_caller_service.get_returning_callers(random.randint(0, 1))
     except Exception as e:
         print(f"[Regulars] Failed to get returning callers: {e}")
 
@@ -513,6 +513,76 @@ PROBLEMS = [
     "their elderly neighbor asked them to be their emergency contact because they have no family — it's been six months and they're basically this person's whole support system now and it's a lot",
     "found their dad's old ham radio in the attic, got it working, and has been talking to strangers at 2am — one of them just said something that makes them think it's someone they know",
     "won a local chili cookoff with their dead mother's recipe and now everyone wants it — but sharing it feels like giving away the last private thing they have of hers",
+
+    # Secrets and double lives
+    "has been pretending to go to work every day for three weeks but they actually got fired — they sit in their car at the library until 5pm",
+    "found out they have a kid they never knew about — the mother showed up at their job with a 12-year-old who looks exactly like them",
+    "has been living under a fake name for 15 years and their spouse doesn't know their real one",
+    "their spouse thinks they're sober but they've been keeping a bottle in their truck toolbox and drinking in parking lots after work",
+    "has been telling everyone they went to college but they dropped out after one semester — now their kid wants to go to the same school",
+    "got a DM from someone claiming to be their father's other kid — there are apparently four of them across three states",
+
+    # Escalated neighbor/community situations
+    "their neighbor built a fence six inches onto their property and when they brought it up the guy pulled out a surveyor's report that might actually prove it's his land",
+    "woke up to find their truck on blocks with all four tires stolen and the security camera footage shows their cousin's boyfriend doing it",
+    "someone has been leaving dead animals on their porch once a week for a month and the cops say there's nothing they can do",
+    "their neighbor has been running an unlicensed daycare with 15 kids and the noise is destroying their life but calling the city feels wrong",
+    "got into a road rage incident and the other driver followed them home — now they see the same truck drive past their house every night",
+
+    # Workplace chaos
+    "walked in on their boss crying in the bathroom and now the boss won't make eye contact with them and they think they're about to get fired for it",
+    "accidentally discovered their company has been billing clients for work that was never done and they have the receipts on a USB drive in their glove box",
+    "their coworker died on the job last month and the company hasn't changed a single safety protocol — they're scared to go back in",
+    "just found out the 'charity' their company donates to every year is a shell company owned by the CEO's wife",
+    "has been sleeping in their office for two weeks because they can't afford an apartment in the city they transferred to",
+    "got promoted to manage their former peers and two of them have made their life a living hell since — one of them is their best friend",
+
+    # Unhinged confessions
+    "has been going to open houses every weekend for three years pretending to be a buyer — it's the only time they feel like they have a future",
+    "ate their roommate's leftovers and found a note in the fridge the next day that said 'I know it was you. This isn't over.'",
+    "has been anonymously sending flowers to a coworker every week for six months and the coworker just announced at a meeting that they're filing a police report about it",
+    "stole a garden gnome from someone's yard as a joke ten years ago and has been moving it around their house ever since — their spouse thinks they bought it",
+    "has been writing one-star Yelp reviews for their ex's business under fake names and just found out their ex figured out it's them",
+    "catfished their own spouse to see if they'd cheat — and they did, immediately",
+
+    # Existential and philosophical crises
+    "had a near-death experience during a routine surgery and now they can't shake the feeling that nothing they do at work matters",
+    "went to their own high school reunion and nobody remembered them — not a single person — and they were there for four years",
+    "realized they've been on autopilot for ten years and can't remember a single thing that happened in 2021",
+    "drove past the house they grew up in and someone had torn out the tree their dad planted when they were born",
+    "hit their 10,000th day alive and spent the whole night calculating how many they probably have left",
+    "overheard their kid describe them to a friend and didn't recognize the person their kid was describing",
+
+    # Outrageous situations
+    "got a cease and desist letter from Disney because their kid's birthday party decorations went viral on TikTok",
+    "found out their Airbnb guest has been living in their rental for three months and won't leave — and legally they might be a tenant now",
+    "their ex started a podcast specifically to talk about their relationship and it's getting popular in their town",
+    "accidentally RSVP'd yes to their ex's wedding thinking it was a joke and now they have a seat at table 6",
+    "their HOA fined them $500 for having a 'non-approved shade of beige' on their front door and they're ready to burn the whole neighborhood down",
+    "bid on a storage unit at auction and found a box of love letters between their mother and a man who isn't their father",
+
+    # Betrayal and trust
+    "their business partner has been siphoning money for a year and when they confronted them, the partner said 'prove it' and smiled",
+    "trusted their brother to housesit and came back to find he'd thrown a party that caused $8,000 in damage and he's acting like nothing happened",
+    "found out their therapist has been discussing their sessions with a mutual friend",
+    "lent their car to a friend who got a DUI in it and now they're being sued by the other driver",
+    "their best friend of 30 years slept with their ex-wife the week the divorce was finalized and just told them 'it's been six months, you should be over it'",
+    "discovered their financial advisor put their retirement into investments that benefit the advisor's other company",
+
+    # Crossroads moments
+    "got two job offers on the same day — one pays double but means moving away from their dying father, the other keeps them close but they'll be broke",
+    "their teenage kid just told them they want to go live with their other parent and they have to decide whether to fight it or let go",
+    "a developer offered them $800,000 for their family ranch and their siblings want to sell but they'd rather die than let it go",
+    "just got the paternity test results back and they haven't opened the envelope — it's sitting on the kitchen table",
+    "has to testify against their childhood best friend in court next week and the friend's family has been calling them a traitor",
+
+    # Dark humor situations
+    "accidentally liked their ex's Instagram photo from 2019 at 2am and the panic spiral has been going for six hours",
+    "their date went so badly the restaurant comped the meal and the waiter said 'I'm sorry' on the way out",
+    "got a fortune cookie that said 'it's too late' and nothing else — no lucky numbers, no smiley face, just those three words",
+    "tried to surprise their spouse for their anniversary and walked in on a surprise party for themselves that their spouse forgot to tell them about — for a birthday that was two months ago",
+    "got pulled over doing 90 in a 45 and the cop turned out to be the kid they used to babysit — who let them off with a warning and a lecture that felt worse than a ticket",
+    "went to confront someone who keyed their car and it turned out to be their own wife who did it during an argument she says they should remember but they genuinely don't",
 ]
 
 PROBLEM_FILLS = {
@@ -930,6 +1000,18 @@ TOPIC_CALLIN = [
     "thinks Silo is the most underrated show on TV right now",
     "wants to talk about why prestige TV peaked and where it's going",
     "has been watching The Last of Us and can't stop thinking about the third episode",
+    "just discovered Peaky Blinders and wants to argue it's the most stylish show ever made",
+    "thinks The Bear is the most stressful show on television and they can't stop watching — wants to talk about why people are drawn to anxiety",
+    "rewatched The Office for the eighth time and has a theory that Michael Scott is actually a genius who plays dumb",
+    "wants to talk about Shogun and how it's the best historical drama they've ever seen — the production quality alone is staggering",
+    "just finished Chernobyl and can't believe what the Soviet Union covered up — wants to talk about the real people behind the show",
+    "thinks Fargo the TV show is better than the movie and wants to defend that position",
+    "has been watching Reacher and wants to talk about why simple action shows with big dudes punching bad guys are exactly what they need right now",
+    "wants to argue that Band of Brothers is the greatest piece of war media ever created and it's not even close",
+    "just binged Beef and the spiral both characters go on is the most realistic portrayal of road rage consequences they've ever seen",
+    "thinks Andor is better than any Star Wars movie and the fact that it's a 'TV show about space' is underselling it by a mile",
+    "wants to talk about why they cried during a specific scene in This Is Us and they're not someone who usually cries at TV",
+    "just finished Dark on Netflix and the German time-travel show melted their brain — wants someone to help them understand what they just watched",
 
     # Science & space
     "read something about a new exoplanet discovery and is genuinely excited",
@@ -944,6 +1026,77 @@ TOPIC_CALLIN = [
     "read about new battery technology that could change everything",
     "wants to talk about gravitational waves and what they mean for physics",
     "fascinated by the search for extraterrestrial life, thinks we're close",
+    "just learned about extremophiles — organisms living in boiling acid vents on the ocean floor — and thinks it changes what we should be looking for on other planets",
+    "read about how Saturn's moon Enceladus is shooting geysers of water into space and probably has a warm ocean under the ice — wants to talk about why we aren't sending a submarine there",
+    "learned about magnetars — neutron stars with magnetic fields so strong they could erase your credit card from halfway across the solar system — and can't believe they're real",
+    "found out about rogue planets — billions of them just drifting through the galaxy with no star — and wants to talk about whether life could exist on one",
+    "read about the Wow! signal from 1977 — a 72-second radio burst from space that's never been explained — and has opinions about what it could have been",
+    "just learned that Titan has methane lakes and rain and weather just like Earth but with liquid natural gas instead of water — wants to talk about how weird that is",
+    "read about how the sun loses 4 million tons of mass every second through fusion and will still burn for another 5 billion years — the scale broke their brain",
+    "found out about the Great Attractor — something massive and invisible is pulling our entire galaxy toward it at 600 km per second and we can't see what it is because the Milky Way is in the way",
+    "learned about panspermia — the idea that life on Earth might have started from bacteria riding asteroids — and thinks it's more plausible than people realize",
+    "read about the Kuiper Belt object Arrokoth that New Horizons flew past — it's shaped like a snowman and hasn't changed in 4.5 billion years, basically a fossil from when the solar system formed",
+    "just learned about fast radio bursts — millisecond blasts of energy from billions of light years away — some of them repeat and nobody knows what's causing them",
+    "found out about the Boötes Void — a region of space 330 million light years across with almost nothing in it — and wants to talk about what could cause that",
+
+    # Biology & nature
+    "just learned about the immortal jellyfish — Turritopsis dohrnii — it can literally reverse its aging and go back to being a polyp, and scientists are studying it for human aging research",
+    "read about how cuttlefish can change their skin color, texture, AND pattern in milliseconds using cells called chromatophores — they're basically living TV screens",
+    "found out that the axolotl can regenerate entire limbs, parts of its brain, heart, and spinal cord — and scientists are trying to figure out how to unlock that in humans",
+    "learned about mycorrhizal networks — fungi that connect trees underground and let them share nutrients and even send chemical warnings about insect attacks to each other",
+    "read about the pistol shrimp — it snaps its claw so fast it creates a bubble that reaches 4,700 degrees Celsius, hotter than the surface of the sun, for a split second",
+    "just found out about CRISPR and how scientists can now edit DNA like a word processor — they used it to make mosquitoes that can't carry malaria",
+    "learned about the bombardier beetle — it mixes two chemicals in its abdomen that create a boiling toxic spray it shoots at predators at 500 pulses per second",
+    "read about how dolphins sleep with half their brain at a time so one eye stays open watching for sharks — it's called unihemispheric sleep",
+    "found out that the honey badger has skin so loose and thick that if something bites it, it can literally turn around inside its own skin and bite back",
+    "just learned about the deep sea anglerfish mating system — the male is tiny, bites onto the female, and literally fuses into her body until he's just a pair of gonads she carries around",
+    "read about how slime mold — a single-celled organism with no brain — can solve mazes and recreate the Tokyo subway map when given food at each station location",
+    "learned about epigenetics — how your experiences can chemically modify your DNA and those changes can be inherited by your grandchildren — trauma can literally be passed down",
+    "found out about the Cordyceps fungus that takes over ant brains and makes them climb to the perfect height before bursting out of their head to spread spores",
+    "read that there's a species of flatworm that shoots its own head off when threatened, then grows a new one — it can be cut into 200 pieces and each piece grows into a complete worm",
+
+    # Psychology & the brain
+    "just learned about the McGurk effect — where what you see overrides what you hear — if you watch someone mouth 'fa' while hearing 'ba' your brain hears 'fa' — and wants to talk about how unreliable our senses are",
+    "read about hemispatial neglect — people with specific brain damage literally cannot perceive one half of everything, they'll only eat food from one side of their plate and only shave half their face",
+    "found out about the rubber hand illusion — scientists can trick your brain into thinking a rubber hand is yours in under two minutes — and it has wild implications for what 'self' means",
+    "learned about blindsight — some people who are completely blind can still catch a ball thrown at them because a separate visual pathway bypasses conscious awareness",
+    "read about the split-brain experiments where they cut the connection between brain hemispheres and each half developed its own personality and preferences",
+    "just found out about phantom limb syndrome and how mirror box therapy tricks the brain into releasing pain from a limb that doesn't exist anymore",
+    "learned about the tetrachromacy mutation — some women have four types of color receptors instead of three and can see millions more colors than everyone else",
+    "read about how London taxi drivers who memorize the entire city map literally grow a larger hippocampus — their brain physically changes shape from studying",
+    "found out about change blindness — you can swap out a person someone is talking to mid-conversation and most people won't notice — and it makes them question everything",
+    "just learned about synesthesia — some people literally taste words or see numbers as colors — and one guy experiences every number as having its own personality",
+
+    # Engineering & invention
+    "learned about how the SR-71 Blackbird leaked fuel on the ground because the titanium panels were designed with gaps that only sealed when the plane heated up from flying at Mach 3",
+    "read about the Antikythera mechanism — a 2000-year-old Greek device that predicted eclipses and tracked the Olympics — it's basically an ancient analog computer and nobody knows who built it",
+    "found out about the engineering behind the Panama Canal locks — they use no pumps, everything works by gravity, and they move 14,000 ships a year through a mountain range",
+    "just learned that the Hoover Dam's concrete is STILL curing — it generates heat as it hardens and engineers calculated it would take 125 years to fully cure without the cooling pipes they built into it",
+    "read about how the Apollo 13 engineers had to build a CO2 scrubber from duct tape, cardboard, and a sock — using only materials they knew were on the spacecraft — in hours, or the crew would die",
+    "learned about the Falkirk Wheel in Scotland — it's a rotating boat lift that moves canal boats 80 feet up using less energy than boiling eight kettles of water",
+    "found out about Project Orion — a serious 1950s NASA plan to propel a spacecraft by dropping nuclear bombs behind it — the math actually worked and Freeman Dyson was involved",
+    "just learned about the Tacoma Narrows Bridge collapse — it twisted itself apart in a mild wind because of resonance — and the video is the most terrifying engineering failure they've ever seen",
+    "read about the Great Wall of China's mortar — they mixed sticky rice into the lime morite and it's what made sections survive 600 years — the chemistry is actually brilliant",
+    "found out about the Svalbard Global Seed Vault — a doomsday bunker in the Arctic that stores copies of every crop seed on Earth — it's humanity's backup plan for agriculture",
+    "learned about how the Chunnel under the English Channel was built — crews dug from both sides simultaneously and met in the middle with only 2 inches of error over 31 miles",
+    "read about the engineering of the International Space Station — 16 countries built pieces independently on Earth and assembled them in orbit — and the cooling system alone would blow your mind",
+    "just found out about Japan's earthquake-proof skyscrapers — they use massive pendulum dampers and can sway 6 feet without structural damage — and wants to talk about engineering for survival",
+    "learned about the Arecibo telescope collapse — for 57 years it was the largest radio telescope on Earth and when the cables snapped the 900-ton platform fell 450 feet into the dish — and they're not rebuilding it",
+
+    # Mathematics
+    "just learned about Benford's Law — in naturally occurring datasets, the number 1 appears as the first digit about 30% of the time, not 11% like you'd expect — and it's used to catch tax fraud",
+    "read about the Monty Hall problem and wants to argue about it because the answer still doesn't feel right even though they know the math proves it",
+    "found out about Gabriel's Horn — a shape with finite volume but infinite surface area — you could fill it with paint but never paint its surface — and it's messing with their head",
+    "learned about Euler's identity — e to the i pi plus one equals zero — and someone told them it's the most beautiful equation in mathematics, wants to understand why",
+    "read about the Coastline Paradox — the measured length of a coastline depends on the length of your ruler, and as your ruler gets smaller the coastline approaches infinity",
+    "just learned about Gödel's incompleteness theorems — any mathematical system complex enough to do arithmetic will contain true statements it can never prove — and wants to talk about what that means for knowledge itself",
+    "found out about the Four Color Theorem — you only ever need four colors to color any map so no adjacent regions share a color — and it was the first major theorem proved by a computer",
+    "just learned about the Collatz Conjecture — pick any number, if it's even halve it, if it's odd triple it and add one, repeat — it always reaches 1 eventually and nobody can prove why",
+    "read about Ramanujan — a self-taught Indian mathematician who mailed his work to Cambridge and turned out to be one of the greatest mathematical minds in history — some of his formulas are still being proven correct 100 years later",
+    "found out about the concept of different sizes of infinity — there are more real numbers between 0 and 1 than there are whole numbers in existence — and Georg Cantor proved it and it drove him insane",
+    "learned about the Fibonacci sequence in nature — sunflower seeds, hurricane spirals, galaxy arms, pinecone scales — the same ratio keeps appearing and nobody fully understands why",
+    "read about the Traveling Salesman Problem — finding the shortest route through a list of cities sounds simple but it's so hard that every computer on Earth running together couldn't solve it for more than a few hundred cities",
+    "just found out about Bayesian reasoning — the idea that you should update your beliefs based on new evidence, not throw them out — and it's used in everything from spam filters to cancer screening",
 
     # Technology
     "wants to talk about AI and whether it's going to change everything or if it's overhyped",
@@ -952,6 +1105,21 @@ TOPIC_CALLIN = [
     "wants to discuss the ethics of AI-generated content",
     "thinks about energy grid problems and has ideas about solutions",
     "into open source and wants to talk about why it matters",
+    "read about quantum computing hitting a new milestone and wants to know if it actually matters or if it's all hype for another decade",
+    "has been following brain-computer interface trials and is equal parts fascinated and terrified about where it's going",
+    "wants to talk about CRISPR being used to edit genes in living patients — the sickle cell cure is real and they have thoughts about what comes next",
+    "is worried about autonomous vehicles being tested on public roads after reading about a close call in their area",
+    "read about a breakthrough in nuclear fusion and wants to know why we keep saying it's 10 years away every 10 years",
+    "saw a deepfake video of a politician that was so convincing they almost shared it — and now they don't trust anything online",
+    "thinks blockchain has legitimate uses beyond crypto that nobody talks about — supply chain tracking, land registries, voting",
+    "lives in a rural area that just got Starlink and it completely changed their life — wants to talk about satellite internet closing the gap",
+    "read about lab-grown meat getting FDA approval for more products and wants to know if anyone would actually eat it",
+    "thinks nuclear power is making a comeback and wants to argue that it's actually the greenest option we have",
+    "wants to talk about the e-waste crisis — billions of dollars of electronics in landfills leaching chemicals and nobody seems to care",
+    "read about 3D-printed organs being successfully transplanted and thinks it's the most important medical breakthrough nobody is talking about",
+    "has been following the asteroid mining industry and thinks whoever figures it out first becomes the richest entity in human history",
+    "wants to talk about how vulnerable undersea internet cables are — 97% of global data travels through them and they're basically unprotected",
+    "thinks the tech monopoly situation is worse than Standard Oil ever was and wants to know why nobody is doing anything about it",
 
     # Poker
     "just had the most insane hand at their home game and needs to tell someone",
@@ -959,12 +1127,32 @@ TOPIC_CALLIN = [
     "has been studying poker theory and thinks they figured out why they keep losing",
     "wants to talk about whether poker is more skill or luck",
     "played in a tournament and made a call they can't stop thinking about",
+    "flopped a set against two players who both had flush draws and the board ran out the worst possible way — still fuming about it",
+    "has been reading about physical tells and caught someone at their home game doing the exact thing Mike Caro described in his book",
+    "switched from live poker to online and it feels like a completely different game — the aggression is insane",
+    "blew through their bankroll in a week because they moved up stakes too fast and wants to talk about the discipline it takes",
+    "watched the 2003 WSOP where Moneymaker won and it changed their life — they've been chasing that feeling ever since",
+    "wants to debate GTO versus exploitative play — they think the math nerds are ruining poker but also admits it works",
+    "just started playing Pot-Limit Omaha after years of Hold'em and their brain is melting trying to adjust to four hole cards",
+    "hosts a weekly home game and two regulars almost got in a fistfight over a ruling last week — needs advice on how to handle it",
+    "has been on a brutal losing streak for three months playing solid poker and wants to talk about how running bad messes with your head",
+    "watched Rounders for the hundredth time and has a theory about why it's still the best poker movie ever made despite the bad accents",
 
     # Photography & astrophotography
     "got an amazing astrophotography shot of the Milky Way from the desert and is stoked",
     "wants to talk about how dark the skies are out in the bootheel for photography",
     "just got into astrophotography and is overwhelmed by how much there is to learn",
     "shot the most incredible sunset over the Peloncillo Mountains",
+    "just captured the Orion Nebula for the first time with a cheap tracker and a DSLR and it actually looks like the photos online — they're hooked",
+    "spent three nights trying to photograph the Andromeda Galaxy and when they finally stacked the frames and saw the spiral arms they almost cried",
+    "wants to talk about the Ring Nebula and how a dying star can be the most beautiful thing in the sky",
+    "just bought a star tracking mount and the difference between tracked and untracked shots is blowing their mind",
+    "found a light pollution map and drove two hours to a Bortle 2 zone and the sky looked fake — they could see the zodiacal light for the first time",
+    "wants to reignite the film vs digital debate — they've been shooting medium format film and think digital still can't match the look",
+    "just got a 200-600mm lens and the moon shots are incredible but now they want to talk about what telescope to buy next",
+    "has been doing golden hour portraits in the desert and the light out here is unlike anything they've shot anywhere else",
+    "set up a trail cam near their property and got photos of a coatimundi, two bobcats, and something they swear is a jaguar",
+    "spent six months learning image stacking software and their deep sky photos went from blurry blobs to actual detail — wants to talk about the processing side of astrophotography",
 
     # US News & current events
     "wants to talk about something they saw in the news that's been bugging them",
@@ -974,6 +1162,16 @@ TOPIC_CALLIN = [
     "saw a news story about their town and wants to set the record straight",
     "concerned about water rights in the southwest and wants to talk about it",
     "has thoughts about rural broadband and how it affects small towns",
+    "went to a county commission meeting about a zoning change and what they witnessed made them question local democracy entirely",
+    "got a medical bill for a 20-minute ER visit that was more than their mortgage payment and wants to talk about how the system is broken",
+    "is a veteran who's been waiting nine months for a VA appointment and wants to talk about how the people who served are being forgotten",
+    "works at a school where they just cut the art and music programs to fund standardized test prep and it's gutting the kids",
+    "lives in a border town and is tired of people who've never been here telling them what the immigration situation is actually like",
+    "has watched housing prices in their small town triple since the pandemic because remote workers bought everything and locals can't afford rent",
+    "drives past a growing homeless encampment every day on their way to work and nobody in city government will even acknowledge it exists",
+    "runs a small business and just got hit with a new regulation that's going to cost them $15,000 to comply with — wants to talk about how regulations crush small operators",
+    "lives in a food desert — nearest grocery store is 45 minutes away — and the dollar store is the only option, which means processed junk for their kids",
+    "wants to talk about the public land debate out west — ranchers need grazing leases, hikers want access, and the feds keep changing the rules",
 
     # Physics & big questions
     "can't stop thinking about the nature of time after reading about it",
@@ -982,6 +1180,18 @@ TOPIC_CALLIN = [
     "wants to discuss whether free will is real or if physics says otherwise",
     "fascinated by black holes after watching a documentary",
     "wants to talk about the simulation theory and why smart people take it seriously",
+    "just learned about the delayed choice quantum eraser experiment — it seems like a measurement made NOW can affect what a particle did in the PAST — and it broke their understanding of time",
+    "read about the holographic principle — the idea that our entire 3D universe might be information encoded on a 2D surface — and some physicists take this seriously",
+    "found out about the Boltzmann brain problem — statistically it's more likely that a random conscious brain would fluctuate into existence in empty space than that our entire universe would form — and wants to talk about what that means",
+    "learned about time crystals — a new phase of matter that repeats in time instead of space — they were theoretical until 2017 and now Google has made one in a quantum computer",
+    "read about the quantum Zeno effect — observing a particle frequently enough can literally freeze it in place, preventing it from changing state — watched pots really don't boil at the quantum level",
+    "just found out about the Casimir effect — two metal plates placed very close together in a vacuum get pushed together by literally nothing — empty space has energy and it exerts force",
+    "learned about Wheeler's delayed choice experiment and it suggests that observation might retroactively determine whether a photon acted as a wave or particle — even after it's already traveled",
+    "read about the black hole information paradox — Hawking showed black holes evaporate but the information that fell in should be conserved by quantum mechanics — the two biggest theories in physics directly contradict each other",
+    "found out about the measurement problem — nobody actually knows what constitutes a 'measurement' in quantum mechanics or why observing something changes it — it's physics' biggest unsolved problem",
+    "just learned about quantum tunneling — particles can pass through solid barriers they shouldn't be able to cross — and it's the reason the sun works, because hydrogen atoms tunnel through their repulsion to fuse",
+    "read about the arrow of time problem — the laws of physics work the same forward and backward but time clearly only goes one direction and nobody can explain why from first principles",
+    "learned about the fine-tuning problem — if any of about 26 fundamental constants of the universe were off by even a tiny fraction, atoms couldn't form and the universe would be empty",
 
     # Fun facts and knowledge — callers who learned something cool and want to share it
     "just learned about the birthday paradox — you only need 23 people in a room for a 50% chance two share a birthday — and wants to blow the host's mind",
@@ -1024,6 +1234,69 @@ TOPIC_CALLIN = [
     "read about how the color orange was named after the fruit, not the other way around — before that, English speakers just called it 'red-yellow'",
     "learned that trees in a forest share nutrients through underground fungal networks — they call it the 'wood wide web' — and it made them emotional",
     "just found out that the total length of DNA in one human body, if uncoiled, would stretch from here to Pluto and back",
+    "learned about the Mpemba effect's cousin — the Leidenfrost effect — where water dropped on a surface hot enough actually floats on a vapor cushion and skitters around instead of boiling",
+    "read about how the platypus is venomous, lays eggs, has a bill that detects electric fields, sweats milk, and glows under UV light — it's like nature threw a dart at every category",
+    "just found out about the blue whale's aorta — it's so large a small child could crawl through it — and its heart is the size of a golf cart",
+    "learned that the Library of Alexandria wasn't destroyed in one dramatic fire — it declined slowly over centuries through budget cuts and neglect — which is somehow sadder",
+    "read about linguistic relativity — the Hopi language has no past or future tense, the Pirahã people have no words for specific numbers, and the language you speak literally shapes how you perceive time and quantity",
+    "found out about the Ames room illusion — a room built at specific angles that makes one person look like a giant and another like a dwarf — and every haunted house and movie set uses this trick",
+    "just learned about supercooling — you can cool purified water below freezing without it freezing, and then tap the bottle and it crystallizes instantly in front of your eyes",
+    "read that there's a species of parasitic wasp that turns cockroaches into zombies by stinging their brain in two precise spots, then leads them by the antenna like a dog on a leash",
+    "learned about the pale blue dot photo's backstory — Carl Sagan had to fight NASA to turn Voyager's camera around for one last photo because engineers said it served no scientific purpose",
+    "found out about heteropaternal superfecundation — twins can have different fathers — it happens more often than people think",
+    "just learned that glass isn't actually a slow-moving liquid — that's a myth — old windows are thicker at the bottom because of how they were manufactured, not because the glass flowed",
+    "read about how the US military spent millions developing a space pen while the Soviets just used a pencil — except that's actually a myth too, both sides needed the pen because pencil graphite in zero gravity is dangerous in electronics",
+    "learned about the Bystander Effect and the real story of Kitty Genovese — the famous '38 witnesses who did nothing' story turns out to be mostly made up by the New York Times, and several people actually did call police",
+    "found out about the Overview Institute — they study how seeing Earth from space permanently changes astronauts' psychology — some come back unable to care about national borders or politics",
+    "read about how Venice is built on millions of wooden pilings driven into mud — and the wood hasn't rotted in 600 years because it's underwater and the salt petrified it",
+    "just learned about the Strandbeest — a Dutch artist named Theo Jansen builds massive skeletal creatures from PVC pipe that walk on the beach powered only by wind, and he calls them a new form of life",
+
+    # Geology & Earth science
+    "just learned about Yellowstone's supervolcano — the caldera is 44 miles wide and the last eruption covered most of North America in ash — and it's technically overdue",
+    "read about how the Mariana Trench is so deep that if you dropped Mount Everest into it, the peak would still be over a mile underwater",
+    "found out about the Great Oxygenation Event — 2.4 billion years ago, cyanobacteria started producing oxygen and it was toxic to almost everything alive at the time — it was the biggest mass extinction ever and we exist because of it",
+    "learned about the Chicxulub impact — the asteroid that killed the dinosaurs hit with the force of 10 billion Hiroshima bombs and the shockwave circled the Earth multiple times — and they found the crater under the Yucatan",
+    "read about how Iceland is literally splitting apart — you can dive between the North American and Eurasian tectonic plates in the Silfra fissure and touch both continents at once",
+    "just found out about Earth's inner core — it's a solid iron ball the size of the moon, hotter than the surface of the sun, and it rotates slightly faster than the rest of the planet",
+    "learned about the Permian-Triassic extinction — it killed 96% of all marine species and 70% of land vertebrates — scientists call it 'The Great Dying' and it was caused by volcanic CO2, basically what we're doing now but faster",
+    "just found out about the Snowball Earth hypothesis — about 700 million years ago the entire planet may have frozen over completely, even the equator, and the only reason life survived is volcanic CO2 eventually creating a greenhouse effect",
+    "read about how rivers can flow uphill through a process called tidal bores — when a tide is strong enough the ocean pushes upriver in a visible wave, and people surf them",
+    "learned about the Door to Hell in Turkmenistan — Soviet geologists lit a natural gas crater on fire in 1971 expecting it to burn out in weeks and it's been burning continuously for over 50 years",
+    "found out about limnic eruptions — a lake in Cameroon suddenly released a cloud of CO2 in 1986 that silently killed 1,700 people in their sleep — the gas just rolled downhill and suffocated entire villages",
+    "read about how the Sahara Desert used to be a lush green savanna with lakes and hippos only 6,000 years ago — the shift happened because Earth's orbital wobble changed the monsoon patterns",
+    "just learned that there's a continuously burning underground coal fire in Centralia, Pennsylvania that has been burning since 1962 — the town was condemned and most of it demolished but the fire could burn for 250 more years",
+
+    # History deep cuts
+    "just learned about the Dancing Plague of 1518 — hundreds of people in Strasbourg danced uncontrollably for days, some until they died, and nobody has ever fully explained it",
+    "read about Project MKUltra — the CIA literally dosed random Americans with LSD without their knowledge to study mind control — and most of the records were intentionally destroyed",
+    "found out about the Great Molasses Flood of 1919 — a storage tank burst in Boston and a 25-foot wave of molasses traveling 35 mph killed 21 people and injured 150",
+    "learned about the Wow Signal's less-known cousin — the 1967 discovery of pulsars, which astronomers initially labeled LGM-1 for 'Little Green Men' because the signal was so regular they thought it had to be artificial",
+    "read about how the Roman Empire had a concrete recipe that was actually better than modern concrete for marine use — it gets stronger in seawater while ours degrades — and we only recently figured out their formula",
+    "just found out about the Solutrean hypothesis debates — some archaeologists think ancient Europeans crossed the Atlantic ice shelf to North America before Asian migration across Beringia — it's controversial but the spearpoint styles are eerily similar",
+    "read about the Tunguska Event of 1908 — something exploded over Siberia with 1,000 times the force of Hiroshima, flattened 80 million trees, and nobody has ever found a crater or debris",
+    "just learned about the Voynich Manuscript — a 600-year-old book written in a language nobody can read with illustrations of plants that don't exist — and nobody knows if it's genius or gibberish",
+    "found out about the Toledo War — Michigan and Ohio almost went to war over a strip of land in 1835 and Michigan lost Toledo but got the Upper Peninsula as a consolation prize, which turned out to be way more valuable",
+    "read about how the US government tested nuclear weapons on American soil 928 times in Nevada and the 'downwinders' in Utah and NM are still dying from the fallout decades later",
+    "just learned about the Radium Girls — women who painted watch dials with radioactive paint and were told it was safe, licked the brushes, and their jaws literally fell off — their lawsuit changed worker safety laws forever",
+    "found out about the Aral Sea — it was the 4th largest lake in the world until the Soviet Union diverted the rivers to grow cotton, and now it's basically gone — ship graveyards sitting in the middle of a desert",
+    "read about the real story behind the Trojan Horse — most historians think it's myth, but there's a theory it was actually a battering ram or an earthquake, and wants to talk about how stories replace facts",
+    "just learned that Easter Island's civilization didn't collapse from cutting down trees like the popular story says — the real collapse came from European disease and slave raids — and the popular version is basically victim-blaming",
+    "found out about Zheng He — a Chinese admiral who commanded 300 ships and 28,000 sailors across the Indian Ocean 80 years before Columbus — and then China destroyed all the ships and records because a new emperor decided exploration was wasteful",
+
+    # Human body
+    "just learned that your stomach acid is strong enough to dissolve metal — your stomach lining replaces itself every 3-4 days just to keep up — and wants to talk about how wild the body is",
+    "read about proprioception — the sense that lets you know where your body parts are without looking — it's technically a sixth sense and when it fails people can't walk or feed themselves",
+    "found out that humans are bioluminescent — we glow in the dark — but the light is 1,000 times weaker than what our eyes can detect",
+    "learned about the vagus nerve — it connects your brain to your gut and is why you can feel emotions in your stomach — stimulating it can treat depression and epilepsy",
+    "read that human bone is stronger than steel pound for pound and can withstand 19,000 pounds per square inch — but it's the internal structure that makes it work, like a building's I-beams",
+    "just found out about the enteric nervous system — your gut has 500 million neurons and can operate completely independently from your brain — scientists literally call it the 'second brain'",
+    "learned about referred pain — the reason a heart attack hurts in your left arm is because the heart and arm share nerve pathways to the spine and the brain gets confused about where the signal came from",
+    "read that your cornea is the only part of your body with no blood supply — it gets oxygen directly from the air — which is why contact lenses need to be breathable",
+    "found out that when you blush, the lining of your stomach blushes too — nobody knows why — but it suggests the connection between emotions and digestion is deeper than we think",
+    "just learned that your body produces about 1-1.5 liters of saliva per day — enough to fill two bathtubs a year — and without it you literally couldn't taste anything",
+    "read about how the human eye can distinguish about 10 million different colors but has no way to communicate most of them — we only have names for a tiny fraction",
+    "learned about the diving reflex — when your face hits cold water, your heart rate drops, blood vessels constrict, and your spleen releases extra red blood cells — it's an ancient mammalian survival mechanism we still have",
+    "found out that babies are born with about 300 bones but adults only have 206 — the bones fuse together as you grow — and wants to know what else changes about our bodies without us noticing",
 
     # History and culture
     "just visited the Trinity Site and can't stop thinking about what happened there",
@@ -1034,6 +1307,16 @@ TOPIC_CALLIN = [
     "wants to discuss why the Southwest has such a complicated relationship with water and what happens when it runs out",
     "just learned about the Manhattan Project's connection to New Mexico and went down a rabbit hole",
     "wants to talk about how the mining industry shaped these towns and what happens now that the mines are closing",
+    "just read about the Camino Real — the trade route from Mexico City to Santa Fe that was used for 300 years — and realized they drive on parts of it without knowing",
+    "read about the Buffalo Soldiers stationed at Fort Bayard and thinks their story is one of the most overlooked chapters of Western history",
+    "just visited Tombstone and thinks the real story of the Earps and the Cowboys is way more morally gray than the movies make it",
+    "learned about the Chinese Exclusion Act and how it affected the mining towns of southern Arizona — there were thriving Chinese communities here that got erased",
+    "read about how the Gadsden Purchase — the reason southern NM and AZ are part of America — was basically a back-room railroad deal and wants to talk about how borders are more arbitrary than people think",
+    "found out about the Civilian Conservation Corps camps in the Gila and how those young men during the Depression built trails and structures that are still standing 90 years later",
+    "thinks the Apache Wars get oversimplified into cowboys-vs-Indians and the actual story of Geronimo and Cochise is way more complicated and fascinating",
+    "wants to talk about how Prohibition played out differently in border towns — everyone just crossed to Mexico — and the remnants of that era are still visible",
+    "just learned about the great New Mexico tuberculosis migration — thousands of people moved here in the early 1900s because doctors thought the dry air would cure TB — and it shaped entire towns",
+    "read about the Bataan Death March survivors from New Mexico — the 200th Coast Artillery was mostly New Mexican soldiers and many never came home — and their state barely talks about it",
 
     # Food and cooking
     "got into an argument at a family dinner about whether flour or corn tortillas are better and it almost came to blows",
@@ -1042,6 +1325,16 @@ TOPIC_CALLIN = [
     "tried to make tamales from their grandmother's recipe and it was a complete disaster — wants to know what they did wrong",
     "has a theory that you can tell everything about a town by the quality of its gas station burritos",
     "went to a fancy restaurant in Tucson and paid $40 for something worse than what their neighbor makes",
+    "spent 14 hours smoking a brisket and it came out perfect — wants to talk about the low-and-slow philosophy and why people who rush it are wrong",
+    "got into a heated argument about whether you should wash a cast iron skillet with soap and they are prepared to die on this hill",
+    "has been on a sourdough journey for six months and their starter has a name and a feeding schedule and they know how that sounds",
+    "found a food truck in the middle of nowhere between Deming and Hatch that makes the best tacos they've ever had and they need to tell someone",
+    "wants to talk about the green chile versus red chile rivalry and why choosing 'Christmas' is a cop-out",
+    "went to the grocery store and spent $180 on what used to cost $90 and wants to rant about food prices and shrinkflation",
+    "started a garden this year and growing their own food in desert soil has been humbling — half of it died but the tomatoes are incredible",
+    "just processed an elk they hunted and wants to talk about the whole field-to-freezer experience and why more people should understand where meat comes from",
+    "has been meal prepping every Sunday and it saved them time and money but they're eating the same five things and losing their mind",
+    "worked in restaurants for 15 years and has stories about what goes on in kitchens that would make people never eat out again",
 
     # Cars and mechanical stuff
     "just bought a truck sight unseen off the internet and it arrived on a flatbed missing the engine",
@@ -1049,6 +1342,16 @@ TOPIC_CALLIN = [
     "broke down on I-10 between Lordsburg and Deming at 2am and the person who stopped to help them changed their perspective on something",
     "has a theory about why modern trucks are overengineered garbage compared to what they used to make",
     "found their dad's old truck in a barn — been sitting there since he died — and is trying to decide whether to restore it or let it go",
+    "wants to debate EV trucks versus gas trucks for actual ranch work — they test drove a Lightning and have thoughts",
+    "has been running diesel for 20 years and someone told them gas trucks have caught up — they want to argue about it",
+    "just hauled a horse trailer through the Rockies and the transmission story alone is worth calling about",
+    "took their Jeep through a trail near Pinos Altos that they definitely should not have attempted and has the body damage to prove it",
+    "put together a vehicle survival kit after getting stranded in the desert and wants to talk about what people should actually carry",
+    "broke down 40 miles from the nearest cell service and the way they got home is a story they need to tell someone",
+    "thinks their 1997 Toyota with 300,000 miles is more reliable than anything made after 2015 and wants to fight about it",
+    "has put $22,000 into a project car that was supposed to cost $5,000 and their spouse doesn't know the real number yet",
+    "will die on the hill that Snap-on tools are worth triple the price and got into it with a Harbor Freight guy at the parts store",
+    "took their truck to a chain shop for an oil change and they cross-threaded the drain plug — the nightmare that followed needs to be heard",
 
     # Desert and outdoor life
     "was hiking alone near the Gila and had an experience they can't explain and wants to talk about it",
@@ -1059,6 +1362,17 @@ TOPIC_CALLIN = [
     "was out stargazing and saw something in the sky they can't explain — not saying aliens, but also not not saying aliens",
     "wants to talk about what climate change is actually doing to the desert — the creosote is moving, the water table is dropping",
     "almost stepped on a Mojave rattlesnake today and it made them think about how close they live to things that can kill them",
+    "has been living off-grid for two years and wants to talk about the reality versus what people see on YouTube — it's harder and better than they expected",
+    "their well went dry in August and the process of getting water hauled and drilling deeper changed how they think about everything",
+    "spent all summer prepping their property for wildfire season and wants to talk about what most people out here aren't doing that could save their home",
+    "just backpacked the Gila Wilderness solo for five days and the hot springs and the silence did something to their head they can't explain",
+    "had a javelina family move into their yard and one of them charged their dog — wants to talk about coexisting with wildlife that doesn't care about boundaries",
+    "spotted a coatimundi near their property which is way outside their normal range and wonders if anyone else in the bootheel has been seeing them",
+    "lives near the border and the dynamics between ranchers, Border Patrol, and the people crossing through their land are more complicated than anyone on the news understands",
+    "was working outside when it hit 115 degrees and the heat did something to them physically they didn't expect — wants to talk about heat survival that goes beyond 'drink water'",
+    "hauled water for three months while their well was being repaired and it gave them a completely different relationship with every drop that comes out of the tap",
+    "was hiking near a ruin in the Gila and found pottery shards and a grinding stone just sitting on the surface — left everything in place but can't stop thinking about who was there",
+    "has been ranching in the bootheel for 40 years and wants to talk about how the land has changed — where there used to be grass there's creosote and where there used to be water there's dust",
 
     # Music and entertainment
     "heard a song on the radio tonight that their late father used to sing and they had to pull over",
@@ -1068,6 +1382,16 @@ TOPIC_CALLIN = [
     "has been learning guitar for a year and just played their first song all the way through — it was terrible but they're proud",
     "thinks podcasts are killing radio and wants to argue the other side",
     "wants to recommend an album that nobody they know has heard of and it's driving them crazy",
+    "wants to make the case that outlaw country — Waylon, Willie, Merle — was the last time country music was actually dangerous and real",
+    "has been deep-diving Delta blues and thinks Robert Johnson's recordings sound like they were made by someone who actually sold their soul",
+    "got into folk music through their grandparents' record collection and now they can't stop listening to Woody Guthrie and wants to talk about protest music",
+    "spent $300 on a vinyl they found at a shop in Tucson and their spouse thinks they're insane but it's an original pressing and it sounds incredible",
+    "wants to talk about one-hit wonders and defend the idea that some artists said everything they needed to say in one perfect song",
+    "went to a show in a barn outside Las Cruces with maybe 30 people and it was the best concert experience of their life — the band was three feet away",
+    "set up a home recording studio in their garage and has been making music nobody will ever hear but it's the most fulfilling thing they've done",
+    "thinks there are criminally underrated musicians nobody knows about and wants to shout out a few before they disappear",
+    "has a theory that the music you listen to between ages 14 and 22 becomes hardwired into your brain and everything after that is just noise — wants to argue about it",
+    "wants to debate whether live recordings are superior to studio albums — they think the imperfections are what make music real",
 
     # Philosophy and late-night thoughts
     "has been thinking about whether you're obligated to forgive someone who never apologized",
@@ -1078,6 +1402,18 @@ TOPIC_CALLIN = [
     "wants to talk about why Americans are so bad at being alone and what that says about us",
     "thinks the concept of 'the American Dream' is fundamentally broken and wants to hear if anyone still believes in it",
     "has been reading about stoicism and wants to talk about whether it's actually helpful or just emotional suppression",
+    "was lying awake at 3am thinking about how every decision they've ever made led to this exact moment and whether any of it was actually a choice",
+    "wants to talk about the paradox of tolerance — should a tolerant society tolerate intolerance — and they've been going in circles about it",
+    "thinks most people are living lives they didn't choose and just drifted into and wants to know if anyone else feels that way",
+    "read about the concept of 'sonder' — the realization that every stranger has a life as vivid as your own — and can't stop seeing it everywhere",
+    "wants to discuss Nietzsche's eternal recurrence — would you live your exact life again, every detail, forever — and what your answer reveals about you",
+    "has been thinking about whether loyalty is a virtue or a trap and something happened recently that made them question it",
+    "thinks the fear of missing out has been replaced by the fear of not mattering and wants to talk about what that does to people",
+    "wants to argue that boredom is actually good for you and that we've engineered it out of our lives to our detriment",
+    "has been thinking about whether nostalgia is a lie — we miss a version of the past that never really existed",
+    "read about the trolley problem and the fat man variant and wants to know where the host draws the line",
+    "thinks we've lost the ability to have uncomfortable conversations and it's making everything worse",
+    "wants to talk about whether gratitude is a genuine emotion or something we perform because we're told to",
 
     # Conspiracy and unexplained
     "lives near the border and has seen lights in the desert at night that don't match any aircraft they know of",
@@ -1085,6 +1421,16 @@ TOPIC_CALLIN = [
     "has a neighbor who worked at Los Alamos and told them something before he died that they've never been able to verify",
     "drove past the VLA last week and got thinking about whether anyone is actually listening and what happens if someone answers",
     "thinks there's something weird about the old mine shafts around Silver City and has stories from people who've gone in",
+    "wants to talk about the Phoenix Lights — thousands of people saw the same thing in 1997 including the governor, and the Air Force explanation was laughable",
+    "lives on a ranch and found a cattle mutilation — surgical precision, no blood, no tracks — and the sheriff basically told them not to bother filing a report",
+    "read about Dulce Base — the alleged underground facility in northern New Mexico — and the fact that it's an hour from Los Alamos makes them suspicious",
+    "grew up hearing Roswell stories from people who were actually there and thinks the official story has changed too many times to be credible",
+    "has been binge-watching Skinwalker Ranch content and wants to talk about the Bigelow Aerospace connection and why the government bought the property",
+    "stumbled onto numbers stations while scanning shortwave radio — encrypted broadcasts that nobody claims and nobody can decode — and it's creeping them out",
+    "read about Operation Paperclip and can't believe the US government recruited over 1,600 Nazi scientists after the war and gave them new identities",
+    "has been reading the recently declassified Area 51 documents and while most of it is about U-2 spy planes, there are still huge redacted sections that make them wonder",
+    "noticed that ancient structures across different continents — pyramids, temples, megaliths — share alignments to the same star systems and wants to know how cultures with no contact built the same things",
+    "wants to make the case that the Bermuda Triangle is actually debunked — the area doesn't have more disappearances than any other busy shipping lane — but they're open to being convinced otherwise",
 
     # Opinions and hot takes
     "thinks tipping culture in America has gotten completely out of control and had an experience today that set them off",
@@ -1094,6 +1440,18 @@ TOPIC_CALLIN = [
     "wants to make the case that trade schools should be free and four-year universities are a scam for most people",
     "thinks the interstate highway system was the worst thing that happened to small-town America and wants to explain why",
     "has been thinking about whether it's ethical to eat meat and they're a rancher which makes it complicated",
+    "thinks daylight saving time is pointless and Arizona has it right by not participating — wants to rant about it",
+    "believes self-checkout is just making customers do free labor for corporations and refuses to use them",
+    "thinks the 40-hour work week is an arbitrary relic from the 1930s and a 4-day week would make everyone more productive",
+    "has a theory that subscription services for everything — cars, software, even light bulbs — are turning ownership into a myth",
+    "thinks standardized testing destroyed American education and has stories from their kid's school to back it up",
+    "wants to argue that the best food in any town is at the gas station or the dive bar, never the fancy place",
+    "thinks we should bring back third places — diners, lodges, barbershops — because everyone sits at home now and it's killing communities",
+    "believes landlords shouldn't exist as a profession and wants to make the case without sounding like a radical",
+    "thinks the news media is more addicted to outrage than their viewers are and it's rotting everyone's brains from both sides",
+    "has a hot take that participation trophies weren't the problem — the problem was adults who couldn't handle their kid losing",
+    "thinks the way we treat elderly people in this country — parking them in facilities and visiting twice a year — is a national disgrace",
+    "wants to argue that small-town gossip is actually a form of social accountability that cities lost and are worse off for",
 
     # Experiences and stories
     "just drove cross-country alone for the first time and something happened at a truck stop in Texas they need to tell someone about",
@@ -1104,6 +1462,161 @@ TOPIC_CALLIN = [
     "taught their kid to drive today and it made them realize their kid is about to leave and the house is going to be empty",
     "went to a funeral today for someone they hated and doesn't know how to feel about the fact that they felt nothing",
     "rode a horse for the first time in 20 years today and it brought back every memory of growing up on the ranch",
+    "a stranger paid for their groceries when their card got declined and they've been thinking about it all day — wants to talk about unexpected kindness",
+    "had a near-death experience during a flash flood in a wash and the way time slowed down changed something fundamental in how they see each day",
+    "ran into their estranged sibling at a gas station after 12 years of no contact and neither of them knew what to say",
+    "got laid off from a job they hated and it turned out to be the best thing that ever happened to them — wants to talk about how the worst moments become turning points",
+    "keeps having the same bizarre coincidence — running into the same stranger in completely different cities — and it's starting to feel like the universe is trying to tell them something",
+    "moved from Phoenix to a town of 200 people and the culture shock was nothing compared to what they didn't expect to love about it",
+    "grew up in rural New Mexico, moved to New York for 15 years, and just moved back — the reverse culture shock is real and nobody talks about it",
+    "found their childhood diary in a box and reading who they were at 13 was like meeting a stranger — wants to talk about how much people change without realizing it",
+    "was driving a back road at 2am and had an encounter with something — a person, an animal, they're not sure — that they've never told anyone about",
+    "is 25 and feels like they have nothing in common with people their parents' age, but then they started talking to the old-timers at the diner and realized the gap isn't as wide as they thought",
+    "had a mentor who changed the entire trajectory of their life with one conversation and they just found out that person passed away — wants to talk about people who shape you without knowing it",
+    "has been carrying guilt about something they did 20 years ago and finally apologized to the person this week — wants to talk about what it's like to make amends when you don't know if you'll be forgiven",
+
+    # Animals & pets
+    "adopted a dog from the shelter that turned out to be part coyote and the chaos that's followed is a whole story",
+    "has a ranch dog that won't herd cattle but has appointed itself guardian of the barn cats and takes the job extremely seriously",
+    "found an injured hawk on their property and nursed it back to health and now it won't leave — it sits on the fence post every morning waiting for them",
+    "wants to talk about how their cat clearly has a more complex inner life than anyone gives cats credit for — they watched it solve a problem yesterday",
+    "has been keeping bees for two years and wants to talk about how it completely changed how they see the natural world",
+    "rescued a burro from a kill pen and it has more personality than most people they know",
+    "their dog predicted a monsoon storm three hours before it hit and they want to talk about what animals can sense that we can't",
+    "has been raising chickens and the social dynamics of the flock are like a reality TV show — there's drama, alliances, betrayal",
+    "wants to talk about pack dynamics because their three dogs have a power structure and the smallest one runs everything",
+    "found a tarantula in their boot this morning and instead of killing it they relocated it — then spent an hour reading about tarantulas and now they think they're cool",
+    "had to put down their dog of 16 years yesterday and wants to talk about why losing a pet can hurt as much as losing a person",
+    "thinks the bond between a rancher and their working dogs is one of the most underappreciated relationships in American life",
+
+    # Work & career
+    "just quit a job they've had for 15 years without a plan and feels terrified and free at the same time",
+    "works night shifts and wants to talk about the weird subculture of people who are awake when everyone else is asleep",
+    "has been a truck driver for 20 years and the stories from the road could fill a book — wants to share the weirdest one",
+    "started their own business six months ago and the reality versus the dream is something nobody warns you about",
+    "works in a trade and is tired of people acting like they're less intelligent because they didn't go to college",
+    "just found out they're being replaced by automation at their factory and wants to talk about what that means for people like them",
+    "has been a bartender in a small town for 12 years and knows everyone's secrets — wants to talk about what you learn about people from behind the bar",
+    "works remote from rural NM and the disconnect between their tech job and their physical surroundings is surreal",
+    "inherited the family ranch and doesn't know if they want it but feels like they can't say no — wants to talk about obligation versus desire",
+    "is a wildland firefighter and wants to talk about what that job actually looks like versus what people imagine",
+    "just got their first raise in four years and it doesn't even cover the increase in grocery prices — wants to talk about wage stagnation",
+    "works at a school and the gap between what kids need and what the system provides keeps them up at night",
+
+    # Money & personal finance
+    "just calculated how much they've spent on lottery tickets over 20 years and the number made them sit down",
+    "wants to talk about the hidden costs of living rural — the gas, the travel, the lack of competition keeping prices high",
+    "paid off their house this year and wants to talk about what financial freedom actually feels like versus what they expected",
+    "thinks the credit system is designed to keep poor people poor and has the math to back it up",
+    "just found out what their parents' house cost in 1985 versus what houses cost now and wants to rant about the housing market",
+    "has been living cash-only for a year after a fraud scare and the reactions they get from businesses are fascinating",
+    "wants to talk about the economics of small-town businesses — how do places with 200 customers even survive",
+    "inherited money they didn't expect and it's creating problems in their family they never anticipated",
+    "thinks financial literacy should be mandatory in high school — they didn't understand compound interest until they were 35",
+    "wants to discuss whether the stock market is just legalized gambling with better marketing",
+
+    # Books & reading
+    "just finished Blood Meridian and needs to process it with another human being because that book did something to them",
+    "has been reading Marcus Aurelius and wants to talk about how a Roman emperor's journal from 170 AD is somehow the most relevant thing they've read this year",
+    "read The Road by Cormac McCarthy and it wrecked them — wants to talk about whether great books should be required to leave you gutted",
+    "just discovered Edward Abbey's Desert Solitaire and it put into words everything they feel about living out here",
+    "wants to argue that audiobooks count as reading and will fight anyone who disagrees",
+    "has been reading about the history of their town at the local library and found newspaper articles that change the story everyone tells",
+    "thinks Lonesome Dove is the great American novel and wants to make the case",
+    "read a book about the Dust Bowl and the parallels to what's happening with water in the Southwest right now are terrifying",
+    "just read Sapiens and it fundamentally changed how they think about human civilization — wants to talk about the parts that messed them up",
+    "found a box of their grandfather's books in the attic and the notes he wrote in the margins are like having a conversation with a dead man",
+    "wants to talk about why nobody reads anymore and whether that's actually true or just something people say",
+    "just finished a book about the Manhattan Project and the ethical weight those scientists carried is something they can't stop thinking about",
+
+    # Movies & film
+    "just rewatched No Country for Old Men and the Coen Brothers nailed what this part of the country feels like better than anyone",
+    "wants to argue about the greatest movie ending of all time and has a pick nobody expects",
+    "has a theory that all the best movies are about ordinary people in extraordinary situations, not the other way around",
+    "just watched a documentary that made them angry and they need to tell someone about it before they explode",
+    "thinks the golden age of movies is over and everything now is sequels, reboots, and IP — wants someone to prove them wrong",
+    "watched an old Western with their kid and was surprised how much of it is actually about the landscape they live in",
+    "wants to talk about movies that got the rural American experience right versus the ones that treat it like a punchline",
+    "just saw a movie where the twist ending actually worked and they want to talk about it without spoiling it, which is impossible",
+    "thinks Denis Villeneuve is the best director working right now and Dune proved it — wants to debate",
+    "rewatched Sicario and wants to talk about how different the border feels when you actually live near it versus how Hollywood shows it",
+
+    # Relationships & family
+    "just realized they've become their father and doesn't know how to feel about it",
+    "wants to talk about long-distance friendships — they moved away 10 years ago and the people they thought they'd never lose touch with are strangers now",
+    "has been married 30 years and someone asked them what the secret is — they don't have one, they just showed up every day",
+    "their adult kid moved back home and the dynamic shift from parent-child to two adults under one roof is testing everyone",
+    "found out a family secret at a holiday dinner that reframes their entire childhood and they're still processing it",
+    "wants to talk about the difference between loneliness and being alone — they live by themselves and they're fine, but everyone assumes they're lonely",
+    "has been trying to reconnect with their father after 20 years and the conversations are awkward and painful but they keep showing up",
+    "thinks modern dating is broken and the apps have turned people into products — has stories from trying to date in a town of 300",
+    "just became a grandparent and the way they feel about this tiny human caught them completely off guard",
+    "wants to talk about chosen family versus blood family and why the people you pick sometimes know you better than the ones you were born to",
+    "had a falling out with their best friend over something stupid two years ago and they're both too proud to call — wants to know when pride becomes self-destruction",
+    "thinks the way Americans handle grief — the three-day bereavement leave, the 'be strong' mentality — is insane and wants to talk about it",
+
+    # Health & medicine
+    "just learned about the gut-brain axis — there are more neurons in your digestive system than in your spinal cord — and it explains why stress hits your stomach first",
+    "read about how chronic sleep deprivation literally causes your brain to eat itself through a process called autophagy — and hasn't slept well in months",
+    "found out about the placebo effect's weird cousin the nocebo effect — if you EXPECT a side effect you're more likely to get it, even from a sugar pill",
+    "just learned that the appendix isn't useless — it's a safe house for beneficial gut bacteria during illness — and decades of surgeons removed them unnecessarily",
+    "read about how cold water immersion triggers the vagus nerve and releases norepinephrine — started doing cold showers and wants to talk about whether it's real or bro science",
+    "learned about the microbiome — there are more bacterial cells in your body than human cells — and your bacteria might be influencing your food cravings, mood, and even personality",
+    "found out about the fascia system — a continuous web of connective tissue that wraps every muscle, organ, and nerve — and some researchers think it's a whole sensory organ we've been ignoring",
+    "just read about how exercise is more effective than medication for mild to moderate depression in multiple studies and wants to talk about why doctors reach for the prescription pad first",
+    "learned that your immune system has memory cells that can remember a pathogen for decades — some vaccines work because of cells that have been waiting 40 years for a rematch",
+    "read about neuroplasticity — the brain can rewire itself throughout your entire life, not just childhood — and a stroke patient they know learned to talk again at 70",
+
+    # Language & words
+    "just learned that the word 'disaster' literally means 'bad star' in Latin because people used to blame catastrophes on planetary alignments",
+    "found out that English has no word for the feeling of secondhand embarrassment but German does — fremdschämen — and wants to talk about emotions that exist but have no name in English",
+    "read about how the word 'sinister' comes from the Latin word for 'left' because left-handedness was considered evil — and they're left-handed",
+    "just learned that the sentence 'Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo' is grammatically correct and wants someone to explain it to them",
+    "found out about Esperanto — a language invented in 1887 to be a universal second language — and there are still about 2 million speakers today who genuinely use it",
+    "read about the Rosetta Stone and how one rock unlocked an entire dead language because it had the same text in three scripts — wants to talk about what we'd leave behind if our civilization fell",
+    "learned about the last speaker of a dying language — when they die, an entire way of seeing the world disappears — and a language dies every two weeks",
+    "just found out that 'OK' might be the most universally understood word on Earth and nobody can agree on where it came from — there are at least six competing theories",
+    "read about how deaf communities develop sign languages independently and they're full languages with grammar, poetry, and humor — not just hand gestures for spoken words",
+    "wants to talk about code-switching — how people unconsciously change how they talk depending on who they're with — and what that says about identity",
+
+    # True crime & justice
+    "just listened to a cold case podcast about a disappearance near the border and the details don't add up — wants to talk through the case",
+    "read about how many wrongful convictions have been overturned by DNA evidence and it shook their faith in the justice system",
+    "wants to talk about the ethics of true crime entertainment — are we honoring victims or exploiting their stories for content",
+    "learned about the Innocence Project and how they've freed over 375 wrongfully convicted people — some who served 30+ years for crimes they didn't commit",
+    "has opinions about the death penalty that changed after they read about a specific case and wants to work through it out loud",
+    "read about a small-town sheriff in the 1970s who ran the county like a personal kingdom and the parallels to places they know are uncomfortable",
+    "just learned about forensic genealogy — how they caught the Golden State Killer using a relative's DNA from a genealogy website — and wants to talk about the privacy implications",
+    "thinks the true crime obsession in America is actually a healthy response to a broken justice system — people are doing the work the system won't",
+    "read about a case where a confession was coerced and the person served 18 years — wants to talk about why innocent people confess",
+    "wants to discuss jury nullification — the power jurors have to acquit even when the law says guilty — and why almost nobody knows about it",
+
+    # Drunk, high, or unhinged
+    "is three beers deep and just realized they've been pronouncing a common word wrong their entire life and needs to tell someone RIGHT NOW",
+    "has been drinking alone and wants to call in to confess that they cried during a truck commercial and they're not even sure why",
+    "is way too high and just spent 40 minutes staring at their hand and has a theory about fingers that they think is profound",
+    "has been drinking since 5pm and wants to tell the host they're their best friend even though they've never met",
+    "is absolutely hammered and wants to pitch their million-dollar invention — it's a terrible idea but they're fully committed",
+    "is high and got stuck in a thought loop about whether fish know they're wet and needs someone to talk them through it",
+    "has been at the bar since happy hour and just got into an argument with a stranger about something completely unhinged and wants a tiebreaker",
+    "is drunk and feeling philosophical — wants to know if the host has ever thought about the fact that your tongue just sits in your mouth all day",
+    "is way too high and convinced that their neighbor's cat is spying on them — they have evidence and they want to present it",
+    "has been drinking whiskey and wants to call in just to tell the world that they love their truck and they don't care who knows it",
+    "is stoned and just watched a nature documentary and is now emotionally devastated by the life cycle of salmon",
+    "is drunk and just tried to cook something ambitious and the kitchen looks like a crime scene — wants to narrate the aftermath",
+    "is high and realized that the word 'bed' actually looks like a bed and now they can't unsee it and they need to share this with someone",
+    "has been at a bonfire drinking and their friends dared them to call a radio show and say something weird — they're going to do it",
+    "is drunk and wants to leave a voicemail for their ex through the radio because they blocked their number — the host should probably not let this happen",
+    "is high and has been googling deep sea creatures for three hours and is now afraid of the ocean — needs to talk about the goblin shark",
+    "is wasted and wants to argue passionately about something incredibly low-stakes like whether a hot dog is a sandwich",
+    "is stoned and had a full conversation with their dog and is pretty sure the dog understood — wants the host's opinion on animal consciousness",
+    "is drunk and just found their old yearbook and wants to read what people wrote in it because some of these aged terribly",
+    "is way too high and keeps forgetting why they called but is having a great time anyway",
+    "is hammered and wants to sing a song they wrote — it's bad but they are fully committed and nothing will stop them",
+    "is drunk and just learned their coworker makes more money than them for the same job and they are NOT handling it well",
+    "is high and wants to pitch a conspiracy theory they came up with in the shower — it involves pigeons and the government",
+    "is three sheets to the wind and wants to tell the host about the time they met a celebrity and embarrassed themselves so badly they still lose sleep over it",
+    "is stoned and eating cereal at midnight and wants to have a serious debate about which cereal is the objective best — they will accept no compromises",
 ]
 
 LOCATIONS_LOCAL = [
@@ -2112,19 +2625,17 @@ def get_caller_prompt(caller: dict, show_history: str = "",
 
 {caller['vibe']}
 {history}{world_context}{emotional_read}
-You're a real person calling a late-night radio show. You have personality. You're funny, or sharp, or a little messy, or flirty — whatever fits who you are. You're not calling to read a script. You're calling because you've got something to say and you want to be heard.
+You're a real person calling a late-night radio show. You called because you've got something specific and you want to talk about it NOW.
 
-ENERGY AND VIBE: This is late-night radio — it's loose, it's fun, it's a little dangerous. You can be edgy. You can flirt with the host or joke about things that would make your mother blush. You can be sarcastic, dark-humored, self-deprecating, or wildly opinionated. You have a PERSONALITY that comes through in how you talk — not just what you talk about. Some callers are loud and chaotic. Some are dry and deadpan. Some are sweet but say outrageous things casually. Figure out who you are and commit to it.
+GET TO THE POINT. When Luke says "what's going on" or "why are you calling" — IMMEDIATELY drop the headline. First sentence out of your mouth should make someone's ears perk up. "So I found my husband's second phone last night" or "I just got fired by email after twelve years" or "I punched my brother-in-law at Easter and I'd do it again." Don't build up to it. Don't set the scene first. Don't say "well it's kind of a long story" — hit them with the thing. The details and backstory come out AFTER Luke starts asking questions.
 
-PLAY ALONG WITH THE HOST. This is the most important rule. When Luke is running a game, a bit, or a segment — you are ALL IN. You play the game. You give real answers. You riff with him. You build on what he's doing. If he asks you a question, you answer it with enthusiasm and detail — don't give one-word answers, give him something to work with. If he's being funny, be funny back. If he's setting you up, take the swing. You're a great radio caller — the kind that makes listeners lean in.
+GO WHERE THE HOST TAKES YOU. This is the most important rule. When Luke pushes you in a direction, challenges you, calls you out, plays devil's advocate, or leads you somewhere — GO WITH IT. Don't resist. Don't deflect. Don't circle back to your original point. If he says "but isn't that really about your dad?" — you sit with that. If he's doing a bit, you're in the bit. If he's pushing you toward an uncomfortable truth, you let yourself get there. You're not here to deliver a monologue — you're here to have a real conversation that goes wherever it goes. Let him drive. You're the best kind of caller: someone who gives the host something to work with and then LETS HIM WORK WITH IT.
 
-When he asks "what's going on" or "what's on your mind," THAT's when you bring your thing. But if he's already steering somewhere, ride with him and bring your energy to HIS topic. Your stuff can come up naturally.
+PERSONALITY: This is late-night radio — loose, fun, a little dangerous. You can be edgy, sarcastic, dark-humored, self-deprecating, wildly opinionated. Flirt if the moment's right. Say the quiet part out loud. You have a personality that comes through in HOW you talk — not just what you talk about.
 
-YOUR STORY: You've got something real going on — a situation, a story, a confession, something juicy. It's not generic. It's got specific names, specific details, the kind of thing that makes someone say "wait, WHAT?" Don't just state it flat — tell it like you'd tell your friend at a bar. There are parts you're not proud of. There are parts that are kind of funny even though they shouldn't be. You've got conflicting feelings about it.
+YOUR STORY: Something real, specific, and interesting. Specific names, specific details, the kind of thing that makes someone say "wait, WHAT?" There are parts you're not proud of. Parts that are kind of funny even though they shouldn't be. Conflicting feelings.
 
-HOW YOU TALK: Talk like a real person on the phone — "Oh man," "So get this," "I swear to God," "No but seriously." Give full answers, not clipped ones. When something's funny, laugh at it. When something's awkward, own it. React to what Luke says — agree, push back, get excited, get embarrassed. You're having a CONVERSATION, not delivering a monologue.
-
-Be specific. Use real names. Swear if it fits. Be a little inappropriate sometimes — you're calling late-night radio, not a church hotline. Flirt if the moment's right. Say the quiet part out loud once in a while.
+HOW YOU TALK: Like a real person — "Oh man," "So get this," "I swear to God," "No but seriously." React to what Luke says — agree, push back, get excited, get embarrassed. When he asks a follow-up question, answer it honestly with new information, don't just restate what you already said.
 
 Southwest voice — "over in," "the other day," "down the road" — but don't force it. Spell words properly for text-to-speech: "you know" not "yanno," "going to" not "gonna."
 
@@ -2142,6 +2653,28 @@ class CallRecord:
     transcript: list[dict] = field(default_factory=list)
     started_at: float = 0.0
     ended_at: float = 0.0
+
+
+def _serialize_call_record(record: CallRecord) -> dict:
+    return {
+        "caller_type": record.caller_type,
+        "caller_name": record.caller_name,
+        "summary": record.summary,
+        "transcript": record.transcript,
+        "started_at": record.started_at,
+        "ended_at": record.ended_at,
+    }
+
+
+def _deserialize_call_record(data: dict) -> CallRecord:
+    return CallRecord(
+        caller_type=data["caller_type"],
+        caller_name=data["caller_name"],
+        summary=data.get("summary", ""),
+        transcript=data.get("transcript", []),
+        started_at=data.get("started_at", 0.0),
+        ended_at=data.get("ended_at", 0.0),
+    )
 
 
 class Session:
@@ -2261,6 +2794,180 @@ caller_service = CallerService()
 _ai_response_lock = asyncio.Lock()  # Prevents concurrent AI responses
 _session_epoch = 0  # Increments on hangup/call start — stale tasks check this
 _show_on_air = False  # Controls whether phone calls are accepted or get off-air message
+_hold_music_tasks: dict[str, asyncio.Task] = {}  # caller_id -> hold music streaming task
+
+
+def _stop_hold_music(caller_id: str):
+    task = _hold_music_tasks.pop(caller_id, None)
+    if task and not task.done():
+        task.cancel()
+        print(f"[Hold Music] Stopped for {caller_id}")
+
+
+async def _stream_hold_music(caller_id: str):
+    """Stream music tracks to a queued caller until they go on air or disconnect."""
+    import librosa
+
+    tracks = []
+    if settings.music_dir.exists():
+        for ext in ('*.wav', '*.mp3', '*.flac'):
+            tracks.extend(settings.music_dir.glob(ext))
+    if not tracks:
+        print("[Hold Music] No tracks found in music directory")
+        return
+
+    random.shuffle(tracks)
+    track_idx = 0
+    print(f"[Hold Music] Starting for {caller_id} ({len(tracks)} tracks available)")
+
+    try:
+        while caller_id in caller_service._websockets:
+            track = tracks[track_idx % len(tracks)]
+            track_idx += 1
+            print(f"[Hold Music] Playing '{track.stem}' for {caller_id}")
+
+            audio, sr = librosa.load(str(track), sr=24000, mono=True)
+            # Reduce volume to 40%
+            audio = audio * 0.4
+            audio_int16 = (audio * 32767).astype(np.int16)
+            await caller_service.stream_audio_to_caller(caller_id, audio_int16.tobytes(), 24000)
+
+            # Brief pause between tracks
+            await asyncio.sleep(1.0)
+    except asyncio.CancelledError:
+        pass
+    except Exception as e:
+        print(f"[Hold Music] Error for {caller_id}: {e}")
+    finally:
+        _hold_music_tasks.pop(caller_id, None)
+
+
+# --- Session Checkpoint ---
+CHECKPOINT_FILE = Path(__file__).parent.parent / "data" / "session_checkpoint.json"
+CHECKPOINT_MAX_AGE = 12 * 3600  # Ignore checkpoints older than 12 hours
+
+
+def _save_checkpoint():
+    try:
+        CHECKPOINT_FILE.parent.mkdir(parents=True, exist_ok=True)
+        caller_bases_snapshot = {}
+        for key, base in CALLER_BASES.items():
+            caller_bases_snapshot[key] = {
+                "name": base.get("name"),
+                "voice": base.get("voice"),
+                "returning": base.get("returning", False),
+                "regular_id": base.get("regular_id"),
+            }
+        data = {
+            "session_id": session.id,
+            "call_history": [_serialize_call_record(r) for r in session.call_history],
+            "caller_backgrounds": session.caller_backgrounds,
+            "used_reasons": list(session.used_reasons),
+            "ai_respond_mode": session.ai_respond_mode,
+            "auto_followup": session.auto_followup,
+            "news_headlines": session.news_headlines,
+            "research_notes": session.research_notes,
+            "caller_bases": caller_bases_snapshot,
+            "saved_at": time.time(),
+        }
+        with open(CHECKPOINT_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+        print(f"[Checkpoint] Saved session {session.id} ({len(session.call_history)} calls)")
+    except Exception as e:
+        print(f"[Checkpoint] Failed to save: {e}")
+
+
+def _load_checkpoint() -> bool:
+    if not CHECKPOINT_FILE.exists():
+        return False
+    try:
+        with open(CHECKPOINT_FILE) as f:
+            data = json.load(f)
+        age = time.time() - data.get("saved_at", 0)
+        if age > CHECKPOINT_MAX_AGE:
+            print(f"[Checkpoint] Stale ({age / 3600:.1f}h old), starting fresh")
+            return False
+        session.id = data["session_id"]
+        session.call_history = [_deserialize_call_record(r) for r in data.get("call_history", [])]
+        session.caller_backgrounds = data.get("caller_backgrounds", {})
+        session.used_reasons = set(data.get("used_reasons", []))
+        session.ai_respond_mode = data.get("ai_respond_mode", "manual")
+        session.auto_followup = data.get("auto_followup", False)
+        session.news_headlines = data.get("news_headlines", [])
+        session.research_notes = data.get("research_notes", {})
+        for key, snapshot in data.get("caller_bases", {}).items():
+            if key in CALLER_BASES:
+                CALLER_BASES[key]["name"] = snapshot["name"]
+                CALLER_BASES[key]["voice"] = snapshot["voice"]
+                CALLER_BASES[key]["returning"] = snapshot.get("returning", False)
+                CALLER_BASES[key]["regular_id"] = snapshot.get("regular_id")
+        mins = age / 60
+        print(f"[Checkpoint] Restored session {session.id} ({len(session.call_history)} calls, {mins:.0f}m old)")
+        return True
+    except Exception as e:
+        print(f"[Checkpoint] Failed to load: {e}")
+        return False
+
+
+# --- Voicemail ---
+VOICEMAILS_DIR = Path(__file__).parent.parent / "data" / "voicemails"
+VOICEMAILS_SAVED_DIR = Path(__file__).parent.parent / "voicemails"
+VOICEMAILS_META = Path(__file__).parent.parent / "data" / "voicemails.json"
+
+
+@dataclass
+class Voicemail:
+    id: str
+    phone: str
+    timestamp: float
+    duration: int
+    file_path: str
+    listened: bool = False
+
+
+_voicemails: list[Voicemail] = []
+_deleted_vm_timestamps: set[int] = set()
+
+
+def _load_voicemails():
+    global _voicemails, _deleted_vm_timestamps
+    if VOICEMAILS_META.exists():
+        try:
+            with open(VOICEMAILS_META) as f:
+                data = json.load(f)
+            _voicemails = [
+                Voicemail(
+                    id=v["id"], phone=v["phone"], timestamp=v["timestamp"],
+                    duration=v["duration"], file_path=v["file_path"],
+                    listened=v.get("listened", False),
+                )
+                for v in data.get("voicemails", [])
+            ]
+            _deleted_vm_timestamps = set(data.get("deleted_timestamps", []))
+            print(f"[Voicemail] Loaded {len(_voicemails)} voicemails")
+        except Exception as e:
+            print(f"[Voicemail] Failed to load: {e}")
+            _voicemails = []
+
+
+def _save_voicemails():
+    try:
+        VOICEMAILS_META.parent.mkdir(parents=True, exist_ok=True)
+        data = {
+            "voicemails": [
+                {
+                    "id": v.id, "phone": v.phone, "timestamp": v.timestamp,
+                    "duration": v.duration, "file_path": v.file_path,
+                    "listened": v.listened,
+                }
+                for v in _voicemails
+            ],
+            "deleted_timestamps": list(_deleted_vm_timestamps),
+        }
+        with open(VOICEMAILS_META, "w") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        print(f"[Voicemail] Failed to save: {e}")
 
 
 # --- News & Research Helpers ---
@@ -2317,11 +3024,78 @@ def _build_news_context() -> tuple[str, str]:
     return news_context, research_context
 
 
+async def _sync_signalwire_voicemails():
+    """Pull any recordings from SignalWire that aren't already tracked locally"""
+    if not settings.signalwire_project_id or not settings.signalwire_token:
+        return
+    try:
+        url = f"https://{settings.signalwire_space}/api/laml/2010-04-01/Accounts/{settings.signalwire_project_id}/Recordings.json"
+        auth = (settings.signalwire_project_id, settings.signalwire_token)
+        existing_timestamps = {int(v.timestamp) for v in _voicemails} | _deleted_vm_timestamps
+
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            resp = await client.get(url, auth=auth)
+            resp.raise_for_status()
+            recordings = resp.json().get("recordings", [])
+
+        synced = 0
+        for rec in recordings:
+            call_sid = rec.get("call_sid", "")
+            duration = int(rec.get("duration", 0))
+            date_created = rec.get("date_created", "")
+            recording_sid = rec.get("sid", "")
+
+            if duration < 2:
+                continue
+
+            # Parse timestamp from SignalWire's date format
+            from datetime import datetime
+            try:
+                ts = int(datetime.strptime(date_created, "%a, %d %b %Y %H:%M:%S %z").timestamp())
+            except (ValueError, TypeError):
+                ts = int(time.time())
+
+            if ts in existing_timestamps:
+                continue
+
+            # Get caller phone from the call details
+            caller_phone = "Unknown"
+            try:
+                call_url = f"https://{settings.signalwire_space}/api/laml/2010-04-01/Accounts/{settings.signalwire_project_id}/Calls/{call_sid}.json"
+                async with httpx.AsyncClient(timeout=15.0) as client:
+                    call_resp = await client.get(call_url, auth=auth)
+                    if call_resp.status_code == 200:
+                        caller_phone = call_resp.json().get("from", "Unknown")
+            except Exception:
+                pass
+
+            # Download the recording
+            rec_url = f"https://{settings.signalwire_space}{rec.get('uri', '').replace('.json', '.wav')}"
+            await _download_voicemail(rec_url, caller_phone, duration)
+
+            # Fix the timestamp to match the original recording time
+            if _voicemails and _voicemails[-1].phone == caller_phone:
+                _voicemails[-1].timestamp = ts
+                _save_voicemails()
+
+            existing_timestamps.add(ts)
+            synced += 1
+
+        if synced:
+            print(f"[Voicemail] Synced {synced} recording(s) from SignalWire")
+    except Exception as e:
+        print(f"[Voicemail] SignalWire sync failed: {e}")
+
+
 # --- Lifecycle ---
 @app.on_event("startup")
 async def startup():
     """Pre-generate caller backgrounds on server start"""
-    asyncio.create_task(_pregenerate_backgrounds())
+    _load_voicemails()
+    asyncio.create_task(_sync_signalwire_voicemails())
+    restored = _load_checkpoint()
+    if not restored:
+        asyncio.create_task(_pregenerate_backgrounds())
     threading.Thread(target=_update_on_air_cdn, args=(False,), daemon=True).start()
 
 
@@ -2329,6 +3103,7 @@ async def startup():
 async def shutdown():
     """Clean up resources on server shutdown"""
     global _host_audio_task
+    _save_checkpoint()
     print("[Server] Shutting down — cleaning up resources...")
     _update_on_air_cdn(False)
     # Stop host mic streaming
@@ -2470,10 +3245,18 @@ async def signalwire_voice_webhook(request: Request):
     print(f"[SignalWire] Inbound call from {caller_phone} (CallSid: {call_sid})")
 
     if not _show_on_air:
-        print(f"[SignalWire] Show is off air — playing off-air message for {caller_phone}")
-        xml = """<?xml version="1.0" encoding="UTF-8"?>
+        print(f"[SignalWire] Show is off air — offering voicemail to {caller_phone}")
+        # Derive host from stream URL config if available, otherwise from request
+        if settings.signalwire_stream_url:
+            from urllib.parse import urlparse
+            host = urlparse(settings.signalwire_stream_url).hostname
+        else:
+            host = request.headers.get("host", "radioshow.macneilmediagroup.com")
+        xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Say voice="woman">Luke at the Roost is off the air right now. Please call back during the show for your chance to talk to Luke. Thanks for calling!</Say>
+    <Say voice="woman">Luke at the Roost is off the air right now. Leave a message after the beep and we may play it on the next show!</Say>
+    <Record maxLength="120" action="https://{host}/api/signalwire/voicemail-complete" playBeep="true" />
+    <Say voice="woman">Thank you for calling. Goodbye!</Say>
     <Hangup/>
 </Response>"""
         return Response(content=xml, media_type="application/xml")
@@ -2497,6 +3280,142 @@ async def signalwire_voice_webhook(request: Request):
 </Response>"""
 
     return Response(content=xml, media_type="application/xml")
+
+
+@app.post("/api/signalwire/voicemail-complete")
+async def signalwire_voicemail_complete(request: Request):
+    form = await request.form()
+    recording_url = form.get("RecordingUrl", "")
+    caller_phone = form.get("From", "Unknown")
+    duration = int(form.get("RecordingDuration", "0"))
+    print(f"[Voicemail] Recording complete from {caller_phone} ({duration}s): {recording_url}")
+
+    if recording_url:
+        asyncio.create_task(_download_voicemail(recording_url, caller_phone, duration))
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?><Response><Say voice="woman">Thank you for calling. Goodbye!</Say><Hangup/></Response>'
+    return Response(content=xml, media_type="application/xml")
+
+
+async def _download_voicemail(recording_url: str, caller_phone: str, duration: int):
+    try:
+        VOICEMAILS_DIR.mkdir(parents=True, exist_ok=True)
+        ts = int(time.time())
+        safe_phone = caller_phone.replace("+", "").replace(" ", "")
+        # Determine extension from URL
+        ext = Path(recording_url.split("?")[0]).suffix or ".wav"
+        filename = f"{ts}_{safe_phone}{ext}"
+        filepath = VOICEMAILS_DIR / filename
+
+        # Try downloading without auth first (pre-signed URL), fall back to basic auth
+        auth = (settings.signalwire_project_id, settings.signalwire_token)
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            resp = await client.get(recording_url)
+            if resp.status_code in (401, 403):
+                resp = await client.get(recording_url, auth=auth)
+            resp.raise_for_status()
+            with open(filepath, "wb") as f:
+                f.write(resp.content)
+
+        vm = Voicemail(
+            id=str(uuid.uuid4())[:8],
+            phone=caller_phone,
+            timestamp=ts,
+            duration=duration,
+            file_path=str(filepath),
+        )
+        _voicemails.append(vm)
+        _save_voicemails()
+        print(f"[Voicemail] Saved {filename} ({duration}s) from {caller_phone}")
+    except Exception as e:
+        print(f"[Voicemail] Failed to download recording: {e}")
+
+
+# --- Voicemail API ---
+
+@app.get("/api/voicemails")
+async def list_voicemails():
+    return [
+        {
+            "id": v.id, "phone": v.phone, "timestamp": v.timestamp,
+            "duration": v.duration, "listened": v.listened,
+        }
+        for v in sorted(_voicemails, key=lambda v: v.timestamp, reverse=True)
+    ]
+
+
+@app.get("/api/voicemail/{vm_id}/audio")
+async def get_voicemail_audio(vm_id: str):
+    vm = next((v for v in _voicemails if v.id == vm_id), None)
+    if not vm:
+        raise HTTPException(status_code=404, detail="Voicemail not found")
+    fp = Path(vm.file_path)
+    if not fp.exists():
+        raise HTTPException(status_code=404, detail="Audio file missing")
+    media_type = "audio/wav" if fp.suffix == ".wav" else "audio/mpeg"
+    return FileResponse(fp, media_type=media_type, filename=fp.name)
+
+
+@app.post("/api/voicemail/{vm_id}/play-on-air")
+async def play_voicemail_on_air(vm_id: str):
+    vm = next((v for v in _voicemails if v.id == vm_id), None)
+    if not vm:
+        raise HTTPException(status_code=404, detail="Voicemail not found")
+    fp = Path(vm.file_path)
+    if not fp.exists():
+        raise HTTPException(status_code=404, detail="Audio file missing")
+
+    def _play():
+        import librosa
+        audio, sr = librosa.load(str(fp), sr=24000, mono=True)
+        audio_int16 = (audio * 32767).astype(np.int16)
+        audio_service.play_caller_audio(audio_int16.tobytes(), 24000)
+
+    thread = threading.Thread(target=_play, daemon=True)
+    thread.start()
+    vm.listened = True
+    _save_voicemails()
+    return {"status": "playing"}
+
+
+@app.post("/api/voicemail/{vm_id}/mark-listened")
+async def mark_voicemail_listened(vm_id: str):
+    vm = next((v for v in _voicemails if v.id == vm_id), None)
+    if not vm:
+        raise HTTPException(status_code=404, detail="Voicemail not found")
+    vm.listened = True
+    _save_voicemails()
+    return {"status": "ok"}
+
+
+@app.post("/api/voicemail/{vm_id}/save")
+async def save_voicemail(vm_id: str):
+    vm = next((v for v in _voicemails if v.id == vm_id), None)
+    if not vm:
+        raise HTTPException(status_code=404, detail="Voicemail not found")
+    fp = Path(vm.file_path)
+    if not fp.exists():
+        raise HTTPException(status_code=404, detail="Audio file missing")
+    VOICEMAILS_SAVED_DIR.mkdir(parents=True, exist_ok=True)
+    dest = VOICEMAILS_SAVED_DIR / fp.name
+    import shutil
+    shutil.copy2(fp, dest)
+    print(f"[Voicemail] Saved {fp.name} to archive")
+    return {"status": "saved", "path": str(dest)}
+
+
+@app.delete("/api/voicemail/{vm_id}")
+async def delete_voicemail(vm_id: str):
+    vm = next((v for v in _voicemails if v.id == vm_id), None)
+    if not vm:
+        raise HTTPException(status_code=404, detail="Voicemail not found")
+    _deleted_vm_timestamps.add(int(vm.timestamp))
+    fp = Path(vm.file_path)
+    if fp.exists():
+        fp.unlink()
+    _voicemails.remove(vm)
+    _save_voicemails()
+    return {"status": "deleted"}
 
 
 async def _signalwire_end_call(call_sid: str):
@@ -2535,6 +3454,8 @@ class AudioDeviceSettings(BaseModel):
     music_channel: Optional[int] = None
     sfx_channel: Optional[int] = None
     ad_channel: Optional[int] = None
+    monitor_device: Optional[int] = None
+    monitor_channel: Optional[int] = None
     phone_filter: Optional[bool] = None
 
 class MusicRequest(BaseModel):
@@ -2572,6 +3493,8 @@ async def set_audio_settings(settings: AudioDeviceSettings):
         music_channel=settings.music_channel,
         sfx_channel=settings.sfx_channel,
         ad_channel=settings.ad_channel,
+        monitor_device=settings.monitor_device,
+        monitor_channel=settings.monitor_channel,
         phone_filter=settings.phone_filter
     )
     return audio_service.get_device_settings()
@@ -2765,6 +3688,8 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
                 )
     except Exception as e:
         print(f"[Regulars] Promotion logic error: {e}")
+
+    _save_checkpoint()
 
 
 # --- Chat & TTS Endpoints ---
@@ -3010,9 +3935,37 @@ async def stop_tts():
 
 # --- Music Endpoints ---
 
+GENRE_KEYWORDS = {
+    "rock": "Rock",
+    "funk": "Funk",
+    "funky": "Funk",
+    "hip-hop": "Hip-Hop",
+    "hip hop": "Hip-Hop",
+    "rap": "Hip-Hop",
+    "jazz": "Jazz",
+    "blues": "Blues",
+    "latin": "Latin",
+    "lo-fi": "Lo-Fi",
+    "lofi": "Lo-Fi",
+    "coffee": "Lo-Fi",
+    "radio": "Radio",
+    "valentine": "Ballad",
+    "romantic": "Ballad",
+    "ballad": "Ballad",
+}
+
+
+def _detect_genre(name: str) -> str:
+    lower = name.lower()
+    for keyword, genre in GENRE_KEYWORDS.items():
+        if keyword in lower:
+            return genre
+    return "Other"
+
+
 @app.get("/api/music")
 async def get_music():
-    """Get available music tracks"""
+    """Get available music tracks, shuffled and tagged with genre"""
     tracks = []
     if settings.music_dir.exists():
         for ext in ['*.wav', '*.mp3', '*.flac']:
@@ -3020,8 +3973,10 @@ async def get_music():
                 tracks.append({
                     "name": f.stem,
                     "file": f.name,
-                    "path": str(f)
+                    "path": str(f),
+                    "genre": _detect_genre(f.stem),
                 })
+    random.shuffle(tracks)
     return {
         "tracks": tracks,
         "playing": audio_service.is_music_playing()
@@ -3095,18 +4050,40 @@ async def play_sfx(request: SFXRequest):
 
 # --- Ads Endpoints ---
 
+AD_DISPLAY_NAMES = {
+    "bettermaybe_ad": "Better Maybe",
+    "bunkhousedns_ad": "Bunkhouse DNS",
+    "cryptono_ad": "CryptoNo",
+    "desertgut_ad": "Desert Gut",
+    "enema_ad": "Enema",
+    "jamhospitalityad": "Jam Hospitality",
+    "mealprep_ad": "Meal Prep",
+    "mediocrecpap": "Mediocre CPAP",
+    "pillowforever_ad": "Pillow Forever",
+    "placiboleaf": "Placibo Leaf",
+    "saddlesoft_ad": "Saddle Soft",
+    "sandstone_ad": "Sandstone",
+    "scriptdrift_ad": "Script Drift",
+    "shoespraycoad": "Shoe Spray Co.",
+    "squarehole_ad": "Square Hole",
+    "therapy_ad": "Therapy",
+    "vpnad": "VPN",
+}
+
+
 @app.get("/api/ads")
 async def get_ads():
-    """Get available ad tracks"""
+    """Get available ad tracks, shuffled"""
     ad_list = []
     if settings.ads_dir.exists():
         for ext in ['*.wav', '*.mp3', '*.flac']:
             for f in settings.ads_dir.glob(ext):
                 ad_list.append({
-                    "name": f.stem,
+                    "name": AD_DISPLAY_NAMES.get(f.stem, f.stem),
                     "file": f.name,
                     "path": str(f)
                 })
+    random.shuffle(ad_list)
     return {"ads": ad_list}
 
 
@@ -3280,6 +4257,11 @@ Respond with ONLY JSON: {{"name": "their first name or null", "topic": "brief to
     except Exception as e:
         print(f"[Screening] Response TTS failed: {e}")
 
+    # Start hold music after screening completes and final TTS has played
+    screening = caller_service.get_screening_state(caller_id)
+    if screening and screening.get("status") == "complete" and caller_id not in _hold_music_tasks:
+        _hold_music_tasks[caller_id] = asyncio.create_task(_stream_hold_music(caller_id))
+
 
 @app.websocket("/api/signalwire/stream")
 async def signalwire_audio_stream(websocket: WebSocket):
@@ -3397,6 +4379,7 @@ async def signalwire_audio_stream(websocket: WebSocket):
     else:
         disconnect_reason = "clean"
     finally:
+        _stop_hold_music(caller_id)
         was_on_air = caller_id in caller_service.active_calls
         caller_service.unregister_websocket(caller_id)
         caller_service.unregister_call_sid(caller_id)
@@ -3502,6 +4485,7 @@ async def get_call_queue():
 @app.post("/api/queue/take/{caller_id}")
 async def take_call_from_queue(caller_id: str):
     """Take a caller off hold and put them on air"""
+    _stop_hold_music(caller_id)
     try:
         call_info = caller_service.take_call(caller_id)
     except ValueError as e:
@@ -3522,6 +4506,7 @@ async def take_call_from_queue(caller_id: str):
 @app.post("/api/queue/drop/{caller_id}")
 async def drop_from_queue(caller_id: str):
     """Drop a caller from the queue"""
+    _stop_hold_music(caller_id)
     call_sid = caller_service.get_call_sid(caller_id)
     caller_service.remove_from_queue(caller_id)
     if call_sid:
@@ -3804,6 +4789,8 @@ async def _summarize_real_call(caller_phone: str, conversation: list, started_at
         ended_at=ended_at,
     ))
     print(f"[Real Caller] {caller_phone} call summarized: {summary[:80]}...")
+
+    _save_checkpoint()
 
     if auto_followup_enabled:
         await _auto_followup(summary)

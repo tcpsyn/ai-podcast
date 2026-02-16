@@ -60,7 +60,7 @@ PODCAST_ID = 1
 PODCAST_HANDLE = "LukeAtTheRoost"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-WHISPER_MODEL = "large-v3"
+WHISPER_MODEL = "distil-large-v3"
 
 # Postiz (social media posting)
 POSTIZ_URL = "https://social.lukeattheroost.com"
@@ -189,35 +189,41 @@ TRANSCRIPT:
 
 
 def transcribe_audio(audio_path: str) -> dict:
-    """Transcribe audio using faster-whisper with timestamps."""
-    print(f"[1/5] Transcribing {audio_path}...")
+    """Transcribe audio using Lightning Whisper MLX (Apple Silicon GPU)."""
+    print(f"[1/5] Transcribing {audio_path} (MLX GPU)...")
 
     try:
-        from faster_whisper import WhisperModel
+        from lightning_whisper_mlx import LightningWhisperMLX
     except ImportError:
-        print("Error: faster-whisper not installed. Run: pip install faster-whisper")
+        print("Error: lightning-whisper-mlx not installed. Run: pip install lightning-whisper-mlx")
         sys.exit(1)
 
-    model = WhisperModel(WHISPER_MODEL, compute_type="int8")
-    segments, info = model.transcribe(audio_path, word_timestamps=True)
+    probe = subprocess.run(
+        ["ffprobe", "-v", "quiet", "-show_entries", "format=duration", "-of", "csv=p=0", audio_path],
+        capture_output=True, text=True
+    )
+    duration = int(float(probe.stdout.strip())) if probe.returncode == 0 else 0
+
+    whisper = LightningWhisperMLX(model=WHISPER_MODEL, batch_size=12, quant=None)
+    result = whisper.transcribe(audio_path=audio_path, language="en")
 
     transcript_segments = []
     full_text = []
 
-    for segment in segments:
+    for segment in result.get("segments", []):
+        start_ms, end_ms, text = segment[0], segment[1], segment[2]
         transcript_segments.append({
-            "start": segment.start,
-            "end": segment.end,
-            "text": segment.text.strip()
+            "start": start_ms / 1000.0,
+            "end": end_ms / 1000.0,
+            "text": text.strip()
         })
-        full_text.append(segment.text.strip())
-
-    print(f"    Transcribed {info.duration:.1f} seconds of audio")
+        full_text.append(text.strip())
+    print(f"    Transcribed {duration} seconds of audio ({len(transcript_segments)} segments)")
 
     return {
         "segments": transcript_segments,
         "full_text": " ".join(full_text),
-        "duration": int(info.duration)
+        "duration": duration
     }
 
 

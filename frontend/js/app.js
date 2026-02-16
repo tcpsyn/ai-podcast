@@ -16,6 +16,15 @@ let tracks = [];
 let sounds = [];
 
 
+// --- Helpers ---
+function _isTyping() {
+    const el = document.activeElement;
+    if (!el) return false;
+    const tag = el.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+}
+
+
 // --- Safe JSON parsing ---
 async function safeFetch(url, options = {}, timeoutMs = 30000) {
     const controller = new AbortController();
@@ -51,6 +60,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadSounds();
         await loadSettings();
         initEventListeners();
+        loadVoicemails();
+        setInterval(loadVoicemails, 30000);
         log('Ready. Configure audio devices in Settings, then click a caller to start.');
         console.log('AI Radio Show ready');
     } catch (err) {
@@ -136,6 +147,20 @@ function initEventListeners() {
         talkBtn.addEventListener('touchstart', e => { e.preventDefault(); startRecording(); });
         talkBtn.addEventListener('touchend', e => { e.preventDefault(); stopRecording(); });
     }
+
+    // Spacebar push-to-talk — blur buttons so Space doesn't also trigger button click
+    document.addEventListener('keydown', e => {
+        if (e.code !== 'Space' || e.repeat || _isTyping()) return;
+        e.preventDefault();
+        // Blur any focused button so browser doesn't fire its click
+        if (document.activeElement?.tagName === 'BUTTON') document.activeElement.blur();
+        startRecording();
+    });
+    document.addEventListener('keyup', e => {
+        if (e.code !== 'Space' || _isTyping()) return;
+        e.preventDefault();
+        stopRecording();
+    });
 
     // Type button
     document.getElementById('type-btn')?.addEventListener('click', () => {
@@ -630,11 +655,31 @@ async function loadMusic() {
         const previousValue = select.value;
         select.innerHTML = '';
 
-        tracks.forEach((track, i) => {
-            const option = document.createElement('option');
-            option.value = track.file;
-            option.textContent = track.name;
-            select.appendChild(option);
+        // Group tracks by genre
+        const genres = {};
+        tracks.forEach(track => {
+            const genre = track.genre || 'Other';
+            if (!genres[genre]) genres[genre] = [];
+            genres[genre].push(track);
+        });
+
+        // Sort genre names, but put "Other" last
+        const genreOrder = Object.keys(genres).sort((a, b) => {
+            if (a === 'Other') return 1;
+            if (b === 'Other') return -1;
+            return a.localeCompare(b);
+        });
+
+        genreOrder.forEach(genre => {
+            const group = document.createElement('optgroup');
+            group.label = genre;
+            genres[genre].forEach(track => {
+                const option = document.createElement('option');
+                option.value = track.file;
+                option.textContent = track.name;
+                group.appendChild(option);
+            });
+            select.appendChild(group);
         });
 
         // Restore previous selection if it still exists
@@ -1223,5 +1268,95 @@ async function stopServer() {
         document.getElementById('server-log').innerHTML = '<div class="log-line">Server stopped. Run ./run.sh to restart.</div>';
     } catch (err) {
         log('Failed to stop server: ' + err.message);
+    }
+}
+
+
+// --- Voicemail ---
+let _currentVmAudio = null;
+
+async function loadVoicemails() {
+    try {
+        const res = await fetch('/api/voicemails');
+        const data = await res.json();
+        renderVoicemails(data);
+    } catch (err) {}
+}
+
+function renderVoicemails(voicemails) {
+    const list = document.getElementById('voicemail-list');
+    const badge = document.getElementById('voicemail-badge');
+    if (!list) return;
+
+    const unlistened = voicemails.filter(v => !v.listened).length;
+    if (badge) {
+        badge.textContent = unlistened;
+        badge.classList.toggle('hidden', unlistened === 0);
+    }
+
+    if (voicemails.length === 0) {
+        list.innerHTML = '<div class="queue-empty">No voicemails</div>';
+        return;
+    }
+
+    list.innerHTML = voicemails.map(v => {
+        const date = new Date(v.timestamp * 1000);
+        const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const mins = Math.floor(v.duration / 60);
+        const secs = v.duration % 60;
+        const durStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        const unlistenedCls = v.listened ? '' : ' vm-unlistened';
+        return `<div class="vm-item${unlistenedCls}" data-id="${v.id}">
+            <div class="vm-info">
+                <span class="vm-phone">${v.phone}</span>
+                <span class="vm-time">${timeStr}</span>
+                <span class="vm-dur">${durStr}</span>
+            </div>
+            <div class="vm-actions">
+                <button class="vm-btn listen" onclick="listenVoicemail('${v.id}')">Listen</button>
+                <button class="vm-btn on-air" onclick="playVoicemailOnAir('${v.id}')">On Air</button>
+                <button class="vm-btn save" onclick="saveVoicemail('${v.id}')">Save</button>
+                <button class="vm-btn delete" onclick="deleteVoicemail('${v.id}')">Del</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function listenVoicemail(id) {
+    if (_currentVmAudio) {
+        _currentVmAudio.pause();
+        _currentVmAudio = null;
+    }
+    _currentVmAudio = new Audio(`/api/voicemail/${id}/audio`);
+    _currentVmAudio.play();
+    fetch(`/api/voicemail/${id}/mark-listened`, { method: 'POST' }).then(() => loadVoicemails());
+}
+
+async function playVoicemailOnAir(id) {
+    try {
+        await safeFetch(`/api/voicemail/${id}/play-on-air`, { method: 'POST' });
+        log('Playing voicemail on air');
+        loadVoicemails();
+    } catch (err) {
+        log('Failed to play voicemail: ' + err.message);
+    }
+}
+
+async function saveVoicemail(id) {
+    try {
+        await safeFetch(`/api/voicemail/${id}/save`, { method: 'POST' });
+        log('Voicemail saved to archive');
+    } catch (err) {
+        log('Failed to save voicemail: ' + err.message);
+    }
+}
+
+async function deleteVoicemail(id) {
+    if (!confirm('Delete this voicemail?')) return;
+    try {
+        await safeFetch(`/api/voicemail/${id}`, { method: 'DELETE' });
+        loadVoicemails();
+    } catch (err) {
+        log('Failed to delete voicemail: ' + err.message);
     }
 }

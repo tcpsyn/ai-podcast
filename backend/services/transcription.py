@@ -13,10 +13,8 @@ def get_whisper_model() -> WhisperModel:
     """Get or create Whisper model instance"""
     global _whisper_model
     if _whisper_model is None:
-        print("Loading Whisper tiny model for fast transcription...")
-        # Use tiny model for speed - about 3-4x faster than base
-        # beam_size=1 and best_of=1 for fastest inference
-        _whisper_model = WhisperModel("tiny", device="cpu", compute_type="int8")
+        print("Loading Whisper base model...")
+        _whisper_model = WhisperModel("base", device="cpu", compute_type="int8")
         print("Whisper model loaded")
     return _whisper_model
 
@@ -100,13 +98,13 @@ async def transcribe_audio(audio_data: bytes, source_sample_rate: int = None) ->
     else:
         audio_16k = audio
 
-    # Transcribe with speed optimizations
+    # Transcribe
     segments, info = model.transcribe(
         audio_16k,
-        beam_size=1,  # Faster, slightly less accurate
-        best_of=1,
-        language="en",  # Skip language detection
-        vad_filter=True,  # Skip silence
+        beam_size=3,
+        language="en",
+        vad_filter=True,
+        initial_prompt="Luke at the Roost, a late-night radio talk show. The host Luke talks to callers about life, relationships, sports, politics, and pop culture.",
     )
     segments_list = list(segments)
     text = " ".join([s.text for s in segments_list]).strip()

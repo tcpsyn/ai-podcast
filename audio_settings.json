@@ -7,5 +7,7 @@
   "music_channel": 5,
   "sfx_channel": 7,
   "ad_channel": 11,
+  "monitor_device": 14,
+  "monitor_channel": 1,
   "phone_filter": false
 }

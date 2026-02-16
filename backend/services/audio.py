@@ -19,15 +19,17 @@ class AudioService:
 
     def __init__(self):
         # Device configuration
-        self.input_device: Optional[int] = None
+        self.input_device: Optional[int] = 13   # Radio Voice Mic (loopback input)
         self.input_channel: int = 1  # 1-indexed channel
 
-        self.output_device: Optional[int] = None  # Single output device (multi-channel)
-        self.caller_channel: int = 1   # Channel for caller TTS
+        self.output_device: Optional[int] = 12  # Radio Voice Mic (loopback output)
+        self.caller_channel: int = 3   # Channel for caller TTS
         self.live_caller_channel: int = 9  # Channel for live caller audio
-        self.music_channel: int = 2    # Channel for music
+        self.music_channel: int = 5    # Channel for music
         self.sfx_channel: int = 3      # Channel for SFX
         self.ad_channel: int = 11      # Channel for ads
+        self.monitor_device: Optional[int] = 14  # Babyface Pro (headphone monitoring)
+        self.monitor_channel: int = 1  # Channel for mic monitoring on monitor device
         self.phone_filter: bool = False  # Phone filter on caller voices
 
         # Ad playback state
@@ -78,6 +80,10 @@ class AudioService:
         self.input_sample_rate = 16000  # For Whisper
         self.output_sample_rate = 24000  # For TTS
 
+        # Mic monitor (input → monitor device passthrough)
+        self._monitor_stream: Optional[sd.OutputStream] = None
+        self._monitor_write: Optional[Callable] = None
+
         # Stem recording (opt-in, attached via API)
         self.stem_recorder = None
         self._stem_mic_stream: Optional[sd.InputStream] = None
@@ -99,8 +105,10 @@ class AudioService:
                 self.music_channel = data.get("music_channel", 2)
                 self.sfx_channel = data.get("sfx_channel", 3)
                 self.ad_channel = data.get("ad_channel", 11)
+                self.monitor_device = data.get("monitor_device")
+                self.monitor_channel = data.get("monitor_channel", 1)
                 self.phone_filter = data.get("phone_filter", False)
-                print(f"Loaded audio settings: output={self.output_device}, channels={self.caller_channel}/{self.live_caller_channel}/{self.music_channel}/{self.sfx_channel}/ad:{self.ad_channel}, phone_filter={self.phone_filter}")
+                print(f"Loaded audio settings: input={self.input_device}, output={self.output_device}, monitor={self.monitor_device}, phone_filter={self.phone_filter}")
             except Exception as e:
                 print(f"Failed to load audio settings: {e}")
 
@@ -116,6 +124,8 @@ class AudioService:
                 "music_channel": self.music_channel,
                 "sfx_channel": self.sfx_channel,
                 "ad_channel": self.ad_channel,
+                "monitor_device": self.monitor_device,
+                "monitor_channel": self.monitor_channel,
                 "phone_filter": self.phone_filter,
             }
             with open(SETTINGS_FILE, "w") as f:
@@ -148,6 +158,8 @@ class AudioService:
         music_channel: Optional[int] = None,
         sfx_channel: Optional[int] = None,
         ad_channel: Optional[int] = None,
+        monitor_device: Optional[int] = None,
+        monitor_channel: Optional[int] = None,
         phone_filter: Optional[bool] = None
     ):
         """Configure audio devices and channels"""
@@ -167,6 +179,10 @@ class AudioService:
             self.sfx_channel = sfx_channel
         if ad_channel is not None:
             self.ad_channel = ad_channel
+        if monitor_device is not None:
+            self.monitor_device = monitor_device
+        if monitor_channel is not None:
+            self.monitor_channel = monitor_channel
         if phone_filter is not None:
             self.phone_filter = phone_filter
 
@@ -184,6 +200,8 @@ class AudioService:
             "music_channel": self.music_channel,
             "sfx_channel": self.sfx_channel,
             "ad_channel": self.ad_channel,
+            "monitor_device": self.monitor_device,
+            "monitor_channel": self.monitor_channel,
             "phone_filter": self.phone_filter,
         }
 
@@ -542,6 +560,9 @@ class AudioService:
             host_accum_samples = [0]
             send_threshold = 1600  # 100ms at 16kHz
 
+            # Start mic monitor if monitor device is configured
+            self._start_monitor(device_sr)
+
             def callback(indata, frames, time_info, status):
                 # Capture for push-to-talk recording if active
                 if self._recording and self._recorded_audio is not None:
@@ -550,6 +571,10 @@ class AudioService:
                 # Stem recording: host mic
                 if self.stem_recorder:
                     self.stem_recorder.write("host", indata[:, record_channel].copy(), device_sr)
+
+                # Mic monitor: send to headphone device
+                if self._monitor_write:
+                    self._monitor_write(indata[:, record_channel].copy())
 
                 if not self._host_send_callback:
                     return
@@ -591,7 +616,83 @@ class AudioService:
             self._host_stream = None
             self._host_send_callback = None
             print("[Audio] Host mic streaming stopped")
+        self._stop_monitor()
         self._stop_live_caller_stream()
+
+    # --- Mic Monitor (input → headphone device) ---
+
+    def _start_monitor(self, input_sr: int):
+        """Start mic monitor stream that routes input to monitor device"""
+        if self._monitor_stream is not None:
+            return
+        if self.monitor_device is None:
+            return
+
+        device_info = sd.query_devices(self.monitor_device)
+        num_channels = device_info['max_output_channels']
+        device_sr = int(device_info['default_samplerate'])
+        channel_idx = min(self.monitor_channel, num_channels) - 1
+
+        # Ring buffer for cross-device routing
+        ring_size = int(device_sr * 2)
+        ring = np.zeros(ring_size, dtype=np.float32)
+        state = {"write_pos": 0, "read_pos": 0, "avail": 0}
+
+        # Precompute resample ratio (input device sr → monitor device sr)
+        resample_ratio = device_sr / input_sr
+
+        def write_audio(data):
+            # Resample if sample rates differ
+            if abs(resample_ratio - 1.0) > 0.01:
+                n_out = int(len(data) * resample_ratio)
+                indices = np.linspace(0, len(data) - 1, n_out).astype(int)
+                data = data[indices]
+            n = len(data)
+            wp = state["write_pos"]
+            if wp + n <= ring_size:
+                ring[wp:wp + n] = data
+            else:
+                first = ring_size - wp
+                ring[wp:] = data[:first]
+                ring[:n - first] = data[first:]
+            state["write_pos"] = (wp + n) % ring_size
+            state["avail"] += n
+
+        def callback(outdata, frames, time_info, status):
+            outdata.fill(0)
+            avail = state["avail"]
+            if avail < frames:
+                return
+            rp = state["read_pos"]
+            if rp + frames <= ring_size:
+                outdata[:frames, channel_idx] = ring[rp:rp + frames]
+            else:
+                first = ring_size - rp
+                outdata[:first, channel_idx] = ring[rp:]
+                outdata[first:frames, channel_idx] = ring[:frames - first]
+            state["read_pos"] = (rp + frames) % ring_size
+            state["avail"] -= frames
+
+        self._monitor_write = write_audio
+        self._monitor_stream = sd.OutputStream(
+            device=self.monitor_device,
+            samplerate=device_sr,
+            channels=num_channels,
+            dtype=np.float32,
+            blocksize=1024,
+            callback=callback,
+        )
+        self._monitor_stream.start()
+        print(f"[Audio] Mic monitor started (device {self.monitor_device} ch {self.monitor_channel} @ {device_sr}Hz)")
+
+    def _stop_monitor(self):
+        """Stop mic monitor stream"""
+        if self._monitor_stream:
+            self._monitor_stream.stop()
+            self._monitor_stream.close()
+            self._monitor_stream = None
+            self._monitor_write = None
+            print("[Audio] Mic monitor stopped")
 
     # --- Music Playback ---
 
@@ -981,9 +1082,13 @@ class AudioService:
         device_sr = int(device_info['default_samplerate'])
         record_channel = min(self.input_channel, max_channels) - 1
 
+        self._start_monitor(device_sr)
+
         def callback(indata, frames, time_info, status):
             if self.stem_recorder:
                 self.stem_recorder.write("host", indata[:, record_channel].copy(), device_sr)
+            if self._monitor_write:
+                self._monitor_write(indata[:, record_channel].copy())
 
         self._stem_mic_stream = sd.InputStream(
             device=self.input_device,
@@ -1003,6 +1108,7 @@ class AudioService:
             self._stem_mic_stream.close()
             self._stem_mic_stream = None
             print("[StemRecorder] Host mic capture stopped")
+        self._stop_monitor()
 
 
 # Global instance

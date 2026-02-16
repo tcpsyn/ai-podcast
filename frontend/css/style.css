@@ -349,6 +349,19 @@ section h2 {
     margin-bottom: 10px;
 }
 
+.music-section select optgroup {
+    color: var(--accent);
+    font-weight: bold;
+    font-style: normal;
+    padding: 4px 0;
+}
+
+.music-section select option {
+    color: var(--text);
+    font-weight: normal;
+    padding: 2px 8px;
+}
+
 .music-controls {
     display: flex;
     gap: 8px;
@@ -725,3 +738,26 @@ section h2 {
 .message.real-caller { border-left: 3px solid var(--accent-red); padding-left: 0.5rem; }
 .message.ai-caller { border-left: 3px solid var(--accent); padding-left: 0.5rem; }
 .message.host { border-left: 3px solid var(--accent-green); padding-left: 0.5rem; }
+
+/* Voicemail */
+.voicemail-section { margin: 1rem 0; }
+.voicemail-list { border: 1px solid rgba(232, 121, 29, 0.15); border-radius: var(--radius-sm); padding: 0.5rem; max-height: 200px; overflow-y: auto; }
+.voicemail-badge { background: var(--accent-red); color: white; font-size: 0.7rem; font-weight: bold; padding: 0.1rem 0.45rem; border-radius: 10px; margin-left: 0.4rem; vertical-align: middle; }
+.voicemail-badge.hidden { display: none; }
+.vm-item { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0.5rem; border-bottom: 1px solid rgba(232, 121, 29, 0.08); }
+.vm-item:last-child { border-bottom: none; }
+.vm-item.vm-unlistened { background: rgba(232, 121, 29, 0.06); }
+.vm-info { display: flex; gap: 0.6rem; align-items: center; flex: 1; min-width: 0; }
+.vm-phone { font-family: monospace; color: var(--accent); font-size: 0.85rem; }
+.vm-time { color: var(--text-muted); font-size: 0.8rem; }
+.vm-dur { color: var(--text-muted); font-size: 0.8rem; }
+.vm-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
+.vm-btn { border: none; padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.75rem; transition: background 0.2s; }
+.vm-btn.listen { background: var(--accent); color: white; }
+.vm-btn.listen:hover { background: var(--accent-hover); }
+.vm-btn.on-air { background: var(--accent-green); color: white; }
+.vm-btn.on-air:hover { background: #6a9a4c; }
+.vm-btn.save { background: #3a7bd5; color: white; }
+.vm-btn.save:hover { background: #2a5db0; }
+.vm-btn.delete { background: var(--accent-red); color: white; }
+.vm-btn.delete:hover { background: #e03030; }

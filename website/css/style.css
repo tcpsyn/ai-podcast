@@ -88,46 +88,39 @@ a:hover {
 }
 
 .phone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
   margin-top: 0.5rem;
 }
 
-.phone-number {
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: var(--accent);
-  letter-spacing: 0.02em;
-  display: block;
-}
-
-.phone-digits {
+.phone-inline {
   font-size: 0.95rem;
   color: var(--text-muted);
 }
 
-.phone-label {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  margin-bottom: 0.25rem;
+.phone-inline strong {
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 /* On-Air Badge */
 .on-air-badge {
   display: none;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   background: var(--accent-red);
   color: #fff;
-  padding: 0.4rem 1.2rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 50px;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   animation: on-air-glow 2s ease-in-out infinite;
-  margin-bottom: 0.5rem;
+  flex-shrink: 0;
 }
 
 .on-air-badge.visible {
@@ -156,99 +149,98 @@ a:hover {
 .off-air-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   background: #444;
   color: var(--text-muted);
-  padding: 0.35rem 1.1rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 50px;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  flex-shrink: 0;
 }
 
 .off-air-badge.hidden {
   display: none;
 }
 
-.phone.live .phone-number {
+.phone.live .phone-inline strong {
   color: var(--accent-red);
   text-shadow: 0 0 16px rgba(204, 34, 34, 0.35);
-}
-
-.phone.live .phone-label {
-  color: var(--text);
 }
 
 /* Subscribe buttons — primary listen platforms */
 .subscribe-row {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   gap: 0.6rem;
   margin-top: 1.5rem;
+}
+
+.subscribe-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.subscribe-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .subscribe-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.55rem 1.1rem;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
   border-radius: 50px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #fff;
-  transition: opacity 0.2s, transform 0.2s;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--text-muted);
+  transition: border-color 0.2s, color 0.2s;
 }
 
 .subscribe-btn:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
-  color: #fff;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .subscribe-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
 }
 
-.btn-spotify { background: #1DB954; }
-.btn-youtube { background: #FF0000; }
-.btn-apple { background: #A033FF; }
-
-/* Secondary links — How It Works, Discord, RSS */
+/* Secondary links — How It Works, Discord, Support */
 .secondary-links {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 1.25rem;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 0.75rem;
 }
 
 .secondary-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 50px;
-  padding: 0.3rem 0.85rem;
-  transition: background 0.2s, color 0.2s;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: color 0.2s;
 }
 
 .secondary-link:hover {
-  background: var(--accent);
-  color: #fff;
+  color: var(--accent);
 }
 
-.secondary-link svg {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
+.secondary-sep {
+  color: var(--text-muted);
+  opacity: 0.4;
+  font-size: 0.8rem;
 }
 
 /* Episodes */
@@ -729,6 +721,26 @@ a:hover {
   height: 100%;
 }
 
+.diagram-row-compact {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.diagram-row-compact .diagram-box {
+  min-width: unset;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.7rem;
+  gap: 0.25rem;
+}
+
+.diagram-row-compact .diagram-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .diagram-arrow {
   font-size: 1.5rem;
   color: var(--text-muted);
@@ -914,6 +926,21 @@ a:hover {
 
 .hiw-cta-phone strong {
   color: var(--accent);
+}
+
+.hiw-cta-support {
+  display: inline-block;
+  margin-top: 1.25rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+  border-bottom: 1px solid var(--text-muted);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.hiw-cta-support:hover {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* Episode Page */
