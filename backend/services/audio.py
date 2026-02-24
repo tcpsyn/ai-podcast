@@ -39,6 +39,13 @@ class AudioService:
         self._ad_position: int = 0
         self._ad_playing: bool = False
 
+        # Ident playback state
+        self._ident_stream: Optional[sd.OutputStream] = None
+        self._ident_data: Optional[np.ndarray] = None
+        self._ident_resampled: Optional[np.ndarray] = None
+        self._ident_position: int = 0
+        self._ident_playing: bool = False
+
         # Recording state
         self._recording = False
         self._record_thread: Optional[threading.Thread] = None
@@ -933,6 +940,7 @@ class AudioService:
             return
 
         self.stop_ad()
+        self.stop_ident()
 
         try:
             audio, sr = librosa.load(str(path), sr=self.output_sample_rate, mono=True)
@@ -1004,6 +1012,88 @@ class AudioService:
             self._ad_stream.close()
             self._ad_stream = None
         self._ad_position = 0
+
+    def play_ident(self, file_path: str):
+        """Load and play an ident file once (no loop) on the ad channel"""
+        import librosa
+
+        path = Path(file_path)
+        if not path.exists():
+            print(f"Ident file not found: {file_path}")
+            return
+
+        self.stop_ident()
+        self.stop_ad()
+
+        try:
+            audio, sr = librosa.load(str(path), sr=self.output_sample_rate, mono=True)
+            self._ident_data = audio.astype(np.float32)
+        except Exception as e:
+            print(f"Failed to load ident: {e}")
+            return
+
+        self._ident_playing = True
+        self._ident_position = 0
+
+        if self.output_device is None:
+            num_channels = 2
+            device = None
+            device_sr = self.output_sample_rate
+            channel_idx = 0
+        else:
+            device_info = sd.query_devices(self.output_device)
+            num_channels = device_info['max_output_channels']
+            device_sr = int(device_info['default_samplerate'])
+            device = self.output_device
+            channel_idx = min(self.ad_channel, num_channels) - 1
+
+        if self.output_sample_rate != device_sr:
+            self._ident_resampled = librosa.resample(
+                self._ident_data, orig_sr=self.output_sample_rate, target_sr=device_sr
+            ).astype(np.float32)
+        else:
+            self._ident_resampled = self._ident_data
+
+        def callback(outdata, frames, time_info, status):
+            outdata[:] = 0
+            if not self._ident_playing or self._ident_resampled is None:
+                return
+
+            remaining = len(self._ident_resampled) - self._ident_position
+            if remaining >= frames:
+                chunk = self._ident_resampled[self._ident_position:self._ident_position + frames]
+                outdata[:, channel_idx] = chunk
+                if self.stem_recorder:
+                    self.stem_recorder.write_sporadic("idents", chunk.copy(), device_sr)
+                self._ident_position += frames
+            else:
+                if remaining > 0:
+                    outdata[:remaining, channel_idx] = self._ident_resampled[self._ident_position:]
+                self._ident_playing = False
+
+        try:
+            self._ident_stream = sd.OutputStream(
+                device=device,
+                channels=num_channels,
+                samplerate=device_sr,
+                dtype=np.float32,
+                callback=callback,
+                blocksize=2048
+            )
+            self._ident_stream.start()
+            print(f"Ident playback started on ch {self.ad_channel} @ {device_sr}Hz")
+        except Exception as e:
+            print(f"Ident playback error: {e}")
+            self._ident_playing = False
+
+    def stop_ident(self):
+        """Stop ident playback"""
+        self._ident_playing = False
+        if self._ident_stream:
+            self._ident_stream.stop()
+            self._ident_stream.close()
+            self._ident_stream = None
+        self._ident_position = 0
 
     def set_music_volume(self, volume: float):
         """Set music volume (0.0 to 1.0)"""

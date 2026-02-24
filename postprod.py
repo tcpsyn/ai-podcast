@@ -3,7 +3,7 @@
 
 Usage: python postprod.py recordings/2026-02-07_213000/ -o episode.mp3
 
-Processes 5 aligned WAV stems (host, caller, music, sfx, ads) into a
+Processes 6 aligned WAV stems (host, caller, music, sfx, ads, idents) into a
 broadcast-ready MP3 with gap removal, voice compression, music ducking,
 and loudness normalization.
 """
@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 
-STEM_NAMES = ["host", "caller", "music", "sfx", "ads"]
+STEM_NAMES = ["host", "caller", "music", "sfx", "ads", "idents"]
 
 
 def load_stems(stems_dir: Path) -> tuple[dict[str, np.ndarray], int]:
@@ -69,7 +69,7 @@ def remove_gaps(stems: dict[str, np.ndarray], sr: int,
 
     # Detect gaps in everything except music (which always plays).
     # This catches TTS latency gaps while protecting ad breaks and SFX transitions.
-    content = stems["host"] + stems["caller"] + stems["sfx"] + stems["ads"]
+    content = stems["host"] + stems["caller"] + stems["sfx"] + stems["ads"] + stems["idents"]
     rms = compute_rms(content, window_samples)
 
     # Threshold: percentile-based to sit above the mic noise floor
@@ -386,7 +386,7 @@ def apply_ducking(music: np.ndarray, dialog: np.ndarray, sr: int,
 
 def match_voice_levels(stems: dict[str, np.ndarray], target_rms: float = 0.1) -> dict[str, np.ndarray]:
     """Normalize host, caller, and ads stems to the same RMS level."""
-    for name in ["host", "caller", "ads"]:
+    for name in ["host", "caller", "ads", "idents"]:
         audio = stems[name]
         # Only measure non-silent portions
         active = audio[np.abs(audio) > 0.001]
@@ -408,7 +408,7 @@ def mix_stems(stems: dict[str, np.ndarray],
               levels: dict[str, float] | None = None,
               stereo_imaging: bool = True) -> np.ndarray:
     if levels is None:
-        levels = {"host": 0, "caller": 0, "music": -6, "sfx": -10, "ads": 0}
+        levels = {"host": 0, "caller": 0, "music": -6, "sfx": -10, "ads": 0, "idents": 0}
 
     gains = {name: 10 ** (db / 20) for name, db in levels.items()}
 
@@ -417,7 +417,7 @@ def mix_stems(stems: dict[str, np.ndarray],
     if stereo_imaging:
         # Pan positions: -1.0 = full left, 0.0 = center, 1.0 = full right
         # Using constant-power panning law
-        pans = {"host": 0.0, "caller": 0.15, "music": 0.0, "sfx": 0.0, "ads": 0.0}
+        pans = {"host": 0.0, "caller": 0.15, "music": 0.0, "sfx": 0.0, "ads": 0.0, "idents": 0.0}
         # Music gets stereo width via slight L/R decorrelation
         music_width = 0.3
 
@@ -774,7 +774,7 @@ def main():
     print(f"\n[3/{total_steps}] Limiting ads + SFX...")
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
-        for name in ["ads", "sfx"]:
+        for name in ["ads", "sfx", "idents"]:
             if np.any(stems[name] != 0):
                 stems[name] = limit_stem(stems[name], sr, tmp_dir, name)
 
@@ -834,7 +834,7 @@ def main():
         dialog = stems["host"] + stems["caller"]
         if np.any(dialog != 0) and np.any(stems["music"] != 0):
             stems["music"] = apply_ducking(stems["music"], dialog, sr, duck_db=args.duck_amount,
-                                           mute_signal=stems["ads"])
+                                           mute_signal=stems["ads"] + stems["idents"])
             print("  Applied")
         else:
             print("  No dialog or music to duck")

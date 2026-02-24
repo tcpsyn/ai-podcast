@@ -7,7 +7,7 @@ import soundfile as sf
 from pathlib import Path
 from collections import deque
 
-STEM_NAMES = ["host", "caller", "music", "sfx", "ads"]
+STEM_NAMES = ["host", "caller", "music", "sfx", "ads", "idents"]
 
 
 class StemRecorder:

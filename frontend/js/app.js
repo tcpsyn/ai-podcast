@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadCallers();
         await loadMusic();
         await loadAds();
+        await loadIdents();
         await loadSounds();
         await loadSettings();
         initEventListeners();
@@ -188,6 +189,10 @@ function initEventListeners() {
     // Ads
     document.getElementById('ad-play-btn')?.addEventListener('click', playAd);
     document.getElementById('ad-stop-btn')?.addEventListener('click', stopAd);
+
+    // Idents
+    document.getElementById('ident-play-btn')?.addEventListener('click', playIdent);
+    document.getElementById('ident-stop-btn')?.addEventListener('click', stopIdent);
 
     // Settings
     document.getElementById('settings-btn')?.addEventListener('click', async () => {
@@ -770,6 +775,52 @@ async function playAd() {
 
 async function stopAd() {
     await fetch('/api/ads/stop', { method: 'POST' });
+}
+
+async function loadIdents() {
+    try {
+        const res = await fetch('/api/idents');
+        const data = await res.json();
+        const idents = data.idents || [];
+
+        const select = document.getElementById('ident-select');
+        if (!select) return;
+
+        const previousValue = select.value;
+        select.innerHTML = '';
+
+        idents.forEach(ident => {
+            const option = document.createElement('option');
+            option.value = ident.file;
+            option.textContent = ident.name;
+            select.appendChild(option);
+        });
+
+        if (previousValue && [...select.options].some(o => o.value === previousValue)) {
+            select.value = previousValue;
+        }
+
+        console.log('Loaded', idents.length, 'idents');
+    } catch (err) {
+        console.error('loadIdents error:', err);
+    }
+}
+
+async function playIdent() {
+    await loadIdents();
+    const select = document.getElementById('ident-select');
+    const track = select?.value;
+    if (!track) return;
+
+    await fetch('/api/idents/play', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ track, action: 'play' })
+    });
+}
+
+async function stopIdent() {
+    await fetch('/api/idents/stop', { method: 'POST' });
 }
 
 

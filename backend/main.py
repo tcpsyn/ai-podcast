@@ -820,6 +820,20 @@ BEFORE_CALLING = [
     "Was just staring at a text they haven't replied to yet.",
     "Was cleaning their gun at the kitchen table, it's a ritual that helps them think.",
     "Was parked at the gas station, not ready to go home.",
+    "Was at the laundromat waiting on a load and heard the show through someone's phone.",
+    "Was closing up the shop, everyone else went home an hour ago.",
+    "Was in the bathtub, phone on the edge of the sink, show on speaker.",
+    "Was on a break at work, sitting in the break room alone.",
+    "Was at Waffle House at the counter by themselves, couldn't sleep.",
+    "Was reorganizing the junk drawer, which is what they do when they can't settle.",
+    "Was at the bar, last one there, bartender's wiping down.",
+    "Was folding laundry on the couch, show was on the radio in the kitchen.",
+    "Was laying in a hammock out back, couldn't go inside.",
+    "Was at a truck stop diner, cup of coffee, staring out the window.",
+    "Was up late painting — walls, not art — and had the radio on for company.",
+    "Was at their desk, supposedly working, but mostly just staring at the screen.",
+    "Was sitting in the waiting room at the ER with someone, long night.",
+    "Was at the 24-hour gym, basically empty, radio on over the speakers.",
 ]
 
 # Specific memories or stories they can reference
@@ -1939,7 +1953,13 @@ PHONE_SITUATION = [
     "Using the wifi calling, regular signal is garbage out here",
     "Stepped outside to call — didn't want to wake anyone up",
     "In the truck at the gas station — only place with good signal",
+    "In the truck at the gas station — only place with good signal",
     "Borrowing my kid's phone, mine's cracked to hell",
+    "Calling from the back room at work, keeping their voice down",
+    "On a landline — yeah, they still have one",
+    "Using earbuds so nobody in the house hears",
+    "On speakerphone in the kitchen, everyone else is asleep",
+    "Calling from the motel room, walls are thin so they're whispering",
 ]
 
 BACKGROUND_MUSIC = [
@@ -2356,6 +2376,8 @@ TIME: {time_ctx} {season_ctx}
 
 Write 3-5 sentences describing this person — who they are, what's going on in their life, why they're calling tonight. The reason for calling is THE MOST IMPORTANT THING. This person called a radio show because something specific happened or is happening — they have a story to tell, a situation to unpack, or a question they need to talk through. Make it concrete and vivid. Don't be vague ("feeling off," "going through a lot") — give them a specific incident or situation driving the call. Make it feel like a real person, not a character sheet. Vary the structure. Don't use labels or categories — weave details into a natural description.
 
+IMPORTANT: Vary where they're calling from and what they were doing. NOT everyone is sitting in their truck or on the porch. People call from kitchens, break rooms, laundromats, diners, motel rooms, the bathtub, the gym, their desk at work, a bar, a hospital waiting room, a hammock, walking down the road. Mix it up.
+
 Output ONLY the character description, nothing else."""
 
     try:
@@ -2640,6 +2662,8 @@ HOW YOU TALK: Like a real person — "Oh man," "So get this," "I swear to God," 
 Southwest voice — "over in," "the other day," "down the road" — but don't force it. Spell words properly for text-to-speech: "you know" not "yanno," "going to" not "gonna."
 
 Don't repeat yourself. Don't summarize what you already said. Don't circle back if the host moved on. Keep it moving.
+
+EVERY SENTENCE MUST BE COMPLETE. Never leave a thought hanging or trail off mid-sentence. If you start a sentence, finish it. No sentence fragments, no missing words, no dangling clauses. Say what you mean in clear, complete sentences.
 
 NEVER mention minors in sexual context. Output spoken words only — no actions, no gestures, no stage directions."""
 
@@ -3899,16 +3923,18 @@ import re
 def _pick_response_budget() -> tuple[int, int]:
     """Pick a random max_tokens and sentence cap for response variety.
     Returns (max_tokens, max_sentences).
-    Keeps responses conversational but gives room for real answers."""
+    Keeps responses conversational but gives room for real answers.
+    Token budget is intentionally generous to avoid mid-sentence cutoffs —
+    the sentence cap controls actual length."""
     roll = random.random()
     if roll < 0.15:
-        return 200, 3   # 15% — quick reaction
+        return 450, 3   # 15% — quick reaction
     elif roll < 0.45:
-        return 350, 4   # 30% — normal conversation
+        return 500, 4   # 30% — normal conversation
     elif roll < 0.75:
-        return 450, 5   # 30% — room to breathe
+        return 600, 5   # 30% — room to breathe
     else:
-        return 550, 6   # 25% — telling a story or riffing
+        return 700, 6   # 25% — telling a story or riffing
 
 
 def _trim_to_sentences(text: str, max_sentences: int) -> str:
@@ -3952,8 +3978,8 @@ def clean_for_tts(text: str) -> str:
     text = re.sub(r'\s*\[[^\]]*\]\s*', ' ', text)
     # Remove content in angle brackets: <laughs>, <sigh>, etc.
     text = re.sub(r'\s*<[^>]*>\s*', ' ', text)
-    # Remove "He/She sighs" style stage directions (full phrase)
-    text = re.sub(r'\b(He|She|I|They)\s+(sighs?|laughs?|pauses?|smiles?|chuckles?|grins?|nods?|shrugs?|frowns?)[^.]*\.\s*', '', text, flags=re.IGNORECASE)
+    # Remove "He/She sighs" style stage directions — only short ones (under ~40 chars) to avoid eating real dialog
+    text = re.sub(r'\b(He|She|I|They)\s+(sighs?|laughs?|pauses?|smiles?|chuckles?|grins?|nods?|shrugs?|frowns?)\s*(heavily|softly|deeply|quietly|loudly|nervously|sadly|a little|for a moment)?[.,]?\s*', '', text, flags=re.IGNORECASE)
     # Remove standalone stage direction words only if they look like directions (with adverbs)
     text = re.sub(r'\b(sighs?|laughs?|pauses?|chuckles?)\s+(heavily|softly|deeply|quietly|loudly|nervously|sadly)\b[.,]?\s*', '', text, flags=re.IGNORECASE)
     # Remove quotes around the response if LLM wrapped it
@@ -4333,6 +4359,48 @@ async def play_ad(request: MusicRequest):
 async def stop_ad():
     """Stop ad playback"""
     audio_service.stop_ad()
+    return {"status": "stopped"}
+
+
+# --- Idents Endpoints ---
+
+IDENT_DISPLAY_NAMES = {}
+
+
+@app.get("/api/idents")
+async def get_idents():
+    """Get available ident tracks, shuffled"""
+    ident_list = []
+    if settings.idents_dir.exists():
+        for ext in ['*.wav', '*.mp3', '*.flac']:
+            for f in settings.idents_dir.glob(ext):
+                ident_list.append({
+                    "name": IDENT_DISPLAY_NAMES.get(f.stem, f.stem),
+                    "file": f.name,
+                    "path": str(f)
+                })
+    random.shuffle(ident_list)
+    return {"idents": ident_list}
+
+
+@app.post("/api/idents/play")
+async def play_ident(request: MusicRequest):
+    """Play an ident once on the ad channel (ch 11)"""
+    ident_path = settings.idents_dir / request.track
+    if not ident_path.exists():
+        raise HTTPException(404, "Ident not found")
+
+    if audio_service._music_playing:
+        audio_service.stop_music(fade_duration=1.0)
+        await asyncio.sleep(1.1)
+    audio_service.play_ident(str(ident_path))
+    return {"status": "playing", "track": request.track}
+
+
+@app.post("/api/idents/stop")
+async def stop_ident():
+    """Stop ident playback"""
+    audio_service.stop_ident()
     return {"status": "stopped"}
 
 

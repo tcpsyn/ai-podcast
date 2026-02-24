@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     sounds_dir: Path = base_dir / "sounds"
     music_dir: Path = base_dir / "music"
     ads_dir: Path = base_dir / "ads"
+    idents_dir: Path = base_dir / "idents"
     sessions_dir: Path = base_dir / "sessions"
 
     class Config:
