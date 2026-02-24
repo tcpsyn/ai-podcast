@@ -28,6 +28,7 @@ class AudioService:
         self.music_channel: int = 5    # Channel for music
         self.sfx_channel: int = 3      # Channel for SFX
         self.ad_channel: int = 11      # Channel for ads
+        self.ident_channel: int = 15   # Channel for idents (stereo: ch 15+16)
         self.monitor_device: Optional[int] = 14  # Babyface Pro (headphone monitoring)
         self.monitor_channel: int = 1  # Channel for mic monitoring on monitor device
         self.phone_filter: bool = False  # Phone filter on caller voices
@@ -112,6 +113,7 @@ class AudioService:
                 self.music_channel = data.get("music_channel", 2)
                 self.sfx_channel = data.get("sfx_channel", 3)
                 self.ad_channel = data.get("ad_channel", 11)
+                self.ident_channel = data.get("ident_channel", 15)
                 self.monitor_device = data.get("monitor_device")
                 self.monitor_channel = data.get("monitor_channel", 1)
                 self.phone_filter = data.get("phone_filter", False)
@@ -131,6 +133,7 @@ class AudioService:
                 "music_channel": self.music_channel,
                 "sfx_channel": self.sfx_channel,
                 "ad_channel": self.ad_channel,
+                "ident_channel": self.ident_channel,
                 "monitor_device": self.monitor_device,
                 "monitor_channel": self.monitor_channel,
                 "phone_filter": self.phone_filter,
@@ -165,6 +168,7 @@ class AudioService:
         music_channel: Optional[int] = None,
         sfx_channel: Optional[int] = None,
         ad_channel: Optional[int] = None,
+        ident_channel: Optional[int] = None,
         monitor_device: Optional[int] = None,
         monitor_channel: Optional[int] = None,
         phone_filter: Optional[bool] = None
@@ -186,6 +190,8 @@ class AudioService:
             self.sfx_channel = sfx_channel
         if ad_channel is not None:
             self.ad_channel = ad_channel
+        if ident_channel is not None:
+            self.ident_channel = ident_channel
         if monitor_device is not None:
             self.monitor_device = monitor_device
         if monitor_channel is not None:
@@ -207,6 +213,7 @@ class AudioService:
             "music_channel": self.music_channel,
             "sfx_channel": self.sfx_channel,
             "ad_channel": self.ad_channel,
+            "ident_channel": self.ident_channel,
             "monitor_device": self.monitor_device,
             "monitor_channel": self.monitor_channel,
             "phone_filter": self.phone_filter,
@@ -1014,7 +1021,7 @@ class AudioService:
         self._ad_position = 0
 
     def play_ident(self, file_path: str):
-        """Load and play an ident file once (no loop) on the ad channel"""
+        """Load and play an ident file once (no loop) in stereo on ident_channel/ident_channel+1"""
         import librosa
 
         path = Path(file_path)
@@ -1026,8 +1033,11 @@ class AudioService:
         self.stop_ad()
 
         try:
-            audio, sr = librosa.load(str(path), sr=self.output_sample_rate, mono=True)
-            self._ident_data = audio.astype(np.float32)
+            audio, sr = librosa.load(str(path), sr=self.output_sample_rate, mono=False)
+            if audio.ndim == 1:
+                # Mono file — duplicate to stereo
+                audio = np.stack([audio, audio])
+            self._ident_data = audio.astype(np.float32)  # shape: (2, samples)
         except Exception as e:
             print(f"Failed to load ident: {e}")
             return
@@ -1039,18 +1049,21 @@ class AudioService:
             num_channels = 2
             device = None
             device_sr = self.output_sample_rate
-            channel_idx = 0
+            ch_l = 0
+            ch_r = 1
         else:
             device_info = sd.query_devices(self.output_device)
             num_channels = device_info['max_output_channels']
             device_sr = int(device_info['default_samplerate'])
             device = self.output_device
-            channel_idx = min(self.ad_channel, num_channels) - 1
+            ch_l = min(self.ident_channel, num_channels) - 1
+            ch_r = min(self.ident_channel + 1, num_channels) - 1
 
         if self.output_sample_rate != device_sr:
-            self._ident_resampled = librosa.resample(
-                self._ident_data, orig_sr=self.output_sample_rate, target_sr=device_sr
-            ).astype(np.float32)
+            self._ident_resampled = np.stack([
+                librosa.resample(self._ident_data[0], orig_sr=self.output_sample_rate, target_sr=device_sr),
+                librosa.resample(self._ident_data[1], orig_sr=self.output_sample_rate, target_sr=device_sr),
+            ]).astype(np.float32)
         else:
             self._ident_resampled = self._ident_data
 
@@ -1059,16 +1072,21 @@ class AudioService:
             if not self._ident_playing or self._ident_resampled is None:
                 return
 
-            remaining = len(self._ident_resampled) - self._ident_position
+            n_samples = self._ident_resampled.shape[1]
+            remaining = n_samples - self._ident_position
             if remaining >= frames:
-                chunk = self._ident_resampled[self._ident_position:self._ident_position + frames]
-                outdata[:, channel_idx] = chunk
+                chunk_l = self._ident_resampled[0, self._ident_position:self._ident_position + frames]
+                chunk_r = self._ident_resampled[1, self._ident_position:self._ident_position + frames]
+                outdata[:, ch_l] = chunk_l
+                outdata[:, ch_r] = chunk_r
                 if self.stem_recorder:
-                    self.stem_recorder.write_sporadic("idents", chunk.copy(), device_sr)
+                    mono_mix = (chunk_l + chunk_r) * 0.5
+                    self.stem_recorder.write_sporadic("idents", mono_mix.copy(), device_sr)
                 self._ident_position += frames
             else:
                 if remaining > 0:
-                    outdata[:remaining, channel_idx] = self._ident_resampled[self._ident_position:]
+                    outdata[:remaining, ch_l] = self._ident_resampled[0, self._ident_position:]
+                    outdata[:remaining, ch_r] = self._ident_resampled[1, self._ident_position:]
                 self._ident_playing = False
 
         try:
@@ -1081,7 +1099,7 @@ class AudioService:
                 blocksize=2048
             )
             self._ident_stream.start()
-            print(f"Ident playback started on ch {self.ad_channel} @ {device_sr}Hz")
+            print(f"Ident playback started on ch {self.ident_channel}/{self.ident_channel + 1} @ {device_sr}Hz")
         except Exception as e:
             print(f"Ident playback error: {e}")
             self._ident_playing = False

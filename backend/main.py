@@ -3677,6 +3677,7 @@ class AudioDeviceSettings(BaseModel):
     music_channel: Optional[int] = None
     sfx_channel: Optional[int] = None
     ad_channel: Optional[int] = None
+    ident_channel: Optional[int] = None
     monitor_device: Optional[int] = None
     monitor_channel: Optional[int] = None
     phone_filter: Optional[bool] = None
@@ -3716,6 +3717,7 @@ async def set_audio_settings(settings: AudioDeviceSettings):
         music_channel=settings.music_channel,
         sfx_channel=settings.sfx_channel,
         ad_channel=settings.ad_channel,
+        ident_channel=settings.ident_channel,
         monitor_device=settings.monitor_device,
         monitor_channel=settings.monitor_channel,
         phone_filter=settings.phone_filter
