@@ -23,8 +23,7 @@ TMPFILE=$(mktemp)
 cat > "$TMPFILE" << 'DOCKERFILE'
 FROM python:3.11-slim
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-27.5.1.tgz | tar xz --strip-components=1 -C /usr/local/bin docker/docker \
-    && apt-get purge -y curl && apt-get autoremove -y
+    && curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-27.5.1.tgz | tar xz --strip-components=1 -C /usr/local/bin docker/docker
 RUN pip install --no-cache-dir requests yt-dlp
 COPY podcast_stats.py /app/podcast_stats.py
 COPY run_loop.sh /app/run_loop.sh
@@ -42,7 +41,12 @@ cat > "$TMPFILE" << 'LOOPSCRIPT'
 echo "podcast-stats: starting hourly loop"
 while true; do
     echo "$(date -u '+%Y-%m-%dT%H:%M:%SZ') Running stats update..."
-    python podcast_stats.py --json --upload 2>&1 || echo "  ...failed, will retry next hour"
+    if python podcast_stats.py --json --upload 2>&1; then
+        curl -s "https://monitoring.macneilmediagroup.com/api/push/REDACTED_HEARTBEAT_TOKEN?status=up&msg=OK" > /dev/null
+        echo "  ...done, heartbeat sent"
+    else
+        echo "  ...failed, will retry next hour"
+    fi
     echo "Sleeping 1 hour..."
     sleep 3600
 done

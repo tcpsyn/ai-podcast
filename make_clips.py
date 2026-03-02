@@ -624,27 +624,25 @@ def _find_transcript_region(labeled_words: list[dict], whisper_words: list[str],
 def add_speaker_labels(words: list[dict], labeled_transcript: str,
                        start_time: float, end_time: float,
                        segments: list[dict]) -> list[dict]:
-    """Add speaker labels AND correct word text using labeled transcript.
+    """Replace Whisper text with labeled transcript text, keeping Whisper timestamps.
 
-    Uses Needleman-Wunsch DP alignment to match Whisper words to the labeled
-    transcript. This handles insertions/deletions gracefully — one missed word
-    becomes a single gap instead of cascading failures.
+    The labeled transcript is the source of truth for TEXT. Whisper is only used
+    for TIMESTAMPS. Uses DP alignment to map between the two, then rebuilds the
+    word list from the labeled transcript with interpolated timestamps for any
+    words Whisper missed.
     """
     if not labeled_transcript or not words:
         return words
 
-    # Parse full transcript into flat word list
     all_labeled = _parse_full_transcript(labeled_transcript)
     if not all_labeled:
         return words
 
-    # Build whisper clean word list
     whisper_clean = []
     for w in words:
         clean = re.sub(r"[^\w']", '', w["word"].lower())
         whisper_clean.append(clean if clean else w["word"].lower())
 
-    # Find the matching region in the transcript
     region = _find_transcript_region(all_labeled, whisper_clean)
     if region is None:
         return words
@@ -653,46 +651,61 @@ def add_speaker_labels(words: list[dict], labeled_transcript: str,
     region_words = all_labeled[region_start:region_end]
     region_clean = [w["clean"] for w in region_words]
 
-    # Run DP alignment
     pairs = _align_sequences(whisper_clean, region_clean)
 
-    # Build speaker assignments from aligned pairs
-    # matched[whisper_idx] = (labeled_word_dict, score)
-    matched = {}
+    # Build mapping: labeled_idx -> whisper_idx (for timestamp lookup)
+    labeled_to_whisper = {}
     for w_idx, l_idx in pairs:
         if w_idx is not None and l_idx is not None:
             score = _word_score(whisper_clean[w_idx], region_clean[l_idx])
             if score > 0:
-                matched[w_idx] = (region_words[l_idx], score)
+                labeled_to_whisper[l_idx] = w_idx
 
-    # Apply matches and interpolate speakers for gaps
+    # Find the range of labeled words that actually overlap with this clip
+    # Use only labeled indices that have a whisper match to determine boundaries
+    matched_labeled_indices = sorted(labeled_to_whisper.keys())
+    if not matched_labeled_indices:
+        return words
+
+    first_labeled = matched_labeled_indices[0]
+    last_labeled = matched_labeled_indices[-1]
+
+    # Build output from labeled transcript words with whisper timestamps
+    result = []
     corrections = 0
-    for i, word_entry in enumerate(words):
-        if i in matched:
-            labeled_word, score = matched[i]
-            word_entry["speaker"] = labeled_word["speaker"]
+    for l_idx in range(first_labeled, last_labeled + 1):
+        labeled_word = region_words[l_idx]
+        word_text = re.sub(r'[^\w\s\'-]', '', labeled_word["word"]).strip()
+        if not word_text:
+            continue
 
-            # Replace text only on confident matches
-            corrected = re.sub(r'[^\w\s\'-]', '', labeled_word["word"])
-            if corrected:
-                if corrected.lower() != whisper_clean[i]:
-                    corrections += 1
-                word_entry["word"] = corrected
+        if l_idx in labeled_to_whisper:
+            w_idx = labeled_to_whisper[l_idx]
+            ts_start = words[w_idx]["start"]
+            ts_end = words[w_idx]["end"]
+            if word_text.lower() != whisper_clean[w_idx]:
+                corrections += 1
         else:
-            # Interpolate speaker from nearest matched neighbor
-            speaker = _interpolate_speaker(i, matched, len(words))
-            if speaker:
-                word_entry["speaker"] = speaker
+            # Interpolate timestamp from neighbors
+            ts_start, ts_end = _interpolate_timestamp(l_idx, labeled_to_whisper, words)
+
+        result.append({
+            "word": word_text,
+            "start": ts_start,
+            "end": ts_end,
+            "speaker": labeled_word["speaker"],
+        })
 
     if corrections:
         print(f"      Corrected {corrections} words from labeled transcript")
+    if len(result) != len(words):
+        print(f"      Word count: {len(words)} (whisper) -> {len(result)} (labeled)")
 
-    return words
+    return result
 
 
 def _interpolate_speaker(idx: int, matched: dict, n_words: int) -> str | None:
     """Find speaker from nearest matched neighbor."""
-    # Search outward from idx
     for dist in range(1, n_words):
         before = idx - dist
         after = idx + dist
@@ -703,30 +716,63 @@ def _interpolate_speaker(idx: int, matched: dict, n_words: int) -> str | None:
     return None
 
 
-def polish_clip_words(words: list[dict], labeled_transcript: str = "") -> list[dict]:
-    """Use LLM to fix punctuation, capitalization, and misheard words.
+def _interpolate_timestamp(labeled_idx: int, labeled_to_whisper: dict,
+                           words: list[dict]) -> tuple[float, float]:
+    """Interpolate timestamp for a labeled word with no direct whisper match.
 
-    Sends the raw whisper words to an LLM, gets back a corrected version,
-    and maps corrections back to the original timed words.
+    Finds the nearest matched neighbors before and after, then linearly
+    interpolates based on position.
+    """
+    before_l = after_l = None
+    for dist in range(1, len(labeled_to_whisper) + 10):
+        if before_l is None and (labeled_idx - dist) in labeled_to_whisper:
+            before_l = labeled_idx - dist
+        if after_l is None and (labeled_idx + dist) in labeled_to_whisper:
+            after_l = labeled_idx + dist
+        if before_l is not None and after_l is not None:
+            break
+
+    if before_l is not None and after_l is not None:
+        w_before = words[labeled_to_whisper[before_l]]
+        w_after = words[labeled_to_whisper[after_l]]
+        span = after_l - before_l
+        frac = (labeled_idx - before_l) / span
+        start = w_before["end"] + frac * (w_after["start"] - w_before["end"])
+        duration = (w_after["start"] - w_before["end"]) / span
+        return start, start + max(duration, 0.1)
+    elif before_l is not None:
+        w = words[labeled_to_whisper[before_l]]
+        offset = (labeled_idx - before_l) * 0.3
+        return w["end"] + offset, w["end"] + offset + 0.3
+    elif after_l is not None:
+        w = words[labeled_to_whisper[after_l]]
+        offset = (after_l - labeled_idx) * 0.3
+        return w["start"] - offset - 0.3, w["start"] - offset
+    else:
+        return 0.0, 0.3
+
+
+def polish_clip_words(words: list[dict], labeled_transcript: str = "") -> list[dict]:
+    """Use LLM to add punctuation and fix capitalization.
+
+    The word text is already correct (from the labeled transcript). This step
+    only adds sentence punctuation and proper capitalization.
     """
     if not words or not OPENROUTER_API_KEY:
         return words
 
     raw_text = " ".join(w["word"] for w in words)
 
-    context = ""
-    if labeled_transcript:
-        context = f"\nFor reference, here's the speaker-labeled transcript of this section (use it to correct misheard words and names):\n{labeled_transcript[:3000]}\n"
-
-    prompt = f"""Fix this podcast transcript excerpt so it reads as proper sentences. Fix punctuation, capitalization, and obvious misheard words.
+    prompt = f"""Add punctuation and capitalization to this podcast transcript excerpt so it reads as proper sentences.
 
 RULES:
 - Keep the EXACT same number of words in the EXACT same order
-- Only change capitalization, punctuation attached to words, and obvious mishearings
+- The words themselves are already correct — do NOT change any word's spelling
+- Only add punctuation (periods, commas, question marks, exclamation marks) and fix capitalization
 - Do NOT add, remove, merge, or reorder words
 - Contractions count as one word (don't = 1 word)
 - Return ONLY the corrected text, nothing else
-{context}
+
 RAW TEXT ({len(words)} words):
 {raw_text}"""
 

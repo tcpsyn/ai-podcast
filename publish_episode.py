@@ -11,6 +11,7 @@ Usage:
 
 import argparse
 import base64
+import fcntl
 import json
 import os
 import re
@@ -82,6 +83,10 @@ POSTIZ_INTEGRATIONS = {
     "bluesky": {"id": "REDACTED_BSKY_ID"},
     "mastodon": {"id": "REDACTED_MASTODON_ID"},
     "nostr": {"id": "REDACTED_NOSTR_ID"},
+    "linkedin": {"id": "REDACTED_LINKEDIN_ID"},
+    "threads": {"id": "REDACTED_THREADS_ID"},
+    # TikTok excluded — requires video, not image posts. Use upload_clips.py instead.
+    # "tiktok": {"id": "REDACTED_TIKTOK_ID"},
 }
 
 # NAS Configuration for chapters upload
@@ -90,7 +95,7 @@ BUNNY_STORAGE_ZONE = "lukeattheroost"
 BUNNY_STORAGE_KEY = "REDACTED_BUNNY_STORAGE_KEY"
 BUNNY_STORAGE_REGION = "la"  # Los Angeles
 
-NAS_HOST = "mmgnas-10g"
+NAS_HOST = "mmgnas"
 NAS_USER = "luke"
 NAS_SSH_PORT = 8001
 DOCKER_PATH = "/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker"
@@ -99,6 +104,8 @@ MARIADB_CONTAINER = "castopod-mariadb-1"
 DB_USER = "castopod"
 DB_PASS = "REDACTED_DB_PASSWORD"
 DB_NAME = "castopod"
+
+LOCK_FILE = Path(__file__).parent / ".publish.lock"
 
 
 def get_auth_header():
@@ -494,6 +501,19 @@ def publish_episode(episode_id: int) -> dict:
     return episode
 
 
+def generate_srt(segments: list, output_path: str):
+    """Generate SRT subtitle file from whisper segments."""
+    with open(output_path, "w") as f:
+        for i, seg in enumerate(segments, 1):
+            start = seg["start"]
+            end = seg["end"]
+            sh, sm, ss = int(start // 3600), int((start % 3600) // 60), start % 60
+            eh, em, es = int(end // 3600), int((end % 3600) // 60), end % 60
+            f.write(f"{i}\n")
+            f.write(f"{sh:02d}:{sm:02d}:{ss:06.3f} --> {eh:02d}:{em:02d}:{es:06.3f}\n")
+            f.write(f"{seg['text']}\n\n")
+
+
 def save_chapters(metadata: dict, output_path: str):
     """Save chapters to JSON file."""
     chapters_data = {
@@ -521,6 +541,135 @@ def run_ssh_command(command: str, timeout: int = 30) -> tuple[bool, str]:
         return False, "SSH command timed out"
     except Exception as e:
         return False, str(e)
+
+
+def _check_episode_exists_in_db(episode_number: int) -> bool:
+    """Check if an episode with this number already exists in Castopod DB."""
+    cmd = (f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} '
+           f'-N -e "SELECT COUNT(*) FROM cp_episodes WHERE number = {episode_number};"')
+    success, output = run_ssh_command(cmd)
+    if success and output.strip():
+        return int(output.strip()) > 0
+    return False
+
+
+def _srt_to_castopod_json(srt_path: str) -> str:
+    """Parse SRT to JSON matching Castopod's TranscriptParser format."""
+    with open(srt_path, "r") as f:
+        srt_text = f.read()
+
+    subs = []
+    blocks = re.split(r'\n\n+', srt_text.strip())
+    for block in blocks:
+        lines = block.strip().split('\n')
+        if len(lines) < 3:
+            continue
+        try:
+            num = int(lines[0].strip())
+        except ValueError:
+            continue
+        time_match = re.match(
+            r'(\d{2}:\d{2}:\d{2}[.,]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[.,]\d{3})',
+            lines[1].strip()
+        )
+        if not time_match:
+            continue
+        text = '\n'.join(lines[2:]).strip()
+
+        def ts_to_seconds(ts):
+            ts = ts.replace(',', '.')
+            parts = ts.split(':')
+            return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+
+        subs.append({
+            "number": num,
+            "startTime": ts_to_seconds(time_match.group(1)),
+            "endTime": ts_to_seconds(time_match.group(2)),
+            "text": text,
+        })
+    return json.dumps(subs, indent=4)
+
+
+def upload_transcript_to_castopod(episode_slug: str, episode_id: int, transcript_path: str) -> bool:
+    """Upload SRT transcript + JSON to Castopod via SSH and link in database."""
+    print("    Uploading transcript to Castopod...")
+
+    is_srt = transcript_path.endswith(".srt")
+    ext = ".srt" if is_srt else ".txt"
+    mimetype = "application/x-subrip" if is_srt else "text/plain"
+
+    transcript_filename = f"{episode_slug}{ext}"
+    remote_path = f"podcasts/{PODCAST_HANDLE}/{transcript_filename}"
+    json_key = f"podcasts/{PODCAST_HANDLE}/{episode_slug}.json"
+
+    # Upload SRT via SCP + docker cp (handles large files)
+    nas_tmp = f"/share/CACHEDEV1_DATA/tmp/_transcript_{episode_slug}{ext}"
+    scp_cmd = ["scp", "-P", str(NAS_SSH_PORT), transcript_path, f"{NAS_USER}@{NAS_HOST}:{nas_tmp}"]
+    result = subprocess.run(scp_cmd, capture_output=True, text=True, timeout=60)
+    if result.returncode != 0:
+        print(f"    Warning: SCP transcript failed: {result.stderr}")
+        return False
+
+    media_path = f"/var/www/castopod/public/media/{remote_path}"
+    run_ssh_command(f'{DOCKER_PATH} cp {nas_tmp} {CASTOPOD_CONTAINER}:{media_path}', timeout=60)
+    run_ssh_command(f'{DOCKER_PATH} exec {CASTOPOD_CONTAINER} chown www-data:www-data {media_path}')
+    run_ssh_command(f'rm -f {nas_tmp}')
+
+    # Generate and upload JSON for Castopod's frontend rendering
+    if is_srt:
+        json_content = _srt_to_castopod_json(transcript_path)
+        json_tmp_local = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+        json_tmp_local.write(json_content)
+        json_tmp_local.close()
+
+        nas_json_tmp = f"/share/CACHEDEV1_DATA/tmp/_transcript_{episode_slug}.json"
+        scp_json = ["scp", "-P", str(NAS_SSH_PORT), json_tmp_local.name, f"{NAS_USER}@{NAS_HOST}:{nas_json_tmp}"]
+        subprocess.run(scp_json, capture_output=True, text=True, timeout=60)
+        os.remove(json_tmp_local.name)
+
+        json_media_path = f"/var/www/castopod/public/media/{json_key}"
+        run_ssh_command(f'{DOCKER_PATH} cp {nas_json_tmp} {CASTOPOD_CONTAINER}:{json_media_path}', timeout=60)
+        run_ssh_command(f'{DOCKER_PATH} exec {CASTOPOD_CONTAINER} chown www-data:www-data {json_media_path}')
+        run_ssh_command(f'rm -f {nas_json_tmp}')
+
+    with open(transcript_path, "rb") as f:
+        file_size = len(f.read())
+
+    # Build file_metadata with json_key — escape double quotes for shell embedding
+    metadata_json = json.dumps({"json_key": json_key}) if is_srt else "NULL"
+    metadata_sql = f"'{metadata_json}'" if is_srt else "NULL"
+    metadata_sql_escaped = metadata_sql.replace('"', '\\"')
+
+    insert_sql = (
+        f"INSERT INTO cp_media (file_key, file_size, file_mimetype, file_metadata, type, "
+        f"uploaded_by, updated_by, uploaded_at, updated_at) VALUES "
+        f"('{remote_path}', {file_size}, '{mimetype}', {metadata_sql_escaped}, 'transcript', 1, 1, NOW(), NOW())"
+    )
+    db_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -e "{insert_sql}; SELECT LAST_INSERT_ID();"'
+    success, output = run_ssh_command(db_cmd)
+    if not success:
+        print(f"    Warning: Failed to insert transcript in database: {output}")
+        return False
+
+    try:
+        lines = output.strip().split('\n')
+        media_id = int(lines[-1])
+    except (ValueError, IndexError):
+        print(f"    Warning: Could not parse media ID from: {output}")
+        return False
+
+    update_sql = f"UPDATE cp_episodes SET transcript_id = {media_id} WHERE id = {episode_id}"
+    db_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -e "{update_sql}"'
+    success, output = run_ssh_command(db_cmd)
+    if not success:
+        print(f"    Warning: Failed to link transcript to episode: {output}")
+        return False
+
+    cache_cmd = f'{DOCKER_PATH} exec {CASTOPOD_CONTAINER} php spark cache:clear'
+    run_ssh_command(cache_cmd)
+
+    print(f"    Transcript uploaded and linked (media_id: {media_id})")
+    return True
 
 
 def upload_chapters_to_castopod(episode_slug: str, episode_id: int, chapters_path: str) -> bool:
@@ -799,10 +948,10 @@ def post_to_social(metadata: dict, episode_slug: str, image_path: str = None):
     base_content = f"{metadata['title']}\n\n{metadata['description']}\n\n{episode_url}"
 
     hashtags = "#podcast #LukeAtTheRoost #talkradio #callinshow #newepisode"
-    hashtag_platforms = {"instagram", "facebook", "bluesky", "mastodon", "nostr"}
+    hashtag_platforms = {"instagram", "facebook", "bluesky", "mastodon", "nostr", "linkedin", "threads", "tiktok"}
 
     # Platform-specific content length limits
-    PLATFORM_MAX_LENGTH = {"bluesky": 300}
+    PLATFORM_MAX_LENGTH = {"bluesky": 300, "threads": 500, "tiktok": 2200}
 
     # Post to each platform individually so one failure doesn't block others
     posted = 0
@@ -902,7 +1051,7 @@ def upload_to_youtube(audio_path: str, metadata: dict, chapters: list,
         "-c:a", "aac", "-b:a", "192k",
         "-pix_fmt", "yuv420p", "-shortest",
         "-movflags", "+faststart", str(video_path)
-    ], capture_output=True, text=True, timeout=600)
+    ], capture_output=True, text=True, timeout=1800)
     if result.returncode != 0:
         print(f"    Warning: ffmpeg failed: {result.stderr[-200:]}")
         return None
@@ -987,22 +1136,32 @@ def upload_to_youtube(audio_path: str, metadata: dict, chapters: list,
 
 
 def get_next_episode_number() -> int:
-    """Get the next episode number from Castopod."""
-    headers = get_auth_header()
+    """Get the next episode number from Castopod (DB first, API fallback)."""
+    # Query DB directly — the REST API is unreliable
+    cmd = (f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} '
+           f'-N -e "SELECT COALESCE(MAX(number), 0) FROM cp_episodes WHERE podcast_id = {PODCAST_ID};"')
+    success, output = run_ssh_command(cmd)
+    if success and output.strip():
+        try:
+            return int(output.strip()) + 1
+        except ValueError:
+            pass
 
+    # Fallback to API
+    headers = get_auth_header()
     response = _session.get(
         f"{CASTOPOD_URL}/api/rest/v1/episodes",
         headers=headers,
     )
 
     if response.status_code != 200:
-        return 1
+        print("Warning: Could not determine episode number from API or DB")
+        sys.exit(1)
 
     episodes = response.json()
     if not episodes:
         return 1
 
-    # Filter to our podcast
     our_episodes = [ep for ep in episodes if ep.get("podcast_id") == PODCAST_ID]
     if not our_episodes:
         return 1
@@ -1026,12 +1185,50 @@ def main():
         print(f"Error: Audio file not found: {audio_path}")
         sys.exit(1)
 
+    # Acquire exclusive lock to prevent concurrent/duplicate runs
+    lock_fp = open(LOCK_FILE, "w")
+    try:
+        fcntl.flock(lock_fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        print("Error: Another publish is already running (lock file held)")
+        sys.exit(1)
+    lock_fp.write(str(os.getpid()))
+    lock_fp.flush()
+
+    # Kill the backend server to free memory for transcription
+    server_was_running = False
+    try:
+        result = subprocess.run(
+            ["lsof", "-ti", ":8000"], capture_output=True, text=True
+        )
+        pids = result.stdout.strip().split('\n') if result.stdout.strip() else []
+        if pids:
+            server_was_running = True
+            print("Stopping backend server for resources...")
+            for pid in pids:
+                try:
+                    os.kill(int(pid), 9)
+                except (ProcessLookupError, ValueError):
+                    pass
+            import time as _time
+            _time.sleep(1)
+    except Exception:
+        pass
+
     # Determine episode number
     if args.episode_number:
         episode_number = args.episode_number
     else:
         episode_number = get_next_episode_number()
     print(f"Episode number: {episode_number}")
+
+    # Guard against duplicate publish
+    if not args.dry_run and _check_episode_exists_in_db(episode_number):
+        print(f"Error: Episode {episode_number} already exists in Castopod. "
+              f"Use --episode-number to specify a different number, or remove the existing episode first.")
+        lock_fp.close()
+        LOCK_FILE.unlink(missing_ok=True)
+        sys.exit(1)
 
     # Load session data if provided
     session_data = None
@@ -1072,6 +1269,11 @@ def main():
     with open(transcript_path, "w") as f:
         f.write(labeled_text)
     print(f"    Transcript saved to: {transcript_path}")
+
+    # Generate SRT from whisper segments (for Castopod/podcast apps)
+    srt_path = audio_path.with_suffix(".srt")
+    generate_srt(transcript["segments"], str(srt_path))
+    print(f"    SRT saved to: {srt_path}")
 
     # Save session transcript alongside episode if available (has speaker labels)
     if session_data and session_data.get("transcript"):
@@ -1156,11 +1358,18 @@ def main():
         else:
             raise
 
-    # Step 4.5: Upload chapters via SSH
+    # Step 4.5: Upload chapters and transcript via SSH
     chapters_uploaded = upload_chapters_to_castopod(
         episode["slug"],
         episode["id"],
         str(chapters_path)
+    )
+
+    # Upload SRT transcript to Castopod (preferred for podcast apps)
+    transcript_uploaded = upload_transcript_to_castopod(
+        episode["slug"],
+        episode["id"],
+        str(srt_path)
     )
 
     # Sync any remaining episode media to BunnyCDN (cover art, transcripts, etc.)
@@ -1202,8 +1411,28 @@ def main():
     if not chapters_uploaded:
         print("\nNote: Chapters upload failed. Add manually via Castopod admin UI")
         print(f"      Chapters file: {chapters_path}")
+    if not transcript_uploaded:
+        print("\nNote: Transcript upload to Castopod failed")
+        print(f"      Transcript file: {srt_path}")
     if not yt_video_id:
         print("\nNote: YouTube upload failed. Run 'python yt_auth.py' if token expired")
+
+    # Restart the backend server if it was running before
+    if server_was_running:
+        print("Restarting backend server...")
+        project_dir = Path(__file__).parent
+        subprocess.Popen(
+            [sys.executable, "-m", "uvicorn", "backend.main:app",
+             "--reload", "--reload-dir", "backend", "--host", "0.0.0.0", "--port", "8000"],
+            cwd=project_dir,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        print("    Server restarted on port 8000")
+
+    # Release lock
+    lock_fp.close()
+    LOCK_FILE.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

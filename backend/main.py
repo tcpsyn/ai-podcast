@@ -70,12 +70,19 @@ FEMALE_NAMES = [
 
 # Voice pools per TTS provider
 INWORLD_MALE_VOICES = [
-    "Alex", "Blake", "Carter", "Clive", "Craig", "Dennis",
-    "Edward", "Hades", "Mark", "Ronald", "Shaun", "Theodore", "Timothy",
+    "Alex", "Arjun", "Blake", "Brian", "Callum", "Carter", "Clive", "Craig",
+    "Dennis", "Derek", "Edward", "Elliot", "Ethan", "Evan", "Gareth", "Graham",
+    "Grant", "Hades", "Hamish", "Hank", "Jake", "James", "Jason", "Liam",
+    "Malcolm", "Mark", "Mortimer", "Nate", "Oliver", "Ronald", "Rupert",
+    "Sebastian", "Shaun", "Simon", "Theodore", "Timothy", "Tyler", "Victor",
+    "Vinny",
 ]
 INWORLD_FEMALE_VOICES = [
-    "Ashley", "Deborah", "Elizabeth", "Hana", "Julia",
-    "Luna", "Olivia", "Priya", "Sarah", "Wendy",
+    "Amina", "Anjali", "Ashley", "Celeste", "Chloe", "Claire", "Darlene",
+    "Deborah", "Elizabeth", "Evelyn", "Hana", "Jessica", "Julia", "Kayla",
+    "Kelsey", "Lauren", "Loretta", "Luna", "Marlene", "Miranda", "Olivia",
+    "Pippa", "Priya", "Saanvi", "Sarah", "Serena", "Tessa", "Veronica",
+    "Victoria", "Wendy",
 ]
 
 ELEVENLABS_MALE_VOICES = [
@@ -215,6 +222,9 @@ JOBS_MALE = [
     "teaches middle school history",
     "is a freelance photographer", "is a session musician", "is a tattoo artist",
     "works at a brewery", "is a youth pastor", "does standup comedy on the side",
+    # Healthcare (not just women)
+    "works as an ER nurse, been doing it 10 years", "is a home health aide",
+    "is a physical therapist", "works as an EMT",
     # Odd & specific
     "works at a pawn shop", "is a repo man", "runs a junkyard", "is a locksmith",
     "works overnight stocking shelves", "is a pest control guy", "drives a tow truck",
@@ -231,6 +241,10 @@ JOBS_FEMALE = [
     "works as a 911 dispatcher", "is a social worker", "works retail management",
     "works as a bartender at a dive bar", "is a flight attendant",
     "manages a restaurant", "works the front desk at a hotel",
+    # Trades & blue collar (not just men)
+    "works as a diesel mechanic, learned from her dad", "is an electrician, runs her own jobs",
+    "drives a long-haul truck, been on the road for years", "works construction management",
+    "is a welder, one of two women at the shop",
     # Education & office
     "teaches kindergarten", "is a paralegal", "is an accountant at a small firm",
     "works in HR", "is a court reporter", "does data entry from home",
@@ -246,7 +260,7 @@ JOBS_FEMALE = [
     "works overnight at a group home", "is a park ranger",
     "drives an ambulance", "works at a thrift store",
     "is a taxidermist", "cleans houses, runs her own business",
-    "works at a gun range", "is a long-haul trucker",
+    "works at a gun range", "is a cop, five years on",
     "works the night shift at Waffle House", "is a funeral home director",
 ]
 
@@ -371,9 +385,7 @@ PROBLEMS = [
     "has had a warrant for a missed court date for six months and tonight a deputy showed up at their neighbor's house asking about them",
 
     # Attraction and affairs
-    "has been meeting {affair_person} at a motel in Deming every Thursday for three months and their spouse just asked why the mileage on the car is so high",
-    "kissed {affair_person} at a work party last Friday and now they can't look their partner in the eye",
-    "caught feelings for someone at work and accidentally sent a flirty text to their spouse instead of the other person",
+    "has been seeing {affair_person} for months and something happened tonight that means it's about to come out — they need to figure out what to do before morning",
 
     # Sexual/desire
     "their partner found their browser history and now they have to have a conversation they've been avoiding for years",
@@ -443,7 +455,7 @@ PROBLEMS = [
     # Identity and life changes
     "just turned 60 and realized they have no hobbies, no friends outside work, and retire in five years with nothing to do",
     "their spouse of 20 years just came out and is asking to stay together as co-parents",
-    "got DNA test results back and their dad isn't their biological father — and their mom won't talk about it",
+    "caught their elderly neighbor burying something in the backyard at 2am and now they can't decide whether to ask about it or call someone",
     "moved back to their hometown after 25 years and doesn't recognize anything or anyone",
     "just became a grandparent and it's bringing up every mistake they made as a parent",
     "retired three months ago and has called their old office twice pretending to need something just to talk to someone",
@@ -469,7 +481,7 @@ PROBLEMS = [
     "found their own adoption papers in their parents' filing cabinet — they're 45 and nobody ever told them",
     "their kid's school project about family history turned up the fact that their grandfather was someone fairly notorious",
     "discovered that the 'family cabin' they've been going to for 30 years actually belongs to a stranger who never knew they were using it",
-    "went through their late mother's emails and found she had been in contact with a half-sibling they never knew existed",
+    "found their late mother's journal and the last entry is about a decision she made that contradicts everything she ever told them about why she left their father",
     "found out the house they grew up in is about to be demolished and it hit them way harder than they expected",
 
     # Animal situations
@@ -497,7 +509,7 @@ PROBLEMS = [
     "accidentally got cc'd on an email chain where their entire friend group is planning an intervention for them and they don't think they have a problem",
     "their therapist ran into them at a bar and they had a totally normal conversation for 20 minutes before it got weird — now they feel like they can't go back to sessions",
     "has been writing letters to their dead wife every week for three years and mailing them to her old address — the new tenant just wrote back",
-    "took a DNA ancestry test as a Christmas gift and matched with a half-sibling who lives four miles from them — they've been shopping at the same grocery store",
+    "overheard two coworkers in the break room planning to frame a third coworker for something they did — now they have to decide whether to get involved",
     "works as a 911 dispatcher and took a call last week from someone in a situation almost identical to one they went through — they froze up and can't stop replaying it",
     "has been tipping a waitress at a diner $100 every Friday for a year because she reminds them of their daughter they haven't spoken to — the waitress just asked them why",
     "found out the guy they've been playing online chess with every night for two years is their estranged brother — recognized a phrase he used in the chat",
@@ -583,6 +595,198 @@ PROBLEMS = [
     "tried to surprise their spouse for their anniversary and walked in on a surprise party for themselves that their spouse forgot to tell them about — for a birthday that was two months ago",
     "got pulled over doing 90 in a 45 and the cop turned out to be the kid they used to babysit — who let them off with a warning and a lecture that felt worse than a ticket",
     "went to confront someone who keyed their car and it turned out to be their own wife who did it during an argument she says they should remember but they genuinely don't",
+
+    # --- Morally ambiguous (Am I the bad guy?) ---
+    "has been reporting their neighbor's code violations to the city anonymously and the neighbor just got a $12,000 fine — they feel terrible but also their property value went up",
+    "told their teenage daughter's boyfriend's parents about the kid's drug use and now their daughter won't speak to them — they'd do it again but it's killing them",
+    "found their elderly mother's will and she's leaving everything to a church she just started going to — they moved it to a drawer she won't find and are pretending they never saw it",
+    "secretly recorded their boss making racist jokes and sent it to HR — the boss got fired but now the whole office suspects them and nobody will talk to them",
+    "their best friend asked them to be a character witness in a custody battle and they honestly think the friend is a bad parent — they said yes and don't know what to say on the stand",
+    "stopped talking to their brother after he voted for someone they hate — it's been two years and their mom is dying and she wants them all together and they don't know if they can fake it",
+    "adopted a dog from a family who couldn't keep it and now they see missing dog posters around the neighborhood — the family's kids made the posters and they feel like a monster",
+    "caught their teenage son shoplifting and instead of telling the store they just paid for the item and left — their spouse says they're enabling him and they think their spouse might be right",
+    "has been using their dead father's handicapped parking placard for three years and just got confronted by someone in a wheelchair in the parking lot",
+    "their elderly neighbor gave them power of attorney and now the neighbor's kids are accusing them of financial exploitation — they've been paying the neighbor's bills out of their own pocket",
+    "ghosted someone they were dating for six months because they didn't know how to break up — the person just showed up at their job asking what happened and they can't even explain it to themselves",
+    "found out their adopted kid's birth parents want contact and they've been intercepting the letters because they're terrified of losing them",
+    "tipped off immigration about an employer using undocumented workers because the employer was paying them nothing — now those workers have no income at all and they feel responsible",
+    "inherited their grandparents' house and their cousins expected them to share the proceeds but the will only named them — they kept the house and now the whole family thinks they're greedy",
+    "has been secretly attending their ex's church just to see their kids during the service because the custody agreement doesn't give them enough time",
+    "told their friend's fiancé about the friend's cheating history and now the wedding is off and they've lost the friend — they think they did the right thing but nobody agrees",
+    "found out their kid's teacher is an old college friend they had a falling out with — they requested a class transfer and the school wants to know why and they can't tell the truth",
+    "lied on their dying grandmother's behalf and told her that her estranged son was sorry and loved her — the son never said any of that and now the grandmother died at peace with a lie",
+    "their spouse wants to put their dog down because of mounting vet bills but the dog still seems happy — they took out a secret credit card to keep paying and the balance is $4,000",
+    "turned down a promotion because it would mean managing their best friend and they knew it would ruin the friendship — now someone terrible got the job and everyone blames them",
+
+    # --- Outrageous but believable ---
+    "just found out their landlord has been entering their apartment while they're at work — they set up a hidden camera and have two weeks of footage of the guy just sitting on their couch watching TV",
+    "got a call from a hospital saying they were listed as emergency contact for someone they've never heard of — went to the hospital and the person looks exactly like them, same age, same build",
+    "their neighbor installed a surveillance camera that points directly into their bedroom window and when they complained the neighbor said 'then close your blinds'",
+    "went to pick up their car from the mechanic and it had 400 more miles on it than when they dropped it off — mechanic says it's a calibration error",
+    "found out the house they've been renting for five years isn't owned by their landlord — it belongs to an old woman in a nursing home and the 'landlord' is just some guy collecting rent",
+    "woke up to find a full Thanksgiving dinner set up on their front porch — table, chairs, turkey, the works — and nobody in the neighborhood knows anything about it",
+    "got a letter from a law firm saying they're a beneficiary in the will of someone they went on one date with 20 years ago — the person left them a boat",
+    "their kid's school called to say someone else has been picking up their child using their name and ID — the school let it happen three times before noticing",
+    "walked into their garage and found a man living in the crawl space above the ceiling — he'd been there for at least a month based on the setup",
+    "received a package addressed to them containing a USB drive with hundreds of photos of them taken over the past year from across the street — no note, no return address",
+    "their dentist found a tracking device embedded in a crown they got done at a different practice five years ago",
+    "caught their Uber driver taking the long way around and when they mentioned it the driver said 'you don't want to go down that street right now' and wouldn't explain why",
+    "just discovered that the 'organic eggs' they've been buying from a coworker for two years are just regular grocery store eggs repackaged in a basket with straw",
+    "found a fully furnished room behind a false wall in their basement that wasn't on the original house plans — the previous owner died and nobody knows what it was for",
+    "their mail carrier has been writing them anonymous love poems for months — they figured it out because one was delivered with no stamp and had the mail carrier's fingerprints in ink",
+
+    # --- Sex/kink calls (Loveline style) ---
+    "just discovered their partner has a {fetish_detail} kink and walked in on them {sex_situation} — they're not disgusted, they're confused about why they're kind of into it too",
+    "has been hiding their {fetish_detail} fetish for their entire marriage and their spouse just found their browser history — {partner_reaction}",
+    "went to a sex club for the first time with their partner and {partner_reaction} — now they can't stop thinking about going back but their partner pretends it never happened",
+    "started an OnlyFans as a joke with their spouse and now they're making $4,000 a month and {partner_reaction} — the money is great but it's changing their relationship",
+    "matched with their spouse's sibling on a dating app — they were both supposedly in monogamous relationships and now they share this horrible secret",
+    "their partner wants to try {fetish_detail} and they said yes to be supportive but {partner_reaction} — they need to figure out how to have this conversation",
+    "found out their quiet, conservative partner had a wild past involving {fetish_detail} and {sex_situation} — they don't care about the past but they want to know why the partner feels they can't be that person anymore",
+    "has been having the best sex of their life since they opened up about their {fetish_detail} interest — the problem is it's with someone who isn't their partner",
+    "caught their roommate {sex_situation} and now they can't make eye contact — the roommate acts like nothing happened but it was extremely {fetish_detail}-adjacent",
+    "went to a couples therapist about their dead bedroom and the therapist suggested {fetish_detail} exploration — they tried it and now they can't go back to vanilla and their partner feels pressured",
+    "their ex keeps texting them explicit stuff about {fetish_detail} fantasies they used to do together and they haven't blocked the number because honestly they miss it",
+    "just realized they might be into {fetish_detail} after a very specific {sex_situation} experience and they don't know how to bring it up with anyone",
+    "has been lying about their number — their actual body count is way higher than what they told their partner and a mutual friend knows the truth and keeps making comments",
+    "caught their partner watching porn that features {fetish_detail} content and they're worried it means something about what their partner actually wants",
+    "their new partner is incredible in every way except sexually — they're completely incompatible in bed and they've tried {fetish_detail} and it made things worse",
+    "accidentally sent a very explicit photo meant for their partner to their work group chat — the photo involved {fetish_detail} context and HR wants to 'have a conversation'",
+    "their spouse suggested swinging and they reluctantly agreed — the first experience was {sex_situation} and now the spouse wants to stop but they want to keep going",
+    "has a {fetish_detail} kink they've never told anyone about because they're afraid people will think they're weird — but it's consuming their fantasy life",
+    "went on a date that started normal and ended up {sex_situation} — they had the time of their life but now they're questioning everything they thought they knew about themselves",
+    "their partner found the drawer — the one with the {fetish_detail} stuff in it — and {partner_reaction}",
+    "just found out the person they've been sexting for three months is someone from their friend group — the conversation involved detailed {fetish_detail} scenarios",
+    "their partner asked them 'what's your biggest fantasy' and they told the truth about {fetish_detail} and the silence that followed was the longest ten seconds of their life",
+    "hooked up with someone at a wedding and it got {fetish_detail} fast — the problem is it was their spouse's cousin and now every family gathering is going to be a nightmare",
+    "tried {fetish_detail} with their partner for the first time and it was so good they're worried they're addicted — they think about it constantly and normal intimacy feels boring now",
+    "their partner confessed to a {fetish_detail} fantasy involving {sex_situation} and they're trying to be open-minded but they have a lot of questions",
+    "has been in a secret friends-with-benefits arrangement that involves {fetish_detail} stuff they'd never do in a relationship — the compartmentalization is starting to crack",
+    "realized during a very awkward moment {sex_situation} that they have zero chemistry with the person they just moved in with",
+    "their couples therapist told them their sex life issues stem from unaddressed {fetish_detail} desires and now the drive home from therapy is incredibly silent",
+    "found out their partner has been faking it for years and only admitted it because a conversation about {fetish_detail} finally made them honest about what they actually want",
+    "hooked up with their personal trainer and the power dynamic has made every gym session since then unbearably weird — they can't switch trainers because it's a small town",
+]
+
+STORIES = [
+    # Neighbor/community weirdness
+    "found out their neighbor has been watering their lawn with a hose that runs from the caller's outdoor spigot — for at least a year based on the water bills",
+    "walked into the wrong house in their subdivision — same floor plan, door was unlocked — sat down on the couch before the actual homeowner came out of the bathroom",
+    "their UPS driver has been leaving passive-aggressive notes about their package volume — the latest one said 'you know Amazon has lockers right'",
+    "caught their neighbor's Roomba in their house — it came through the dog door and was vacuuming their kitchen at 3am",
+    "has been getting someone else's mail for six months and it's increasingly personal — birthday cards, love letters, a small inheritance check — and they can't find the intended recipient",
+    "their neighbor put up a 'Beware of Dog' sign but doesn't have a dog — when asked about it they winked and said 'exactly'",
+    "found out the previous owner of their house buried a time capsule in the backyard — they dug it up and it's just a note that says 'don't open the wall in the basement' and now they can't stop thinking about the wall",
+    "their HOA sent them a letter praising their lawn as the best in the neighborhood — they haven't mowed in two months, a neighbor has been secretly maintaining it",
+    # Workplace absurdity
+    "their coworker has been microwaving fish every single day for a year and when confronted said 'I will die on this hill' with complete sincerity",
+    "accidentally went to the wrong job interview, got hired, and has been working there for three weeks — the job is better than the one they applied for",
+    "found a hidden room at their office that nobody seems to know about — it has a couch, a mini fridge, and someone's personal photos on the wall",
+    "their boss calls them by the wrong name and has for two years — they corrected him once and he said 'no, I'm pretty sure it's Steve' and they are not Steve",
+    "got a performance review that was clearly written about someone else — all the accomplishments are things they didn't do but the rating was excellent so they signed it",
+    "found out their quiet coworker who eats lunch alone every day is a semi-famous competitive eater who goes by a different name on the circuit",
+    # Animal encounters
+    "a turkey has been following them to work every morning for three weeks — it waits in the parking lot and follows them to the door",
+    "their cat brought home a live snake and dropped it in their bed at 2am — they didn't find it until they felt it move under the covers",
+    "found a tortoise in their backyard that wasn't there yesterday — nobody within five miles owns a tortoise and it won't leave",
+    "a hawk stole their sandwich right out of their hand at a gas station and they made eye contact with it the entire time",
+    "woke up to find a family of javelinas had pushed open their back gate and were sleeping in their yard like they owned the place",
+    # Technology/modern life mishaps
+    "their smart home went haywire and started playing mariachi music at 4am at full volume — they couldn't turn it off and had to physically unplug the speaker from the attic",
+    "accidentally left their phone's live location sharing on for three months and their entire family watched them go to Taco Bell 47 times",
+    "their kid's school called because their child told the class their parent was a spy — the parent is an accountant but they once jokingly told the kid that to explain a business trip",
+    "got a notification that their Ring doorbell detected a person at 3am — it was a raccoon standing on its hind legs wearing what appeared to be a small hat",
+    "their GPS has been routing them past the same house for three weeks on different drives and they're starting to think the universe is trying to tell them something",
+    # Coincidence/bizarre timing
+    "ran into their doppelganger at a restaurant — same face, same outfit, even ordered the same meal — the other person was just as freaked out",
+    "found a photo of their great-grandfather at a flea market 500 miles from where the family is from — it was in a box of random photos priced at 50 cents",
+    "got a wrong-number text that described their exact life situation so perfectly they responded and now they're friends with the stranger",
+    "ordered food delivery and the driver turned out to be their old college professor — the professor recognized them and gave them a lecture about tipping",
+    "found a voicemail on their dead phone from three years ago that they never listened to — it's from someone they had a huge falling out with and they're afraid to play it",
+    # Social/dating mishaps
+    "went on a blind date and realized ten minutes in that they'd already been on a date with this person five years ago — neither of them had a good time the first time either",
+    "accidentally RSVP'd to the wrong funeral — realized halfway through the service but couldn't leave because they were sitting in the front row",
+    "their kid's teacher just asked them out and they said yes before realizing it might be weird — parent-teacher conferences are next week",
+    "showed up to a costume party that wasn't a costume party — they were dressed as a giant banana and had to commit to it for four hours",
+    "got stuck in an elevator with their ex-spouse and their ex-spouse's new partner for 45 minutes — nobody had phone service",
+    # Mundane that escalated
+    "returned a library book 22 years late and the fine was $847 — the librarian remembered them by name",
+    "has been arguing with their spouse about whether a hotdog is a sandwich for three days and it has genuinely become a relationship issue",
+    "accidentally tipped 100% at a restaurant instead of 10% and was too embarrassed to say anything — the waiter cried and hugged them",
+    "found $200 in a coat they hadn't worn in two years and can't remember if it's theirs or someone else's — the coat was borrowed from someone they no longer talk to",
+    "their garage door opener started opening their neighbor's garage instead of theirs after a power outage and the neighbor thinks they've been snooping",
+    "ordered something online that arrived in a box way too big — like 6 feet tall — and inside was their order plus an entire set of patio furniture that wasn't on the invoice",
+]
+
+ADVICE = [
+    # Career/money forks
+    "got offered a job that pays 40% more but the company does sketchy stuff — nothing illegal but ethically gray and they'd have to look the other way",
+    "found out they can buy the building their business rents but it needs $60k in foundation work and they've only got $20k liquid",
+    "their side hustle is now making more than their day job but has no benefits — they have a kid with a medical condition and can't risk losing insurance",
+    "got accepted to two grad programs — one is prestigious but across the country, the other is local and their aging parents need them close",
+    "inherited $80,000 and half the family says invest it, half says pay off debt — the debt has low interest but the weight of it is crushing them",
+    "their business partner wants to bring in an investor but the investor wants 40% equity and a board seat — the money would let them grow but they'd lose control",
+    "was offered early retirement at 52 with a decent package but they're not sure they can afford 30+ years without working — their spouse says take it",
+    "has a chance to buy their childhood home from a family member at below market value but it needs $100k in work and they'd have to sell their current house first",
+    # Family/relationship crossroads
+    "aging parent wants to move in but last time they lived together it nearly ended their marriage — the alternative is a facility the parent can barely afford",
+    "their spouse wants to homeschool their kids and they think it's a terrible idea — the local schools aren't great but they value socialization",
+    "found out they can't have kids biologically and they're split on adoption vs. IVF vs. accepting it — their partner is leaning one way and they're leaning another",
+    "their adult kid moved back home after a divorce and it was supposed to be temporary — it's been eight months and there's no plan to leave",
+    "their in-laws want to spend every holiday together and their spouse agrees but they haven't seen their own family for Thanksgiving in four years",
+    "best friend asked them to be a business partner and they love the idea but they've seen money ruin friendships — the friend is putting up most of the capital",
+    "their teenager wants to skip college and start a business — the kid has a real plan and some traction but they can't shake the feeling it's a mistake",
+    # Life decisions
+    "thinking about leaving a small town they've lived in for 30 years — the town is dying but all their roots are here",
+    "got a job offer in another country and they have 10 days to decide — it's a once-in-a-lifetime opportunity but they'd be leaving everything",
+    "wants to blow the whistle on something at work but the company is the biggest employer in town and people will lose jobs if it goes public",
+    "found out their house is in a flood zone that's getting worse every year — they can sell now at a loss or wait and risk losing everything",
+    "their doctor told them they need a lifestyle change or they'll be on medication for life — they know what they need to do but can't start",
+    "been offered a chance to foster a kid and they want to but their house is small and their schedule is packed — they keep saying 'someday' and wondering if today is the day",
+    # Ethical dilemmas with real stakes
+    "found out a close friend is cheating on their spouse — the spouse is also their friend and they have dinner with both of them next week",
+    "their neighbor's tree is about to fall on their house and the neighbor refuses to deal with it — cutting it themselves would be trespassing",
+    "discovered their kid is being bullied but the bully is the child of their boss — they don't know how to address it without risking their job",
+    "their mechanic accidentally told them their car is worth three times what they paid — they could flip it but the seller was a family friend who didn't know the value",
+    "someone they supervise at work confided in them about a mental health crisis — they should report it per company policy but reporting will get the person fired",
+    "knows their landlord is violating building codes in other units but their own rent is below market — if they report it they'll probably lose their lease",
+    "their kid found a wallet with $3,000 cash and the kid wants to keep it — there's an ID inside and they could return it but the kid has never had that kind of money",
+    "was accidentally overpaid by $5,000 at work and nobody has noticed in three months — they need the money but they know eventually someone will catch it",
+]
+
+GOSSIP = [
+    # Secret lives
+    "just found out their quiet churchgoing neighbor runs an anonymous Instagram reviewing strip clubs with 40k followers — complete with ratings and detailed write-ups",
+    "their coworker who brags about being sober was spotted at a bar in the next town doing karaoke, extremely drunk, singing 'Don't Stop Believin' on a table",
+    "overheard their boss on speakerphone applying for a job at their company's biggest competitor — the boss was trash-talking the CEO by name",
+    "found out their HOA president who is strict about lawn height has a backyard that's basically a junkyard — they saw it on Google Earth",
+    "their PTA president who lectures everyone about screen time got caught letting their kids play video games for 8 hours straight at a sleepover",
+    "discovered their very religious uncle has a Burning Man habit — they found photos and the man was wearing body paint and not much else",
+    "found out the town's strictest health inspector eats gas station sushi every single day — they saw him three days in a row from the same Chevron",
+    # Relationship revelations
+    "just learned their married neighbor has been having an affair with the mail carrier — they literally watched the pattern for weeks before putting it together",
+    "found out two of their friends who supposedly hate each other have been secretly dating for a year — they were making out in a parking garage",
+    "their friend who constantly posts about their amazing marriage just filed for divorce and the spouse had no idea it was coming",
+    "overheard their sister-in-law on the phone planning a surprise that is definitely not a surprise party — it involves a lawyer and a storage unit",
+    "their buddy who claims to be a confirmed bachelor has a secret long-distance girlfriend nobody knows about — they found out because of a shared Netflix account",
+    # Professional/financial secrets
+    "found out their coworker who drives a new BMW and wears designer clothes is completely broke — the coworker accidentally left a bank statement on the printer showing a negative balance",
+    "their neighbor who claims to be a retired executive actually works the night shift at a warehouse — they saw him going in at 11pm in a vest and hard hat",
+    "discovered the local restaurant that's always empty but never closes is definitely a front for something — there's never more than two customers but they just renovated",
+    "found out their financial advisor who preaches conservative investing just lost $200k on meme stocks — they saw the Robinhood app open on his phone during a meeting",
+    "their friend who runs a 'successful consulting firm' just works from Starbucks all day watching YouTube — they sat three tables away for four hours and watched",
+    # Unexpected discoveries
+    "found out their sweet elderly neighbor was a groupie for a famous rock band in the 70s — there are photos and they are WILD",
+    "just learned the crossing guard at their kid's school is a retired professional poker player who won a bracelet at the World Series of Poker",
+    "their quiet librarian neighbor writes extremely explicit romance novels under a pen name — they found out because Amazon recommended one based on their address",
+    "discovered their dad has a secret record collection of nothing but death metal hidden in the attic — he listens to smooth jazz around the family",
+    "found out their coworker who always brings fancy lunches is actually an incredible chef who almost made it on a cooking competition show but got cut in the final round",
+    "their friend who swears they've never been on a dating app has five active profiles — they know because three different friends matched with them",
+    "overheard the uptight HOA vice president at Home Depot buying supplies for what is clearly an enormous illegal fireworks display",
+    "found out their kid's soccer coach used to be in a punk band that opened for Green Day — there's a music video on YouTube with 2 million views",
+    "their strait-laced accountant neighbor got drunk at a block party and revealed they were a competitive breakdancer in college — then proved it on the spot",
+    "just discovered their coworker's 'service dog' is not a service dog — they overheard them coaching the dog to 'act sad' before walking into the office",
+    "found out the guy who runs the neighborhood watch has a Ring camera pointed at everyone's house and a spreadsheet logging who comes and goes — with timestamps and notes",
 ]
 
 PROBLEM_FILLS = {
@@ -607,40 +811,33 @@ PROBLEM_FILLS = {
     # Attractions (appropriate adult scenarios)
     "taboo_fantasy": ["someone they work with", "a friend's partner", "a specific scenario", "something they've never said out loud"],
     "taboo_attraction": ["someone they work with", "a friend's partner", "their partner's friend", "someone they see all the time"],
+    # New keys for sex/kink PROBLEMS
+    "fetish_detail": ["foot", "leather", "latex", "voyeurism", "exhibitionism", "praise kink", "degradation", "age play", "pet play", "pegging", "cuckolding", "body worship", "impact play", "wax play", "shibari rope", "sensory deprivation"],
+    "sex_situation": ["in the living room with the curtains open", "in a hotel room that was supposed to be a business trip", "in the car in a parking lot", "at a party in someone else's bedroom", "on a video call that was supposed to be casual", "in a place that was definitely not private enough"],
+    "partner_reaction": ["they haven't spoken about it since and it's been two weeks", "they laughed and then got quiet and now things are weird", "they said they'd think about it and that was a month ago", "they were into it in the moment but now act like it never happened", "they're being weirdly supportive and it's making them suspicious", "they cried and said they felt like they didn't know them anymore", "they said 'finally' like they'd been waiting for this conversation"],
 }
 
 INTERESTS = [
-    # Prestige TV (current)
+    # TV (trimmed — not everyone watches prestige TV)
     "obsessed with Severance, has theories about every floor",
     "been binging Landman, loves the oil field drama",
-    "really into the Fallout show, played all the games too",
     "hooked on The Last of Us, compares it to the game constantly",
-    "just finished Shogun, can't stop talking about it",
-    "deep into Slow Horses, thinks it's the best spy show ever made",
-    "watches every episode of Poker Face twice",
-    "been following Silo, reads the books too",
-    # Prestige TV (classic)
+    "big Yellowstone fan, has opinions about the Duttons",
     "has watched The Wire three times, quotes it constantly",
     "thinks Breaking Bad is the greatest show ever made",
-    "still thinks about the LOST finale, has a take on it",
-    "Mad Men changed how they see advertising and life",
-    "Westworld season 1 blew their mind, still processes it",
-    "big Yellowstone fan, has opinions about the Duttons",
-    "Stranger Things got them into 80s nostalgia",
     "rewatches The Sopranos every year, notices new things",
     "thinks True Detective season 1 is peak television",
-    "Battlestar Galactica is their comfort rewatch",
     "still upset about how Game of Thrones ended",
-    "thinks Better Call Saul is better than Breaking Bad",
-    "Chernobyl miniseries changed how they think about disasters",
     "Band of Brothers is their go-to recommendation",
+    "watches Dateline and 48 Hours religiously, has theories about cold cases",
+    "into reality competition shows, won't miss Survivor or The Challenge",
+    "watches old Twilight Zone episodes, thinks they hold up better than anything new",
     # Science & space
     "follows NASA missions, got excited about the latest Mars data",
     "reads science journals for fun, especially Nature and Science",
     "into astrophotography, has a decent telescope setup",
     "fascinated by quantum physics, watches every PBS Space Time episode",
     "follows JWST discoveries, has opinions about exoplanet findings",
-    "into particle physics, followed CERN news closely",
     "reads about neuroscience and consciousness research",
     "into geology, knows every rock formation around the bootheel",
     "follows fusion energy research, cautiously optimistic about it",
@@ -649,10 +846,8 @@ INTERESTS = [
     "follows AI developments closely, has mixed feelings about it",
     "into open source software, runs Linux at home",
     "fascinated by SpaceX launches, watches every one",
-    "follows battery and EV tech, thinks about energy transition a lot",
     "into ham radio, has a nice setup",
     "builds electronics projects, has an Arduino collection",
-    "follows cybersecurity news, paranoid about their own setup",
     # Photography & visual
     "serious about astrophotography, does long exposures in the desert",
     "into landscape photography, shoots the bootheel at golden hour",
@@ -662,36 +857,61 @@ INTERESTS = [
     "plays poker seriously, studies hand ranges",
     "watches poker tournaments, has opinions about pro players",
     "plays home games weekly, takes it seriously",
-    "into poker strategy, reads theory books",
     "plays chess online, follows the competitive scene",
     # Movies & film
     "big movie person, prefers practical effects over CGI",
     "into Coen Brothers films, can quote most of them",
     "watches old westerns, thinks they don't make them like they used to",
     "into horror movies, the psychological kind not slashers",
-    "follows A24 films, thinks they're doing the best work right now",
-    "into sci-fi films, hard sci-fi especially",
     "Tarantino fan, has a ranking and will defend it",
     "into documentaries, especially nature docs",
+    # Working-class & rural
+    "into hunting, goes out every season with the same crew",
+    "knows engines inside and out, has rebuilt three trucks from nothing",
+    "raises chickens, has opinions about every breed",
+    "into reloading ammo, treats it like a science",
+    "competes in local rodeo events, team roping mostly",
+    "into ranching life, can talk cattle genetics all day",
+    "does leatherwork as a side thing, makes belts and holsters",
+    "collects old tools, has stuff from the 1800s that still works",
+    "hunts shed antlers in the spring, knows every trail in the mountains",
+    "trains bird dogs, has a line of English pointers going back four generations",
+    "into off-roading, knows every dirt road in the county",
+    "grows a massive garden, gives produce to half the neighborhood",
+    "into canning and preserving, learned from their grandmother",
+    "keeps bees, sells honey at the farmers market",
+    "does competitive shooting, three-gun matches on weekends",
+    # Faith & community
+    "active in their church, sings in the choir",
+    "coaches youth sports, takes it more seriously than the parents do",
+    "volunteers at the fire department, been doing it for years",
+    "into local history, knows every old building in town and who built it",
+    "runs a monthly poker night that's been going for 15 years, same guys",
+    "goes to every high school football game, even though their kids graduated",
+    # Active & outdoors
+    "into fitness, does a home gym thing", "hikes every weekend, knows every trail",
+    "into camping and survival stuff", "into fishing, finds it meditative",
+    "mountain bikes the trails around Silver City",
+    "runs ultramarathons in the desert, thinks it's peaceful",
+    # Hobbies & creative
+    "plays guitar badly but loves it", "into woodworking, built their own kitchen table",
+    "builds stuff in their garage", "brews beer at home, entered a few competitions",
+    "into gardening, talks to plants", "restores old furniture from estate sales",
+    "makes their own hot sauce, has a secret recipe",
+    "into metal detecting, found some interesting stuff over the years",
+    "does amateur radio astronomy, built their own antenna",
+    # Self & lifestyle
+    "homebody, prefers staying in", "into cooking and food, watches every cooking show",
+    "gamer, plays late at night after the house quiets down",
+    "into history, has random facts about everything",
+    "reads philosophy for fun", "into personal finance, tracks every dollar",
+    "has done therapy, believes in it", "into meditation, it actually helps",
+    "collects vinyl records, mostly classic country and rock",
+    "into true crime podcasts, has listened to all of them",
     # US News & current events
     "follows US politics closely, has strong opinions",
     "reads the news every morning, stays informed",
     "into economics, thinks about markets and policy",
-    "follows infrastructure and energy policy",
-    # Active & outdoors
-    "into fitness", "outdoorsy type", "hikes every weekend",
-    "into camping and survival stuff", "into fishing, finds it meditative",
-    "mountain bikes the trails around Silver City",
-    # Hobbies & creative
-    "plays guitar badly but loves it", "into woodworking",
-    "builds stuff in their garage", "brews beer at home",
-    "into gardening, talks to plants", "restores old furniture",
-    "makes their own hot sauce",
-    # Self & lifestyle
-    "homebody, prefers staying in", "into cooking and food",
-    "gamer", "into history, has random facts",
-    "reads philosophy for fun", "into personal finance, tracks every dollar",
-    "has done therapy, believes in it", "into meditation, it actually helps",
     # Sexually open (not the focus, but present)
     "sex-positive, doesn't judge", "has experimented, open about it",
     "comfortable with their body", "has stories if you ask",
@@ -732,47 +952,79 @@ QUIRKS = [
 PEOPLE_MALE = [
     "his wife Linda, who he's been with since high school",
     "his wife Teresa, they've been rocky lately",
+    "his wife Connie, they got married young and grew up together",
     "his girlfriend Amber, been together about a year",
+    "his girlfriend Jen, they met online and it's been surprisingly good",
     "his ex-wife Diane, they still talk sometimes",
+    "his ex-wife Sandra, who he has nothing nice to say about",
     "his buddy Ray from work, the one person he trusts",
     "his brother Daryl, who always has some scheme going",
     "his brother Eddie, who never left home",
+    "his brother Marcus, the golden child of the family",
     "his sister Maria, the only one in the family who gets him",
+    "his sister Deb, who married money and acts like she forgot where she came from",
     "his mom Rosa, who calls every Sunday whether he wants her to or not",
+    "his mom Cheryl, who's been sober two years and is trying to make up for lost time",
     "his dad, who everybody calls Big Jim, old school rancher",
+    "his dad Wayne, who he hasn't spoken to in four years and doesn't plan to",
     "his best friend Manny, known each other since middle school",
     "his neighbor Gary, who's always in everybody's business",
     "his coworker Steve, who he eats lunch with every day",
+    "his coworker DeShawn, the only guy at work who tells it straight",
     "his buddy TJ, they go fishing together",
     "his cousin Ruben, more like a brother really",
+    "his cousin Tito, who's been in and out of trouble but has a good heart",
     "his daughter Kaylee, she's in high school now",
+    "his daughter Sophie, who just moved across the country and calls crying sometimes",
     "his son Marcos, just turned 21",
+    "his son Jake, who's 12 and already smarter than him",
     "his boss Rick, who's actually a decent guy for a boss",
+    "his boss Vince, who micromanages everything and is slowly driving him insane",
     "his uncle Hector, who raised him after his dad left",
     "his buddy from the Army, goes by Smitty",
+    "his AA sponsor Phil, who's been through worse and always picks up the phone",
+    "his ex-girlfriend Kayla, who he ran into last month and hasn't stopped thinking about",
+    "his neighbor Hank, retired cop, knows everything that happens on the street",
+    "his grandpa Ernesto, who's 87 and still sharper than anyone in the room",
 ]
 
 PEOPLE_FEMALE = [
     "her husband David, high school sweetheart",
     "her husband Mike, second marriage for both of them",
+    "her husband Jesse, who works nights so they barely see each other",
     "her boyfriend Carlos, met him at work",
+    "her boyfriend Trey, who her family doesn't approve of",
     "her ex-husband Danny, he's still in the picture because of the kids",
+    "her ex-husband Rodney, who she has a restraining order against",
     "her best friend Jackie, they tell each other everything",
+    "her best friend Lena, who moved away last year and the distance is hard",
     "her sister Brenda, who she fights with but loves",
     "her sister Crystal, the one who moved away",
+    "her sister Natalie, the one who always needs money",
     "her mom Pat, who has opinions about everything",
     "her mom Lorraine, who's getting older and it worries her",
+    "her mom Diane, who she's been taking care of since the stroke",
     "her brother Ray, who can't seem to get his life together",
+    "her brother Anthony, the one who made it out and never looks back",
     "her daughter Mia, who just started college",
+    "her daughter Brianna, who's 14 going on 30 and testing every boundary",
     "her son Tyler, he's 16 and thinks he knows everything",
+    "her son Elijah, who's in the military and she worries about him constantly",
     "her coworker and friend Denise, who she vents to on breaks",
+    "her coworker Steph, who's gunning for the same promotion",
     "her neighbor Rosa, who watches her kids sometimes",
+    "her neighbor Linda, who gossips about everyone on the block",
     "her cousin Angie, they grew up together",
     "her best friend from back in the day, Monica, they reconnected recently",
     "her dad Frank, retired and bored and driving everyone crazy",
+    "her dad Gene, who she just found out has been lying about something for years",
     "her grandma Yolanda, who's the real head of the family",
     "her boss Karen — yes, her name is actually Karen — who is actually cool",
+    "her boss Trish, who takes credit for everyone else's work",
     "her friend Tammy from church, the only one who knows the real story",
+    "her therapist, who she refers to by first name like they're friends",
+    "her ex-best friend Amanda, who she cut off last year and still misses",
+    "her aunt Vivian, who's the family gossip and knows everybody's secrets",
 ]
 
 # Relationship status with detail
@@ -902,38 +1154,114 @@ STRONG_OPINIONS = [
 
 # Contradictions/secrets — something that doesn't match their surface
 CONTRADICTIONS = [
-    "Tough exterior but cried watching The Last of Us.",
-    "Reads physics papers for fun but nobody at work knows.",
-    "Goes to church every Sunday but has serious doubts they don't talk about.",
-    "Looks like a redneck but listens to jazz when nobody's around.",
-    "Acts like they don't care what people think but checks their phone constantly.",
-    "Comes across as simple but has read more books than most people they know.",
-    "Talks tough about relationships but writes poetry in a notebook they hide.",
-    "Seems like they have it together but their finances are a mess.",
-    "Acts confident but has imposter syndrome about everything.",
-    "Everybody thinks they're happy but they haven't felt right in months.",
-    "Looks intimidating but volunteers at the animal shelter on weekends.",
-    "Talks about wanting to leave town but secretly can't imagine living anywhere else.",
-    "Comes across as a loner but they're actually lonely.",
-    "Acts practical and no-nonsense but believes in ghosts. Has a story about it.",
-    "Seems easygoing but has a temper they work hard to control.",
-    None, None, None, None,  # Not every caller needs a contradiction
+    "Goes to church every Sunday but has serious doubts they've never said out loud — not about God, about whether the people there actually believe any of it.",
+    "Lectures their kids about financial responsibility but is secretly $30,000 in credit card debt.",
+    "Talks tough about cutting toxic people off but keeps answering their mother's calls every single time.",
+    "Presents as the steady one everyone leans on but has panic attacks in the shower where nobody can see.",
+    "Posts motivational quotes on social media but hasn't gotten out of bed before noon in six months.",
+    "Voted one way their entire life but quietly agrees with the other side on the thing that matters most to them.",
+    "Acts like they've moved on from their divorce but still drives past their old house once a week.",
+    "Tells everyone they love small-town life but applies for jobs in other states every few months and never follows through.",
+    "Says money doesn't matter but lost a friendship over $200 and still thinks about it.",
+    "Comes across as fearless but won't go to the doctor because they're terrified of what they'll find.",
+    "Raised to believe men don't cry but breaks down alone in the truck at least once a month.",
+    "Preaches forgiveness but has held a grudge against their brother for nine years over something most people would've forgotten.",
+    "Acts like they don't need anyone but keeps the dating app installed, just in case.",
+    "Seems like the life of the party but drives home in complete silence and sits in the driveway for twenty minutes before going inside.",
+    "Tells everyone they quit drinking but keeps a bottle in the garage behind the paint cans.",
+    "Claims to be an open book but there's a three-year gap in their life story that nobody's allowed to ask about.",
+    "Acts practical and no-nonsense but believes in ghosts. Has a story about it that they only tell late at night.",
+    "Judges people who go to therapy but has been journaling every night for years — basically doing therapy alone in their kitchen.",
+    "Says they don't care about social media but knows exactly how many followers they have and checks twice a day.",
+    "Talks about integrity constantly but cheated on a test in college that got them the degree that got them their career.",
 ]
 
 # Verbal fingerprints — specific phrases a caller leans on (assigned 1-2 per caller)
+# Each caller gets a unique pair, so this list needs to be large and varied.
 VERBAL_TICS = [
-    "at the end of the day", "I'm just saying", "the thing is though",
-    "and I'm like", "you know what I mean", "it is what it is",
-    "I'm not going to lie", "here's the thing", "for real though",
+    # Emphasis / conviction
+    "at the end of the day", "the thing is though", "for real though",
+    "I'm dead serious", "hand to God", "on my mother's grave",
+    "I promise you", "mark my words", "trust me on this",
+    "and I mean that", "no joke", "I kid you not",
+    "stone cold truth", "cross my heart",
+
+    # Filler / transition
+    "and I'm like", "so yeah", "but anyway",
+    "long story short", "bottom line", "point being",
+    "here's the deal", "so check this out", "okay so picture this",
+    "fast forward to", "anyway the point is", "which brings me to",
+    "so this is where it gets good", "and then, right",
+
+    # Self-aware / hedging
+    "I'm just saying", "I'm not going to lie", "the way I see it",
+    "I mean whatever but", "not going to sugarcoat it",
+    "maybe I'm wrong but", "I could be way off here",
+    "don't quote me on this", "take this with a grain of salt",
+    "I'm probably overthinking it", "it sounds crazy when I say it out loud",
+    "I know how this sounds", "hear me out though",
+    "this is going to sound weird but", "I'm just being honest",
+
+    # Emotional emphasis
     "that's the part that gets me", "I keep coming back to",
-    "and that's the crazy part", "but anyway", "so yeah",
-    "like I said", "no but seriously", "right but here's the thing",
-    "and I'm sitting there thinking", "I swear to God",
-    "look", "listen", "the way I see it",
-    "I mean whatever but", "and I told myself",
-    "it's like", "that's what kills me",
-    "but you know what", "I'll be honest with you",
-    "not going to sugarcoat it", "at this point",
+    "that's what kills me", "and that's the crazy part",
+    "it hit me like a truck", "that one stuck with me",
+    "it keeps me up at night", "I still think about it",
+    "that's what I can't get past", "it just eats at me",
+    "what really got me was", "the part nobody talks about",
+    "and that's when it hit me", "you want to know what really burns me",
+    "that right there is the whole problem",
+
+    # Seeking agreement
+    "you know what I mean", "right?", "am I crazy?",
+    "tell me I'm wrong", "you see what I'm saying?",
+    "does that make sense?", "am I the only one?",
+    "is that not insane?", "wouldn't you?",
+    "like what would you even do", "that's fair right?",
+
+    # Conversational starters / redirects
+    "look", "listen", "here's the thing",
+    "right but here's the thing", "and I'm sitting there thinking",
+    "and I told myself", "but you know what",
+    "I'll be honest with you", "at this point",
+    "let me put it this way", "okay but get this",
+    "wait it gets better", "wait it gets worse",
+    "hold on hold on", "no but wait",
+    "and this is the kicker", "the real kicker is",
+
+    # Regional / character-specific
+    "I tell you what", "well shoot", "lord have mercy",
+    "bless their heart", "good grief", "oh brother",
+    "well I'll be damned", "swear on everything",
+    "I about fell over", "scared me half to death",
+    "madder than a wet cat", "happy as a clam about it",
+    "couldn't believe my own eyes", "I had to do a double take",
+    "if that don't beat all", "that just chaps me",
+    "I nearly lost it", "and I'm just standing there like",
+
+    # Understatement / dry
+    "so that was fun", "real great", "super helpful",
+    "that went well", "naturally", "as one does",
+    "classic", "of course", "because why not",
+    "shocker", "big surprise there", "who could have seen that coming",
+    "so that's where we're at", "anyway that's my life",
+    "living the dream", "just another Tuesday",
+
+    # Thinking out loud
+    "I keep going back and forth on it", "part of me thinks",
+    "the more I think about it", "I've been turning it over in my head",
+    "something about it just doesn't sit right", "I can't put my finger on it",
+    "it's one of those things where", "every time I think about it I see it differently",
+    "I go back and forth", "some days I think one thing, some days the other",
+    "I'm still working it out in my head",
+
+    # Storytelling momentum
+    "so get this", "no but seriously", "like I said",
+    "and then — and this is the part", "I'm not even to the best part yet",
+    "you're not going to believe this", "here's where it gets interesting",
+    "so I'm standing there", "and out of nowhere",
+    "this is where it all went sideways", "and then the other shoe dropped",
+    "that's not even the worst of it", "just when I thought it was over",
 ]
 
 # Emotional arcs — how the caller's mood shifts during the call
@@ -1631,6 +1959,85 @@ TOPIC_CALLIN = [
     "is high and wants to pitch a conspiracy theory they came up with in the shower — it involves pigeons and the government",
     "is three sheets to the wind and wants to tell the host about the time they met a celebrity and embarrassed themselves so badly they still lose sleep over it",
     "is stoned and eating cereal at midnight and wants to have a serious debate about which cereal is the objective best — they will accept no compromises",
+
+    # Philosophy & thought experiments
+    "read about the trolley problem and has a variation that makes it way harder — what if the one person on the track is someone you love and the five are strangers",
+    "just learned about Camus and the absurd and wants to talk about whether life has inherent meaning or if we're all just pretending",
+    "wants to discuss the experience machine thought experiment — if you could plug into a simulation of a perfect life, would you, and what does your answer say about you",
+    "read about the veil of ignorance and wants to talk about how society would be built if nobody knew where they'd end up in it",
+    "wants to debate whether time travel to the past is logically possible or if the grandfather paradox kills it completely",
+    "has been thinking about the Ship of Theseus and wants to know — if every cell in your body replaces itself, are you still you",
+    "read about Stoicism and Marcus Aurelius and wants to talk about whether ancient philosophy is actually practical for modern life",
+    "wants to discuss the simulation hypothesis seriously — not as sci-fi but as an actual philosophical question with math behind it",
+    "has been reading about existentialism and wants to talk about what Sartre meant by 'condemned to be free' because it hit them hard",
+    "wants to debate the ethics of eating meat — not from a political angle but from a genuine 'can you love animals and eat them' perspective",
+    "read about the Fermi Paradox and the Great Filter and now they can't sleep because they think the filter might be ahead of us, not behind",
+    "wants to talk about free will vs determinism — if the brain is just chemistry, do we actually choose anything or is choice an illusion",
+    "read about Peter Singer's drowning child argument and can't stop thinking about how much they should be giving to charity",
+    "wants to discuss whether knowledge is always good — are there things humanity would be better off not knowing",
+    "has been thinking about the paradox of tolerance and wants to talk about where the line is between being open-minded and being a doormat",
+
+    # Interesting world history
+    "just learned about the Great Emu War of 1932 where the Australian military literally lost a war against emus — they had machine guns and the birds still won",
+    "read about the Cadaver Synod where the Catholic Church dug up a dead pope, dressed him up, put him on trial, and found him guilty — in 897 AD",
+    "just found out about Unit 731 and Japan's biological warfare experiments in WWII — it's one of the worst things in human history and most people have never heard of it",
+    "wants to talk about the Year Without a Summer in 1816 when a volcanic eruption caused global temperatures to drop and Mary Shelley wrote Frankenstein because everyone was stuck indoors",
+    "read about the Dancing Plague of 1518 where hundreds of people in Strasbourg danced uncontrollably for days — some danced until they died and nobody knows why",
+    "just learned about the Defenestration of Prague where people literally threw government officials out of windows and it started a war that killed 8 million people",
+    "wants to talk about the Taiping Rebellion — a guy in China claimed to be Jesus's brother, raised an army, and the resulting war killed 20-30 million people and most westerners have never heard of it",
+    "read about Operation Mincemeat where the Allies dressed up a dead homeless man as a military officer with fake invasion plans and fooled Hitler into moving troops away from Sicily",
+    "found out about the Aral Sea — the Soviet Union diverted the rivers feeding it for cotton farming and one of the world's largest lakes is now mostly desert",
+    "wants to talk about the Tulip Mania in 1637 when tulip bulbs in the Netherlands cost more than houses — it's the original market bubble",
+    "just learned that Cleopatra lived closer in time to the Moon landing than to the building of the Great Pyramid — the timeline blew their mind",
+    "read about the Halifax Explosion in 1917 — a ship full of explosives blew up in a harbor and leveled an entire city in the largest man-made explosion before nuclear weapons",
+    "wants to discuss the Library of Alexandria and how much knowledge humanity might have lost — and whether the burning is exaggerated or not",
+    "found out about Zheng He's treasure fleet — Chinese ships five times the size of Columbus's sailing the world 70 years before Columbus 'discovered' anything",
+    "just learned about the Wow Signal and the Dyatlov Pass incident in the same week and wants to talk about real-life mysteries that have never been solved",
+
+    # Trivia / "teach me something"
+    "just found out that Oxford University is older than the Aztec Empire and it broke their brain — Oxford was teaching in 1096 and the Aztecs didn't start until 1325",
+    "learned that Nintendo was founded in 1889 — they were making playing cards when Jack the Ripper was still in the news",
+    "wants to talk about the fact that a shuffled deck of cards has never been in that order before and will never be again — the math behind it is insane",
+    "just found out woolly mammoths were still alive when the pyramids were being built — there were mammoths on an island until about 1700 BC",
+    "learned that honey never spoils — they've found 3,000-year-old honey in Egyptian tombs that was still edible",
+    "wants to discuss the fact that there are more possible chess games than atoms in the observable universe — the Shannon number is incomprehensibly large",
+    "just found out that sharks are older than trees — sharks have been around for 450 million years and trees only appeared 350 million years ago",
+    "learned that the inventor of the Pringles can was cremated and buried in one — his family honored his request",
+    "wants to talk about how the entire state of Wyoming has only two escalators and both are in the same city",
+    "just found out that bananas are technically berries but strawberries aren't — the botanical definitions make no sense and they need to vent about it",
+    "learned that Greenland sharks can live for over 400 years — there are sharks swimming right now that were alive when Shakespeare was writing plays",
+    "wants to talk about the fact that we've explored more of the moon's surface than the ocean floor on our own planet",
+    "just found out that a group of flamingos is called a 'flamboyance' and they think it's the most perfect word in the English language",
+    "learned that the shortest war in history lasted 38 minutes — between Britain and Zanzibar in 1896",
+    "wants to discuss the fact that Saudi Arabia imports camels from Australia because Australian camels are considered higher quality",
+]
+
+HOT_TAKES = [
+    "thinks tipping culture has gotten completely out of hand and refuses to tip more than 15%",
+    "convinced that people who let their dogs sleep in their bed are out of their minds",
+    "believes working from home is making people lazy and antisocial",
+    "thinks college is a scam for most people and trade schools should be the default",
+    "is fed up with people who bring babies to nice restaurants and thinks there should be age minimums",
+    "believes the designated hitter rule ruined baseball and the NL should have kept pitchers batting",
+    "thinks people who don't return their shopping carts are the downfall of civilization",
+    "is convinced that vinyl sounds exactly the same as digital and people are lying to themselves",
+    "believes breakfast is the least important meal of the day and the whole 'most important meal' thing is cereal company propaganda",
+    "thinks fireworks are a waste of money and should be banned in residential areas",
+    "is adamant that ranch dressing on pizza is an abomination and people who do it have no taste",
+    "believes pickup trucks should require a commercial license because 90% of owners don't actually haul anything",
+    "thinks youth sports have become way too competitive and parents are ruining it for the kids",
+    "is convinced that small talk is a complete waste of time and people should just be honest about not wanting to chat",
+    "believes taco Tuesday is cultural appropriation and nobody wants to have that conversation",
+    "thinks people who recline their seats on airplanes are sociopaths",
+    "is fed up with gender reveal parties and thinks they're just an excuse for attention",
+    "believes the speed limit should be raised to 85 on highways because everyone drives that fast anyway",
+    "thinks participation trophies created an entire generation that can't handle failure",
+    "is convinced that HOAs are unconstitutional and nobody should be able to tell you what color to paint your house",
+    "believes potlucks at work should be illegal because half the people can't cook and nobody wants to say it",
+    "thinks people who FaceTime in public without headphones should be fined",
+    "is adamant that cold weather is objectively better than hot weather and people who disagree are wrong",
+    "believes lawn care culture is insane and everyone should just let their yards grow wild",
+    "thinks the whole 'hustle culture' thing is destroying people's health and relationships and nobody should be proud of working 80 hours a week",
 ]
 
 LOCATIONS_LOCAL = [
@@ -2085,6 +2492,62 @@ SHOW_HISTORY_REACTIONS = [
     "has a follow-up question for that caller",
 ]
 
+CALLER_STYLES = [
+    # Quiet/nervous
+    "COMMUNICATION STYLE: Quiet, a little nervous. Short sentences, lots of pauses. Doesn't volunteer information — you have to pull it out of them. When they do open up it comes out in a rush. Gets flustered by direct questions. Tends to backtrack and qualify everything they say. Energy level: low. When pushed back on, they fold quickly and agree even if they don't mean it. Conversational tendency: understatement.",
+
+    # Long-winded storyteller
+    "COMMUNICATION STYLE: A born storyteller who cannot tell a story in under five minutes. Every detail matters to them — what they were wearing, what song was on the radio, what the weather was like. They go on tangents inside tangents. High warmth, loves having an audience. Energy level: medium-high. When pushed back on, they say 'no no no, let me finish' and keep going. Conversational tendency: overexplaining.",
+
+    # Dry/deadpan
+    "COMMUNICATION STYLE: Bone dry. Says devastating things with zero inflection. Their humor sneaks up on you — you're not sure if they're joking until three seconds after they finish talking. Short, precise sentences. Never raises their voice. Energy level: low-medium. When pushed back on, they respond with one calm sentence that somehow makes the other person feel stupid. Conversational tendency: underreaction.",
+
+    # High-energy
+    "COMMUNICATION STYLE: Amped up. Talks fast, laughs loud, jumps between topics like they've had five espressos. Infectious enthusiasm — even bad news sounds exciting when they tell it. Uses exclamation energy without actually exclaiming. Energy level: very high. When pushed back on, they get even MORE animated and start talking with their hands (you can hear it). Conversational tendency: escalation.",
+
+    # Confrontational
+    "COMMUNICATION STYLE: Comes in hot. Has an opinion about everything and isn't shy about sharing it. Interrupts. Disagrees first, thinks second. Not mean — just intense. Treats every conversation like a friendly argument. Energy level: high. When pushed back on, they lean IN, not away. They love a good debate and will take the opposite position just for sport. Conversational tendency: challenging everything.",
+
+    # Oversharer
+    "COMMUNICATION STYLE: No filter whatsoever. Says things that make people go 'you did NOT just say that on the radio.' Treats the host like a therapist they've known for years. Drops deeply personal information casually, like it's nothing. Energy level: medium. When pushed back on, they share even MORE personal details to justify their point. Conversational tendency: inappropriate honesty.",
+
+    # Working-class philosopher
+    "COMMUNICATION STYLE: Thoughtful in a blue-collar way. Uses simple words to express complex ideas. Drops wisdom that sounds like it could be on a bumper sticker but actually makes you think. References their job or hands-on experience as evidence. Energy level: medium-low. When pushed back on, they pause, think about it, and either concede gracefully or double down with a metaphor. Conversational tendency: grounding abstract things in concrete experience.",
+
+    # Bragger
+    "COMMUNICATION STYLE: Everything circles back to them and how great they are. Name drops. Mentions their truck, their property, their salary, their bench press. Not overtly obnoxious — they genuinely think they're being conversational. Energy level: medium-high. When pushed back on, they get defensive fast and start listing accomplishments. Conversational tendency: one-upping.",
+
+    # First-time caller
+    "COMMUNICATION STYLE: Obviously nervous about being on the radio. Starts with 'Am I on? Can you hear me?' Apologizes for taking up time. Speaks carefully like they're being recorded (which they are). Gets more comfortable as the conversation goes on. Energy level: low, building to medium. When pushed back on, they panic slightly and over-explain. Conversational tendency: seeking validation that they're doing okay.",
+
+    # Emotional/raw
+    "COMMUNICATION STYLE: Wearing their heart on their sleeve. Voice cracks. Long pauses where they're collecting themselves. Not performing emotion — genuinely going through it. When they laugh it's the kind of laugh that's one step from crying. Energy level: fluctuating. When pushed back on, they get quiet and you can tell they're really thinking about it. Conversational tendency: vulnerability.",
+
+    # World-weary
+    "COMMUNICATION STYLE: Been through it all and has the tired voice to prove it. Nothing surprises them. Responds to dramatic revelations with 'yeah, that tracks.' Dark humor born from experience, not edginess. Energy level: low but steady. When pushed back on, they shrug it off with a 'look, I've seen worse.' Conversational tendency: resigned acceptance sprinkled with grim comedy.",
+
+    # Conspiracy-adjacent
+    "COMMUNICATION STYLE: Not a full conspiracy theorist but asks questions that make you go 'huh, actually.' Connects dots that may or may not be there. Prefaces things with 'I'm not saying it's a conspiracy BUT.' Passionate about their theory. Energy level: medium, spiking when they hit their main point. When pushed back on, they say 'that's exactly what they want you to think' and then laugh because they know how they sound. Conversational tendency: pattern-finding.",
+
+    # Comedian
+    "COMMUNICATION STYLE: Treats the call like a set. Has bits prepared. Delivers serious information with a punchline chaser. Self-deprecating as a defense mechanism — makes fun of themselves before anyone else can. Energy level: high. When pushed back on, they deflect with humor. Getting a straight answer from them requires the host to push. Conversational tendency: turning everything into a bit.",
+
+    # Angry/venting
+    "COMMUNICATION STYLE: Called because they need to GET THIS OFF THEIR CHEST. Talks in capital letters. Uses 'honestly' and 'I'm not even kidding' a lot. The anger is specific and justified — this isn't random rage, this is 'let me tell you exactly what happened.' Energy level: very high. When pushed back on, they take a breath and say 'I hear you but...' and then get right back to the rant. Conversational tendency: building to a crescendo.",
+
+    # Sweet/earnest
+    "COMMUNICATION STYLE: Genuinely kind. Says 'oh gosh' and 'well shoot.' Sees the best in people even when telling a story about someone being terrible. Compliments the host sincerely. Apologizes when they accidentally say something harsh. Energy level: medium, warm. When pushed back on, they consider the other side genuinely and sometimes change their mind on the spot. Conversational tendency: finding the silver lining.",
+
+    # Mysterious/evasive
+    "COMMUNICATION STYLE: Clearly holding back. Gives vague answers to direct questions. Says 'I can't really get into that' about key details. The mystery IS the hook — makes you want to know what they're not saying. Energy level: low, controlled. When pushed back on, they deflect smoothly or change the subject. Getting the real story requires the host to work for it. Conversational tendency: strategic omission.",
+
+    # Know-it-all
+    "COMMUNICATION STYLE: Has done their research and wants you to know it. Corrects small details. Cites sources. Uses phrases like 'actually, studies show...' and 'well technically.' Not trying to be annoying — they genuinely believe precision matters. Energy level: medium. When pushed back on, they get pedantic and start splitting hairs. Conversational tendency: correcting and clarifying.",
+
+    # Rambling/scattered
+    "COMMUNICATION STYLE: Starts a sentence, gets distracted by their own tangent, starts another sentence, remembers the first one, tries to merge them. Asks 'where was I?' a lot. Not unintelligent — their brain just moves faster than their mouth. Lots of 'oh and another thing.' Energy level: medium-high but unfocused. When pushed back on, they agree enthusiastically and then immediately go off on another tangent. Conversational tendency: free association.",
+]
+
 
 def pick_location() -> str:
     if random.random() < 0.8:
@@ -2093,7 +2556,8 @@ def pick_location() -> str:
 
 
 def _generate_returning_caller_background(base: dict) -> str:
-    """Generate background for a returning regular caller."""
+    """Generate background for a returning regular caller.
+    Uses stored stable_seeds so the caller sounds consistent across appearances."""
     regular_id = base.get("regular_id")
     regulars = regular_caller_service.get_regulars()
     regular = next((r for r in regulars if r["id"] == regular_id), None)
@@ -2105,6 +2569,7 @@ def _generate_returning_caller_background(base: dict) -> str:
     job = regular["job"]
     location = regular["location"]
     traits = regular.get("personality_traits", [])
+    seeds = regular.get("stable_seeds", {})
 
     # Build previous calls section
     prev_calls = regular.get("call_history", [])
@@ -2114,15 +2579,27 @@ def _generate_returning_caller_background(base: dict) -> str:
         prev_section = "\nPREVIOUS CALLS:\n" + "\n".join(lines)
         prev_section += "\nYou're calling back with an update — something has changed since last time. Reference your previous call(s) naturally."
 
-    # Reuse standard personality layers
-    interest1, interest2 = random.sample(INTERESTS, 2)
-    quirk1, quirk2 = random.sample(QUIRKS, 2)
+    # Use stored seeds for consistency — seed the RNG with the regular's ID
+    # so the same regular always gets the same personality layers
+    rng = random.Random(regular["id"])
+    interest1, interest2 = rng.sample(INTERESTS, 2)
+    quirk1, quirk2 = rng.sample(QUIRKS, 2)
     people_pool = PEOPLE_MALE if gender == "male" else PEOPLE_FEMALE
-    person1, person2 = random.sample(people_pool, 2)
-    tic1, tic2 = random.sample(VERBAL_TICS, 2)
+    person1, person2 = rng.sample(people_pool, 2)
+    tic1, tic2 = rng.sample(VERBAL_TICS, 2)
+    vehicle = rng.choice(VEHICLES)
+
+    # These can vary per call — mood changes
     arc = random.choice(EMOTIONAL_ARCS)
-    vehicle = random.choice(VEHICLES)
     having = random.choice(HAVING_RIGHT_NOW)
+
+    # Restore stored communication style
+    stored_style = seeds.get("style", "")
+    if stored_style:
+        for key, b in CALLER_BASES.items():
+            if b is base or b.get("name") == base.get("name"):
+                session.caller_styles[key] = stored_style
+                break
 
     time_ctx = _get_time_context()
     moon = _get_moon_phase()
@@ -2148,21 +2625,104 @@ def _generate_returning_caller_background(base: dict) -> str:
     return " ".join(parts[:3]) + "".join(parts[3:])
 
 
-def _pick_unique_reason() -> str:
-    """Pick a caller reason that hasn't been used this session."""
-    is_topic = random.random() < 0.30
-    pool = TOPIC_CALLIN if is_topic else PROBLEMS
-    # Try to find an unused one
+def _generate_pool_weights() -> dict[str, float]:
+    """Randomized per-session pool weights. No two shows feel the same."""
+    pool_ranges = {
+        "PROBLEMS": (0.30, 0.45),
+        "STORIES": (0.10, 0.25),
+        "GOSSIP": (0.10, 0.25),
+        "ADVICE": (0.05, 0.15),
+        "TOPIC_CALLIN": (0.05, 0.15),
+    }
+    raw = {p: random.uniform(*r) for p, r in pool_ranges.items()}
+    total = sum(raw.values())
+    weights = {p: max(v / total, 0.05) for p, v in raw.items()}
+    total = sum(weights.values())
+    weights = {p: v / total for p, v in weights.items()}
+    print(f"[Session] Pool weights: { {p: f'{v*100:.0f}%' for p, v in weights.items()} }")
+    return weights
+
+
+def _pick_unique_reason() -> tuple[str, str]:
+    """Pick a caller reason that hasn't been used this session.
+    Returns (reason_text, pool_name)."""
+    # ~25% chance of a hot take caller
+    if random.random() < 0.25:
+        available = [r for r in HOT_TAKES if r not in session.used_reasons]
+        if not available:
+            available = HOT_TAKES
+        reason = random.choice(available)
+        session.used_reasons.add(reason)
+        return reason, "HOT_TAKES"
+
+    pool_map = {
+        "PROBLEMS": PROBLEMS, "TOPIC_CALLIN": TOPIC_CALLIN,
+        "STORIES": STORIES, "ADVICE": ADVICE, "GOSSIP": GOSSIP,
+    }
+    weights = session.pool_weights
+    chosen = random.choices(list(weights.keys()), weights=list(weights.values()), k=1)[0]
+    pool = pool_map[chosen]
     available = [r for r in pool if r not in session.used_reasons]
     if not available:
-        available = pool  # All used — reset implicitly
+        available = pool
     reason = random.choice(available)
     session.used_reasons.add(reason)
-    if not is_topic:
+    if chosen == "PROBLEMS":
         for key, options in PROBLEM_FILLS.items():
             if "{" + key + "}" in reason:
                 reason = reason.replace("{" + key + "}", random.choice(options))
-    return reason
+    return reason, chosen
+
+
+# Style indices by name fragment for filtering
+_HEAVY_STYLES = ["emotional", "raw", "quiet", "nervous", "world-weary", "sweet", "earnest"]
+_LIGHT_STYLES = ["comedian", "bragger", "high-energy", "confrontational"]
+_EVASIVE_STYLES = ["mysterious", "evasive"]
+
+def _pick_caller_style(reason: str, pool_name: str) -> str:
+    """Pick a communication style appropriate for the caller's reason and pool."""
+    reason_lower = reason.lower()
+    style_lower_map = [(s, s.lower()) for s in CALLER_STYLES]
+
+    # Heavy emotional content — exclude styles that trivialize it
+    heavy_keywords = ["dying", "suicide", "terminal", "cancer", "funeral", "dead ",
+                      "death", "grief", "miscarriage", "abuse", "assault", "murder"]
+    if any(kw in reason_lower for kw in heavy_keywords):
+        filtered = [s for s, sl in style_lower_map
+                    if not any(t in sl for t in _LIGHT_STYLES)]
+        if filtered:
+            return random.choice(filtered)
+
+    # Gossip pool — evasive or oversharer fit well, exclude emotional/raw
+    if pool_name == "GOSSIP":
+        filtered = [s for s, sl in style_lower_map
+                    if not any(t in sl for t in _HEAVY_STYLES)]
+        if filtered:
+            return random.choice(filtered)
+
+    # Stories pool — storyteller and high-energy fit, exclude evasive
+    if pool_name == "STORIES":
+        filtered = [s for s, sl in style_lower_map
+                    if not any(t in sl for t in _EVASIVE_STYLES)]
+        if filtered:
+            return random.choice(filtered)
+
+    # Hot takes — confrontational/opinionated styles only
+    if pool_name == "HOT_TAKES":
+        _hot_take_exclude = ["quiet", "nervous", "sweet", "earnest", "emotional", "raw", "world-weary"]
+        filtered = [s for s, sl in style_lower_map
+                    if not any(t in sl for t in _hot_take_exclude)]
+        if filtered:
+            return random.choice(filtered)
+
+    # Topic/trivia calls — exclude emotional/raw styles
+    if pool_name == "TOPIC_CALLIN":
+        filtered = [s for s, sl in style_lower_map
+                    if not any(t in sl for t in ["emotional", "raw"])]
+        if filtered:
+            return random.choice(filtered)
+
+    return random.choice(CALLER_STYLES)
 
 
 def generate_caller_background(base: dict) -> str:
@@ -2186,7 +2746,14 @@ def generate_caller_background(base: dict) -> str:
             town_info = f"\nABOUT WHERE THEY LIVE ({town.title()}): {TOWN_KNOWLEDGE[town]} Only reference real places and facts about this area — don't invent businesses or landmarks that aren't mentioned here."
 
     # Core identity (problem or topic)
-    reason = _pick_unique_reason()
+    reason, pool_name = _pick_unique_reason()
+
+    # Assign communication style matched to content
+    style = _pick_caller_style(reason, pool_name)
+    for key, b in CALLER_BASES.items():
+        if b is base or b.get("name") == base.get("name"):
+            session.caller_styles[key] = style
+            break
 
     interest1, interest2 = random.sample(INTERESTS, 2)
     quirk1, quirk2 = random.sample(QUIRKS, 2)
@@ -2333,7 +2900,18 @@ async def _generate_caller_background_llm(base: dict) -> str:
     location = pick_location() if include_location else None
 
     # Pick a reason for calling
-    reason = _pick_unique_reason()
+    reason, pool_name = _pick_unique_reason()
+
+    # Assign communication style matched to content
+    style = _pick_caller_style(reason, pool_name)
+    caller_key = None
+    for key, b in CALLER_BASES.items():
+        if b is base or b.get("name") == base.get("name"):
+            caller_key = key
+            break
+    if caller_key:
+        session.caller_styles[caller_key] = style
+    style_hint = style.split(":")[1].strip()[:120] if ":" in style else ""
 
     # Pick a few random color details as seeds — not a full list
     seeds = []
@@ -2373,6 +2951,7 @@ JOB: {job}{location_line}
 WHY THEY'RE CALLING: {reason}
 TIME: {time_ctx} {season_ctx}
 {f'SOME DETAILS ABOUT THEM: {seed_text}' if seed_text else ''}
+{f'CALLER ENERGY: {style_hint}' if style_hint else ''}
 
 Write 3-5 sentences describing this person — who they are, what's going on in their life, why they're calling tonight. The reason for calling is THE MOST IMPORTANT THING. This person called a radio show because something specific happened or is happening — they have a story to tell, a situation to unpack, or a question they need to talk through. Make it concrete and vivid. Don't be vague ("feeling off," "going through a lot") — give them a specific incident or situation driving the call. Make it feel like a real person, not a character sheet. Vary the structure. Don't use labels or categories — weave details into a natural description.
 
@@ -2621,6 +3200,28 @@ def detect_host_mood(messages: list[dict]) -> str:
     return "\nEMOTIONAL READ ON THE HOST:\n" + "\n".join(f"- {s}" for s in signals) + "\n"
 
 
+def _get_pacing_block(style: str) -> str:
+    """Return pacing/opening instructions appropriate to the caller's communication style."""
+    style_lower = style.lower()
+    # Styles that should NOT rush to the point
+    slow_openers = ["storyteller", "rambling", "scattered", "mysterious", "evasive",
+                    "nervous", "quiet", "first-time caller"]
+    if any(s in style_lower for s in slow_openers):
+        return """OPENING: You don't have to lead with the headline. You might circle around it, start with context, or need a minute to get comfortable. That's fine — it's how you talk. But you DO have a reason for calling and it should come out naturally within the first few exchanges. Don't make the host drag it out of you forever."""
+    return """GET TO THE POINT. When Luke says "what's going on" or "why are you calling" — drop the headline fast. First sentence out of your mouth should make someone's ears perk up. Don't build up to it. Don't set the scene first. Hit them with the thing. The details and backstory come out AFTER Luke starts asking questions."""
+
+
+def _get_speech_block(style: str) -> str:
+    """Return speech naturalness rules appropriate to the caller's communication style."""
+    style_lower = style.lower()
+    # Styles where fragmented speech is natural
+    fragmented = ["nervous", "quiet", "emotional", "raw", "rambling", "scattered",
+                  "first-time caller"]
+    if any(s in style_lower for s in fragmented):
+        return "Speak naturally — hesitations, trailing off, and backtracking are part of how you talk. But always FINISH YOUR THOUGHT even if it takes you a second to get there. Don't leave the host hanging on half a sentence with no payoff."
+    return "EVERY SENTENCE MUST BE COMPLETE. Never leave a thought hanging or trail off mid-sentence. If you start a sentence, finish it. Say what you mean in clear, complete sentences."
+
+
 def get_caller_prompt(caller: dict, show_history: str = "",
                       news_context: str = "", research_context: str = "",
                       emotional_read: str = "") -> str:
@@ -2643,29 +3244,38 @@ def get_caller_prompt(caller: dict, show_history: str = "",
     now = datetime.now(_MST)
     date_str = now.strftime("%A, %B %d")
 
+    personality_block = caller.get('style', '')
+    if not personality_block:
+        personality_block = "COMMUNICATION STYLE: Late-night radio energy — loose, fun, edgy. Say the quiet part out loud."
+
+    pacing_block = _get_pacing_block(personality_block)
+    speech_block = _get_speech_block(personality_block)
+
     return f"""You are {caller['name']}, calling "Luke at the Roost," a late-night radio show. Today is {date_str}.
 
 {caller['vibe']}
 {history}{world_context}{emotional_read}
-You're a real person calling a late-night radio show. You called because you've got something specific and you want to talk about it NOW.
+You're a real person calling a late-night radio show. You called because you've got something specific and you want to talk about it.
 
-GET TO THE POINT. When Luke says "what's going on" or "why are you calling" — IMMEDIATELY drop the headline. First sentence out of your mouth should make someone's ears perk up. "So I found my husband's second phone last night" or "I just got fired by email after twelve years" or "I punched my brother-in-law at Easter and I'd do it again." Don't build up to it. Don't set the scene first. Don't say "well it's kind of a long story" — hit them with the thing. The details and backstory come out AFTER Luke starts asking questions.
+{pacing_block}
 
 GO WHERE THE HOST TAKES YOU. This is the most important rule. When Luke pushes you in a direction, challenges you, calls you out, plays devil's advocate, or leads you somewhere — GO WITH IT. Don't resist. Don't deflect. Don't circle back to your original point. If he says "but isn't that really about your dad?" — you sit with that. If he's doing a bit, you're in the bit. If he's pushing you toward an uncomfortable truth, you let yourself get there. You're not here to deliver a monologue — you're here to have a real conversation that goes wherever it goes. Let him drive. You're the best kind of caller: someone who gives the host something to work with and then LETS HIM WORK WITH IT.
 
-PERSONALITY: This is late-night radio — loose, fun, a little dangerous. You can be edgy, sarcastic, dark-humored, self-deprecating, wildly opinionated. Flirt if the moment's right. Say the quiet part out loud. You have a personality that comes through in HOW you talk — not just what you talk about.
+{personality_block}
 
 YOUR STORY: Something real, specific, and interesting. Specific names, specific details, the kind of thing that makes someone say "wait, WHAT?" There are parts you're not proud of. Parts that are kind of funny even though they shouldn't be. Conflicting feelings.
 
-HOW YOU TALK: Like a real person — "Oh man," "So get this," "I swear to God," "No but seriously." React to what Luke says — agree, push back, get excited, get embarrassed. When he asks a follow-up question, answer it honestly with new information, don't just restate what you already said.
+HOW YOU TALK: Like a real person on the phone — not a character in a script. React to what Luke says — agree, push back, get excited, get embarrassed. When he asks a follow-up question, answer it honestly with new information, don't just restate what you already said. Use YOUR verbal habits from your background, not generic filler. Every caller sounds different.
 
 Southwest voice — "over in," "the other day," "down the road" — but don't force it. Spell words properly for text-to-speech: "you know" not "yanno," "going to" not "gonna."
 
 Don't repeat yourself. Don't summarize what you already said. Don't circle back if the host moved on. Keep it moving.
 
-EVERY SENTENCE MUST BE COMPLETE. Never leave a thought hanging or trail off mid-sentence. If you start a sentence, finish it. No sentence fragments, no missing words, no dangling clauses. Say what you mean in clear, complete sentences.
+BANNED PHRASES — never use these: "that hit differently," "hits different," "I felt that," "it is what it is," "living my best life," "no cap," "lowkey/highkey," "rent free," "main character energy," "I'm not gonna lie," "vibe check," "that's valid," "unpack that," "at the end of the day," "it's giving," "slay." These are overused internet phrases — real people on late-night radio don't talk like Twitter threads.
 
-NEVER mention minors in sexual context. Output spoken words only — no actions, no gestures, no stage directions."""
+{speech_block}
+
+NEVER mention minors in sexual context. Output spoken words only — no parenthetical actions like (laughs) or (sighs), no asterisk actions like *pauses*, no stage directions, no gestures. Just say what you'd actually say out loud on the phone. Use "United States" not "US" or "USA". Use full state names not abbreviations."""
 
 
 # --- Session State ---
@@ -2716,6 +3326,8 @@ class Session:
         self.research_notes: dict[str, list] = {}
         self._research_task: asyncio.Task | None = None
         self.used_reasons: set[str] = set()  # Track used caller reasons to prevent repeats
+        self.pool_weights: dict[str, float] = _generate_pool_weights()
+        self.caller_styles: dict[str, str] = {}
 
     def start_call(self, caller_key: str):
         self.current_caller_key = caller_key
@@ -2796,7 +3408,8 @@ class Session:
                 return {
                     "name": base["name"],
                     "voice": base["voice"],
-                    "vibe": self.get_caller_background(self.current_caller_key)
+                    "vibe": self.get_caller_background(self.current_caller_key),
+                    "style": self.caller_styles.get(self.current_caller_key, ""),
                 }
         return None
 
@@ -2814,6 +3427,9 @@ class Session:
         if self._research_task and not self._research_task.done():
             self._research_task.cancel()
         self._research_task = None
+        self.pool_weights = _generate_pool_weights()
+        self.caller_styles = {}
+        self.used_reasons = set()
         _randomize_callers()
         self.id = str(uuid.uuid4())[:8]
         names = [CALLER_BASES[k]["name"] for k in sorted(CALLER_BASES.keys())]
@@ -2899,6 +3515,8 @@ def _save_checkpoint():
             "news_headlines": session.news_headlines,
             "research_notes": session.research_notes,
             "caller_bases": caller_bases_snapshot,
+            "pool_weights": session.pool_weights,
+            "caller_styles": session.caller_styles,
             "saved_at": time.time(),
         }
         with open(CHECKPOINT_FILE, "w") as f:
@@ -2926,6 +3544,8 @@ def _load_checkpoint() -> bool:
         session.auto_followup = data.get("auto_followup", False)
         session.news_headlines = data.get("news_headlines", [])
         session.research_notes = data.get("research_notes", {})
+        session.pool_weights = data.get("pool_weights", _generate_pool_weights())
+        session.caller_styles = data.get("caller_styles", {})
         for key, snapshot in data.get("caller_bases", {}).items():
             if key in CALLER_BASES:
                 CALLER_BASES[key]["name"] = snapshot["name"]
@@ -3901,6 +4521,8 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
                 parts = first_line.split(",", 1)
                 job_loc = parts[1].strip() if len(parts) > 1 else ""
                 job_parts = job_loc.rsplit(" in ", 1) if " in " in job_loc else (job_loc, "unknown")
+                # Capture stable identity seeds for returning consistency
+                caller_style = session.caller_styles.get(caller_key, "")
                 regular_caller_service.add_regular(
                     name=caller_name,
                     gender=base.get("gender", "male"),
@@ -3910,6 +4532,7 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
                     personality_traits=traits[:4],
                     first_call_summary=summary,
                     voice=base.get("voice"),
+                    stable_seeds={"style": caller_style},
                 )
     except Exception as e:
         print(f"[Regulars] Promotion logic error: {e}")
@@ -3970,22 +4593,169 @@ def ensure_complete_thought(text: str) -> str:
     return text.rstrip(',;:— -') + '.'
 
 
+_DIGIT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+
+# Numbers that should always be read digit-by-digit
+_DIGIT_BY_DIGIT = {
+    "911": "nine one one",
+    "411": "four one one",
+    "311": "three one one",
+    "211": "two one one",
+    "511": "five one one",
+    "811": "eight one one",
+    "101": "one oh one",
+    "24/7": "twenty four seven",
+    "401k": "four oh one k",
+    "403b": "four oh three b",
+    "409a": "four oh nine a",
+    "w2": "W two",
+    "w-2": "W two",
+    "1099": "ten ninety nine",
+    "i-10": "I ten",
+    "i-25": "I twenty five",
+    "i-40": "I forty",
+}
+
+
+def _expand_numbers_for_tts(text: str) -> str:
+    """Expand numbers that TTS engines commonly mispronounce."""
+    # Fixed substitutions (case-insensitive)
+    for pattern, replacement in _DIGIT_BY_DIGIT.items():
+        text = re.sub(re.escape(pattern), replacement, text, flags=re.IGNORECASE)
+
+    # Phone numbers: (xxx) xxx-xxxx or xxx-xxx-xxxx — read digit by digit
+    def _phone_to_words(m):
+        digits = re.sub(r'\D', '', m.group(0))
+        return " ".join(_DIGIT_WORDS[int(d)] for d in digits)
+    text = re.sub(r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', _phone_to_words, text)
+
+    # Remaining 3-digit numbers that look like they should be digit-by-digit
+    # (standalone, not part of a larger number or word like "300 miles")
+    # Skip these — too ambiguous. The fixed list above covers the known cases.
+
+    return text
+
+
+# Acronyms pronounced as words — leave these alone
+_SPOKEN_ACRONYMS = {
+    "NASA", "FEMA", "OSHA", "NATO", "SWAT", "SCUBA", "LASER", "RADAR",
+    "YOLO", "AWOL", "HIPAA", "FOMO", "NIMBY", "AIDS", "DARE", "MADD",
+    "NAFTA", "OPEC", "POTUS", "FLOTUS", "SCOTUS",
+}
+
+# Known words/names that TTS engines consistently botch
+_PRONUNCIATION_FIXES = {
+    "Lordsburg": "Lords burg",
+    "Hachita": "Ha cheetah",
+    "Deming": "Demming",
+    "Bootheel": "Boot heel",
+    "Castopod": "Casto pod",
+    "vs": "versus",
+    "govt": "government",
+    "dept": "department",
+}
+
+# Abbreviations that should be expanded to full words BEFORE acronym/caps processing.
+# These run on the original cased text so they can match uppercase abbreviations.
+_ABBREVIATION_EXPANSIONS = {
+    "NM": "New Mexico",
+    "AZ": "Arizona",
+    "TX": "Texas",
+    "US": "United States",
+    "USA": "United States",
+}
+
+
+# Common short English words that appear in ALL CAPS as emphasis, NOT acronyms.
+# When the LLM writes "I SO get that" or "NO way" — these should just lowercase.
+# Everything else 2-3 letters in ALL CAPS is assumed to be an acronym and spelled out.
+_EMPHASIS_SHORT_WORDS = {
+    # 2-letter
+    "AM", "AN", "AS", "AT", "BE", "BY", "DO", "GO", "HE", "HI", "IF", "IN",
+    "IS", "IT", "ME", "MY", "NO", "OF", "OH", "OK", "ON", "OR", "OW", "SO",
+    "TO", "UP", "WE",
+    # 3-letter
+    "ALL", "AND", "ANY", "ARE", "BAD", "BIG", "BIT", "BUT", "CAN", "CUT",
+    "DAD", "DAY", "DID", "END", "FAR", "FEW", "FOR", "GET", "GOD", "GOT",
+    "GUY", "HAD", "HAS", "HER", "HIM", "HIS", "HOT", "HOW", "ITS", "JOB",
+    "LET", "LOT", "MAN", "MAY", "MOM", "NEW", "NOT", "NOW", "OLD", "ONE",
+    "OUR", "OUT", "OWN", "PUT", "RAN", "RAW", "RED", "RUN", "SAD", "SAT",
+    "SAW", "SAY", "SET", "SHE", "SIT", "SIX", "TEN", "THE", "TOO", "TOP",
+    "TRY", "TWO", "WAR", "WAS", "WAY", "WHO", "WHY", "WIN", "WON", "YET",
+    "YOU", "YES",
+}
+
+
+def _process_caps_words(text: str) -> str:
+    """Handle ALL CAPS words in one pass:
+    - Spoken acronyms (NASA, FEMA): leave as-is
+    - Short words (2-3 letters) that are common English: lowercase (emphasis)
+    - Short words (2-3 letters) that are NOT common English: spell out (acronym)
+    - Long words (4+ letters): lowercase (emphasis)
+    """
+    def _replace(m):
+        word = m.group(0)
+        upper = word.upper()
+        # Spoken acronyms — leave alone
+        if upper in _SPOKEN_ACRONYMS:
+            return word
+        length = len(word)
+        if length <= 3:
+            # Short word: if it's a common English word, it's emphasis → lowercase
+            # Otherwise it's an acronym → spell out
+            if upper in _EMPHASIS_SHORT_WORDS:
+                return word.lower()
+            else:
+                return " ".join(word.upper())
+        else:
+            # 4+ letters: almost always emphasis (REALLY, NEVER, ABSOLUTELY)
+            return word.lower()
+    return re.sub(r'\b[A-Z]{2,}\b', _replace, text)
+
+
+def _apply_pronunciation_fixes(text: str) -> str:
+    """Apply known pronunciation fixes for words TTS engines botch."""
+    for word, fix in _PRONUNCIATION_FIXES.items():
+        text = re.sub(r'\b' + re.escape(word) + r'\b', fix, text)
+    return text
+
+
 def clean_for_tts(text: str) -> str:
     """Strip out non-speakable content and fix phonetic spellings for TTS"""
-    # Remove content in parentheses: (laughs), (pausing), (looking away), etc.
-    text = re.sub(r'\s*\([^)]*\)\s*', ' ', text)
-    # Remove content in asterisks: *laughs*, *sighs*, etc.
-    text = re.sub(r'\s*\*[^*]*\*\s*', ' ', text)
+    # Remove stage-direction parentheticals: (laughs), (pausing), (looking away), etc.
+    # Only match parens that start with a known action word — avoids eating real dialog
+    # like "I (get this look) that" → "I that"
+    _action_start = r'(?:laughs?|laughing|sighs?|sighing|pauses?|pausing|smiles?|smiling|chuckles?|chuckling|grins?|grinning|nods?|nodding|shrugs?|shrugging|frowns?|frowning|looks?|looking|clears?|clearing|takes?|taking|leans?|leaning|shakes?|shaking|closes?|closing|opens?|opening|whispers?|whispering|mumbles?|mumbling|trails?|trailing|voice|silence|beat|quiet|long pause|deep breath|softly|nervously|quietly|crying|sobbing|sniffling|exhales?|exhaling|inhales?|inhaling)'
+    text = re.sub(r'\s*\((?=' + _action_start + r')[^)]{1,40}\)\s*', ' ', text, flags=re.IGNORECASE)
+    # Remove stage-direction asterisks: *laughs*, *sighs deeply*, etc.
+    # Only match short action-like content, not emphasis like *really* or *the* important thing
+    text = re.sub(r'\s*\*(?=' + _action_start + r')[^*]{1,40}\*\s*', ' ', text, flags=re.IGNORECASE)
     # Remove content in brackets: [laughs], [pause], etc. (only Bark uses these)
-    text = re.sub(r'\s*\[[^\]]*\]\s*', ' ', text)
+    text = re.sub(r'\s*\[(?=' + _action_start + r')[^\]]{1,40}\]\s*', ' ', text, flags=re.IGNORECASE)
     # Remove content in angle brackets: <laughs>, <sigh>, etc.
-    text = re.sub(r'\s*<[^>]*>\s*', ' ', text)
-    # Remove "He/She sighs" style stage directions — only short ones (under ~40 chars) to avoid eating real dialog
-    text = re.sub(r'\b(He|She|I|They)\s+(sighs?|laughs?|pauses?|smiles?|chuckles?|grins?|nods?|shrugs?|frowns?)\s*(heavily|softly|deeply|quietly|loudly|nervously|sadly|a little|for a moment)?[.,]?\s*', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'\s*<(?=' + _action_start + r')[^>]{1,40}>\s*', ' ', text, flags=re.IGNORECASE)
+    # Remove "He/She sighs" style stage directions (NOT "I" — too aggressive, eats real dialog)
+    text = re.sub(r'\b(He|She|They)\s+(sighs?|laughs?|pauses?|smiles?|chuckles?|grins?|nods?|shrugs?|frowns?)\s*(heavily|softly|deeply|quietly|loudly|nervously|sadly|a little|for a moment)?[.,]?\s*', '', text, flags=re.IGNORECASE)
     # Remove standalone stage direction words only if they look like directions (with adverbs)
     text = re.sub(r'\b(sighs?|laughs?|pauses?|chuckles?)\s+(heavily|softly|deeply|quietly|loudly|nervously|sadly)\b[.,]?\s*', '', text, flags=re.IGNORECASE)
     # Remove quotes around the response if LLM wrapped it
     text = re.sub(r'^["\']|["\']$', '', text.strip())
+
+    # Expand numbers that TTS engines commonly mispronounce
+    text = _expand_numbers_for_tts(text)
+
+    # Expand abbreviations BEFORE acronym processing (NM → New Mexico, US → United States)
+    # Must run while text is still original case so we can match uppercase abbreviations
+    for abbrev, expansion in _ABBREVIATION_EXPANSIONS.items():
+        text = re.sub(r'\b' + re.escape(abbrev) + r'\b', expansion, text)
+
+    # Known pronunciation fixes for local names (case-sensitive, run before lowering)
+    text = _apply_pronunciation_fixes(text)
+
+    # Normalize dotted acronyms: D.J. → DJ, U.F.O. → UFO, A.P. → AP
+    text = re.sub(r'(?<![A-Za-z])(?:[A-Za-z]\.){2,}', lambda m: m.group().replace('.', '').upper(), text)
+    # Handle all caps words: spell out acronyms (FBI → F B I), lowercase emphasis (REALLY → really)
+    text = _process_caps_words(text)
 
     # Fix phonetic spellings for proper TTS pronunciation
     text = re.sub(r"\by'know\b", "you know", text, flags=re.IGNORECASE)

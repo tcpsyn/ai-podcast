@@ -13,6 +13,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://lukeattheroost.com/terms</loc>
+    <lastmod>2026-02-25</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
     <loc>https://lukeattheroost.com/stats</loc>
     <lastmod>2026-02-15</lastmod>
     <changefreq>daily</changefreq>
@@ -105,6 +111,72 @@
   <url>
     <loc>https://lukeattheroost.com/episode.html?slug=episode-14-lies-grief-and-the-pursuit-of-orange</loc>
     <lastmod>2026-02-17</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-15-fake-fat-tuesday-trivia-and-life-changing-calls</loc>
+    <lastmod>2026-02-18</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-16-tasting-the-apocalypse</loc>
+    <lastmod>2026-02-19</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-17-quantum-chaos-and-cosmic-dust</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-18-whistleblowers-warrants-and-wistful-reunions</loc>
+    <lastmod>2026-02-22</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-19-quantum-regrets-and-relationship-realities</loc>
+    <lastmod>2026-02-22</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-20-dads-drummers-and-dilemmas</loc>
+    <lastmod>2026-02-24</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-21-carts-confetti-and-canine-collateral</loc>
+    <lastmod>2026-02-25</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-22-the-poison-is-the-thing-we-need</loc>
+    <lastmod>2026-02-25</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-23-secrets-lies-and-revelations</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-24-dealing-with-difficult-dynamics</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-25-ghosts-grudges-and-groceries</loc>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>never</changefreq>
     <priority>0.7</priority>
   </url>

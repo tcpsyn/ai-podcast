@@ -1,226 +1,46 @@
 {
   "regulars": [
     {
-      "id": "49147bd5",
-      "name": "Keith",
+      "id": "4f15e309",
+      "name": "Frank",
       "gender": "male",
-      "age": 61,
-      "job": "south of Silver City",
+      "age": 38,
+      "job": "the fluorescent light buzzing overhead, on his fourth cup of coffee because sleep's been impossible since he plugged in his old flip phone this afternoon and watched it power up for the first time",
+      "location": "unknown",
+      "personality_traits": [],
+      "voice": "Graham",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Treats the call like a set. Has bits prepared. Delivers serious information with a punchline chaser. Self-deprecating as a defense mechanism \u2014 makes fun of themselves before anyone else can. Energy level: high. When pushed back on, they deflect with humor. Getting a straight answer from them requires the host to push. Conversational tendency: turning everything into a bit."
+      },
+      "call_history": [
+        {
+          "summary": "Frank called in, deeply emotional after discovering a **voicemail from his estranged brother, Danny, who died three years ago**\u2014a message he\u2019d never listened to. He revealed they hadn\u2019t spoken in **five years** after Frank cut him off for repeatedly asking for money, exhausted by Danny\u2019s cycle of broken promises. The voicemail, left **two weeks before Danny\u2019s death**, was a plea for **$300**\u2014\"just one more shot\" for a job in Tucson. Frank, torn between guilt and resolve, finally played it on air, revealing Danny\u2019s last words: *\"I\u2019m really trying this time\u2026 Love you, brother.\"*\n\nThe call ended with Frank admitting he\u2019d **verified the job was real**, leaving him haunted by what the extra $200 might\u2019ve been for\u2014drugs, or something else. The host reassured him he\u2019d done his best, but Frank\u2019s raw conflict\u2014**regret, love, and the weight of \"what if\"**\u2014linged in the air.",
+          "timestamp": 1772069688.038253
+        }
+      ],
+      "last_call": 1772069688.038254,
+      "created_at": 1772069688.038254
+    },
+    {
+      "id": "65a41612",
+      "name": "Terri",
+      "gender": "female",
+      "age": 35,
+      "job": "New Mexico, the phone pressed between her ear and shoulder while she stabs at a plate of chile rellenos with a plastic fork\u2014her third cup of coffee gone cold beside her",
       "location": "in unknown",
       "personality_traits": [],
+      "voice": "Evelyn",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: No filter whatsoever. Says things that make people go 'you did NOT just say that on the radio.' Treats the host like a therapist they've known for years. Drops deeply personal information casually, like it's nothing. Energy level: medium. When pushed back on, they share even MORE personal details to justify their point. Conversational tendency: inappropriate honesty."
+      },
       "call_history": [
         {
-          "summary": "The caller, Luke, kicked off by sharing a humorous clip of Terrence Howard's Tree of Life Theory being critiqued by Neil deGrasse Tyson, which left Howard visibly hurt, before pivoting to economic woes, blaming overspending and Federal Reserve money printing for devaluing the currency and harming everyday people. He advocated abolishing the Fed, echoing Ron Paul's ideas, to let markets stabilize money, potentially boosting innovation and new industries in rural spots like Silver City despite uncertain local impacts.",
-          "timestamp": 1770524506.3390348
-        },
-        {
-          "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller, who works at a bank, has been reflecting on his tendency to blame the government and economic system for his problems, rather than taking responsibility for his own role. He had an epiphany while eating leftover enchiladas in his minivan, realizing he needs to be more proactive instead of just complaining.",
-          "timestamp": 1770574890.1296651
-        },
-        {
-          "summary": "Keith called in with an update about a widow who has been showing up weekly at the cemetery where he works nights, but she sits by the maintenance shed rather than visiting her husband's grave, and recently started asking Keith's neighbor personal questions about him. Luke dismissively suggested Keith just talk to the woman and called him a coward for being concerned, leading to some tension before they moved on to playing the real or fake news game.",
-          "timestamp": 1770770394.0436218
-        },
-        {
-          "summary": "Keith called back to update the host about a widow he befriended at the cemetery where he works, revealing she's been seeking him out during his shifts, bringing him coffee, and has now invited him to her apartment\u2014which he's conflicted about because his marriage to Teresa has become cold and distant, though he's scared to address it. The conversation shifted from the widow situation to Keith admitting he needs to have hard conversations with his wife about their deteriorating relationship, and he got emotional reflecting on how he and Teresa \"stopped being on the same team\" and how terrifying it would be to split up after being together for over half his life.",
-          "timestamp": 1770950476.527814
+          "summary": "Terry, a Native American caller who had been drinking, passionately argued that the Navajo Code Talkers deserve more recognition than conspiracy theories like Roswell, sharing personal stories about his great-uncle and Uncle Ray who served but were later denied benefits and respect. Host Luke repeatedly dismissed the Code Talkers' story as \"not compelling\" enough for media coverage compared to fictional conspiracies, leading to an increasingly heated exchange where Terry became emotional about his family's mistreatment and the country's failure to honor their sacrifice.",
+          "timestamp": 1772071625.969453
         }
       ],
-      "last_call": 1770950476.527814,
-      "created_at": 1770524506.339036,
-      "voice": "nPczCjzI2devNBz1zQrb"
-    },
-    {
-      "id": "0d244eeb",
-      "name": "Gus",
-      "gender": "male",
-      "age": 33,
-      "job": "",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Alex",
-      "call_history": [
-        {
-          "summary": "Gus called because his ex Melissa showed up at his pawn shop job with flowers wanting to reconcile, and his current girlfriend Sara saw it through the window and now won't talk to him. Despite the host's dismissive advice (including sarcastically suggesting he regift the same flowers), Gus insisted he wants to be with Sara and acknowledged he should have shut down his ex immediately instead of freezing up, though he defended that Sara's reaction to seeing this wasn't unreasonable jealousy.",
-          "timestamp": 1770951226.534601
-        }
-      ],
-      "last_call": 1770951226.534601,
-      "created_at": 1770951226.534601
-    },
-    {
-      "id": "13ff1736",
-      "name": "Jasmine",
-      "gender": "female",
-      "age": 36,
-      "job": "a 61-year-old woman who runs a small bakery in the rural Southwest, finds herself at a crossroads",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Jasmine called in to defend an earlier caller (Rick) whom she felt the host was too hard on, explaining she's been feeling guilty herself lately. She emotionally revealed that she chose her 1972 Ford Bronco restoration project over her marriage when given an ultimatum, and now regrets sleeping in the guest room with Valentine's Day approaching.",
-          "timestamp": 1770772286.1733272
-        },
-        {
-          "summary": "Jasmine called to update Luke about her relationship with David after previously discussing their issues over her Ford Bronco obsession. David invited her to watch a SpaceX launch together before Valentine's Day, but she's anxious it will be awkward since they've barely talked in weeks, though Luke convinces her to just enjoy the moment together without forcing conversation.",
-          "timestamp": 1771033676.7729769
-        }
-      ],
-      "last_call": 1771033676.7729769,
-      "created_at": 1770772286.1733272,
-      "voice": "pFZP5JQG7iQjIQuC4Bku"
-    },
-    {
-      "id": "dc4916a7",
-      "name": "Leon",
-      "gender": "male",
-      "age": 56,
-      "job": "and last week his daughter asked him why he never went back to school for programming like he always talked about\u2014she found his old acceptance letter from UNM's CS program tucked",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Leon, a 63-year-old tow truck driver, called in feeling regretful after pulling a young remote worker's Tesla from a ditch, which reminded him of the computer science acceptance letter he never acted on in 1996 when his girlfriend got pregnant. The conversation became emotional as Leon realized he's the same age his father was when he died, and the host challenged him to stop making excuses and finally pursue the tech career he's been thinking about for decades instead of just \"wondering what could have been.\"",
-          "timestamp": 1770693549.697355
-        },
-        {
-          "summary": "Leon called back to share that he reached out to UNM about their computer science program and is now deciding between an online bootcamp (which he and his wife Amber can afford without loans) versus a full degree program, ultimately leaning toward the bootcamp since he struggles with self-teaching. He expressed nervousness but appreciation for his daughter holding him accountable, and emotionally shared that buying his reliable used Subaru five years ago changed his life by giving him confidence and reducing stress at his towing job.",
-          "timestamp": 1770951992.186027
-        },
-        {
-          "summary": "In this brief clip, the host begins to set up a game with caller Vence, starting to explain the rules before the audio cuts off. There's no substantive conversation or emotional content to summarize.",
-          "timestamp": 1771119313.497329
-        },
-        {
-          "summary": "Leon called in to play a dating profile game but revealed he's struggling with his coding bootcamp because he's more interested in studying poker strategy than Python. The host encouraged him that at 56, he could pursue becoming a poker pro just as much as anything else, which seemed to resonate with Leon emotionally as he realized poker is what he actually wants to do rather than what he thinks he should do.",
-          "timestamp": 1771119607.065818
-        }
-      ],
-      "last_call": 1771119607.065818,
-      "created_at": 1770693549.697355,
-      "voice": "CwhRBWXzGAHq8TQ4Fs17"
-    },
-    {
-      "id": "747c6464",
-      "name": "Brenda",
-      "gender": "female",
-      "age": 44,
-      "job": "a 41-year-old ambulance driver, is fed up with the tipping culture",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Brenda called in to vent about being frustrated with automatic tipping at a diner, where a 20% tip was already added to her bill but the card reader prompted her to add an additional 25-35% while the waitress watched. She expressed feeling pressured and annoyed as an ambulance driver with two kids, struggling with whether to look cheap by reducing the tip, before playing a quick real-or-fake news game with the host.",
-          "timestamp": 1770770008.684104
-        },
-        {
-          "summary": "Brenda called in still thinking about whether a waitress remembered her tipping situation from two weeks ago, admitting she cares too much about what strangers think of her. The conversation revealed she's been avoiding dating entirely while working long shifts and dealing with family obligations, acknowledging she obsesses over small social interactions instead of actually putting herself out there romantically.",
-          "timestamp": 1771120062.169228
-        }
-      ],
-      "last_call": 1771120062.169229,
-      "created_at": 1770770008.684105,
-      "voice": "hpp4J3VqNfWAUOO0d1Us"
-    },
-    {
-      "id": "d97cb6f9",
-      "name": "Carla",
-      "gender": "female",
-      "age": 26,
-      "job": "is a vet tech",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Carla, separated from her husband but not yet divorced, vented about her intrusive in-laws who relentlessly call and dictate her life\u2014from finances and household matters to her clothing choices\u2014while her spineless spouse relays their demands, making her feel trapped in a one-sided war. With her own parents unavailable (father deceased, mother distant), she leans on her bickering but honest sister for support, underscoring her deep frustration and sense of isolation.",
-          "timestamp": 1770522530.8554251
-        },
-        {
-          "summary": "Carla dismissed celebrity science theories like Terrence Howard's after watching Neil deGrasse Tyson's critique, then marveled at JWST's exoplanet discoveries before sharing her relief at finally cutting off her toxic in-laws amid her ongoing divorce. She expressed deep heartbreak over actor James Ransone's suicide at 46, reflecting on life's fragility, her late father's death, and the need to eliminate family drama, leaving her contemplative and planning a solo desert drive for clarity.",
-          "timestamp": 1770526316.004708
-        },
-        {
-          "summary": "In this call, Carla discovered some explicit photos of her ex-husband and his old girlfriend in a box of his old ham radio equipment. She is feeling very uncomfortable about the situation and is seeking advice from the radio host, Luke, on how to best handle and dispose of the photos.",
-          "timestamp": 1770602323.234795
-        },
-        {
-          "summary": "Carla called with an update about burning the explicit photos of her ex-husband and his old girlfriend, revealing that the girlfriend unexpectedly messaged her on Facebook to \"clear the air\" after apparently hearing about the situation through Carla's previous radio call. When Luke asked about her most embarrassing masturbation material, Carla admitted to using historical romance novels during her failing marriage, explaining she was drawn to the fantasy of men who actually cared and paid attention, unlike her ex-husband who ignored her to play video games.",
-          "timestamp": 1770871317.049056
-        },
-        {
-          "summary": "Okay, here's a 1-2 sentence summary of the radio call:\n\nThe caller, Carla, was asked to give her honest opinion on a dating profile for a man named Todd. After reviewing the profile, Carla politely declined, explaining that the profile seemed a bit \"try-hard\" for her tastes, and outlined the qualities she would prefer in a potential date, such as a good sense of humor and an adventurous spirit. The host acknowledged that Carla was not interested in dating Todd.",
-          "timestamp": 1771121545.873672
-        }
-      ],
-      "last_call": 1771121545.873673,
-      "created_at": 1770522530.855426,
-      "voice": "FGY2WhTYpPnrIDTdsKH5"
-    },
-    {
-      "id": "f383d29b",
-      "name": "Megan",
-      "gender": "female",
-      "age": 34,
-      "job": "which got her thinking about her sister Crystal up in Flagstaff who hasn't seen a truly dark sky",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Megan, a kindergarten teacher from the bootheel, called in after one of her students asked if stars know we're looking at them, which led her to reflect on how her sister Crystal in Flagstaff has stopped appreciating the night sky despite having access to it. The conversation took an unexpected turn when Luke challenged her to admit a gross habit, and after some prodding, she confessed to picking dry skin off her feet while watching TV and flicking it on the floor.",
-          "timestamp": 1770870641.723117
-        },
-        {
-          "summary": "Here is a 1-2 sentence summary of the call:\n\nThe caller, Megan, is following up on a previous call about her sister Crystal, who lives in Flagstaff and has lost appreciation for the night sky. Megan seems eager to provide an update on the situation with her sister.",
-          "timestamp": 1770894505.175125
-        },
-        {
-          "summary": "In summary, the caller presented a dating profile for a 63-year-old man named Frank who loves making birdhouses. The host, Megan, gave her honest assessment - she appreciated some aspects of Frank's profile, like his openness about his situation, but had reservations about his intense birdhouse obsession. Megan seemed unsure if they would be a good match, despite the host's attempts to get her to consider dating Frank under different hypothetical circumstances. The conversation focused on Megan's reaction to Frank's profile and her hesitation about pursuing a relationship with him.",
-          "timestamp": 1771122973.966489
-        }
-      ],
-      "last_call": 1771122973.96649,
-      "created_at": 1770870641.723117,
-      "voice": "cgSgspJ2msm6clMCkdW9"
-    },
-    {
-      "id": "add59d4a",
-      "name": "Rick",
-      "gender": "male",
-      "age": 65,
-      "job": "south of Silver City",
-      "location": "unknown",
-      "personality_traits": [],
-      "call_history": [
-        {
-          "summary": "Rick called in to play \"real news or fake news\" and correctly identified a headline about a geothermal plant sale. He then shared that he's troubled about an elderly bank customer who withdrew $8,000 cash while appearing scared and mentioning his daughter's boyfriend was pressuring him about finances\u2014Rick processed the withdrawal but later learned he should have flagged it as potential elder exploitation, and he's feeling guilty about not intervening.",
-          "timestamp": 1770771655.536344
-        },
-        {
-          "summary": "Rick, a 65-year-old caller, is asked to evaluate a dating profile for 29-year-old Angela, a \"girl mom\" and MLM skin care seller with strong Christian values. He quickly passes due to the extreme age gap and her intense focus on recruiting for her \"not a pyramid scheme\" business, though he says he'd reconsider if she toned down the sales pitch and religious intensity.",
-          "timestamp": 1771126337.585641
-        }
-      ],
-      "last_call": 1771126337.585642,
-      "created_at": 1770771655.536344,
-      "voice": "TX3LPaxmHKxFdv7VOQHJ"
-    },
-    {
-      "id": "74ac2916",
-      "name": "Benny",
-      "gender": "male",
-      "age": 31,
-      "job": "engine off but heater still ticking as it cools, staring at the glow from the kitchen window where his wife is probably still going through those bank statements she found",
-      "location": "unknown",
-      "personality_traits": [],
-      "voice": "Clive",
-      "call_history": [
-        {
-          "summary": "Benny has been secretly sending money to his daughter for six months, leading his wife to suspect gambling or an affair when she found bank statements, and he's now afraid to go inside and explain. He assumed his daughter lost her job based on changed texting patterns, but the host points out he doesn't actually know why she needs money and emphasizes he needs to have honest conversations with both his wife and daughter about what's really going on.",
-          "timestamp": 1771214146.346665
-        }
-      ],
-      "last_call": 1771214146.346665,
-      "created_at": 1771214146.346665
+      "last_call": 1772071625.969454,
+      "created_at": 1772071625.969454
     },
     {
       "id": "2768e2ac",
@@ -235,46 +55,208 @@
         {
           "summary": "Rochelle called in after spending three hours tracking her ex-husband's location on a fitness app they still share, watching him circle her neighborhood and park at a nearby Sonic for 40 minutes while sending cryptic texts. Though she initiated their divorce eight months ago, she admitted she might be glad he's \"creeping\" on her and got emotional realizing they both still have access to each other's locations\u2014and that she might still miss him despite dating someone new.",
           "timestamp": 1771217728.036122
+        },
+        {
+          "summary": "Rochelle called to say she finally turned off location sharing with her ex-husband David, but he immediately texted asking if she was okay, showing he was still tracking her. She's now sitting on her current boyfriend Marcus's porch, struggling with the realization that she still misses David and isn't being fair to Marcus, ultimately acknowledging she needs to break up with Marcus and be single for a while.",
+          "timestamp": 1771823819.191822
+        },
+        {
+          "summary": "Rochelle called to update Luke about her breakup with Marcus and confessed that her ex-husband David recently contacted her with a flimsy excuse to visit, which triggered obsessive behavior including stalking his location and driving past places he frequents. Luke bluntly told her to stop acting like a \"maniac,\" delete her tracking apps, focus on herself and her kids, and avoid dating for at least a year until she's in a healthier mental state.",
+          "timestamp": 1772076234.249971
         }
       ],
-      "last_call": 1771217728.0361228,
+      "last_call": 1772076234.2499719,
       "created_at": 1771217728.0361228
     },
     {
-      "id": "dec4f7c9",
-      "name": "Terri",
-      "gender": "female",
-      "age": 38,
-      "job": "feet up on the desk, laughing that hollow laugh she does when things aren't funny at all",
+      "id": "7d06c9ca",
+      "name": "Phil",
+      "gender": "male",
+      "age": 60,
+      "job": "phone pressed to his ear with his shoulder while he wipes down the station he should've cleaned hours ago, stalling before he drives home to the conversation he's been avoiding all weekend",
       "location": "in unknown",
       "personality_traits": [],
-      "voice": "Olivia",
+      "voice": "Craig",
       "call_history": [
         {
-          "summary": "Terry called in devastated that her best friend of 30 years, Michelle, has been secretly sleeping with Terry's ex-husband since their divorce six months ago\u2014and worse, Michelle comforted Terry about seeing David with \"someone\" at Applebee's two weeks ago without revealing it was her. Luke advised Terry to cut off both Michelle and David and move forward, acknowledging her grief is valid but encouraging her to choose not to stay hurt, which Terry ultimately accepted while realizing she'd been mourning the idea of her marriage more than the actual relationship.",
-          "timestamp": 1771222133.612614
+          "summary": "Phil called in after his wife of 20 years revealed she's gay and wants to stay married while both see other people on the side\u2014he's been seeing a man named Marcus, and she's been seeing a woman since last summer. After initially feeling confused and worried about \"kicking the can down the road,\" Phil worked through his anxiety with Luke and reached an emotional breakthrough, realizing he doesn't need to have everything figured out immediately and that their honest, unconventional arrangement might actually work for their family.",
+          "timestamp": 1771819671.062739
+        },
+        {
+          "summary": "Phil calls back after previously discussing his open marriage with his wife Teresa, revealing that he developed real romantic feelings for Marcus (the man he was seeing), who is now moving to Portland\u2014a heartbreak that made Phil realize he's been lying to himself about wanting to stay married. After discussing it with Luke, Phil decides to have an honest conversation with Teresa about ending their marriage amicably, recognizing they've both moved on emotionally and she may want to pursue a future with her girlfriend Amanda.",
+          "timestamp": 1772171807.331306
         }
       ],
-      "last_call": 1771222133.612614,
-      "created_at": 1771222133.612614
+      "last_call": 1772171807.3313081,
+      "created_at": 1771819671.062739
     },
     {
-      "id": "514725e5",
-      "name": "Dolores",
+      "id": "920e6f98",
+      "name": "Marlene",
       "gender": "female",
-      "age": 33,
-      "job": "and every Saturday and Sunday she drives to open houses in Silver City, Deming, sometimes as far as Las Cruces, pretending she's",
-      "location": "unknown",
+      "age": 25,
+      "job": "third shift HR coverage at the call center, still half-painted like a banana because the makeup won't come off her neck",
+      "location": "in unknown",
       "personality_traits": [],
-      "voice": "Luna",
+      "voice": "Darlene",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Been through it all and has the tired voice to prove it. Nothing surprises them. Responds to dramatic revelations with 'yeah, that tracks.' Dark humor born from experience, not edginess. Energy level: low but steady. When pushed back on, they shrug it off with a 'look, I've seen worse.' Conversational tendency: resigned acceptance sprinkled with grim comedy."
+      },
       "call_history": [
         {
-          "summary": "Dolores calls from a parking lot after panicking when a realtor recognized her at an open house\u2014she's been attending showings for eight months (six years total) with no intention of buying, using them to escape her routine life working at a gun range in Lordsburg. Luke tells her to stop pretending and actually take steps to change her life, which she tearfully accepts, committing to make a real plan instead of just fantasizing.",
-          "timestamp": 1771223091.851768
+          "summary": "Marlene wore a professional banana costume to her manager's holiday party because the invitation said \"costume party,\" but everyone else showed up in sweaters\u2014she stayed all four hours and now faces a disciplinary meeting for \"lack of professional judgment.\" Despite the awkwardness and lingering yellow makeup on her neck, she's considering wearing the banana costume again to the meeting, reasoning that if she gets fired over it, at least she'll have a good story.",
+          "timestamp": 1772172154.039839
         }
       ],
-      "last_call": 1771223091.851769,
-      "created_at": 1771223091.851769
+      "last_call": 1772172154.03984,
+      "created_at": 1772172154.03984
+    },
+    {
+      "id": "5ead2c1a",
+      "name": "Greg",
+      "gender": "male",
+      "age": 59,
+      "job": "laptop open on the comforter showing the doorbell footage for the seventh time tonight, because three nights ago someone\u2014something\u2014stood on his porch at 3:17 AM and didn't move for ten minutes and forty-three seconds, just faced the door like they were waiting to be invited in, and when he scrubbed through frame-by-frame he noticed the person's chest never rose or fell like they were breathing",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Gareth",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Has done their research and wants you to know it. Corrects small details. Cites sources. Uses phrases like 'actually, studies show...' and 'well technically.' Not trying to be annoying \u2014 they genuinely believe precision matters. Energy level: medium. When pushed back on, they get pedantic and start splitting hairs. Conversational tendency: correcting and clarifying."
+      },
+      "call_history": [
+        {
+          "summary": "Greg called about disturbing doorbell camera footage showing a figure standing motionless on his porch at 3 AM for nearly 11 minutes without breathing or triggering motion sensors, then vanishing between frames\u2014and he's discovered three similar earlier incidents after obsessively analyzing the footage. Despite creating multiple backups and researching everything from vampire folklore to electromagnetic interference, he's anxious about what this means and whether he should report it to police, though Luke reassures him to share it on the Discord community and install a constant porch light.",
+          "timestamp": 1772173891.1805592
+        }
+      ],
+      "last_call": 1772173891.1805599,
+      "created_at": 1772173891.1805599
+    },
+    {
+      "id": "8c97dd56",
+      "name": "Mitch",
+      "gender": "male",
+      "age": 29,
+      "job": "just the glow from the window over the sink where he's been standing for the past hour, looking at his neighbor's house across the gravel drive",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Mark",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Starts a sentence, gets distracted by their own tangent, starts another sentence, remembers the first one, tries to merge them. Asks 'where was I?' a lot. Not unintelligent \u2014 their brain just moves faster than their mouth. Lots of 'oh and another thing.' Energy level: medium-high but unfocused. When pushed back on, they agree enthusiastically and then immediately go off on another tangent. Conversational tendency: free association."
+      },
+      "call_history": [
+        {
+          "summary": "Mitch called about his neighbor stealing water for over a year by connecting a hose under the fence to his spigot, doubling his water bills, and when confronted, the neighbor just shrugged it off. The emotional core of the call was Mitch struggling with feeling disrespected and small\u2014standing in his dark kitchen obsessing over the neighbor's dismissive reaction\u2014before ultimately deciding to pursue documentation, involve the water company, and take the neighbor to small claims court.",
+          "timestamp": 1772174421.724106
+        }
+      ],
+      "last_call": 1772174421.724106,
+      "created_at": 1772174421.724106
+    },
+    {
+      "id": "37f0bfaa",
+      "name": "Murray",
+      "gender": "male",
+      "age": 36,
+      "job": "engine running for heat, watching his breath fog up the windshield while he tries to figure out how to fire his best friend of thirty years",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Tyler",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Amped up. Talks fast, laughs loud, jumps between topics like they've had five espressos. Infectious enthusiasm \u2014 even bad news sounds exciting when they tell it. Uses exclamation energy without actually exclaiming. Energy level: very high. When pushed back on, they get even MORE animated and start talking with their hands (you can hear it). Conversational tendency: escalation."
+      },
+      "call_history": [
+        {
+          "summary": "Murray called in struggling with whether to fire his best friend Danny of 30 years, who's been showing up late, bad-mouthing him to their crew, and just cost them a major contract by abandoning a job site. Through the conversation, Murray realized he'd become overly rigid and \"suit-like\" while trying to prove himself as the new business owner, and decided instead of firing Danny, he'd hold a team meeting to apologize for his approach, explain the reasoning behind new protocols, and invite the crew to be part of the solution rather than just enforcing rules from above.",
+          "timestamp": 1772250744.2312489
+        }
+      ],
+      "last_call": 1772250744.2312498,
+      "created_at": 1772250744.2312498
+    },
+    {
+      "id": "9e274ab1",
+      "name": "Elvin",
+      "gender": "male",
+      "age": 49,
+      "job": "his plate of cold fries pushed aside, because three hours ago his buddy Marcus showed him a dating profile\u2014complete with photos from last summer's fishing trip\u2014and swore up and down he's never downloaded a dating app in his life, which would be easier to believe if Elvin's ex-wife and two of his cousins hadn't also matched with Marcus",
+      "location": "unknown",
+      "personality_traits": [],
+      "voice": "Brian",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Starts a sentence, gets distracted by their own tangent, starts another sentence, remembers the first one, tries to merge them. Asks 'where was I?' a lot. Not unintelligent \u2014 their brain just moves faster than their mouth. Lots of 'oh and another thing.' Energy level: medium-high but unfocused. When pushed back on, they agree enthusiastically and then immediately go off on another tangent. Conversational tendency: free association."
+      },
+      "call_history": [
+        {
+          "summary": "Elvin called because his longtime friend Marcus discovered someone created fake dating profiles using his real photos, and multiple people including Elvin's ex-wife and cousins have matched with the imposter profile. After initially suspecting Marcus was lying, Elvin became convinced his friend is a genuine victim of identity theft, and felt guilty for doubting him\u2014ultimately deciding to help Marcus investigate by having a cousin engage with the fake profile to uncover the scammer's motives.",
+          "timestamp": 1772253684.436144
+        }
+      ],
+      "last_call": 1772253684.4361448,
+      "created_at": 1772253684.436146
+    },
+    {
+      "id": "61935b11",
+      "name": "Marcus",
+      "gender": "male",
+      "age": 34,
+      "job": "door locked, listening to the wind throw sand against the window while she sleeps",
+      "location": "unknown",
+      "personality_traits": [],
+      "voice": "Callum",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Wearing their heart on their sleeve. Voice cracks. Long pauses where they're collecting themselves. Not performing emotion \u2014 genuinely going through it. When they laugh it's the kind of laugh that's one step from crying. Energy level: fluctuating. When pushed back on, they get quiet and you can tell they're really thinking about it. Conversational tendency: vulnerability."
+      },
+      "call_history": [
+        {
+          "summary": "Marcus called about accidentally receiving $5,000 instead of $500 from his employer three months ago and spending most of it on his truck, daughter's tuition, and bills, which has been keeping him up at night with guilt and fear of consequences. The host advised him to proactively tell his employer (claiming an accountant found the error), emphasize it was their mistake, and work out a payment plan rather than waiting for them to discover it, reassuring Marcus that he likely won't be fired since he didn't actually do anything wrong.",
+          "timestamp": 1772429224.977716
+        }
+      ],
+      "last_call": 1772429224.977717,
+      "created_at": 1772429224.977717
+    },
+    {
+      "id": "a16fe26a",
+      "name": "Curtis",
+      "gender": "male",
+      "age": 43,
+      "job": "still sitting at her table an hour after Sunday dinner ended, phone cord stretched across the counter because she still has a landline",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Nate",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Treats the call like a set. Has bits prepared. Delivers serious information with a punchline chaser. Self-deprecating as a defense mechanism \u2014 makes fun of themselves before anyone else can. Energy level: high. When pushed back on, they deflect with humor. Getting a straight answer from them requires the host to push. Conversational tendency: turning everything into a bit."
+      },
+      "call_history": [
+        {
+          "summary": "Curtis called about struggling with grief after taking his deceased father's record collection from his mom's garage, crying over albums despite having avoided thinking about his dad for three years. He's conflicted about mourning a father who abandoned him at 14, using humor to deflect his pain, but the host reassured him it's normal to grieve even complicated relationships and that keeping the records\u2014whether he uses them or not\u2014is perfectly okay.",
+          "timestamp": 1772430659.572614
+        }
+      ],
+      "last_call": 1772430659.572614,
+      "created_at": 1772430659.572614
+    },
+    {
+      "id": "9b72f700",
+      "name": "Mitch",
+      "gender": "male",
+      "age": 38,
+      "job": "half-eaten microwave burrito going cold on the table, because he just watched his two best friends\u2014who've spent the last three years openly trash-talking each other at every barbecue and poker night\u2014stumble out of the parking garage behind the Safeway at 1 AM, hands all over each other, and climb into the same truck",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Blake",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Called because they need to GET THIS OFF THEIR CHEST. Talks in capital letters. Uses 'honestly' and 'I'm not even kidding' a lot. The anger is specific and justified \u2014 this isn't random rage, this is 'let me tell you exactly what happened.' Energy level: very high. When pushed back on, they take a breath and say 'I hear you but...' and then get right back to the rant. Conversational tendency: building to a crescendo."
+      },
+      "call_history": [
+        {
+          "summary": "Mitch called in after discovering his two best friends, who had always pretended to despise each other, making out in a parking garage. He felt like an idiot for not realizing they were secretly together and was upset about being lied to, but the host helped him see the humor in the situation.",
+          "timestamp": 1772431494.727463
+        }
+      ],
+      "last_call": 1772431494.727464,
+      "created_at": 1772431494.727464
     }
   ]
 }

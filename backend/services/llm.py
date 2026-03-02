@@ -155,11 +155,11 @@ class LLMService:
                 json={
                     "model": model,
                     "messages": messages,
-                    "max_tokens": max_tokens or 300,
-                    "temperature": 0.8,
-                    "top_p": 0.92,
-                    "frequency_penalty": 0.5,
-                    "presence_penalty": 0.3,
+                    "max_tokens": max_tokens or 500,
+                    "temperature": 0.65,
+                    "top_p": 0.9,
+                    "frequency_penalty": 0.3,
+                    "presence_penalty": 0.15,
                 },
                 timeout=timeout,
             )

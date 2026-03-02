@@ -67,11 +67,13 @@ Required in `.env`:
   GIT_SSH_COMMAND="ssh -o HostName=mmgnas-10g -p 2222 -i ~/.ssh/gitea_mmgnas" git push origin main
   ```
 
-## Hetzner VPS (Mail Server)
+## Hetzner VPS
 - **IP**: `REDACTED_VPS_IP`
 - **SSH**: `ssh root@REDACTED_VPS_IP` (uses default key `~/.ssh/id_rsa`)
+- **Specs**: 2 CPU, 4GB RAM, 38GB disk (~33GB free)
 - **Mail**: `docker-mailserver` at `/opt/mailserver/`
 - **Manage accounts**: `docker exec mailserver setup email add/del/list`
+- **Available for future services** — has headroom for lightweight containers. Not suitable for storage-heavy services (e.g. Castopod with daily episodes) without a disk upgrade or attached volume.
 
 ## Episodes Published
 - Episode 6 published 2026-02-08 (podcast6.mp3, ~31 min)

@@ -36,6 +36,9 @@ PLATFORM_ALIASES = {
     "bsky": "bluesky", "bluesky": "bluesky",
     "masto": "mastodon", "mastodon": "mastodon",
     "nostr": "nostr",
+    "li": "linkedin", "linkedin": "linkedin",
+    "threads": "threads",
+    "tt": "tiktok", "tiktok": "tiktok",
 }
 
 PLATFORM_DISPLAY = {
@@ -45,9 +48,30 @@ PLATFORM_DISPLAY = {
     "bluesky": "Bluesky",
     "mastodon": "Mastodon",
     "nostr": "Nostr",
+    "linkedin": "LinkedIn",
+    "threads": "Threads",
+    "tiktok": "TikTok",
 }
 
 ALL_PLATFORMS = list(PLATFORM_DISPLAY.keys())
+
+UPLOAD_LEDGER_FILE = "upload-history.json"
+
+
+def load_upload_history(clips_dir: Path) -> dict:
+    """Load upload history for a clips directory.
+    Returns dict mapping clip_file -> list of platforms already uploaded to.
+    """
+    ledger = clips_dir / UPLOAD_LEDGER_FILE
+    if ledger.exists():
+        with open(ledger) as f:
+            return json.load(f)
+    return {}
+
+
+def save_upload_history(clips_dir: Path, history: dict):
+    with open(clips_dir / UPLOAD_LEDGER_FILE, "w") as f:
+        json.dump(history, f, indent=2)
 
 
 def get_api_url(path: str) -> str:
@@ -123,6 +147,18 @@ def build_settings(clip: dict, platform: str) -> dict:
             "selfDeclaredMadeForKids": "no",
             "thumbnail": None,
             "tags": yt_tags,
+        }
+    if platform == "tiktok":
+        return {
+            "__type": "tiktok",
+            "privacy_level": "PUBLIC_TO_EVERYONE",
+            "duet": False,
+            "stitch": False,
+            "comment": True,
+            "autoAddMusic": "no",
+            "brand_content_toggle": False,
+            "brand_organic_toggle": False,
+            "content_posting_method": "DIRECT_POST",
         }
     return {"__type": platform}
 
@@ -530,15 +566,30 @@ def main():
             print("Cancelled.")
             return
 
+    upload_history = load_upload_history(clips_dir)
+
     for i, clip in enumerate(clips):
         clip_file = clips_dir / clip["clip_file"]
         if not clip_file.exists():
             print(f"  Clip {i+1}: Video file not found: {clip_file}")
             continue
 
-        print(f"\n  Clip {i+1}: \"{clip['title']}\"")
+        clip_key = clip["clip_file"]
+        already_uploaded = set(upload_history.get(clip_key, []))
+        remaining_platforms = {p: integ for p, integ in active_platforms.items()
+                               if p not in already_uploaded}
 
-        postiz_platforms = {p: integ for p, integ in active_platforms.items()
+        if not remaining_platforms:
+            print(f"\n  Clip {i+1}: \"{clip['title']}\" — already uploaded to all selected platforms, skipping")
+            continue
+
+        skipped = already_uploaded & set(active_platforms.keys())
+        if skipped:
+            print(f"\n  Clip {i+1}: \"{clip['title']}\" (skipping already uploaded: {', '.join(sorted(skipped))})")
+        else:
+            print(f"\n  Clip {i+1}: \"{clip['title']}\"")
+
+        postiz_platforms = {p: integ for p, integ in remaining_platforms.items()
                             if not integ.get("_direct")}
 
         media = None
@@ -559,24 +610,30 @@ def main():
             result = create_post(integ["id"], content, media, settings, args.schedule)
             if result:
                 print(f"    {display}: Posted!")
+                upload_history.setdefault(clip_key, []).append(platform)
+                save_upload_history(clips_dir, upload_history)
             else:
                 print(f"    {display}: Failed")
 
-        if "youtube" in active_platforms:
+        if "youtube" in remaining_platforms:
             print(f"    Posting to YouTube Shorts (direct)...")
             try:
                 if post_to_youtube(clip, clip_file):
                     print(f"    YouTube: Posted!")
+                    upload_history.setdefault(clip_key, []).append("youtube")
+                    save_upload_history(clips_dir, upload_history)
                 else:
                     print(f"    YouTube: Failed")
             except Exception as e:
                 print(f"    YouTube: Failed — {e}")
 
-        if "bluesky" in active_platforms:
+        if "bluesky" in remaining_platforms:
             print(f"    Posting to Bluesky (direct)...")
             try:
                 if post_to_bluesky(clip, clip_file):
                     print(f"    Bluesky: Posted!")
+                    upload_history.setdefault(clip_key, []).append("bluesky")
+                    save_upload_history(clips_dir, upload_history)
                 else:
                     print(f"    Bluesky: Failed")
             except Exception as e:

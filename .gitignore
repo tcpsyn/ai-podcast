@@ -54,5 +54,8 @@ ref_audio/
 youtube_client_secrets.json
 youtube_token.json
 
+# Clip upload history (local)
+upload-history.json
+
 # Claude settings (local)
 .claude/

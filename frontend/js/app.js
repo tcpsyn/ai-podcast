@@ -684,7 +684,13 @@ async function loadMusic() {
         genreOrder.forEach(genre => {
             const group = document.createElement('optgroup');
             group.label = genre;
-            genres[genre].forEach(track => {
+            // Shuffle within each genre group
+            const genreTracks = genres[genre];
+            for (let i = genreTracks.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [genreTracks[i], genreTracks[j]] = [genreTracks[j], genreTracks[i]];
+            }
+            genreTracks.forEach(track => {
                 const option = document.createElement('option');
                 option.value = track.file;
                 option.textContent = track.name;

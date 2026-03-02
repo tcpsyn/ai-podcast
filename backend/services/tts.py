@@ -82,9 +82,14 @@ VITS_SPEAKERS = {
 DEFAULT_VITS_SPEAKER = "p225"
 
 # Inworld voice mapping - maps ElevenLabs voice IDs to Inworld voices
-# Full voice list from API: Alex, Ashley, Blake, Carter, Clive, Craig, Deborah,
-# Dennis, Dominus, Edward, Elizabeth, Hades, Hana, Julia, Luna, Mark, Olivia,
-# Pixie, Priya, Ronald, Sarah, Shaun, Theodore, Timothy, Wendy
+# Full voice list from API (English): Abby, Alex, Amina, Anjali, Arjun, Ashley,
+# Blake, Brian, Callum, Carter, Celeste, Chloe, Claire, Clive, Craig, Darlene,
+# Deborah, Dennis, Derek, Dominus, Edward, Elizabeth, Elliot, Ethan, Evan, Evelyn,
+# Gareth, Graham, Grant, Hades, Hamish, Hana, Hank, Jake, James, Jason, Jessica,
+# Julia, Kayla, Kelsey, Lauren, Liam, Loretta, Luna, Malcolm, Mark, Marlene,
+# Miranda, Mortimer, Nate, Oliver, Olivia, Pippa, Pixie, Priya, Ronald, Rupert,
+# Saanvi, Sarah, Sebastian, Serena, Shaun, Simon, Snik, Tessa, Theodore, Timothy,
+# Tyler, Veronica, Victor, Victoria, Vinny, Wendy
 INWORLD_VOICES = {
     # Original voice IDs
     "VR6AewLTigWG4xSOukaG": "Edward",    # Tony - fast-talking, emphatic, streetwise
@@ -110,6 +115,20 @@ INWORLD_VOICES = {
     "cgSgspJ2msm6clMCkdW9": "Priya",     # Megan (regular) - female caller
 }
 DEFAULT_INWORLD_VOICE = "Dennis"
+
+# Inworld voices that speak too slowly at default rate — bump them up
+# Range is 0.5 to 1.5, where 1.0 is the voice's native speed
+INWORLD_SPEED_OVERRIDES = {
+    "Wendy": 1.15,
+    "Craig": 1.15,
+    "Deborah": 1.15,
+    "Sarah": 1.1,
+    "Hana": 1.1,
+    "Theodore": 1.15,
+    "Blake": 1.1,
+    "Priya": 1.1,
+}
+DEFAULT_INWORLD_SPEED = 1.1  # Slight bump for all voices
 
 
 def preprocess_text_for_kokoro(text: str) -> str:
@@ -598,7 +617,8 @@ async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray,
     if not api_key:
         raise RuntimeError("INWORLD_API_KEY not set in environment")
 
-    print(f"[Inworld TTS] Voice: {voice}, Text: {text[:50]}...")
+    speed = INWORLD_SPEED_OVERRIDES.get(voice, DEFAULT_INWORLD_SPEED)
+    print(f"[Inworld TTS] Voice: {voice}, Speed: {speed}, Text: {text[:50]}...")
 
     url = "https://api.inworld.ai/tts/v1/voice"
     headers = {
@@ -607,11 +627,12 @@ async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray,
     }
     payload = {
         "text": text,
-        "voice_id": voice,
-        "model_id": "inworld-tts-1.5-max",
-        "audio_config": {
-            "encoding": "LINEAR16",
-            "sample_rate_hertz": 48000,
+        "voiceId": voice,
+        "modelId": "inworld-tts-1.5-max",
+        "audioConfig": {
+            "audioEncoding": "LINEAR16",
+            "sampleRateHertz": 48000,
+            "speakingRate": speed,
         },
     }
 
@@ -650,6 +671,21 @@ async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray,
     return audio.astype(np.float32), 24000
 
 
+_TTS_PROVIDERS = {
+    "kokoro": lambda text, vid: generate_speech_kokoro(text, vid),
+    "f5tts": lambda text, vid: generate_speech_f5tts(text, vid),
+    "inworld": lambda text, vid: generate_speech_inworld(text, vid),
+    "chattts": lambda text, vid: generate_speech_chattts(text, vid),
+    "styletts2": lambda text, vid: generate_speech_styletts2(text, vid),
+    "bark": lambda text, vid: generate_speech_bark(text, vid),
+    "vits": lambda text, vid: generate_speech_vits(text, vid),
+    "elevenlabs": lambda text, vid: generate_speech_elevenlabs(text, vid),
+}
+
+TTS_MAX_RETRIES = 3
+TTS_RETRY_DELAYS = [1.0, 2.0, 4.0]  # seconds between retries
+
+
 async def generate_speech(
     text: str,
     voice_id: str,
@@ -657,7 +693,7 @@ async def generate_speech(
     apply_filter: bool = True
 ) -> bytes:
     """
-    Generate speech from text.
+    Generate speech from text with automatic retry on failure.
 
     Args:
         text: Text to speak
@@ -668,28 +704,31 @@ async def generate_speech(
     Returns:
         Raw PCM audio bytes (16-bit signed int, 24kHz)
     """
-    # Choose TTS provider
+    import asyncio
+
     provider = settings.tts_provider
     print(f"[TTS] Provider: {provider}, Text: {text[:50]}...")
 
-    if provider == "kokoro":
-        audio, sample_rate = await generate_speech_kokoro(text, voice_id)
-    elif provider == "f5tts":
-        audio, sample_rate = await generate_speech_f5tts(text, voice_id)
-    elif provider == "inworld":
-        audio, sample_rate = await generate_speech_inworld(text, voice_id)
-    elif provider == "chattts":
-        audio, sample_rate = await generate_speech_chattts(text, voice_id)
-    elif provider == "styletts2":
-        audio, sample_rate = await generate_speech_styletts2(text, voice_id)
-    elif provider == "bark":
-        audio, sample_rate = await generate_speech_bark(text, voice_id)
-    elif provider == "vits":
-        audio, sample_rate = await generate_speech_vits(text, voice_id)
-    elif provider == "elevenlabs":
-        audio, sample_rate = await generate_speech_elevenlabs(text, voice_id)
-    else:
+    gen_fn = _TTS_PROVIDERS.get(provider)
+    if not gen_fn:
         raise ValueError(f"Unknown TTS provider: {provider}")
+
+    last_error = None
+    for attempt in range(TTS_MAX_RETRIES):
+        try:
+            audio, sample_rate = await gen_fn(text, voice_id)
+            if attempt > 0:
+                print(f"[TTS] Succeeded on retry {attempt}")
+            break
+        except Exception as e:
+            last_error = e
+            if attempt < TTS_MAX_RETRIES - 1:
+                delay = TTS_RETRY_DELAYS[attempt]
+                print(f"[TTS] {provider} attempt {attempt + 1} failed: {e} — retrying in {delay}s...")
+                await asyncio.sleep(delay)
+            else:
+                print(f"[TTS] {provider} failed after {TTS_MAX_RETRIES} attempts: {e}")
+                raise
 
     # Apply phone filter if requested
     # Skip filter for Bark - it already has rough audio quality

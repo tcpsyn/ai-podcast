@@ -51,7 +51,8 @@ class RegularCallerService:
 
     def add_regular(self, name: str, gender: str, age: int, job: str,
                     location: str, personality_traits: list[str],
-                    first_call_summary: str, voice: str = None) -> dict:
+                    first_call_summary: str, voice: str = None,
+                    stable_seeds: dict = None) -> dict:
         """Promote a first-time caller to regular"""
         # Retire oldest if at cap
         if len(self._regulars) >= MAX_REGULARS:
@@ -68,6 +69,7 @@ class RegularCallerService:
             "location": location,
             "personality_traits": personality_traits,
             "voice": voice,
+            "stable_seeds": stable_seeds or {},
             "call_history": [
                 {"summary": first_call_summary, "timestamp": time.time()}
             ],
