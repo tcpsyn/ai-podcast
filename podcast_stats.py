@@ -22,6 +22,8 @@ import sys
 from datetime import datetime, timezone
 
 import requests
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 YOUTUBE_PLAYLIST = "PLGq4uZyNV1yYH_rcitTTPVysPbC6-7pe-"
 APPLE_PODCAST_ID = "1875205848"
@@ -33,9 +35,9 @@ DOCKER_BIN = "/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker"
 CASTOPOD_DB_CONTAINER = "castopod-mariadb-1"
 
 BUNNY_STORAGE_ZONE = "lukeattheroost"
-BUNNY_STORAGE_KEY = "REDACTED_BUNNY_STORAGE_KEY"
+BUNNY_STORAGE_KEY = os.getenv("BUNNY_STORAGE_KEY", "")
 BUNNY_STORAGE_REGION = "la"
-BUNNY_ACCOUNT_KEY = "REDACTED_BUNNY_ACCOUNT_KEY"
+BUNNY_ACCOUNT_KEY = os.getenv("BUNNY_ACCOUNT_KEY", "")
 
 
 def _find_ytdlp():
@@ -243,13 +245,14 @@ def _run_db_query(sql):
             docker_bin = path
             break
 
+    db_pass = os.getenv("CASTOPOD_DB_PASS", "")
     if docker_bin:
         cmd = [docker_bin, "exec", "-i", CASTOPOD_DB_CONTAINER,
-               "mysql", "-u", "castopod", "-pREDACTED_DB_PASSWORD", "castopod", "-N"]
+               "mysql", "-u", "castopod", f"-p{db_pass}", "castopod", "-N"]
     else:
         cmd = [
             "ssh", "-p", NAS_SSH_PORT, NAS_SSH,
-            f"{DOCKER_BIN} exec -i {CASTOPOD_DB_CONTAINER} mysql -u castopod -pREDACTED_DB_PASSWORD castopod -N"
+            f"{DOCKER_BIN} exec -i {CASTOPOD_DB_CONTAINER} mysql -u castopod -p{db_pass} castopod -N"
         ]
     try:
         proc = subprocess.run(cmd, input=sql, capture_output=True, text=True, timeout=30)

@@ -55,8 +55,8 @@ load_dotenv(Path(__file__).parent / ".env")
 
 # Configuration
 CASTOPOD_URL = "https://podcast.macneilmediagroup.com"
-CASTOPOD_USERNAME = "admin"
-CASTOPOD_PASSWORD = "REDACTED_CASTOPOD_PASSWORD"
+CASTOPOD_USERNAME = os.getenv("CASTOPOD_USERNAME", "admin")
+CASTOPOD_PASSWORD = os.getenv("CASTOPOD_PASSWORD")
 PODCAST_ID = 1
 PODCAST_HANDLE = "LukeAtTheRoost"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -74,25 +74,14 @@ YT_PODCAST_PLAYLIST = "PLGq4uZyNV1yYH_rcitTTPVysPbC6-7pe-"
 
 # Postiz (social media posting)
 POSTIZ_URL = "https://social.lukeattheroost.com"
-POSTIZ_JWT_SECRET = "REDACTED_POSTIZ_JWT_SECRET"
-POSTIZ_USER_ID = "REDACTED_POSTIZ_USER_ID"
-POSTIZ_INTEGRATIONS = {
-    "facebook": {"id": "REDACTED_FB_ID"},
-    "instagram": {"id": "REDACTED_IG_ID"},
-    "discord": {"id": "REDACTED_DISCORD_ID", "channel": "REDACTED_DISCORD_CHANNEL"},
-    "bluesky": {"id": "REDACTED_BSKY_ID"},
-    "mastodon": {"id": "REDACTED_MASTODON_ID"},
-    "nostr": {"id": "REDACTED_NOSTR_ID"},
-    "linkedin": {"id": "REDACTED_LINKEDIN_ID"},
-    "threads": {"id": "REDACTED_THREADS_ID"},
-    # TikTok excluded — requires video, not image posts. Use upload_clips.py instead.
-    # "tiktok": {"id": "REDACTED_TIKTOK_ID"},
-}
+POSTIZ_JWT_SECRET = os.getenv("POSTIZ_JWT_SECRET")
+POSTIZ_USER_ID = os.getenv("POSTIZ_USER_ID")
+POSTIZ_INTEGRATIONS = json.loads(os.getenv("POSTIZ_INTEGRATIONS", "{}"))
 
 # NAS Configuration for chapters upload
 # BunnyCDN Storage
 BUNNY_STORAGE_ZONE = "lukeattheroost"
-BUNNY_STORAGE_KEY = "REDACTED_BUNNY_STORAGE_KEY"
+BUNNY_STORAGE_KEY = os.getenv("BUNNY_STORAGE_KEY")
 BUNNY_STORAGE_REGION = "la"  # Los Angeles
 
 NAS_HOST = "mmgnas"
@@ -102,7 +91,7 @@ DOCKER_PATH = "/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker"
 CASTOPOD_CONTAINER = "castopod-castopod-1"
 MARIADB_CONTAINER = "castopod-mariadb-1"
 DB_USER = "castopod"
-DB_PASS = "REDACTED_DB_PASSWORD"
+DB_PASS = os.getenv("CASTOPOD_DB_PASS")
 DB_NAME = "castopod"
 
 LOCK_FILE = Path(__file__).parent / ".publish.lock"

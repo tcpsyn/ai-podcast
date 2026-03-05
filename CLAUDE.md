@@ -18,7 +18,7 @@
 ## Castopod (Podcast Publishing)
 - **URL**: https://podcast.macneilmediagroup.com
 - **Podcast handle**: `@LukeAtTheRoost`
-- **API Auth**: Basic auth (admin/REDACTED_CASTOPOD_PASSWORD)
+- **API Auth**: Basic auth (credentials in .env: CASTOPOD_USERNAME, CASTOPOD_PASSWORD)
 - **Container**: `castopod-castopod-1`
 - **Database**: `castopod-mariadb-1` (user: castopod, db: castopod)
 

@@ -4003,9 +4003,9 @@ def _restore_signalwire_webhook():
 
 # BunnyCDN config for public on-air status
 _BUNNY_STORAGE_ZONE = "lukeattheroost"
-_BUNNY_STORAGE_KEY = "REDACTED_BUNNY_STORAGE_KEY"
+_BUNNY_STORAGE_KEY = os.getenv("BUNNY_STORAGE_KEY", "")
 _BUNNY_STORAGE_REGION = "la"
-_BUNNY_ACCOUNT_KEY = "REDACTED_BUNNY_ACCOUNT_KEY"
+_BUNNY_ACCOUNT_KEY = os.getenv("BUNNY_ACCOUNT_KEY", "")
 
 
 def _update_on_air_cdn(on_air: bool):

@@ -42,7 +42,7 @@ echo "podcast-stats: starting hourly loop"
 while true; do
     echo "$(date -u '+%Y-%m-%dT%H:%M:%SZ') Running stats update..."
     if python podcast_stats.py --json --upload 2>&1; then
-        curl -s "https://monitoring.macneilmediagroup.com/api/push/REDACTED_HEARTBEAT_TOKEN?status=up&msg=OK" > /dev/null
+        [ -n "$HEARTBEAT_URL" ] && curl -s "${HEARTBEAT_URL}?status=up&msg=OK" > /dev/null
         echo "  ...done, heartbeat sent"
     else
         echo "  ...failed, will retry next hour"
