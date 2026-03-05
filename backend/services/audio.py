@@ -10,8 +10,22 @@ from typing import Optional, Callable
 import wave
 import time
 
+
 # Settings file path
 SETTINGS_FILE = Path(__file__).parent.parent.parent / "audio_settings.json"
+
+# REAPER state file for dialog region markers
+REAPER_STATE_FILE = "/tmp/reaper_state.txt"
+
+def _write_reaper_state(state: str):
+    """Write state to file. Uses a thread so it's safe from audio callbacks."""
+    def _write():
+        try:
+            with open(REAPER_STATE_FILE, "w") as f:
+                f.write(state)
+        except OSError:
+            pass
+    threading.Thread(target=_write, daemon=True).start()
 
 
 class AudioService:
@@ -507,10 +521,10 @@ class AudioService:
     def _stop_live_caller_stream(self):
         """Stop persistent live caller output stream"""
         if self._live_caller_stream:
-            self._live_caller_stream.stop()
-            self._live_caller_stream.close()
+            stream = self._live_caller_stream
             self._live_caller_stream = None
             self._live_caller_write = None
+            self._close_stream(stream)
             print("[Audio] Live caller stream stopped")
 
     def route_real_caller_audio(self, pcm_data: bytes, sample_rate: int):
@@ -555,9 +569,9 @@ class AudioService:
 
         # Close stem_mic if active — this stream's callback handles stem recording too
         if self._stem_mic_stream is not None:
-            self._stem_mic_stream.stop()
-            self._stem_mic_stream.close()
+            stream = self._stem_mic_stream
             self._stem_mic_stream = None
+            self._close_stream(stream)
             print("[Audio] Closed stem_mic (host stream takes over)")
 
         self._host_send_callback = send_callback
@@ -625,10 +639,10 @@ class AudioService:
     def stop_host_stream(self):
         """Stop host mic streaming and live caller output"""
         if self._host_stream:
-            self._host_stream.stop()
-            self._host_stream.close()
+            stream = self._host_stream
             self._host_stream = None
             self._host_send_callback = None
+            self._close_stream(stream)
             print("[Audio] Host mic streaming stopped")
         self._stop_monitor()
         self._stop_live_caller_stream()
@@ -702,10 +716,10 @@ class AudioService:
     def _stop_monitor(self):
         """Stop mic monitor stream"""
         if self._monitor_stream:
-            self._monitor_stream.stop()
-            self._monitor_stream.close()
+            stream = self._monitor_stream
             self._monitor_stream = None
             self._monitor_write = None
+            self._close_stream(stream)
             print("[Audio] Mic monitor stopped")
 
     # --- Music Playback ---
@@ -894,22 +908,34 @@ class AudioService:
             print(f"Music playback error: {e}")
             self._music_playing = False
 
+    def _close_stream(self, stream):
+        """Safely close a sounddevice stream, ignoring double-close errors"""
+        if stream is None:
+            return
+        try:
+            stream.stop()
+        except Exception:
+            pass
+        try:
+            stream.close()
+        except Exception:
+            pass
+
     def stop_music(self, fade_duration: float = 2.0):
         """Stop music playback with fade out"""
         if not self._music_playing or not self._music_stream:
             self._music_playing = False
-            if self._music_stream:
-                self._music_stream.stop()
-                self._music_stream.close()
-                self._music_stream = None
+            stream = self._music_stream
+            self._music_stream = None
+            self._close_stream(stream)
             self._music_position = 0
             return
 
         if fade_duration <= 0:
             self._music_playing = False
-            self._music_stream.stop()
-            self._music_stream.close()
+            stream = self._music_stream
             self._music_stream = None
+            self._close_stream(stream)
             self._music_position = 0
             print("Music stopped")
             return
@@ -918,6 +944,10 @@ class AudioService:
         original_volume = self._music_volume
         steps = 20
         step_time = fade_duration / steps
+        # Capture stream reference locally so the fade thread closes THIS stream,
+        # not whatever self._music_stream points to later
+        fade_stream = self._music_stream
+        self._music_stream = None
 
         def _fade():
             for i in range(steps):
@@ -927,10 +957,7 @@ class AudioService:
                 import time
                 time.sleep(step_time)
             self._music_playing = False
-            if self._music_stream:
-                self._music_stream.stop()
-                self._music_stream.close()
-                self._music_stream = None
+            self._close_stream(fade_stream)
             self._music_position = 0
             self._music_volume = original_volume
             print("Music faded out and stopped")
@@ -958,6 +985,7 @@ class AudioService:
 
         self._ad_playing = True
         self._ad_position = 0
+        _write_reaper_state("ad")
 
         if self.output_device is None:
             num_channels = 2
@@ -995,6 +1023,7 @@ class AudioService:
                     outdata[:remaining, channel_idx] = self._ad_resampled[self._ad_position:]
                 # Ad finished — no loop
                 self._ad_playing = False
+                _write_reaper_state("dialog")
 
         try:
             self._ad_stream = sd.OutputStream(
@@ -1013,11 +1042,14 @@ class AudioService:
 
     def stop_ad(self):
         """Stop ad playback"""
+        was_playing = self._ad_playing
         self._ad_playing = False
+        if was_playing:
+            _write_reaper_state("dialog")
         if self._ad_stream:
-            self._ad_stream.stop()
-            self._ad_stream.close()
+            stream = self._ad_stream
             self._ad_stream = None
+            self._close_stream(stream)
         self._ad_position = 0
 
     def play_ident(self, file_path: str):
@@ -1037,13 +1069,16 @@ class AudioService:
             if audio.ndim == 1:
                 # Mono file — duplicate to stereo
                 audio = np.stack([audio, audio])
-            self._ident_data = audio.astype(np.float32)  # shape: (2, samples)
+            audio = audio.astype(np.float32)  # shape: (2, samples)
+            self._ident_data = audio
         except Exception as e:
             print(f"Failed to load ident: {e}")
             return
 
         self._ident_playing = True
         self._ident_position = 0
+        _write_reaper_state("ident")
+        print(f"Ident loaded: shape={self._ident_data.shape}, max={np.max(np.abs(self._ident_data)):.4f}")
 
         if self.output_device is None:
             num_channels = 2
@@ -1067,9 +1102,12 @@ class AudioService:
         else:
             self._ident_resampled = self._ident_data
 
+        _cb_count = [0]
         def callback(outdata, frames, time_info, status):
             outdata[:] = 0
             if not self._ident_playing or self._ident_resampled is None:
+                if _cb_count[0] == 0:
+                    print(f"Ident callback: not playing (playing={self._ident_playing}, data={'yes' if self._ident_resampled is not None else 'no'})")
                 return
 
             n_samples = self._ident_resampled.shape[1]
@@ -1079,6 +1117,9 @@ class AudioService:
                 chunk_r = self._ident_resampled[1, self._ident_position:self._ident_position + frames]
                 outdata[:, ch_l] = chunk_l
                 outdata[:, ch_r] = chunk_r
+                _cb_count[0] += 1
+                if _cb_count[0] == 1:
+                    print(f"Ident callback delivering audio: ch_l={ch_l}, ch_r={ch_r}, max={max(np.max(np.abs(chunk_l)), np.max(np.abs(chunk_r))):.4f}")
                 if self.stem_recorder:
                     mono_mix = (chunk_l + chunk_r) * 0.5
                     self.stem_recorder.write_sporadic("idents", mono_mix.copy(), device_sr)
@@ -1088,6 +1129,7 @@ class AudioService:
                     outdata[:remaining, ch_l] = self._ident_resampled[0, self._ident_position:]
                     outdata[:remaining, ch_r] = self._ident_resampled[1, self._ident_position:]
                 self._ident_playing = False
+                _write_reaper_state("dialog")
 
         try:
             self._ident_stream = sd.OutputStream(
@@ -1099,18 +1141,21 @@ class AudioService:
                 blocksize=2048
             )
             self._ident_stream.start()
-            print(f"Ident playback started on ch {self.ident_channel}/{self.ident_channel + 1} @ {device_sr}Hz")
+            print(f"Ident playback started on ch {ch_l+1}/{ch_r+1} (idx {ch_l}/{ch_r}) of {num_channels} channels @ {device_sr}Hz, device={device}")
         except Exception as e:
             print(f"Ident playback error: {e}")
             self._ident_playing = False
 
     def stop_ident(self):
         """Stop ident playback"""
+        was_playing = self._ident_playing
         self._ident_playing = False
+        if was_playing:
+            _write_reaper_state("dialog")
         if self._ident_stream:
-            self._ident_stream.stop()
-            self._ident_stream.close()
+            stream = self._ident_stream
             self._ident_stream = None
+            self._close_stream(stream)
         self._ident_position = 0
 
     def set_music_volume(self, volume: float):
@@ -1135,6 +1180,7 @@ class AudioService:
 
             if self.output_device is None:
                 audio, sr = librosa.load(str(path), sr=None, mono=True)
+                audio = audio.astype(np.float32)
                 audio = self._apply_fade(audio, sr)
                 def play():
                     # Use a dedicated stream instead of sd.play()
@@ -1147,6 +1193,7 @@ class AudioService:
                 channel_idx = min(self.sfx_channel, num_channels) - 1
 
                 audio, _ = librosa.load(str(path), sr=device_sr, mono=True)
+                audio = audio.astype(np.float32)
                 audio = self._apply_fade(audio, device_sr)
 
                 # Stem recording: sfx
@@ -1212,9 +1259,9 @@ class AudioService:
     def stop_stem_mic(self):
         """Stop the persistent stem mic capture."""
         if self._stem_mic_stream:
-            self._stem_mic_stream.stop()
-            self._stem_mic_stream.close()
+            stream = self._stem_mic_stream
             self._stem_mic_stream = None
+            self._close_stream(stream)
             print("[StemRecorder] Host mic capture stopped")
         self._stop_monitor()
 

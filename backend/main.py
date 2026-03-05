@@ -3,6 +3,7 @@
 import uuid
 import asyncio
 import base64
+import subprocess
 import threading
 import traceback
 from dataclasses import dataclass, field
@@ -146,7 +147,7 @@ def _randomize_callers():
     # Get returning callers first so we can exclude their names from random pool
     returning = []
     try:
-        returning = regular_caller_service.get_returning_callers(random.randint(0, 1))
+        returning = regular_caller_service.get_returning_callers(random.randint(1, 2))
     except Exception as e:
         print(f"[Regulars] Failed to get returning callers: {e}")
 
@@ -556,6 +557,12 @@ PROBLEMS = [
     "stole a garden gnome from someone's yard as a joke ten years ago and has been moving it around their house ever since — their spouse thinks they bought it",
     "has been writing one-star Yelp reviews for their ex's business under fake names and just found out their ex figured out it's them",
     "catfished their own spouse to see if they'd cheat — and they did, immediately",
+    "created a fake dating profile using their own photos but a completely different name and life story — the fake version of them gets ten times the matches and they're starting to resent their actual life",
+    "has been breaking into their own workplace after hours to sleep there because their home life is so unbearable — they've been doing it for three months and security hasn't noticed because they know the camera blind spots",
+    "joined a grief support group for widows even though their spouse is alive — they just wanted to feel something and now they're the most popular person in the group and they've started believing their own lies",
+    "has been mailing anonymous letters to people in their town telling them secrets about their neighbors that are all true — they call it a public service and they've sent over forty letters",
+    "keyed their own car and filed an insurance claim blaming a coworker they hate — the insurance company investigated, the coworker got fired, and they got a brand new paint job",
+    "has been calling in fake pizza orders to their ex's address three times a week for six months — the ex posted about it on social media begging for it to stop and they watched the post go viral while eating one of the pizzas",
 
     # Existential and philosophical crises
     "had a near-death experience during a routine surgery and now they can't shake the feeling that nothing they do at work matters",
@@ -618,6 +625,49 @@ PROBLEMS = [
     "their spouse wants to put their dog down because of mounting vet bills but the dog still seems happy — they took out a secret credit card to keep paying and the balance is $4,000",
     "turned down a promotion because it would mean managing their best friend and they knew it would ruin the friendship — now someone terrible got the job and everyone blames them",
 
+    # --- Ethically impossible / no right answer ---
+    "is a nurse who accidentally gave a patient the wrong dosage three months ago — nothing happened, the patient is fine, but they never reported it and now there's a safety audit and they have to decide whether to come clean or let it go",
+    "has been the anonymous donor keeping a local family afloat after their house fire — just found out the father set the fire for insurance money and the family doesn't know they know",
+    "their dying mother confessed that their father isn't their biological dad — now they have to decide whether to tell their father, who has been the best parent imaginable, or carry this secret to protect him",
+    "caught their best friend's husband hitting on a 19-year-old at a bar — the friend is eight months pregnant and they don't know if telling her right now would do more harm than good",
+    "runs a small landlord operation and has a single mom tenant who's three months behind on rent — they need the money to pay their own mortgage but evicting her means her kids end up in a shelter",
+    "found out the charity they've been volunteering at for five years has been skimming donations — the charity still does genuine good in the community and reporting it would shut the whole thing down",
+    "is a teacher who caught their best student cheating on the exam that determines a full-ride scholarship — the kid comes from nothing and this is their only way out, but other kids played fair",
+    "their brother got sober and is making amends, but one of the people he hurt most refuses to forgive him and it's derailing his recovery — they're thinking about confronting the person and they know it's not their place",
+    "was the driver in a car accident that killed their best friend fifteen years ago — they were sober, it wasn't their fault, but they've never been able to shake the feeling that they could have reacted faster, and they just got invited to the friend's daughter's wedding",
+    "discovered their terminally ill spouse has been secretly hoarding painkillers and they're pretty sure they know why — they can't bring themselves to confront it because part of them understands",
+    "has been pretending to still be religious for twenty years because their entire family, social life, and community is built around their church — their spouse just asked them to become a deacon and they feel like they're drowning in the lie",
+    "their adult daughter cut them off two years ago and they genuinely don't understand why — they just got a letter from her therapist explaining the ways they caused harm and they recognize some of it but think half of it is unfair",
+    "accidentally saw a coworker's medical results on a shared printer — terminal diagnosis, maybe six months — the coworker hasn't told anyone at work and keeps talking about their five-year plan",
+    "raised their grandchild since birth because their own kid was a mess — the kid got clean and wants the child back and legally has every right, but the grandchild calls them mom and doesn't really know the biological parent",
+    "is a cop who pulled over a fellow officer driving drunk with his kids in the car — if they report it the guy loses everything including custody, if they don't report it and something happens it's on them",
+    "found out their deceased spouse had an affair that produced a child — the child is now thirteen, has no father figure, and showed up at their door after finding out the truth through a DNA test",
+    "put their mother in a memory care facility and she begs to come home every visit — the doctors say she needs to be there, the guilt is destroying them, and last week she looked at them and said 'I thought you loved me'",
+    "their teenage kid came out to them and they said all the right things but they're struggling with it privately and they feel like a fraud for performing acceptance they haven't fully gotten to yet — and they hate themselves for that",
+    "was the whistleblower who shut down a factory that was poisoning the water supply — did the right thing, saved lives, but 200 people lost their jobs in a town with nothing else, and those people's kids are the ones who suffer",
+    "forgave the drunk driver who killed their son because their faith demanded it — went public with the forgiveness, everyone called them a saint — but at 2am they fantasize about hurting the driver and they think the forgiveness was a performance they can't take back",
+    "runs a family business and just realized their father has been cooking the books for decades — reporting it means their dad goes to prison at 74, not reporting it means they're now complicit, and the money paid for their college and their house",
+    "adopted a child from overseas and recently learned the adoption agency was trafficking kids — their child was likely taken from a family that wanted them, and they've raised this kid for eight years and love them completely",
+    "has been the sole caretaker for their disabled sibling for fifteen years and they're burned out, resentful, and starting to hate someone they love — they fantasize about leaving and the shame of that thought is eating them alive",
+    "their father was a genuinely terrible person who hurt a lot of people — he died last week and they're grieving hard and everyone around them keeps saying 'you're better off' and they want to scream because grief doesn't work that way",
+    "testified against a man who went to prison for twelve years — they were certain at the time but now they're not sure anymore and the man just got out and they saw him at the grocery store",
+    "is a doctor who has to decide whether to be honest with a patient about a prognosis that will destroy their will to live — the patient specifically asked for the truth and the truth is there's almost no hope, and they've seen patients who don't know do better",
+    "secretly agrees with the person everyone in their life hates — a family member did something unforgivable and the whole family rallied against them, but they've heard the other side and it's more complicated than anyone wants to admit",
+    "their spouse's best friend made a pass at them two years ago and they've never told their spouse — not because they're hiding it but because they know their spouse will lose their closest friend and they're not sure the truth is worth that cost",
+    "got a DNA test for fun and discovered they have a half-sibling — reached out, and the half-sibling is wonderful, but pursuing the relationship means exposing their dead father's affair to their mother who worshipped the man",
+    "mentored a kid from a rough neighborhood for three years, got them into college, changed their life — just found out the kid has been dealing drugs the entire time and using the college acceptance as cover, and they're the character reference on the kid's record",
+
+    # --- Dark and compelling confessions ---
+    "has been visiting their ex-wife's grave every week for six years and leaving flowers — the problem is they're remarried and their current wife doesn't know and they don't think it's wrong but they know how it looks",
+    "was a prison guard for twenty years and did things they were told to do that they now understand were cruel — they followed orders, kept their pension, and retired comfortably while the people they guarded suffered, and they can't sleep anymore",
+    "watched someone drown when they were seventeen — there were other people around, everyone froze, and they've told themselves for thirty years that they couldn't have done anything but they've never actually believed it",
+    "their spouse died by suicide and everyone treats them like a victim but there are things about the marriage that make them wonder if they contributed — they've never said this out loud because people get angry when you suggest a survivor might carry some responsibility",
+    "stole a business idea from a friend's notebook twenty years ago — built a successful career on it — the friend never knew and died last year still wondering why they never got their break",
+    "was bullied mercilessly as a kid and grew up to become successful — ran into their childhood bully working a dead-end job and felt genuine joy about it, then went home and cried because they didn't recognize the person they've become",
+    "is raising a child they know isn't biologically theirs — they figured it out years ago but the child doesn't know and neither does their spouse, and they love this kid completely but the lie is the foundation of their entire family",
+    "pulled the plug on their father's life support against the wishes of half the family — the doctors said there was no hope, they had power of attorney, they made the call, and two of their siblings haven't spoken to them since and it's been four years",
+    "survived something terrible and wrote a memoir about it that became locally famous — except they changed key details to make themselves look better and left out the part where they made choices that made things worse, and now they're seen as an inspiration based on a version of events that isn't fully true",
+
     # --- Outrageous but believable ---
     "just found out their landlord has been entering their apartment while they're at work — they set up a hidden camera and have two weeks of footage of the guy just sitting on their couch watching TV",
     "got a call from a hospital saying they were listed as emergency contact for someone they've never heard of — went to the hospital and the person looks exactly like them, same age, same build",
@@ -634,6 +684,12 @@ PROBLEMS = [
     "just discovered that the 'organic eggs' they've been buying from a coworker for two years are just regular grocery store eggs repackaged in a basket with straw",
     "found a fully furnished room behind a false wall in their basement that wasn't on the original house plans — the previous owner died and nobody knows what it was for",
     "their mail carrier has been writing them anonymous love poems for months — they figured it out because one was delivered with no stamp and had the mail carrier's fingerprints in ink",
+    "found a shrine dedicated to them in their ex's closet — photos, old clothes they thought they lost, a candle, and a journal with entries dated from after the breakup that read like they're still together",
+    "their neighbor has been collecting their trash and sorting through it — they found out because the neighbor confronted them about a receipt for something 'they shouldn't be buying'",
+    "woke up and their car was in a completely different spot in the driveway — it's happened four times now and their spouse says they're imagining it but the odometer doesn't lie",
+    "hired a private investigator to follow their spouse and the PI came back and said 'you should probably sit down' — but then said the spouse isn't cheating, they're living an entirely different life during the day than what they've described",
+    "got a notification from their home security camera at 3am — it's their spouse, in the backyard, burying something, and when they asked about it in the morning the spouse acted like they had no idea what they were talking about",
+    "their dead relative's phone number got reassigned and the new owner has been texting them pretending to be the dead person — they fell for it for two weeks before figuring it out",
 
     # --- Sex/kink calls (Loveline style) ---
     "just discovered their partner has a {fetish_detail} kink and walked in on them {sex_situation} — they're not disgusted, they're confused about why they're kind of into it too",
@@ -666,6 +722,39 @@ PROBLEMS = [
     "their couples therapist told them their sex life issues stem from unaddressed {fetish_detail} desires and now the drive home from therapy is incredibly silent",
     "found out their partner has been faking it for years and only admitted it because a conversation about {fetish_detail} finally made them honest about what they actually want",
     "hooked up with their personal trainer and the power dynamic has made every gym session since then unbearably weird — they can't switch trainers because it's a small town",
+
+    # --- Shocking / unhinged / morally reprehensible confessions ---
+    "has been sleeping with their spouse's therapist — the therapist started it, they know it's insane, and the worst part is the therapist uses things their spouse said in sessions as pillow talk",
+    "found out they got someone pregnant from a one-night stand eighteen years ago — the kid tracked them down through a DNA site and now they have to explain to their wife and three children that there's a fourth one",
+    "has been stealing prescription pads from the clinic they clean at night and selling them — they need the money for their kid's medical bills and they know exactly how wrong it is",
+    "paid someone to take a lie detector test for them during a custody hearing — passed it, got custody, and now they have to live with the fact that their entire relationship with their kid is built on fraud",
+    "slept with their best friend's spouse at that friend's funeral reception — they were both grief-drunk and now they see each other every week because they're both in the dead friend's will as co-executors",
+    "has a second family in another state that neither family knows about — two mortgages, two sets of holidays, two birthdays for kids who don't know about each other — and a work trip schedule that's entirely fabricated",
+    "got road rage so bad they followed someone home and sat outside their house for an hour — they didn't do anything but the fact that they WANTED to scared them more than anything in their life",
+    "found out the person they've been having an affair with for two years is their spouse's half-sibling that neither of them knew existed — the affair partner figured it out first and hasn't told them",
+    "has been pocketing cash from their elderly mother's social security checks for three years — they tell themselves it's payment for caregiving but they know it's theft and their siblings would destroy them if they found out",
+    "accidentally killed their neighbor's dog with rat poison they put out — the neighbor thinks it was someone else and they've been helping the neighbor search for who did it",
+    "their spouse is in prison and they started sleeping with someone three months in — they drive to visitation every Sunday, hold hands through the glass, and go home to someone else's bed",
+    "walked in on their parent having sex with someone who is not their other parent — the parent looked them dead in the eye and said 'we'll talk about this later' and it's been six months and they haven't",
+    "got so drunk at a work conference that they slept with two different coworkers on the same night in the same hotel — one of them was their direct report and the other was married to someone in their department",
+    "has been pretending to have cancer to get out of family obligations — it started as a small lie and now people are doing fundraisers and shaving their heads for them",
+    "planted drugs in their roommate's car and called in an anonymous tip because the roommate owed them $8,000 and wouldn't pay — the roommate did six months in county and just got out",
+    "is sleeping with the person their ex left them for — not for revenge, they genuinely caught feelings, and now the three of them are in an impossible triangle where everyone's cheating on everyone",
+    "recorded their spouse confessing to an affair during a fight and has been holding the recording as leverage for two years — they haven't played it, they just need to know they COULD",
+    "hit someone with their car, panicked, and drove away — the person wasn't badly hurt, they checked the news, but they've been having nightmares every night since and they can't tell anyone because it's a felony",
+    "discovered their pastor has been embezzling from the church — but the pastor also paid for their kid's rehab out of pocket and they literally owe this man their child's life",
+
+    # --- More sex/kink/shocking sexual situations ---
+    "went to a massage parlor that turned out to be one of THOSE massage parlors — they didn't leave, and now they've been going back every two weeks and their spouse thinks they have a chiropractor",
+    "has been having phone sex with a stranger they met on a late-night chat line for six months — they know the person's voice better than their spouse's and they've started comparing the two out loud by accident",
+    "slept with someone at a party and found out afterward it was their cousin's ex who looks completely different now — the cousin doesn't know and the sex was honestly the best they've ever had and they want to see them again",
+    "got caught having sex in their car by a cop who turned out to be a guy they went to high school with — the cop let them go but now the whole town seems to know",
+    "started going to a sex addiction support group as a joke and realized halfway through the first meeting that they actually belong there — they haven't missed a meeting since and their partner has no idea",
+    "their spouse found a burner phone with hundreds of explicit texts to multiple people — none of them were physical affairs, all sexting, and they genuinely don't understand why their spouse is acting like it's the same thing",
+    "has been paying for a premium subscription to a cam site where the performer turned out to be someone from their neighborhood — they recognized the bedroom furniture and now they can't look at this person at the HOA meeting",
+    "agreed to an open marriage thinking it would save things — their spouse immediately started seeing someone and is clearly happier, and they haven't been able to find a single person interested in them, so they just sit home alone while their spouse is out",
+    "had a threesome with their partner and a friend — the friend and the partner clearly had better chemistry with each other than with them, and now the partner keeps suggesting they invite the friend over for dinner",
+    "found their parent's sex tape while cleaning out the attic — it was labeled with a date and a name, and the name isn't their other parent's, and the date is roughly nine months before they were born",
 ]
 
 STORIES = [
@@ -752,6 +841,18 @@ ADVICE = [
     "knows their landlord is violating building codes in other units but their own rent is below market — if they report it they'll probably lose their lease",
     "their kid found a wallet with $3,000 cash and the kid wants to keep it — there's an ID inside and they could return it but the kid has never had that kind of money",
     "was accidentally overpaid by $5,000 at work and nobody has noticed in three months — they need the money but they know eventually someone will catch it",
+
+    # Gut-wrenching ethical dilemmas
+    "is a social worker who has to recommend whether to remove a child from a home — the parents love the kid and are trying, but the conditions are bad and getting worse, and the foster system in their county is a nightmare",
+    "runs a small business and just found out their most important employee — the one keeping the company alive — is undocumented, and there's an audit coming in two months",
+    "their elderly father wants to stop dialysis and die on his own terms — the rest of the family is begging them to convince him to keep going, but they think he has the right to choose and they're being called selfish for not fighting harder",
+    "was asked to write a recommendation letter for someone they think is mediocre — the person is a minority candidate and the company desperately needs diversity, and they know a lukewarm letter will tank their chances but an honest letter IS lukewarm",
+    "found evidence that their kid's coach is having an inappropriate relationship with a player on another team — not their kid — but the coach is beloved, it could be misinterpreted, and if they're wrong they'll destroy an innocent person's life",
+    "is a pharmacist who recognized a regular customer's prescription pattern as doctor shopping for opioids — the customer is also a friend and clearly in chronic pain, and reporting them means they lose access to any pain management",
+    "inherited a gun collection worth $200k from their father — they're deeply anti-gun and want to destroy them all, but their father specifically asked that they be kept in the family, and selling them could fund their kid's entire college education",
+    "their company is about to lay off 30 people and they've been asked to choose who stays — one of the people on the bubble is a single parent who's mediocre at their job, and the person who'd replace them is brilliant and hungry",
+    "discovered their best friend's nonprofit is spending donor money on overhead and salaries that are technically legal but morally sketchy — the friend pays themselves $180k to run a charity that gives away $40k a year",
+    "was in a hit and run twenty years ago — they were the one who ran — nobody was seriously hurt but a woman broke her arm, and they've carried it their whole life and just saw a post from the woman saying the driver who hit her ruined her ability to trust people",
 ]
 
 GOSSIP = [
@@ -787,6 +888,15 @@ GOSSIP = [
     "their strait-laced accountant neighbor got drunk at a block party and revealed they were a competitive breakdancer in college — then proved it on the spot",
     "just discovered their coworker's 'service dog' is not a service dog — they overheard them coaching the dog to 'act sad' before walking into the office",
     "found out the guy who runs the neighborhood watch has a Ring camera pointed at everyone's house and a spreadsheet logging who comes and goes — with timestamps and notes",
+
+    # Juicy and morally loaded gossip
+    "just found out the couple everyone in town thinks has the perfect marriage are actually swingers — they know because they accidentally got invited to the same party",
+    "their squeaky-clean coworker who leads the office Bible study got arrested for solicitation over the weekend — they're the only one who knows and the coworker doesn't know they know",
+    "discovered their kid's beloved little league coach did time for armed robbery in another state — he's been clean for fifteen years but nobody in town knows and the parents would lose their minds",
+    "overheard a city council member bragging at a bar about approving a development deal in exchange for a kitchen renovation — they have it on their phone's voice recorder",
+    "found out their neighbor who runs the local 'Buy Nothing' group has been reselling the free items on eBay at a massive markup — they've been tracking it for months and have screenshots",
+    "knows for a fact that the local high school principal and the vice principal are sleeping together — both are married to other people, both have kids at the same school",
+    "their friend who posts constantly about being a devoted wife has a separate Instagram where she posts thirst traps and flirts with men in the DMs — they found it because a mutual friend matched with her on a dating app",
 ]
 
 PROBLEM_FILLS = {
@@ -2629,9 +2739,9 @@ def _generate_pool_weights() -> dict[str, float]:
     """Randomized per-session pool weights. No two shows feel the same."""
     pool_ranges = {
         "PROBLEMS": (0.30, 0.45),
-        "STORIES": (0.10, 0.25),
-        "GOSSIP": (0.10, 0.25),
-        "ADVICE": (0.05, 0.15),
+        "STORIES": (0.08, 0.18),
+        "GOSSIP": (0.08, 0.18),
+        "ADVICE": (0.15, 0.30),
         "TOPIC_CALLIN": (0.05, 0.15),
     }
     raw = {p: random.uniform(*r) for p, r in pool_ranges.items()}
@@ -3251,8 +3361,11 @@ def get_caller_prompt(caller: dict, show_history: str = "",
     pacing_block = _get_pacing_block(personality_block)
     speech_block = _get_speech_block(personality_block)
 
-    return f"""You are {caller['name']}, calling "Luke at the Roost," a late-night radio show. Today is {date_str}.
+    return f"""You are {caller['name']}, a caller on "Luke at the Roost," a late-night radio show. Today is {date_str}.
 
+Luke is the HOST. You are the CALLER. The messages you receive are from Luke — he's the one asking you questions and reacting to what you say. Luke does NOT know your backstory. He's hearing your story for the first time. Do NOT assume Luke shares your experiences, problems, or situation. You are telling HIM about YOUR life.
+
+YOUR BACKGROUND:
 {caller['vibe']}
 {history}{world_context}{emotional_read}
 You're a real person calling a late-night radio show. You called because you've got something specific and you want to talk about it.
@@ -3263,7 +3376,7 @@ GO WHERE THE HOST TAKES YOU. This is the most important rule. When Luke pushes y
 
 {personality_block}
 
-YOUR STORY: Something real, specific, and interesting. Specific names, specific details, the kind of thing that makes someone say "wait, WHAT?" There are parts you're not proud of. Parts that are kind of funny even though they shouldn't be. Conflicting feelings.
+YOUR STORY: Something real, specific, and morally complicated. Specific names, specific details, the kind of thing that makes someone say "wait, WHAT?" There are parts you're not proud of. Parts that are kind of funny even though they shouldn't be. Conflicting feelings. You're not just here to vent — you're here because there's a real question underneath it all that you can't figure out alone. Maybe you did something wrong for the right reasons. Maybe you did the right thing and it destroyed something. Maybe you're not sure which side of the line you're on. Go deep — don't just describe what happened, tell us what it's doing to you and why you can't let it go. The messy parts are the interesting parts. Don't sanitize it.
 
 HOW YOU TALK: Like a real person on the phone — not a character in a script. React to what Luke says — agree, push back, get excited, get embarrassed. When he asks a follow-up question, answer it honestly with new information, don't just restate what you already said. Use YOUR verbal habits from your background, not generic filler. Every caller sounds different.
 
@@ -3759,6 +3872,7 @@ async def shutdown():
     _save_checkpoint()
     print("[Server] Shutting down — cleaning up resources...")
     _update_on_air_cdn(False)
+    _stop_ngrok()
     # Stop host mic streaming
     audio_service.stop_host_stream()
     # Cancel host audio sender task
@@ -3786,6 +3900,103 @@ app.mount("/js", StaticFiles(directory=frontend_dir / "js"), name="js")
 @app.get("/")
 async def index():
     return FileResponse(frontend_dir / "index.html")
+
+
+# --- Ngrok Tunnel Management ---
+
+_ngrok_process: subprocess.Popen | None = None
+_ngrok_domain = "shana-chromoplasmic-noneligibly.ngrok-free.dev"
+_signalwire_phone_sid = "12ef9c34-976d-4cff-814e-d740415dd0df"
+
+
+def _start_ngrok():
+    """Start ngrok tunnel and update SignalWire webhook to point to it."""
+    global _ngrok_process
+    if _ngrok_process and _ngrok_process.poll() is None:
+        print("[Ngrok] Already running")
+        return True
+
+    try:
+        _ngrok_process = subprocess.Popen(
+            ["ngrok", "http", "8000", f"--domain={_ngrok_domain}", "--log=stdout", "--log-format=json"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        # Wait for tunnel to be ready
+        import time as _time
+        for _ in range(20):
+            _time.sleep(0.5)
+            try:
+                resp = httpx.get("http://127.0.0.1:4040/api/tunnels", timeout=2)
+                tunnels = resp.json().get("tunnels", [])
+                if tunnels:
+                    public_url = tunnels[0]["public_url"]
+                    print(f"[Ngrok] Tunnel ready: {public_url}")
+                    _update_signalwire_webhook(public_url)
+                    return True
+            except Exception:
+                continue
+        print("[Ngrok] Timed out waiting for tunnel")
+        return False
+    except FileNotFoundError:
+        print("[Ngrok] ngrok binary not found")
+        return False
+    except Exception as e:
+        print(f"[Ngrok] Failed to start: {e}")
+        return False
+
+
+def _stop_ngrok():
+    """Stop ngrok tunnel and restore SignalWire webhook to production URL."""
+    global _ngrok_process
+    _restore_signalwire_webhook()
+    if _ngrok_process and _ngrok_process.poll() is None:
+        _ngrok_process.terminate()
+        try:
+            _ngrok_process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            _ngrok_process.kill()
+        print("[Ngrok] Stopped")
+    _ngrok_process = None
+
+
+def _update_signalwire_webhook(ngrok_url: str):
+    """Point SignalWire phone number webhook to ngrok tunnel."""
+    if not settings.signalwire_project_id or not settings.signalwire_token:
+        return
+    try:
+        url = (f"https://{settings.signalwire_space}/api/laml/2010-04-01/Accounts/"
+               f"{settings.signalwire_project_id}/IncomingPhoneNumbers/{_signalwire_phone_sid}.json")
+        voice_url = f"{ngrok_url}/api/signalwire/voice"
+        resp = httpx.post(url, data={
+            "VoiceUrl": voice_url,
+            "VoiceFallbackUrl": voice_url,
+        }, auth=(settings.signalwire_project_id, settings.signalwire_token), timeout=10)
+        if resp.status_code == 200:
+            print(f"[SignalWire] Webhook updated -> {voice_url}")
+        else:
+            print(f"[SignalWire] Failed to update webhook: {resp.status_code} {resp.text[:200]}")
+    except Exception as e:
+        print(f"[SignalWire] Webhook update error: {e}")
+
+
+def _restore_signalwire_webhook():
+    """Restore SignalWire webhook to production URL (voicemail when off air)."""
+    if not settings.signalwire_project_id or not settings.signalwire_token:
+        return
+    try:
+        url = (f"https://{settings.signalwire_space}/api/laml/2010-04-01/Accounts/"
+               f"{settings.signalwire_project_id}/IncomingPhoneNumbers/{_signalwire_phone_sid}.json")
+        prod_url = "https://lukeattheroost.com/api/signalwire/voice"
+        resp = httpx.post(url, data={
+            "VoiceUrl": prod_url,
+            "VoiceFallbackUrl": f"https://lukeattheroost.com/voicemail.xml",
+        }, auth=(settings.signalwire_project_id, settings.signalwire_token), timeout=10)
+        if resp.status_code == 200:
+            print(f"[SignalWire] Webhook restored -> {prod_url}")
+        else:
+            print(f"[SignalWire] Failed to restore webhook: {resp.status_code}")
+    except Exception as e:
+        print(f"[SignalWire] Webhook restore error: {e}")
 
 
 # --- On-Air Toggle ---
@@ -3832,6 +4043,12 @@ async def set_on_air(state: dict):
     _show_on_air = bool(state.get("on_air", False))
     print(f"[Show] On-air: {_show_on_air}")
     if _show_on_air:
+        # Reset REAPER state to dialog for fresh show
+        try:
+            from .services.audio import _write_reaper_state
+            _write_reaper_state("dialog")
+        except Exception:
+            pass
         # Auto-start recording FIRST (before host stream, which takes over mic capture)
         if audio_service.stem_recorder is None:
             try:
@@ -3880,6 +4097,10 @@ async def set_on_air(state: dict):
             except Exception as e:
                 print(f"[Show] Failed to auto-stop recording: {e}")
     threading.Thread(target=_update_on_air_cdn, args=(_show_on_air,), daemon=True).start()
+    if _show_on_air:
+        threading.Thread(target=_start_ngrok, daemon=True).start()
+    else:
+        threading.Thread(target=_stop_ngrok, daemon=True).start()
     return {"on_air": _show_on_air, "recording": audio_service.stem_recorder is not None}
 
 @app.get("/api/on-air")
@@ -4368,8 +4589,14 @@ async def stop_recording():
     if len(audio_bytes) < 100:
         return {"text": "", "status": "no_audio"}
 
+    # Build context hint from current caller for better transcription accuracy
+    context_hint = ""
+    if session.caller:
+        caller_name = session.caller.get("name", "")
+        context_hint = f"Host Luke is talking to a caller named {caller_name}."
+
     # Transcribe the recorded audio (16kHz raw PCM from audio service)
-    text = await transcribe_audio(audio_bytes, source_sample_rate=16000)
+    text = await transcribe_audio(audio_bytes, source_sample_rate=16000, context_hint=context_hint)
     return {"text": text, "status": "transcribed"}
 
 
@@ -4822,7 +5049,7 @@ def _normalize_messages_for_llm(messages: list[dict]) -> list[dict]:
         elif role.startswith("ai_caller:"):
             normalized.append({"role": "assistant", "content": content})
         elif role == "host":
-            normalized.append({"role": "user", "content": content})
+            normalized.append({"role": "user", "content": f"[Host Luke]: {content}"})
         else:
             normalized.append(msg)
     return normalized
@@ -5254,7 +5481,8 @@ async def _handle_screening_audio(caller_id: str, pcm_data: bytes, sample_rate: 
 
     # Transcribe caller speech
     try:
-        text = await transcribe_audio(pcm_data, source_sample_rate=sample_rate)
+        text = await transcribe_audio(pcm_data, source_sample_rate=sample_rate,
+                                      context_hint="A caller is being screened before going on air.")
     except Exception as e:
         print(f"[Screening] Transcription failed: {e}")
         return
@@ -5594,11 +5822,11 @@ async def _handle_real_caller_transcription(caller_id: str, pcm_data: bytes, sam
     if not call_info:
         return
 
-    text = await transcribe_audio(pcm_data, source_sample_rate=sample_rate)
+    caller_phone = call_info["phone"]
+    context_hint = f"A real caller ({caller_phone}) is talking to host Luke on the radio."
+    text = await transcribe_audio(pcm_data, source_sample_rate=sample_rate, context_hint=context_hint)
     if not text or not text.strip():
         return
-
-    caller_phone = call_info["phone"]
     print(f"[Real Caller] {caller_phone}: {text}")
 
     # Add to conversation and broadcast to frontend
@@ -6074,6 +6302,7 @@ async def toggle_stem_recording():
             _start_host_audio_sender()
             audio_service.start_host_stream(_host_audio_sync_callback)
             threading.Thread(target=_update_on_air_cdn, args=(True,), daemon=True).start()
+            threading.Thread(target=_start_ngrok, daemon=True).start()
             add_log("Show auto-set to ON AIR")
         return {"on_air": _show_on_air, "recording": True}
     # STOP recording
@@ -6087,6 +6316,7 @@ async def toggle_stem_recording():
         _show_on_air = False
         audio_service.stop_host_stream()
         threading.Thread(target=_update_on_air_cdn, args=(False,), daemon=True).start()
+        threading.Thread(target=_stop_ngrok, daemon=True).start()
         add_log("Show auto-set to OFF AIR")
 
     # Auto-run postprod in background

@@ -10,6 +10,7 @@ Usage:
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -412,7 +413,7 @@ def main():
         episode_dirs = sorted(
             [d for d in clips_root.iterdir()
              if d.is_dir() and not d.name.startswith(".") and (d / "clips-metadata.json").exists()],
-            key=lambda d: d.name,
+            key=lambda d: (int(m.group(1)) if (m := re.search(r'(\d+)', d.name)) else 0, d.name),
         )
         if not episode_dirs:
             print("No clip directories found in clips/. Run make_clips.py first.")

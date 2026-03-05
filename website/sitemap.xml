@@ -180,4 +180,22 @@
     <changefreq>never</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-26-digital-nomads-deep-fakes-and-workplace-drama</loc>
+    <lastmod>2026-03-03</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-27-love-loss-and-loud-opinions</loc>
+    <lastmod>2026-03-04</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://lukeattheroost.com/episode.html?slug=episode-28-secrets-lies-and-vinyl-records</loc>
+    <lastmod>2026-03-05</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>

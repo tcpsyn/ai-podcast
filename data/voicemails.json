@@ -1,15 +1,7 @@
 {
-  "voicemails": [
-    {
-      "id": "60c8d47c",
-      "phone": "+17755134750",
-      "timestamp": 1772294240,
-      "duration": 102,
-      "file_path": "/Users/lukemacneil/ai-podcast/data/voicemails/1772427904_17755134750.wav",
-      "listened": true
-    }
-  ],
+  "voicemails": [],
   "deleted_timestamps": [
+    1772294240,
     1771212705,
     1771146434,
     1771146564,

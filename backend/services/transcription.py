@@ -5,6 +5,8 @@ import numpy as np
 from faster_whisper import WhisperModel
 import librosa
 
+WHISPER_MODEL = "distil-large-v3"
+
 # Global model instance (loaded once)
 _whisper_model = None
 
@@ -13,8 +15,8 @@ def get_whisper_model() -> WhisperModel:
     """Get or create Whisper model instance"""
     global _whisper_model
     if _whisper_model is None:
-        print("Loading Whisper base model...")
-        _whisper_model = WhisperModel("base", device="cpu", compute_type="int8")
+        print(f"Loading Whisper {WHISPER_MODEL} model...")
+        _whisper_model = WhisperModel(WHISPER_MODEL, device="cpu", compute_type="int8")
         print("Whisper model loaded")
     return _whisper_model
 
@@ -65,13 +67,15 @@ def decode_audio(audio_data: bytes, source_sample_rate: int = None) -> tuple[np.
         return audio, 16000
 
 
-async def transcribe_audio(audio_data: bytes, source_sample_rate: int = None) -> str:
+async def transcribe_audio(audio_data: bytes, source_sample_rate: int = None,
+                           context_hint: str = "") -> str:
     """
     Transcribe audio data to text using Whisper.
 
     Args:
         audio_data: Audio bytes (webm, ogg, wav, or raw PCM)
         source_sample_rate: If provided, treat audio_data as raw PCM at this rate
+        context_hint: Optional extra context for the initial prompt (e.g. caller name/topic)
 
     Returns:
         Transcribed text
@@ -98,13 +102,18 @@ async def transcribe_audio(audio_data: bytes, source_sample_rate: int = None) ->
     else:
         audio_16k = audio
 
+    # Build initial prompt — context helps Whisper with names and topic-specific words
+    initial_prompt = "Luke at the Roost, a late-night radio talk show in New Mexico. The host Luke talks to callers about life, relationships, sports, politics, and pop culture."
+    if context_hint:
+        initial_prompt += f" {context_hint}"
+
     # Transcribe
     segments, info = model.transcribe(
         audio_16k,
-        beam_size=3,
+        beam_size=5,
         language="en",
         vad_filter=True,
-        initial_prompt="Luke at the Roost, a late-night radio talk show. The host Luke talks to callers about life, relationships, sports, politics, and pop culture.",
+        initial_prompt=initial_prompt,
     )
     segments_list = list(segments)
     text = " ".join([s.text for s in segments_list]).strip()

@@ -133,7 +133,7 @@ Speaker identification:
 - When Luke says "Tell me about..." or asks a question, that's LUKE
 - When someone responds with their story/opinion/answer, that's the CALLER
 
-Output format — ONLY the labeled transcript with blank lines between turns. No notes, no commentary.
+Output format — ONLY the labeled transcript with blank lines between turns. No notes, no commentary. Do NOT add any bracketed notes like [Continued...], [Note:...], [Sponsor read], etc. Do NOT add meta-commentary about the transcript. ONLY output the spoken words with speaker labels.
 
 TRANSCRIPT:
 """
@@ -164,19 +164,25 @@ TRANSCRIPT:
         if context:
             full_prompt += f"\n\nCONTEXT: The previous section ended with speaker {context}"
 
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "anthropic/claude-3.5-sonnet",
-                "messages": [{"role": "user", "content": full_prompt}],
-                "max_tokens": 8192,
-                "temperature": 0
-            }
-        )
+        try:
+            response = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "anthropic/claude-3.5-sonnet",
+                    "messages": [{"role": "user", "content": full_prompt}],
+                    "max_tokens": 8192,
+                    "temperature": 0
+                },
+                timeout=120
+            )
+        except requests.exceptions.Timeout:
+            print(f"    Warning: Speaker labeling timed out for chunk {i+1}, using raw text")
+            labeled_parts.append(chunk)
+            continue
         if response.status_code != 200:
             print(f"    Warning: Speaker labeling failed for chunk {i+1}, using raw text")
             labeled_parts.append(chunk)
@@ -198,6 +204,8 @@ TRANSCRIPT:
             _time.sleep(0.5)
 
     result = "\n\n".join(labeled_parts)
+    # Strip LLM-inserted bracketed notes like [Continued...], [Note:...], [Sponsor read]
+    result = re.sub(r'^\[.*?\]\s*$', '', result, flags=re.MULTILINE)
     result = re.sub(r'\n{3,}', '\n\n', result)
     # Normalize: SPEAKER:\ntext -> SPEAKER: text
     result = re.sub(r'^([A-Z][A-Z\s\'-]+?):\s*\n(?!\n)', r'\1: ', result, flags=re.MULTILINE)
@@ -280,10 +288,11 @@ Respond with ONLY valid JSON, no markdown or explanation."""
             "Content-Type": "application/json"
         },
         json={
-            "model": "anthropic/claude-3-haiku",
+            "model": "anthropic/claude-3.5-haiku",
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.7
-        }
+        },
+        timeout=300
     )
 
     if response.status_code != 200:

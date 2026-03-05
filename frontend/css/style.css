@@ -728,6 +728,10 @@ section h2 {
     color: var(--accent-hover);
 }
 
+.caller-btn.returning.active {
+    color: #fff;
+}
+
 /* Screening Badges */
 .screening-badge { font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: var(--radius-sm); font-weight: bold; }
 .screening-badge.screening { background: var(--accent); color: white; animation: pulse 1.5s infinite; }

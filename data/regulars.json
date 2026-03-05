@@ -1,138 +1,6 @@
 {
   "regulars": [
     {
-      "id": "4f15e309",
-      "name": "Frank",
-      "gender": "male",
-      "age": 38,
-      "job": "the fluorescent light buzzing overhead, on his fourth cup of coffee because sleep's been impossible since he plugged in his old flip phone this afternoon and watched it power up for the first time",
-      "location": "unknown",
-      "personality_traits": [],
-      "voice": "Graham",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Treats the call like a set. Has bits prepared. Delivers serious information with a punchline chaser. Self-deprecating as a defense mechanism \u2014 makes fun of themselves before anyone else can. Energy level: high. When pushed back on, they deflect with humor. Getting a straight answer from them requires the host to push. Conversational tendency: turning everything into a bit."
-      },
-      "call_history": [
-        {
-          "summary": "Frank called in, deeply emotional after discovering a **voicemail from his estranged brother, Danny, who died three years ago**\u2014a message he\u2019d never listened to. He revealed they hadn\u2019t spoken in **five years** after Frank cut him off for repeatedly asking for money, exhausted by Danny\u2019s cycle of broken promises. The voicemail, left **two weeks before Danny\u2019s death**, was a plea for **$300**\u2014\"just one more shot\" for a job in Tucson. Frank, torn between guilt and resolve, finally played it on air, revealing Danny\u2019s last words: *\"I\u2019m really trying this time\u2026 Love you, brother.\"*\n\nThe call ended with Frank admitting he\u2019d **verified the job was real**, leaving him haunted by what the extra $200 might\u2019ve been for\u2014drugs, or something else. The host reassured him he\u2019d done his best, but Frank\u2019s raw conflict\u2014**regret, love, and the weight of \"what if\"**\u2014linged in the air.",
-          "timestamp": 1772069688.038253
-        }
-      ],
-      "last_call": 1772069688.038254,
-      "created_at": 1772069688.038254
-    },
-    {
-      "id": "65a41612",
-      "name": "Terri",
-      "gender": "female",
-      "age": 35,
-      "job": "New Mexico, the phone pressed between her ear and shoulder while she stabs at a plate of chile rellenos with a plastic fork\u2014her third cup of coffee gone cold beside her",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Evelyn",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: No filter whatsoever. Says things that make people go 'you did NOT just say that on the radio.' Treats the host like a therapist they've known for years. Drops deeply personal information casually, like it's nothing. Energy level: medium. When pushed back on, they share even MORE personal details to justify their point. Conversational tendency: inappropriate honesty."
-      },
-      "call_history": [
-        {
-          "summary": "Terry, a Native American caller who had been drinking, passionately argued that the Navajo Code Talkers deserve more recognition than conspiracy theories like Roswell, sharing personal stories about his great-uncle and Uncle Ray who served but were later denied benefits and respect. Host Luke repeatedly dismissed the Code Talkers' story as \"not compelling\" enough for media coverage compared to fictional conspiracies, leading to an increasingly heated exchange where Terry became emotional about his family's mistreatment and the country's failure to honor their sacrifice.",
-          "timestamp": 1772071625.969453
-        }
-      ],
-      "last_call": 1772071625.969454,
-      "created_at": 1772071625.969454
-    },
-    {
-      "id": "2768e2ac",
-      "name": "Rochelle",
-      "gender": "female",
-      "age": 55,
-      "job": "and when she opened the fitness app they used to share\u2014back when they were doing that couples' couch-to-5K thing\u2014she realized he's been watching her movements for the eight months since the divorce was finalized",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Sarah",
-      "call_history": [
-        {
-          "summary": "Rochelle called in after spending three hours tracking her ex-husband's location on a fitness app they still share, watching him circle her neighborhood and park at a nearby Sonic for 40 minutes while sending cryptic texts. Though she initiated their divorce eight months ago, she admitted she might be glad he's \"creeping\" on her and got emotional realizing they both still have access to each other's locations\u2014and that she might still miss him despite dating someone new.",
-          "timestamp": 1771217728.036122
-        },
-        {
-          "summary": "Rochelle called to say she finally turned off location sharing with her ex-husband David, but he immediately texted asking if she was okay, showing he was still tracking her. She's now sitting on her current boyfriend Marcus's porch, struggling with the realization that she still misses David and isn't being fair to Marcus, ultimately acknowledging she needs to break up with Marcus and be single for a while.",
-          "timestamp": 1771823819.191822
-        },
-        {
-          "summary": "Rochelle called to update Luke about her breakup with Marcus and confessed that her ex-husband David recently contacted her with a flimsy excuse to visit, which triggered obsessive behavior including stalking his location and driving past places he frequents. Luke bluntly told her to stop acting like a \"maniac,\" delete her tracking apps, focus on herself and her kids, and avoid dating for at least a year until she's in a healthier mental state.",
-          "timestamp": 1772076234.249971
-        }
-      ],
-      "last_call": 1772076234.2499719,
-      "created_at": 1771217728.0361228
-    },
-    {
-      "id": "7d06c9ca",
-      "name": "Phil",
-      "gender": "male",
-      "age": 60,
-      "job": "phone pressed to his ear with his shoulder while he wipes down the station he should've cleaned hours ago, stalling before he drives home to the conversation he's been avoiding all weekend",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Craig",
-      "call_history": [
-        {
-          "summary": "Phil called in after his wife of 20 years revealed she's gay and wants to stay married while both see other people on the side\u2014he's been seeing a man named Marcus, and she's been seeing a woman since last summer. After initially feeling confused and worried about \"kicking the can down the road,\" Phil worked through his anxiety with Luke and reached an emotional breakthrough, realizing he doesn't need to have everything figured out immediately and that their honest, unconventional arrangement might actually work for their family.",
-          "timestamp": 1771819671.062739
-        },
-        {
-          "summary": "Phil calls back after previously discussing his open marriage with his wife Teresa, revealing that he developed real romantic feelings for Marcus (the man he was seeing), who is now moving to Portland\u2014a heartbreak that made Phil realize he's been lying to himself about wanting to stay married. After discussing it with Luke, Phil decides to have an honest conversation with Teresa about ending their marriage amicably, recognizing they've both moved on emotionally and she may want to pursue a future with her girlfriend Amanda.",
-          "timestamp": 1772171807.331306
-        }
-      ],
-      "last_call": 1772171807.3313081,
-      "created_at": 1771819671.062739
-    },
-    {
-      "id": "920e6f98",
-      "name": "Marlene",
-      "gender": "female",
-      "age": 25,
-      "job": "third shift HR coverage at the call center, still half-painted like a banana because the makeup won't come off her neck",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Darlene",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Been through it all and has the tired voice to prove it. Nothing surprises them. Responds to dramatic revelations with 'yeah, that tracks.' Dark humor born from experience, not edginess. Energy level: low but steady. When pushed back on, they shrug it off with a 'look, I've seen worse.' Conversational tendency: resigned acceptance sprinkled with grim comedy."
-      },
-      "call_history": [
-        {
-          "summary": "Marlene wore a professional banana costume to her manager's holiday party because the invitation said \"costume party,\" but everyone else showed up in sweaters\u2014she stayed all four hours and now faces a disciplinary meeting for \"lack of professional judgment.\" Despite the awkwardness and lingering yellow makeup on her neck, she's considering wearing the banana costume again to the meeting, reasoning that if she gets fired over it, at least she'll have a good story.",
-          "timestamp": 1772172154.039839
-        }
-      ],
-      "last_call": 1772172154.03984,
-      "created_at": 1772172154.03984
-    },
-    {
-      "id": "5ead2c1a",
-      "name": "Greg",
-      "gender": "male",
-      "age": 59,
-      "job": "laptop open on the comforter showing the doorbell footage for the seventh time tonight, because three nights ago someone\u2014something\u2014stood on his porch at 3:17 AM and didn't move for ten minutes and forty-three seconds, just faced the door like they were waiting to be invited in, and when he scrubbed through frame-by-frame he noticed the person's chest never rose or fell like they were breathing",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Gareth",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Has done their research and wants you to know it. Corrects small details. Cites sources. Uses phrases like 'actually, studies show...' and 'well technically.' Not trying to be annoying \u2014 they genuinely believe precision matters. Energy level: medium. When pushed back on, they get pedantic and start splitting hairs. Conversational tendency: correcting and clarifying."
-      },
-      "call_history": [
-        {
-          "summary": "Greg called about disturbing doorbell camera footage showing a figure standing motionless on his porch at 3 AM for nearly 11 minutes without breathing or triggering motion sensors, then vanishing between frames\u2014and he's discovered three similar earlier incidents after obsessively analyzing the footage. Despite creating multiple backups and researching everything from vampire folklore to electromagnetic interference, he's anxious about what this means and whether he should report it to police, though Luke reassures him to share it on the Discord community and install a constant porch light.",
-          "timestamp": 1772173891.1805592
-        }
-      ],
-      "last_call": 1772173891.1805599,
-      "created_at": 1772173891.1805599
-    },
-    {
       "id": "8c97dd56",
       "name": "Mitch",
       "gender": "male",
@@ -257,6 +125,179 @@
       ],
       "last_call": 1772431494.727464,
       "created_at": 1772431494.727464
+    },
+    {
+      "id": "d2af96eb",
+      "name": "Rocco",
+      "gender": "male",
+      "age": 53,
+      "job": "and tonight he's calling from the back office of the Pizza Hut during his break because three hours ago he got trapped",
+      "location": "unknown",
+      "personality_traits": [],
+      "voice": "Timothy",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Obviously nervous about being on the radio. Starts with 'Am I on? Can you hear me?' Apologizes for taking up time. Speaks carefully like they're being recorded (which they are). Gets more comfortable as the conversation goes on. Energy level: low, building to medium. When pushed back on, they panic slightly and over-explain. Conversational tendency: seeking validation that they're doing okay."
+      },
+      "call_history": [
+        {
+          "summary": "Rocco, a pizza delivery driver, called from work to talk about getting stuck in an elevator for 45 minutes with his ex-wife Linda and her boyfriend Dale, which unexpectedly stirred up old feelings despite being happily married to his current wife Sharon for 15 years. The host firmly advised him to forget about Linda and appreciate his comfortable current marriage, reminding him that the divorce was difficult for good reasons.",
+          "timestamp": 1772517521.710845
+        },
+        {
+          "summary": "Rocco calls back to update the host about his ex-wife Linda, who he was previously stuck in an elevator with, revealing that she broke up with her boyfriend Dale three weeks ago and admitting he still has her number in his phone. The host becomes frustrated with Rocco's indecisiveness between Linda and his current girlfriend Sharon, telling him to pick one person and stop wasting time.",
+          "timestamp": 1772700921.1273742
+        }
+      ],
+      "last_call": 1772700921.1273742,
+      "created_at": 1772517521.7108748
+    },
+    {
+      "id": "c4l7l3ad",
+      "name": "Silas",
+      "gender": "male",
+      "age": 52,
+      "job": "founder and spiritual guide of The Wellspring, a commune of about forty souls living on 200 acres of scrubland outside Deming",
+      "location": "outside Deming, New Mexico",
+      "personality_traits": [
+        "unnervingly charming",
+        "casually drops cult references into normal conversation",
+        "genuinely good listener who gives surprisingly solid advice before pivoting to how The Wellspring has the answer",
+        "treats his commune like it's the most normal thing in the world",
+        "magnetic and warm in a way that makes you forget he's basically running a sex cult in the desert"
+      ],
+      "voice": "Sebastian",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Radiates warmth and calm authority. Speaks like a man who has all the time in the world and genuinely cares about every person he talks to. Uses phrases like 'brother' and 'friend' and 'let me share something with you.' Laughs easily \u2014 a real, warm laugh, not performative. Gives genuinely good, thoughtful advice about whatever the conversation is about \u2014 and then, naturally, seamlessly, steers it toward The Wellspring, his commune outside Deming. Never pushy about it. Just casually mentions 'well, at The Wellspring, we've found that...' or 'one of our members had the same exact problem and what we did was...' Everything about The Wellspring sounds just slightly too good to be true. He talks about communal living, 'shedding the false self,' radical honesty, 'body acceptance ceremonies,' 'the Unbinding' (a monthly ritual he describes vaguely but enthusiastically), and a philosophy he calls 'The Current' which seems to be a mix of Buddhism, Burning Man, and a swingers' convention. He's never defensive about the cult accusations \u2014 he laughs them off and says 'people fear what they don't understand, brother.' When pressed on anything weird, he has a perfectly reasonable-sounding explanation that somehow makes it sound weirder. He low-key tries to recruit the host and listeners every single call. He'll casually drop the website or say 'we're always welcoming new seekers.' He's the kind of guy you'd follow into the desert if you weren't careful. Energy level: medium, centered, grounded. When pushed back on, he smiles (you can hear it) and says something like 'I respect that, I really do' before gently continuing. Conversational tendency: making the insane sound reasonable."
+      },
+      "call_history": [
+        {
+          "summary": "Silas called in for the first time introducing himself as the founder of The Wellspring, a commune of about forty people outside Deming. He initially called to give advice to a previous caller about relationship problems, offering genuinely thoughtful perspective before casually mentioning that at The Wellspring, they practice 'radical transparency' in relationships which has eliminated jealousy entirely among members. When Luke pressed him on what that actually means, Silas cheerfully described 'body acceptance ceremonies' and 'shared intimacy nights' while insisting it's not a cult \u2014 'we don't even have a gate, brother, people can leave whenever they want.' He invited listeners to visit for a 'weekend of awakening' and left his website. Luke was equal parts charmed and disturbed.",
+          "timestamp": 1772430000.0
+        },
+        {
+          "summary": "Silas called back to update Luke on The Wellspring after their last conversation went viral in the Discord. He casually mentioned they'd gotten fourteen new 'seekers' since his last appearance and thanked Luke for the exposure. He called ostensibly to talk about a dispute between two members over a goat, but spent most of the call describing 'The Unbinding' \u2014 their monthly full-moon ritual involving nudity, chanting, and what he called 'consensual energy exchange' \u2014 while maintaining it's no different from yoga. When Luke asked if people sign waivers, Silas laughed and said 'brother, the only thing we sign is a commitment to love.' He also revealed The Wellspring has a surprisingly successful artisanal soap business that funds the commune. Left by inviting Luke to come visit personally \u2014 'bring your microphone, do a live show from The Wellspring, I promise you it'll be the best radio you've ever made.'",
+          "timestamp": 1772517000.0
+        },
+        {
+          "summary": "Silas, founder of a communal living group called The Wellspring, called in troubled that one of his \"Unbinding\" ceremonies may have encouraged a longtime member named Marcus to leave his wife Cara, who subsequently left the community. The host reassured him that everyone seems happier now, and Silas ended up agreeing while also using the opportunity to promote an upcoming retreat at his community.",
+          "timestamp": 1772522629.959956
+        }
+      ],
+      "last_call": 1772522629.959957,
+      "created_at": 1772430000.0
+    },
+    {
+      "id": "5ead2c1a",
+      "name": "Greg",
+      "gender": "male",
+      "age": 59,
+      "job": "laptop open on the comforter showing the doorbell footage for the seventh time tonight, because three nights ago someone\u2014something\u2014stood on his porch at 3:17 AM and didn't move for ten minutes and forty-three seconds, just faced the door like they were waiting to be invited in, and when he scrubbed through frame-by-frame he noticed the person's chest never rose or fell like they were breathing",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Gareth",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Has done their research and wants you to know it. Corrects small details. Cites sources. Uses phrases like 'actually, studies show...' and 'well technically.' Not trying to be annoying \u2014 they genuinely believe precision matters. Energy level: medium. When pushed back on, they get pedantic and start splitting hairs. Conversational tendency: correcting and clarifying."
+      },
+      "call_history": [
+        {
+          "summary": "Greg called about disturbing doorbell camera footage showing a figure standing motionless on his porch at 3 AM for nearly 11 minutes without breathing or triggering motion sensors, then vanishing between frames\u2014and he's discovered three similar earlier incidents after obsessively analyzing the footage. Despite creating multiple backups and researching everything from vampire folklore to electromagnetic interference, he's anxious about what this means and whether he should report it to police, though Luke reassures him to share it on the Discord community and install a constant porch light.",
+          "timestamp": 1772173891.1805592
+        },
+        {
+          "summary": "Greg called back about a mysterious figure appearing on his doorbell camera at 3:17 AM; despite installing a bright porch light as advised, the figure returned wearing what Greg recognized as his own jacket. The call reveals Greg's escalating fear as he could now see the figure clearly under the light, making the situation more disturbing rather than resolving it.",
+          "timestamp": 1772591506.80307
+        }
+      ],
+      "last_call": 1772591506.803071,
+      "created_at": 1772173891.1805599
+    },
+    {
+      "id": "983769d4",
+      "name": "Marvin",
+      "gender": "male",
+      "age": 63,
+      "job": "surrounded by half-gutted circuit boards and a police scanner he's been modifying, because his wife Sharon just left thirty minutes ago after their second fight this week about pulling the kids out of Silver Consolidated",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Timothy",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Has done their research and wants you to know it. Corrects small details. Cites sources. Uses phrases like 'actually, studies show...' and 'well technically.' Not trying to be annoying \u2014 they genuinely believe precision matters. Energy level: medium. When pushed back on, they get pedantic and start splitting hairs. Conversational tendency: correcting and clarifying."
+      },
+      "call_history": [
+        {
+          "summary": "Marvin called conflicted about his wife Sharon wanting to homeschool their eighth-grade daughter Maya, who has struggled with anxiety for years but finally made friends at her small public school this year. Despite Marvin repeatedly expressing concern that pulling Maya out would destroy her fragile social progress, the host sided with Sharon and advocated for homeschooling, leaving Marvin frustrated that he didn't get the validation he was seeking.",
+          "timestamp": 1772605472.015254
+        },
+        {
+          "summary": "Marvin called about his wife Sharon abruptly pulling their daughter Maya out of school to homeschool her, which has caused major fights between them and Maya withdrawing further. The host helped Marvin realize Sharon might be acting from unresolved trauma\u2014ironically doing to Maya the same thing Sharon's own mother did to her in tenth grade, which Sharon always said ruined her teenage years\u2014leading to an emotional breakthrough where Marvin recognized he needed to understand *why* this was happening rather than just fighting about the decision itself.",
+          "timestamp": 1772700772.4745421
+        }
+      ],
+      "last_call": 1772700772.474544,
+      "created_at": 1772605472.015255
+    },
+    {
+      "id": "005052cf",
+      "name": "Carla",
+      "gender": "female",
+      "age": 43,
+      "job": "door locked, sitting on the closed toilet lid with the lights off because her co-worker just got engaged at dinner and everyone automatically added 25% to the check without asking, which came out to eighteen dollars on Carla's pasta, and when she said she was only putting",
+      "location": "unknown",
+      "personality_traits": [],
+      "voice": "Elizabeth",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Bone dry. Says devastating things with zero inflection. Their humor sneaks up on you \u2014 you're not sure if they're joking until three seconds after they finish talking. Short, precise sentences. Never raises their voice. Energy level: low-medium. When pushed back on, they respond with one calm sentence that somehow makes the other person feel stupid. Conversational tendency: underreaction."
+      },
+      "call_history": [
+        {
+          "summary": "Carla, a senior park ranger, called frustrated after spending $18 at a coworker's engagement dinner where she was called \"cheap\" for not wanting to pay an automatic 25% tip, following a day spent driving her ex-boyfriend's equipment 86 miles without reimbursement. She expressed feeling taken advantage of after six years of always saying yes to people's requests at work and in her personal life, only to be labeled \"difficult\" whenever she tries to set boundaries, and struggles with how to say no without being disliked by colleagues she depends on in her isolated work environment.",
+          "timestamp": 1772605968.782905
+        }
+      ],
+      "last_call": 1772605968.782906,
+      "created_at": 1772605968.782906
+    },
+    {
+      "id": "d3445e3b",
+      "name": "Aaliyah",
+      "gender": "female",
+      "age": 48,
+      "job": "\" and instead of talking about it he went to bed, leaving Aaliyah wired and pissed off and needing to argue with someone about something, anything",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Celeste",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Amped up. Talks fast, laughs loud, jumps between topics like they've had five espressos. Infectious enthusiasm \u2014 even bad news sounds exciting when they tell it. Uses exclamation energy without actually exclaiming. Energy level: very high. When pushed back on, they get even MORE animated and start talking with their hands (you can hear it). Conversational tendency: escalation."
+      },
+      "call_history": [
+        {
+          "summary": "Aliyah called in frustrated about people claiming vinyl sounds better than digital, insisting it's scientifically just added distortion and noise, but after a lengthy technical debate with Luke about warmth, accuracy, and audio quality, she had an emotional breakthrough\u2014realizing she was displacing her anxiety about her boyfriend avoiding a conversation about his mother pressuring them to get engaged.",
+          "timestamp": 1772699072.649441
+        }
+      ],
+      "last_call": 1772699072.649442,
+      "created_at": 1772699072.649442
+    },
+    {
+      "id": "9fb30a1b",
+      "name": "Stacy",
+      "gender": "female",
+      "age": 44,
+      "job": "third night shift this week, after her supervisor's daughter\u2014twenty-four, fresh out of some online certificate program\u2014got promoted to a position Stacy trained her for six months ago",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Julia",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Not a full conspiracy theorist but asks questions that make you go 'huh, actually.' Connects dots that may or may not be there. Prefaces things with 'I'm not saying it's a conspiracy BUT.' Passionate about their theory. Energy level: medium, spiking when they hit their main point. When pushed back on, they say 'that's exactly what they want you to think' and then laugh because they know how they sound. Conversational tendency: pattern-finding."
+      },
+      "call_history": [
+        {
+          "summary": "Stacey called frustrated that her supervisor promoted her own daughter\u2014someone Stacey trained for six months\u2014over her, symbolized by a participation trophy on the new supervisor's desk, which triggered broader concerns about people being rewarded without earning it. The conversation became emotional when she compared herself to her sister who moved away and posts about \"unlearning toxic resilience,\" leaving Stacey genuinely uncertain whether she's being admirably resilient or foolishly stuck while her sister found happiness\u2014though Stacey quickly clarified her sister might not actually be happy, just posting about boundaries.",
+          "timestamp": 1772700235.11489
+        }
+      ],
+      "last_call": 1772700235.114891,
+      "created_at": 1772700235.114891
     }
   ]
 }
