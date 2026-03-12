@@ -636,7 +636,7 @@ async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray,
         },
     }
 
-    async with httpx.AsyncClient(timeout=25.0) as client:
+    async with httpx.AsyncClient(timeout=12.0) as client:
         response = await client.post(url, json=payload, headers=headers)
         response.raise_for_status()
         data = response.json()
@@ -682,8 +682,8 @@ _TTS_PROVIDERS = {
     "elevenlabs": lambda text, vid: generate_speech_elevenlabs(text, vid),
 }
 
-TTS_MAX_RETRIES = 3
-TTS_RETRY_DELAYS = [1.0, 2.0, 4.0]  # seconds between retries
+TTS_MAX_RETRIES = 2
+TTS_RETRY_DELAYS = [0.5, 1.0]  # seconds between retries
 
 
 async def generate_speech(
@@ -714,21 +714,28 @@ async def generate_speech(
         raise ValueError(f"Unknown TTS provider: {provider}")
 
     last_error = None
-    for attempt in range(TTS_MAX_RETRIES):
-        try:
-            audio, sample_rate = await gen_fn(text, voice_id)
-            if attempt > 0:
-                print(f"[TTS] Succeeded on retry {attempt}")
-            break
-        except Exception as e:
-            last_error = e
-            if attempt < TTS_MAX_RETRIES - 1:
-                delay = TTS_RETRY_DELAYS[attempt]
-                print(f"[TTS] {provider} attempt {attempt + 1} failed: {e} — retrying in {delay}s...")
-                await asyncio.sleep(delay)
-            else:
-                print(f"[TTS] {provider} failed after {TTS_MAX_RETRIES} attempts: {e}")
-                raise
+    try:
+        async with asyncio.timeout(20):
+            for attempt in range(TTS_MAX_RETRIES):
+                try:
+                    audio, sample_rate = await gen_fn(text, voice_id)
+                    if attempt > 0:
+                        print(f"[TTS] Succeeded on retry {attempt}")
+                    break
+                except TimeoutError:
+                    raise  # Let asyncio.timeout propagate
+                except Exception as e:
+                    last_error = e
+                    if attempt < TTS_MAX_RETRIES - 1:
+                        delay = TTS_RETRY_DELAYS[attempt]
+                        print(f"[TTS] {provider} attempt {attempt + 1} failed: {e} — retrying in {delay}s...")
+                        await asyncio.sleep(delay)
+                    else:
+                        print(f"[TTS] {provider} failed after {TTS_MAX_RETRIES} attempts: {e}")
+                        raise
+    except TimeoutError:
+        print(f"[TTS] Overall timeout (20s) for {provider}")
+        raise RuntimeError(f"TTS generation timed out after 20s")
 
     # Apply phone filter if requested
     # Skip filter for Bark - it already has rough audio quality

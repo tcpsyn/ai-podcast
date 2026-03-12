@@ -31,6 +31,32 @@ def _write_reaper_state(state: str):
 class AudioService:
     """Manages audio I/O with multi-channel support for Loopback routing"""
 
+    @staticmethod
+    def _find_device_by_name(name: str) -> Optional[int]:
+        """Find a device index by name substring match. Returns None if not found."""
+        if not name:
+            return None
+        devices = sd.query_devices()
+        # Exact match first
+        for i, d in enumerate(devices):
+            if d["name"] == name:
+                return i
+        # Substring match
+        for i, d in enumerate(devices):
+            if name in d["name"]:
+                return i
+        return None
+
+    @staticmethod
+    def _get_device_name(device_id: Optional[int]) -> Optional[str]:
+        """Get the name of a device by index."""
+        if device_id is None:
+            return None
+        try:
+            return sd.query_devices(device_id)["name"]
+        except Exception:
+            return None
+
     def __init__(self):
         # Device configuration
         self.input_device: Optional[int] = 13   # Radio Voice Mic (loopback input)
@@ -113,35 +139,52 @@ class AudioService:
         # Load saved settings
         self._load_settings()
 
+    def _resolve_device(self, data: dict, key: str) -> Optional[int]:
+        """Resolve a device from settings: try name first, fall back to index."""
+        name_key = f"{key}_name"
+        name = data.get(name_key)
+        if name:
+            resolved = self._find_device_by_name(name)
+            if resolved is not None:
+                idx = data.get(key)
+                if idx is not None and resolved != idx:
+                    print(f"[Audio] Device '{name}' moved: {idx} -> {resolved}")
+                return resolved
+            else:
+                print(f"[Audio] Warning: device '{name}' not found, falling back to index {data.get(key)}")
+        return data.get(key)
+
     def _load_settings(self):
-        """Load settings from disk"""
+        """Load settings from disk, resolving device names to current indices"""
         if SETTINGS_FILE.exists():
             try:
                 with open(SETTINGS_FILE) as f:
                     data = json.load(f)
-                self.input_device = data.get("input_device")
+                self.input_device = self._resolve_device(data, "input_device")
                 self.input_channel = data.get("input_channel", 1)
-                self.output_device = data.get("output_device")
+                self.output_device = self._resolve_device(data, "output_device")
                 self.caller_channel = data.get("caller_channel", 1)
                 self.live_caller_channel = data.get("live_caller_channel", 4)
                 self.music_channel = data.get("music_channel", 2)
                 self.sfx_channel = data.get("sfx_channel", 3)
                 self.ad_channel = data.get("ad_channel", 11)
                 self.ident_channel = data.get("ident_channel", 15)
-                self.monitor_device = data.get("monitor_device")
+                self.monitor_device = self._resolve_device(data, "monitor_device")
                 self.monitor_channel = data.get("monitor_channel", 1)
                 self.phone_filter = data.get("phone_filter", False)
-                print(f"Loaded audio settings: input={self.input_device}, output={self.output_device}, monitor={self.monitor_device}, phone_filter={self.phone_filter}")
+                print(f"Loaded audio settings: input={self.input_device} ({self._get_device_name(self.input_device)}), output={self.output_device} ({self._get_device_name(self.output_device)}), monitor={self.monitor_device}, phone_filter={self.phone_filter}")
             except Exception as e:
                 print(f"Failed to load audio settings: {e}")
 
     def _save_settings(self):
-        """Save settings to disk"""
+        """Save settings to disk with device names for stable resolution"""
         try:
             data = {
                 "input_device": self.input_device,
+                "input_device_name": self._get_device_name(self.input_device),
                 "input_channel": self.input_channel,
                 "output_device": self.output_device,
+                "output_device_name": self._get_device_name(self.output_device),
                 "caller_channel": self.caller_channel,
                 "live_caller_channel": self.live_caller_channel,
                 "music_channel": self.music_channel,
@@ -149,6 +192,7 @@ class AudioService:
                 "ad_channel": self.ad_channel,
                 "ident_channel": self.ident_channel,
                 "monitor_device": self.monitor_device,
+                "monitor_device_name": self._get_device_name(self.monitor_device),
                 "monitor_channel": self.monitor_channel,
                 "phone_filter": self.phone_filter,
             }
@@ -507,7 +551,7 @@ class AudioService:
 
         self._live_caller_write = write_audio
 
-        self._live_caller_stream = sd.OutputStream(
+        self._live_caller_stream = self._open_output_stream(
             device=self.output_device,
             samplerate=device_sr,
             channels=num_channels,
@@ -515,7 +559,6 @@ class AudioService:
             callback=callback,
             blocksize=1024,
         )
-        self._live_caller_stream.start()
         print(f"[Audio] Live caller stream started on ch {self.live_caller_channel} @ {device_sr}Hz (prebuffer {prebuffer_samples} samples)")
 
     def _stop_live_caller_stream(self):
@@ -894,7 +937,7 @@ class AudioService:
                     self.stem_recorder.write_sporadic("music", mono_out.copy(), device_sr)
 
         try:
-            self._music_stream = sd.OutputStream(
+            self._music_stream = self._open_output_stream(
                 device=device,
                 channels=num_channels,
                 samplerate=device_sr,
@@ -902,11 +945,39 @@ class AudioService:
                 callback=callback,
                 blocksize=2048
             )
-            self._music_stream.start()
             print(f"Music playback started on ch {self.music_channel} @ {device_sr}Hz")
         except Exception as e:
             print(f"Music playback error: {e}")
             self._music_playing = False
+
+    def _refresh_devices(self):
+        """Re-initialize PortAudio to pick up device changes, then re-resolve settings."""
+        try:
+            sd._terminate()
+            sd._initialize()
+            print("[Audio] PortAudio re-initialized")
+            self._load_settings()
+        except Exception as e:
+            print(f"[Audio] PortAudio refresh failed: {e}")
+
+    def _open_output_stream(self, **kwargs) -> sd.OutputStream:
+        """Open an OutputStream with one retry after refreshing PortAudio on failure."""
+        try:
+            stream = sd.OutputStream(**kwargs)
+            stream.start()
+            return stream
+        except Exception as first_err:
+            print(f"[Audio] Stream open failed ({first_err}), refreshing devices...")
+            self._refresh_devices()
+            # Update device/channel info from refreshed settings
+            if kwargs.get("device") == self.output_device or "device" in kwargs:
+                device_info = sd.query_devices(self.output_device)
+                kwargs["device"] = self.output_device
+                kwargs["channels"] = device_info["max_output_channels"]
+                kwargs["samplerate"] = int(device_info["default_samplerate"])
+            stream = sd.OutputStream(**kwargs)
+            stream.start()
+            return stream
 
     def _close_stream(self, stream):
         """Safely close a sounddevice stream, ignoring double-close errors"""
@@ -1026,7 +1097,7 @@ class AudioService:
                 _write_reaper_state("dialog")
 
         try:
-            self._ad_stream = sd.OutputStream(
+            self._ad_stream = self._open_output_stream(
                 device=device,
                 channels=num_channels,
                 samplerate=device_sr,
@@ -1034,7 +1105,6 @@ class AudioService:
                 callback=callback,
                 blocksize=2048
             )
-            self._ad_stream.start()
             print(f"Ad playback started on ch {self.ad_channel} @ {device_sr}Hz")
         except Exception as e:
             print(f"Ad playback error: {e}")
@@ -1132,7 +1202,7 @@ class AudioService:
                 _write_reaper_state("dialog")
 
         try:
-            self._ident_stream = sd.OutputStream(
+            self._ident_stream = self._open_output_stream(
                 device=device,
                 channels=num_channels,
                 samplerate=device_sr,
@@ -1140,7 +1210,6 @@ class AudioService:
                 callback=callback,
                 blocksize=2048
             )
-            self._ident_stream.start()
             print(f"Ident playback started on ch {ch_l+1}/{ch_r+1} (idx {ch_l}/{ch_r}) of {num_channels} channels @ {device_sr}Hz, device={device}")
         except Exception as e:
             print(f"Ident playback error: {e}")

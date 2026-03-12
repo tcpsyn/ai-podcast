@@ -95,6 +95,47 @@ DB_PASS = os.getenv("CASTOPOD_DB_PASS")
 DB_NAME = "castopod"
 
 LOCK_FILE = Path(__file__).parent / ".publish.lock"
+PUBLISH_STATE_FILE = Path(__file__).parent / "data" / "publish_state.json"
+
+
+def _load_publish_state() -> dict:
+    """Load publish state tracking which steps completed per episode."""
+    if PUBLISH_STATE_FILE.exists():
+        with open(PUBLISH_STATE_FILE) as f:
+            return json.load(f)
+    return {}
+
+
+def _save_publish_state(state: dict):
+    """Save publish state."""
+    PUBLISH_STATE_FILE.parent.mkdir(exist_ok=True)
+    with open(PUBLISH_STATE_FILE, "w") as f:
+        json.dump(state, f, indent=2)
+
+
+def _mark_step_done(episode_number: int, step: str, details: dict = None):
+    """Mark a publish step as completed for an episode."""
+    state = _load_publish_state()
+    key = str(episode_number)
+    if key not in state:
+        state[key] = {"steps": {}, "started_at": datetime.now(timezone.utc).isoformat()}
+    state[key]["steps"][step] = {
+        "completed_at": datetime.now(timezone.utc).isoformat(),
+        **(details or {}),
+    }
+    _save_publish_state(state)
+
+
+def _is_step_done(episode_number: int, step: str) -> bool:
+    """Check if a publish step was already completed for an episode."""
+    state = _load_publish_state()
+    return step in state.get(str(episode_number), {}).get("steps", {})
+
+
+def _get_step_details(episode_number: int, step: str) -> dict | None:
+    """Get details from a completed publish step."""
+    state = _load_publish_state()
+    return state.get(str(episode_number), {}).get("steps", {}).get(step)
 
 
 def get_auth_header():
@@ -541,14 +582,15 @@ def run_ssh_command(command: str, timeout: int = 30) -> tuple[bool, str]:
         return False, str(e)
 
 
-def _check_episode_exists_in_db(episode_number: int) -> bool:
-    """Check if an episode with this number already exists in Castopod DB."""
+def _check_episode_exists_in_db(episode_number: int) -> bool | None:
+    """Check if an episode with this number already exists in Castopod DB.
+    Returns True/False on success, None if the check itself failed."""
     cmd = (f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} '
            f'-N -e "SELECT COUNT(*) FROM cp_episodes WHERE number = {episode_number};"')
     success, output = run_ssh_command(cmd)
     if success and output.strip():
         return int(output.strip()) > 0
-    return False
+    return None
 
 
 def _srt_to_castopod_json(srt_path: str) -> str:
@@ -1022,7 +1064,29 @@ def get_youtube_service():
             print("    Warning: YouTube token missing or invalid. Run: python yt_auth.py")
             return None
 
+    # Warn if token scopes are insufficient (e.g. upload-only, missing youtube scope)
+    if creds.scopes and not set(YT_SCOPES).issubset(creds.scopes):
+        missing = set(YT_SCOPES) - set(creds.scopes)
+        print(f"    Warning: YouTube token missing scopes: {missing}")
+        print(f"    Run: python yt_auth.py  (to re-authorize with full scopes)")
+
     return yt_build("youtube", "v3", credentials=creds)
+
+
+def _check_youtube_duplicate(youtube, title: str) -> str | None:
+    """Search our channel's uploads for an existing video with this title. Returns video ID if found."""
+    from googleapiclient.errors import HttpError
+    try:
+        response = youtube.search().list(
+            part="snippet", q=title, type="video",
+            forMine=True, maxResults=5,
+        ).execute()
+        for item in response.get("items", []):
+            if item["snippet"]["title"].strip().lower() == title.strip().lower():
+                return item["id"]["videoId"]
+    except HttpError as e:
+        print(f"    Warning: Could not check for YouTube duplicates: {e}")
+    return None
 
 
 def upload_to_youtube(audio_path: str, metadata: dict, chapters: list,
@@ -1037,14 +1101,23 @@ def upload_to_youtube(audio_path: str, metadata: dict, chapters: list,
     if not youtube:
         return None
 
+    # Check for existing upload with same title
+    yt_title = metadata["title"][:100]
+    existing_id = _check_youtube_duplicate(youtube, yt_title)
+    if existing_id:
+        print(f"    Video already exists on YouTube: https://youtube.com/watch?v={existing_id}")
+        print(f"    Skipping duplicate upload")
+        return existing_id
+
     cover_art = Path(__file__).parent / "website" / "images" / "cover.png"
     video_path = Path(audio_path).with_suffix(".yt.mp4")
 
-    # Convert MP3 + cover art to MP4
+    # Convert MP3 + cover art to MP4 (pad to 1920x1080 for YouTube compatibility)
     print("    Converting audio to video...")
     result = subprocess.run([
         "ffmpeg", "-y", "-loop", "1",
         "-i", str(cover_art), "-i", audio_path,
+        "-vf", "scale=-1:1080,pad=1920:1080:(ow-iw)/2:0:black",
         "-c:v", "libx264", "-tune", "stillimage",
         "-c:a", "aac", "-b:a", "192k",
         "-pix_fmt", "yuv420p", "-shortest",
@@ -1221,12 +1294,20 @@ def main():
     print(f"Episode number: {episode_number}")
 
     # Guard against duplicate publish
-    if not args.dry_run and _check_episode_exists_in_db(episode_number):
-        print(f"Error: Episode {episode_number} already exists in Castopod. "
-              f"Use --episode-number to specify a different number, or remove the existing episode first.")
-        lock_fp.close()
-        LOCK_FILE.unlink(missing_ok=True)
-        sys.exit(1)
+    if not args.dry_run:
+        exists = _check_episode_exists_in_db(episode_number)
+        if exists is None:
+            print(f"Error: Could not reach Castopod DB to check for duplicates. "
+                  f"Aborting to prevent duplicate uploads. Fix NAS connectivity and retry.")
+            lock_fp.close()
+            LOCK_FILE.unlink(missing_ok=True)
+            sys.exit(1)
+        if exists:
+            print(f"Error: Episode {episode_number} already exists in Castopod. "
+                  f"Use --episode-number to specify a different number, or remove the existing episode first.")
+            lock_fp.close()
+            LOCK_FILE.unlink(missing_ok=True)
+            sys.exit(1)
 
     # Load session data if provided
     session_data = None
@@ -1291,6 +1372,7 @@ def main():
     # Step 3: Create episode
     direct_upload = os.path.getsize(str(audio_path)) > CLOUDFLARE_UPLOAD_LIMIT
     episode = create_episode(str(audio_path), metadata, episode_number, duration=transcript["duration"])
+    _mark_step_done(episode_number, "castopod", {"episode_id": episode["id"], "slug": episode.get("slug")})
 
     # Step 3.5: Upload to BunnyCDN
     print("[3.5/5] Uploading to BunnyCDN...")
@@ -1388,15 +1470,26 @@ def main():
         print(f"    Warning: Website deploy failed: {deploy_result.stderr[:200]}")
 
     # Step 5.5: Upload to YouTube
-    print("[5.5] Uploading to YouTube...")
-    yt_video_id = upload_to_youtube(
-        str(audio_path), metadata, metadata["chapters"], episode["slug"]
-    )
+    yt_step = _get_step_details(episode_number, "youtube")
+    if yt_step:
+        yt_video_id = yt_step.get("video_id")
+        print(f"[5.5] YouTube upload already done: https://youtube.com/watch?v={yt_video_id}")
+    else:
+        print("[5.5] Uploading to YouTube...")
+        yt_video_id = upload_to_youtube(
+            str(audio_path), metadata, metadata["chapters"], episode["slug"]
+        )
+        if yt_video_id:
+            _mark_step_done(episode_number, "youtube", {"video_id": yt_video_id})
 
     # Step 5.7: Generate social image and post
-    social_image_path = str(audio_path.with_suffix(".social.jpg"))
-    generate_social_image(episode_number, metadata["description"], social_image_path)
-    post_to_social(metadata, episode["slug"], social_image_path)
+    if _is_step_done(episode_number, "social"):
+        print("[5.7] Social posting already done, skipping")
+    else:
+        social_image_path = str(audio_path.with_suffix(".social.jpg"))
+        generate_social_image(episode_number, metadata["description"], social_image_path)
+        post_to_social(metadata, episode["slug"], social_image_path)
+        _mark_step_done(episode_number, "social")
 
     # Step 6: Summary
     print("\n[6/6] Done!")

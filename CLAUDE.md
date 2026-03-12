@@ -75,5 +75,10 @@ Required in `.env`:
 - **Manage accounts**: `docker exec mailserver setup email add/del/list`
 - **Available for future services** — has headroom for lightweight containers. Not suitable for storage-heavy services (e.g. Castopod with daily episodes) without a disk upgrade or attached volume.
 
+## Podcast Workflow
+- Publishing pipeline: episodes go through Castopod, CDN, website, YouTube, and social
+- Always check Python venv is active and packages are installed before running publish scripts
+- Episode numbering must be verified against existing episodes
+
 ## Episodes Published
 - Episode 6 published 2026-02-08 (podcast6.mp3, ~31 min)
