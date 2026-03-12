@@ -761,6 +761,98 @@ PROBLEMS = [
     "found their parent's sex tape while cleaning out the attic — it was labeled with a date and a name, and the name isn't their other parent's, and the date is roughly nine months before they were born",
 ]
 
+# Short concept strings — the LLM invents the specifics each time
+PROBLEM_SEEDS = [
+    # Family
+    "discovered evidence their dead parent had a secret second life",
+    "sibling is marrying someone the caller used to date and nobody knows",
+    "found a letter their parent never sent that changes everything about the divorce",
+    "their kid's school called about something the kid said that traces back to the caller",
+    "grandparent left them something in the will that makes no sense unless a family rumor is true",
+    "caught their parent living a double life in a small town where everyone talks",
+    "their estranged sibling showed up unannounced after years and wants something",
+    "found out the family business they inherited has a dark history nobody mentioned",
+    "their in-laws staged an intervention about the caller's marriage — without inviting the caller",
+    "accidentally overheard their kid on the phone describing what really goes on at home",
+    # Relationships
+    "accidentally sent a brutally honest text to the person it was about",
+    "their partner's ex keeps showing up to their regular spots and it doesn't feel coincidental",
+    "found a second phone in their partner's car and it's password protected",
+    "someone left a note on their car warning them about their own spouse",
+    "ran into their ex at the worst possible moment with the worst possible person",
+    "their partner's best friend confessed feelings to the caller, not the partner",
+    "caught their partner rehearsing a breakup speech in the mirror",
+    "their spouse made a major life decision and told everyone except the caller",
+    "found old love letters their partner kept from someone they said didn't matter",
+    "their partner wants to move back to the town where the caller's worst memory happened",
+    # Work
+    "boss asked them to do something legal but deeply unethical and gave them a deadline",
+    "coworker is taking credit for the caller's work and has proof they can't use without consequences",
+    "found evidence their company is cutting corners in a way that could hurt people",
+    "got offered a promotion that would mean firing their closest work friend",
+    "their side hustle accidentally became more successful than their day job and now there's a conflict",
+    "workplace rumor about the caller is spreading and it's half true",
+    "a client told them something in confidence that they're legally obligated to report",
+    "new hire is clearly lying about their qualifications and nobody else sees it",
+    "accidentally CC'd the wrong person on an email that was very much not meant for them",
+    "their boss's boss pulled them aside and asked them to spy on their own manager",
+    # Neighbor/community
+    "neighbor's home renovation revealed something buried in the yard",
+    "someone in their small town is anonymously posting secrets and the caller knows who it is",
+    "their neighbor installed cameras that point directly at the caller's property",
+    "found something disturbing in a community space that nobody else seems bothered by",
+    "the new neighbor is doing something at night that's technically not illegal but deeply unsettling",
+    "their HOA president has been embezzling and the caller is the only one with proof",
+    "a local business they love turned out to be a front for something",
+    "their church group found out something about the pastor and now there's a schism",
+    "anonymous complaints keep getting filed against the caller and they're narrowing down who it is",
+    "the town's beloved local character turned out to have a very different past",
+    # Money
+    "inherited something they can't sell, can't maintain, and can't walk away from",
+    "lent their identity for something small that turned into something very big",
+    "found out they've been paying for a service that doesn't exist",
+    "a handshake deal from years ago is suddenly being enforced by a lawyer",
+    "discovered their financial advisor has been making unauthorized trades",
+    "won a small amount of money and the fallout has been worse than being broke",
+    "someone used the caller's good name to cosign something without asking",
+    "their garage sale turned up an item worth serious money and now the seller wants it back",
+    "a childhood friend turned investor wants their money back at the worst time",
+    "insurance denied a claim for a reason that sounds made up",
+    # Personal/identity
+    "found their own obituary posted online and it has details only someone close would know",
+    "woke up to discover they went viral for something they don't remember doing",
+    "their DNA test results don't match what anyone in the family expected",
+    "someone is impersonating them online and doing a disturbingly good job",
+    "a photo from their past surfaced and the context is completely wrong",
+    "their secret hobby got accidentally exposed in the most public way possible",
+    "realized they've been lying about something for so long they forgot the truth",
+    "a stranger recognized them from something the caller thought was completely private",
+    "their old social media posts resurfaced and don't match who they are now",
+    "got a letter addressed to them at an address they've never lived at",
+    # Moral dilemmas
+    "witnessed something they can't prove but also can't ignore",
+    "keeping a secret that protects one person but hurts another",
+    "found something valuable that clearly belongs to someone specific",
+    "knows who committed a minor crime but reporting it would cause a major fallout",
+    "was asked to lie under oath about something that seems small but isn't",
+    "their silence about something is being taken as agreement and it's getting worse",
+    "promised to keep a secret that turned out to be much bigger than expected",
+    "has information that could help someone they deeply dislike",
+    "caught someone cheating but not at what you'd expect",
+    "found out the truth about something everyone else is happier not knowing",
+    # Absurd situations
+    "their pet did something that revealed a neighbor's secret",
+    "a prank they pulled years ago just had real consequences",
+    "they've been accidentally attending the wrong support group and it's been helping",
+    "a wrong-number text led to an ongoing friendship they can't explain",
+    "their home security camera captured something no one believes",
+    "a fortune cookie prediction came true in the most unsettling way",
+    "accidentally joined a group chat that wasn't meant for them and can't leave",
+    "their rental car had something in it that created an absurd chain of events",
+    "a bet they made drunk is now legally binding somehow",
+    "their kid's school project accidentally uncovered real local history nobody wanted found",
+]
+
 STORIES = [
     # Neighbor/community weirdness
     "found out their neighbor has been watering their lawn with a hose that runs from the caller's outdoor spigot — for at least a year based on the water bills",
@@ -2662,6 +2754,33 @@ CALLER_STYLES = [
     "COMMUNICATION STYLE: Starts a sentence, gets distracted by their own tangent, starts another sentence, remembers the first one, tries to merge them. Asks 'where was I?' a lot. Not unintelligent — their brain just moves faster than their mouth. Lots of 'oh and another thing.' Energy level: medium-high but unfocused. When pushed back on, they agree enthusiastically and then immediately go off on another tangent. Conversational tendency: free association.",
 ]
 
+# Composable style axes — 5^4 = 625 combinations
+ENERGY_LEVELS = ["barely awake", "calm and measured", "normal conversational", "animated", "wired"]
+HONESTY_MODES = ["evasive, holds back key details", "selective about what they share", "straightforward", "overshares without realizing", "no filter whatsoever"]
+HUMOR_MODES = ["dead serious", "dry/deadpan", "uses humor to deflect", "naturally funny", "treats everything like a comedy bit"]
+CONFIDENCE_LEVELS = ["uncertain, seeking validation", "knows what they think but open to being swayed", "opinionated but reasonable", "stubborn, digs in when challenged", "absolutely certain they're right"]
+
+
+def _compose_style(preferences: dict | None = None) -> str:
+    """Build a communication style from independent personality axes.
+    If preferences exist, slightly favor historically successful axis values."""
+    axis_scores = preferences.get("style_axis_scores", {}) if preferences else {}
+
+    def _weighted_pick(values: list[str], axis_name: str) -> str:
+        scores = axis_scores.get(axis_name, {})
+        if not scores:
+            return random.choice(values)
+        weights = [scores.get(v, 1.0) for v in values]
+        return random.choices(values, weights=weights, k=1)[0]
+
+    energy = _weighted_pick(ENERGY_LEVELS, "energy")
+    honesty = _weighted_pick(HONESTY_MODES, "honesty")
+    humor = _weighted_pick(HUMOR_MODES, "humor")
+    confidence = _weighted_pick(CONFIDENCE_LEVELS, "confidence")
+    return (f"COMMUNICATION STYLE: Energy: {energy}. Honesty: {honesty}. "
+            f"Humor: {humor}. Confidence: {confidence}. "
+            f"When pushed back on, react naturally based on these traits — don't break character.")
+
 
 def pick_location() -> str:
     if random.random() < 0.8:
@@ -2744,8 +2863,86 @@ def _generate_returning_caller_background(base: dict) -> str:
     return " ".join(parts[:2]) + "".join(parts[2:])
 
 
-def _generate_pool_weights() -> dict[str, float]:
-    """Randomized per-session pool weights. No two shows feel the same."""
+CALL_METRICS_FILE = Path(__file__).parent.parent / "data" / "call_metrics.json"
+
+
+def _load_call_metrics() -> list[dict]:
+    """Load call metrics from disk."""
+    if CALL_METRICS_FILE.exists():
+        try:
+            return json.loads(CALL_METRICS_FILE.read_text())
+        except (json.JSONDecodeError, OSError):
+            return []
+    return []
+
+
+def _save_call_metric(metric: dict):
+    """Append a single metric to the metrics file."""
+    metrics = _load_call_metrics()
+    metrics.append(metric)
+    try:
+        CALL_METRICS_FILE.write_text(json.dumps(metrics, indent=2))
+    except OSError as e:
+        print(f"[Metrics] Failed to save: {e}")
+
+
+def _load_call_preferences() -> dict:
+    """Compute learned preferences from call metrics.
+    Returns pool_scores and style_axis_scores. Only activates after 30+ calls."""
+    metrics = _load_call_metrics()
+    if len(metrics) < 30:
+        return {"pool_scores": {}, "style_axis_scores": {}}
+
+    # Pool scores: average duration per pool
+    pool_durations: dict[str, list[float]] = {}
+    for m in metrics:
+        pool = m.get("pool_name", "unknown")
+        dur = m.get("duration_seconds", 0)
+        if pool != "unknown" and dur > 0:
+            pool_durations.setdefault(pool, []).append(dur)
+
+    overall_avg = sum(m.get("duration_seconds", 0) for m in metrics) / len(metrics) if metrics else 1
+    pool_scores = {}
+    for pool, durations in pool_durations.items():
+        avg = sum(durations) / len(durations)
+        # Score is ratio vs overall average, clamped to ±15%
+        ratio = avg / overall_avg if overall_avg > 0 else 1.0
+        pool_scores[pool] = max(0.85, min(1.15, ratio))
+
+    # Style axis scores: for composed styles, track which axis values produce longer calls
+    all_axes = {
+        "energy": ENERGY_LEVELS,
+        "honesty": HONESTY_MODES,
+        "humor": HUMOR_MODES,
+        "confidence": CONFIDENCE_LEVELS,
+    }
+    style_axis_scores: dict[str, dict[str, float]] = {}
+    for axis_name, axis_values in all_axes.items():
+        axis_durations: dict[str, list[float]] = {}
+        for m in metrics:
+            snippet = m.get("style_snippet", "").lower()
+            dur = m.get("duration_seconds", 0)
+            if dur <= 0:
+                continue
+            for val in axis_values:
+                if val.lower() in snippet:
+                    axis_durations.setdefault(val, []).append(dur)
+        axis_scores = {}
+        for val, durations in axis_durations.items():
+            avg = sum(durations) / len(durations)
+            ratio = avg / overall_avg if overall_avg > 0 else 1.0
+            axis_scores[val] = max(0.85, min(1.15, ratio))
+        if axis_scores:
+            style_axis_scores[axis_name] = axis_scores
+
+    prefs = {"pool_scores": pool_scores, "style_axis_scores": style_axis_scores}
+    print(f"[Learning] Loaded preferences from {len(metrics)} calls: pools={pool_scores}")
+    return prefs
+
+
+def _generate_pool_weights(preferences: dict | None = None) -> dict[str, float]:
+    """Randomized per-session pool weights. No two shows feel the same.
+    If preferences are provided, nudge weights toward historically better pools."""
     pool_ranges = {
         "PROBLEMS": (0.20, 0.35),
         "STORIES": (0.12, 0.25),
@@ -2754,6 +2951,14 @@ def _generate_pool_weights() -> dict[str, float]:
         "TOPIC_CALLIN": (0.08, 0.18),
     }
     raw = {p: random.uniform(*r) for p, r in pool_ranges.items()}
+
+    # Apply learned preferences (±15% nudge)
+    if preferences:
+        pool_scores = preferences.get("pool_scores", {})
+        for pool, score in pool_scores.items():
+            if pool in raw:
+                raw[pool] *= score
+
     total = sum(raw.values())
     weights = {p: max(v / total, 0.05) for p, v in raw.items()}
     total = sum(weights.values())
@@ -2788,9 +2993,9 @@ def _is_absurd(reason: str) -> bool:
     return any(kw in r for kw in _ABSURD_KEYWORDS)
 
 
-def _pick_unique_reason() -> tuple[str, str]:
+def _pick_unique_reason() -> tuple[str, str, bool]:
     """Pick a caller reason that hasn't been used this session.
-    Returns (reason_text, pool_name)."""
+    Returns (reason_text, pool_name, is_seed)."""
     # ~25% chance of a hot take caller
     if random.random() < 0.25:
         available = [r for r in HOT_TAKES if r not in session.used_reasons]
@@ -2798,7 +3003,7 @@ def _pick_unique_reason() -> tuple[str, str]:
             available = HOT_TAKES
         reason = random.choice(available)
         session.used_reasons.add(reason)
-        return reason, "HOT_TAKES"
+        return reason, "HOT_TAKES", False
 
     pool_map = {
         "PROBLEMS": PROBLEMS, "TOPIC_CALLIN": TOPIC_CALLIN,
@@ -2806,6 +3011,16 @@ def _pick_unique_reason() -> tuple[str, str]:
     }
     weights = session.pool_weights
     chosen = random.choices(list(weights.keys()), weights=list(weights.values()), k=1)[0]
+
+    # 50% of PROBLEMS picks use a seed instead of a full entry
+    if chosen == "PROBLEMS" and random.random() < 0.50:
+        available = [s for s in PROBLEM_SEEDS if s not in session.used_reasons]
+        if not available:
+            available = PROBLEM_SEEDS
+        reason = random.choice(available)
+        session.used_reasons.add(reason)
+        return reason, chosen, True
+
     pool = pool_map[chosen]
     available = [r for r in pool if r not in session.used_reasons]
     if not available:
@@ -2830,7 +3045,7 @@ def _pick_unique_reason() -> tuple[str, str]:
         for key, options in PROBLEM_FILLS.items():
             if "{" + key + "}" in reason:
                 reason = reason.replace("{" + key + "}", random.choice(options))
-    return reason, chosen
+    return reason, chosen, False
 
 
 # Style indices by name fragment for filtering
@@ -2839,14 +3054,24 @@ _LIGHT_STYLES = ["comedian", "bragger", "high-energy", "confrontational"]
 _EVASIVE_STYLES = ["mysterious", "evasive"]
 
 def _pick_caller_style(reason: str, pool_name: str) -> str:
-    """Pick a communication style appropriate for the caller's reason and pool."""
+    """Pick a communication style appropriate for the caller's reason and pool.
+    50% chance of a composed style from independent axes, 50% handcrafted."""
     reason_lower = reason.lower()
+
+    # Heavy emotional content forces handcrafted (composed styles don't filter well)
+    heavy_keywords = ["dying", "suicide", "terminal", "cancer", "funeral", "dead ",
+                      "death", "grief", "miscarriage", "abuse", "assault", "murder"]
+    is_heavy = any(kw in reason_lower for kw in heavy_keywords)
+
+    # 50% composed styles for non-heavy, non-hot-take content
+    if not is_heavy and pool_name != "HOT_TAKES" and random.random() < 0.50:
+        prefs = getattr(session, 'call_preferences', None)
+        return _compose_style(prefs)
+
     style_lower_map = [(s, s.lower()) for s in CALLER_STYLES]
 
     # Heavy emotional content — exclude styles that trivialize it
-    heavy_keywords = ["dying", "suicide", "terminal", "cancer", "funeral", "dead ",
-                      "death", "grief", "miscarriage", "abuse", "assault", "murder"]
-    if any(kw in reason_lower for kw in heavy_keywords):
+    if is_heavy:
         filtered = [s for s, sl in style_lower_map
                     if not any(t in sl for t in _LIGHT_STYLES)]
         if filtered:
@@ -2905,13 +3130,15 @@ def generate_caller_background(base: dict) -> str:
             town_info = f"\nABOUT WHERE THEY LIVE ({town.title()}): {TOWN_KNOWLEDGE[town]} Only reference real places and facts about this area — don't invent businesses or landmarks that aren't mentioned here."
 
     # Core identity (problem or topic)
-    reason, pool_name = _pick_unique_reason()
+    reason, pool_name, is_seed = _pick_unique_reason()
 
     # Assign communication style matched to content
     style = _pick_caller_style(reason, pool_name)
     for key, b in CALLER_BASES.items():
         if b is base or b.get("name") == base.get("name"):
             session.caller_styles[key] = style
+            session.caller_pools[key] = pool_name
+            session.caller_is_seed[key] = is_seed
             break
 
     interest1, interest2 = random.sample(INTERESTS, 2)
@@ -3059,7 +3286,7 @@ async def _generate_caller_background_llm(base: dict) -> str:
     location = pick_location() if include_location else None
 
     # Pick a reason for calling
-    reason, pool_name = _pick_unique_reason()
+    reason, pool_name, is_seed = _pick_unique_reason()
 
     # Assign communication style matched to content
     style = _pick_caller_style(reason, pool_name)
@@ -3070,6 +3297,8 @@ async def _generate_caller_background_llm(base: dict) -> str:
             break
     if caller_key:
         session.caller_styles[caller_key] = style
+        session.caller_pools[caller_key] = pool_name
+        session.caller_is_seed[caller_key] = is_seed
     style_hint = style.split(":")[1].strip()[:120] if ":" in style else ""
 
     # Pick a few random color details as seeds — not a full list
@@ -3103,16 +3332,20 @@ async def _generate_caller_background_llm(base: dict) -> str:
     seed_text = ". ".join(seeds) if seeds else ""
 
     location_line = f"\nLOCATION: {location}" if location else ""
+    if is_seed:
+        reason_line = f"SITUATION SEED: {reason} — Take this concept and invent the SPECIFIC details. Names, amounts, locations, what exactly happened. The seed is the idea; you create a unique story around it."
+    else:
+        reason_line = f"WHY THEY'RE CALLING: {reason}"
     prompt = f"""Write a brief character description for a caller on a late-night radio show set in the rural southwest (New Mexico/Arizona border region). Write it in third person as a character brief, not as dialog.
 
 CALLER: {name}, {age}, {gender}
 JOB: {job}{location_line}
-WHY THEY'RE CALLING: {reason}
+{reason_line}
 TIME: {time_ctx} {season_ctx}
 {f'SOME DETAILS ABOUT THEM: {seed_text}' if seed_text else ''}
 {f'CALLER ENERGY: {style_hint}' if style_hint else ''}
 
-Write 3-5 sentences describing this person. The "WHY THEY'RE CALLING" is the core of the character — build everything around it. Make it feel like a real person with a real situation, not a character sheet or therapy intake form.
+Write 3-5 sentences describing this person. {"Invent specific, vivid details — real names, real places, real amounts. Two callers with the same seed should sound like completely different people with completely different stories." if is_seed else "The \"WHY THEY'RE CALLING\" is the core of the character — build everything around it."} Make it feel like a real person with a real situation, not a character sheet or therapy intake form.
 
 WHAT MAKES A GOOD CALLER: The best radio callers have stories that are SPECIFIC, SURPRISING, and make you lean in. Think: absurd situations that escalated, moral dilemmas with no clean answer, petty feuds that got out of hand, workplace chaos, ridiculous coincidences, confessions that are funny and terrible at the same time, situations where the caller might be the villain and doesn't realize it. The kind of thing where the host says "wait, back up — say that again."
 
@@ -3383,6 +3616,39 @@ def detect_host_mood(messages: list[dict]) -> str:
     return "\nEMOTIONAL READ ON THE HOST:\n" + "\n".join(f"- {s}" for s in signals) + "\n"
 
 
+def _get_arc_directive(message_count: int, style: str) -> str:
+    """Return a 1-2 sentence directive that evolves based on how deep into the call we are.
+    Style fragments shift the timing — oversharer hits depth early, evasive caller's turn comes late."""
+    # Style-based offset: positive = accelerate (hit stages earlier), negative = delay
+    _STYLE_OFFSETS = {
+        "overshare": 1, "no filter": 1, "amped": 1, "high-energy": 1,
+        "evasive": -2, "mysterious": -2, "holds back": -1,
+        "nervous": -1, "quiet": -1, "first-time": -1,
+        "storyteller": -1, "rambling": -1,
+        "confrontational": 1, "angry": 1, "venting": 1,
+    }
+    offset = 0
+    style_lower = style.lower()
+    for fragment, adj in _STYLE_OFFSETS.items():
+        if fragment in style_lower:
+            offset += adj
+    # Clamp offset so it doesn't get extreme with composed styles
+    offset = max(-2, min(2, offset))
+
+    effective = message_count + offset
+
+    if effective <= 1:
+        return "CONVERSATION STAGE: You just got on the line. Don't dump your whole story yet — set a little context, feel out the host, let the conversation start naturally. Hint at why you're calling but save the real thing for when he asks."
+    elif effective <= 3:
+        return "CONVERSATION STAGE: You're warming up. Get to the real reason you called — drop the interesting detail, the specific thing that happened. This is where the hook lands."
+    elif effective <= 5:
+        return "CONVERSATION STAGE: Something should shift here. A confession you were holding back, a reversal, an admission of the part you were leaving out. Surprise the host — and maybe yourself."
+    elif effective <= 7:
+        return "CONVERSATION STAGE: This is the most honest you've been. Real vulnerability or real conviction — no more hedging. Say the thing you almost didn't say."
+    else:
+        return "CONVERSATION STAGE: You're winding down naturally. Don't introduce new topics or big revelations. If the host is steering toward a close, let it happen."
+
+
 def _get_pacing_block(style: str) -> str:
     """Return pacing/opening instructions appropriate to the caller's communication style."""
     style_lower = style.lower()
@@ -3407,7 +3673,7 @@ def _get_speech_block(style: str) -> str:
 
 def get_caller_prompt(caller: dict, show_history: str = "",
                       news_context: str = "", research_context: str = "",
-                      emotional_read: str = "") -> str:
+                      emotional_read: str = "", message_count: int = 0) -> str:
     """Generate a natural system prompt for a caller.
     Note: conversation history is passed as actual LLM messages, not duplicated here."""
 
@@ -3435,6 +3701,7 @@ def get_caller_prompt(caller: dict, show_history: str = "",
 
     pacing_block = _get_pacing_block(personality_block)
     speech_block = _get_speech_block(personality_block)
+    arc_directive = _get_arc_directive(message_count, personality_block)
 
     # Returning callers get a focused story block; new callers get the open-ended one
     if is_returning:
@@ -3475,6 +3742,8 @@ KNOW WHEN TO LEAVE. If Luke sounds like he's wrapping up — "thanks for calling
 {personality_block}
 
 {story_block}
+
+{arc_directive}
 
 HOW YOU TALK: Like a real person on the phone — not a character in a script. React to what Luke says — agree, push back, get excited, get embarrassed. When he asks a follow-up question, answer it honestly with new information, don't just restate what you already said. Use YOUR verbal habits from your background, not generic filler. Every caller sounds different.
 
@@ -3537,8 +3806,11 @@ class Session:
         self.research_notes: dict[str, list] = {}
         self._research_task: asyncio.Task | None = None
         self.used_reasons: set[str] = set()  # Track used caller reasons to prevent repeats
-        self.pool_weights: dict[str, float] = _generate_pool_weights()
+        self.call_preferences: dict = _load_call_preferences()
+        self.pool_weights: dict[str, float] = _generate_pool_weights(self.call_preferences)
         self.caller_styles: dict[str, str] = {}
+        self.caller_pools: dict[str, str] = {}
+        self.caller_is_seed: dict[str, bool] = {}
 
     def start_call(self, caller_key: str):
         self.current_caller_key = caller_key
@@ -3638,8 +3910,11 @@ class Session:
         if self._research_task and not self._research_task.done():
             self._research_task.cancel()
         self._research_task = None
-        self.pool_weights = _generate_pool_weights()
+        self.call_preferences = _load_call_preferences()
+        self.pool_weights = _generate_pool_weights(self.call_preferences)
         self.caller_styles = {}
+        self.caller_pools = {}
+        self.caller_is_seed = {}
         self.used_reasons = set()
         _randomize_callers()
         self.id = str(uuid.uuid4())[:8]
@@ -4830,6 +5105,26 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
     ))
     print(f"[AI Summary] {caller_name} call summarized: {summary[:80]}...")
 
+    # Record call metrics for learning loop
+    try:
+        host_msgs = [m for m in conversation if m.get("role") in ("user", "host")]
+        avg_host_words = (sum(len(m["content"].split()) for m in host_msgs) / len(host_msgs)) if host_msgs else 0
+        metric = {
+            "timestamp": ended_at,
+            "caller_name": caller_name,
+            "duration_seconds": ended_at - started_at,
+            "message_count": len(conversation),
+            "host_messages": len(host_msgs),
+            "avg_host_words": round(avg_host_words, 1),
+            "pool_name": session.caller_pools.get(caller_key, "unknown"),
+            "style_snippet": session.caller_styles.get(caller_key, "")[:80],
+            "is_seed": session.caller_is_seed.get(caller_key, False),
+        }
+        _save_call_metric(metric)
+        print(f"[Metrics] Recorded: {metric['message_count']} msgs, {metric['duration_seconds']:.0f}s, pool={metric['pool_name']}")
+    except Exception as e:
+        print(f"[Metrics] Failed to record: {e}")
+
     # Returning caller promotion/update logic
     try:
         base = CALLER_BASES.get(caller_key) if caller_key else None
@@ -5177,7 +5472,8 @@ async def chat(request: ChatRequest):
 
         show_history = session.get_show_history()
         mood = detect_host_mood(session.conversation)
-        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
+        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood,
+                                          message_count=len(session.conversation))
 
         max_tokens, max_sentences = _pick_response_budget()
         messages = _normalize_messages_for_llm(session.conversation[-10:])
@@ -5997,7 +6293,8 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
 
         show_history = session.get_show_history()
         mood = detect_host_mood(session.conversation)
-        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
+        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood,
+                                          message_count=len(session.conversation))
 
         max_tokens, max_sentences = _pick_response_budget()
         messages = _normalize_messages_for_llm(session.conversation[-10:])
@@ -6075,7 +6372,8 @@ async def ai_respond():
 
         show_history = session.get_show_history()
         mood = detect_host_mood(session.conversation)
-        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
+        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood,
+                                          message_count=len(session.conversation))
 
         max_tokens, max_sentences = _pick_response_budget()
         messages = _normalize_messages_for_llm(session.conversation[-10:])
