@@ -47,7 +47,7 @@ class LLMService:
     @property
     def client(self) -> httpx.AsyncClient:
         if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(timeout=15.0)
+            self._client = httpx.AsyncClient(timeout=10.0)
         return self._client
 
     def update_settings(
@@ -135,7 +135,7 @@ class LLMService:
             if model == self.openrouter_model:
                 continue  # Already tried
             print(f"[LLM] Falling back to {model}...")
-            result = await self._call_openrouter_once(messages, model, timeout=10.0, max_tokens=max_tokens)
+            result = await self._call_openrouter_once(messages, model, timeout=8.0, max_tokens=max_tokens)
             if result is not None:
                 return result
 
@@ -143,7 +143,7 @@ class LLMService:
         print("[LLM] All models failed, using canned response")
         return "Sorry, I totally blanked out for a second. What were you saying?"
 
-    async def _call_openrouter_once(self, messages: list[dict], model: str, timeout: float = 15.0, max_tokens: Optional[int] = None) -> str | None:
+    async def _call_openrouter_once(self, messages: list[dict], model: str, timeout: float = 10.0, max_tokens: Optional[int] = None) -> str | None:
         """Single attempt to call OpenRouter. Returns None on failure (not a fallback string)."""
         try:
             response = await self.client.post(

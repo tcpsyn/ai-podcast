@@ -350,7 +350,7 @@ def post_to_youtube(clip: dict, clip_file: Path) -> bool:
 
     video_id = response["id"]
     print(f"    https://youtube.com/shorts/{video_id}")
-    return True
+    return video_id
 
 
 def create_post(integration_id: str, content: str, media: dict,
@@ -619,7 +619,8 @@ def main():
         if "youtube" in remaining_platforms:
             print(f"    Posting to YouTube Shorts (direct)...")
             try:
-                if post_to_youtube(clip, clip_file):
+                yt_video_id = post_to_youtube(clip, clip_file)
+                if yt_video_id:
                     print(f"    YouTube: Posted!")
                     upload_history.setdefault(clip_key, []).append("youtube")
                     save_upload_history(clips_dir, upload_history)
@@ -640,7 +641,131 @@ def main():
             except Exception as e:
                 print(f"    Bluesky: Failed — {e}")
 
+    # Sync clips to website if any YouTube uploads happened
+    if "youtube" in active_platforms:
+        sync_clips_to_website()
+
     print("\nDone!")
+
+
+WEBSITE_DIR = Path(__file__).parent / "website"
+CLIPS_JSON = WEBSITE_DIR / "data" / "clips.json"
+THUMBS_DIR = WEBSITE_DIR / "images" / "clips"
+CLIPS_ROOT = Path(__file__).parent / "clips"
+
+
+def sync_clips_to_website():
+    """Rebuild website/data/clips.json from YouTube shorts and deploy."""
+    import subprocess
+
+    print("\nSyncing clips to website...")
+
+    # Fetch all YouTube shorts from channel
+    result = subprocess.run(
+        ["python3", "-m", "yt_dlp", "--flat-playlist", "--print", "%(id)s\t%(title)s",
+         "https://www.youtube.com/lukemacneil/shorts"],
+        capture_output=True, text=True, timeout=60,
+    )
+    if not result.stdout.strip():
+        print("  Could not fetch YouTube shorts, skipping sync")
+        return
+
+    yt_shorts = {}
+    for line in result.stdout.strip().split("\n"):
+        if "\t" not in line:
+            continue
+        vid_id, title = line.split("\t", 1)
+        clean_title = re.sub(r"\s*#Shorts\s*$", "", title).strip().lower()
+        yt_shorts[clean_title] = vid_id
+
+    print(f"  Found {len(yt_shorts)} YouTube shorts")
+
+    # Load all clip metadata and match to YouTube
+    existing = {}
+    if CLIPS_JSON.exists():
+        for c in json.loads(CLIPS_JSON.read_text()):
+            existing[c["clip_file"]] = c
+
+    new_clips = []
+    for ep_dir in sorted(CLIPS_ROOT.glob("episode-*")):
+        meta_file = ep_dir / "clips-metadata.json"
+        if not meta_file.exists():
+            continue
+        for clip in json.loads(meta_file.read_text()):
+            clip_title = clip["title"].strip().lower()
+            yt_id = yt_shorts.get(clip_title, "")
+            if not yt_id:
+                for yt_title, yid in yt_shorts.items():
+                    if yt_title in clip_title or clip_title in yt_title:
+                        yt_id = yid
+                        break
+            if not yt_id:
+                continue
+
+            prev = existing.get(clip["clip_file"], {})
+            new_clips.append({
+                "title": clip["title"],
+                "description": clip.get("description", clip.get("caption_text", "")),
+                "episode_number": clip.get("episode_number", 0),
+                "clip_file": clip["clip_file"],
+                "youtube_id": yt_id,
+                "featured": prev.get("featured", False),
+                "thumbnail": prev.get("thumbnail", ""),
+            })
+
+    new_clips.sort(key=lambda c: c["episode_number"], reverse=True)
+
+    # Generate thumbnails for clips that don't have one
+    THUMBS_DIR.mkdir(parents=True, exist_ok=True)
+    for clip in new_clips:
+        if clip["thumbnail"]:
+            thumb_path = WEBSITE_DIR / clip["thumbnail"]
+            if thumb_path.exists():
+                continue
+
+        thumb_name = clip["clip_file"].replace(".mp4", ".jpg")
+        thumb_path = THUMBS_DIR / thumb_name
+        ep_num = clip["episode_number"]
+        mp4_path = CLIPS_ROOT / f"episode-{ep_num}" / clip["clip_file"]
+
+        if not mp4_path.exists():
+            continue
+
+        subprocess.run(
+            ["ffmpeg", "-y", "-i", str(mp4_path), "-ss", "3", "-vframes", "1",
+             "-update", "1", "-vf", "scale=360:-2", "-q:v", "4", str(thumb_path)],
+            capture_output=True, timeout=30,
+        )
+        if thumb_path.exists():
+            clip["thumbnail"] = f"images/clips/{thumb_name}"
+            print(f"  Generated thumbnail: {thumb_name}")
+
+    # Ensure at least 3 featured
+    featured_count = sum(1 for c in new_clips if c.get("featured"))
+    if featured_count < 3:
+        for c in new_clips:
+            if not c.get("featured"):
+                c["featured"] = True
+                featured_count += 1
+                if featured_count >= 3:
+                    break
+
+    CLIPS_JSON.parent.mkdir(parents=True, exist_ok=True)
+    CLIPS_JSON.write_text(json.dumps(new_clips, indent=2))
+    print(f"  Updated clips.json: {len(new_clips)} clips")
+
+    # Deploy
+    print("  Deploying website...")
+    deploy = subprocess.run(
+        ["npx", "wrangler", "pages", "deploy", "website/",
+         "--project-name=lukeattheroost", "--branch=main", "--commit-dirty=true"],
+        capture_output=True, text=True, timeout=120,
+        cwd=str(Path(__file__).parent),
+    )
+    if "Deployment complete" in deploy.stdout:
+        print("  Website deployed!")
+    else:
+        print(f"  Deploy failed: {deploy.stderr[-300:]}")
 
 
 if __name__ == "__main__":

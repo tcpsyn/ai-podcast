@@ -1,13 +1,17 @@
 {
   "input_device": 13,
+  "input_device_name": "Babyface Pro (70793771)",
   "input_channel": 1,
   "output_device": 12,
+  "output_device_name": "Radio Voice Mic",
   "caller_channel": 3,
   "live_caller_channel": 9,
   "music_channel": 5,
   "sfx_channel": 7,
   "ad_channel": 11,
-  "monitor_device": 14,
+  "ident_channel": 15,
+  "monitor_device": null,
+  "monitor_device_name": null,
   "monitor_channel": 1,
   "phone_filter": false
 }

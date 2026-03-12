@@ -1,27 +1,6 @@
 {
   "regulars": [
     {
-      "id": "8c97dd56",
-      "name": "Mitch",
-      "gender": "male",
-      "age": 29,
-      "job": "just the glow from the window over the sink where he's been standing for the past hour, looking at his neighbor's house across the gravel drive",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Mark",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Starts a sentence, gets distracted by their own tangent, starts another sentence, remembers the first one, tries to merge them. Asks 'where was I?' a lot. Not unintelligent \u2014 their brain just moves faster than their mouth. Lots of 'oh and another thing.' Energy level: medium-high but unfocused. When pushed back on, they agree enthusiastically and then immediately go off on another tangent. Conversational tendency: free association."
-      },
-      "call_history": [
-        {
-          "summary": "Mitch called about his neighbor stealing water for over a year by connecting a hose under the fence to his spigot, doubling his water bills, and when confronted, the neighbor just shrugged it off. The emotional core of the call was Mitch struggling with feeling disrespected and small\u2014standing in his dark kitchen obsessing over the neighbor's dismissive reaction\u2014before ultimately deciding to pursue documentation, involve the water company, and take the neighbor to small claims court.",
-          "timestamp": 1772174421.724106
-        }
-      ],
-      "last_call": 1772174421.724106,
-      "created_at": 1772174421.724106
-    },
-    {
       "id": "37f0bfaa",
       "name": "Murray",
       "gender": "male",
@@ -37,119 +16,60 @@
         {
           "summary": "Murray called in struggling with whether to fire his best friend Danny of 30 years, who's been showing up late, bad-mouthing him to their crew, and just cost them a major contract by abandoning a job site. Through the conversation, Murray realized he'd become overly rigid and \"suit-like\" while trying to prove himself as the new business owner, and decided instead of firing Danny, he'd hold a team meeting to apologize for his approach, explain the reasoning behind new protocols, and invite the crew to be part of the solution rather than just enforcing rules from above.",
           "timestamp": 1772250744.2312489
+        },
+        {
+          "summary": "Murray called back about Danny, who showed up for only four days after their team meeting before disappearing without notice, then had his girlfriend tell Murray he was \"taking time to think\" about the job. Murray was emotionally torn between feeling hurt that Danny accused him of being inauthentic (only having the meeting because Luke called him out on air) and recognizing he needs to let Danny go for the sake of his business and the rest of his crew.",
+          "timestamp": 1772862554.163734
         }
       ],
-      "last_call": 1772250744.2312498,
+      "last_call": 1772862554.1637352,
       "created_at": 1772250744.2312498
     },
     {
-      "id": "9e274ab1",
-      "name": "Elvin",
-      "gender": "male",
-      "age": 49,
-      "job": "his plate of cold fries pushed aside, because three hours ago his buddy Marcus showed him a dating profile\u2014complete with photos from last summer's fishing trip\u2014and swore up and down he's never downloaded a dating app in his life, which would be easier to believe if Elvin's ex-wife and two of his cousins hadn't also matched with Marcus",
-      "location": "unknown",
-      "personality_traits": [],
-      "voice": "Brian",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Starts a sentence, gets distracted by their own tangent, starts another sentence, remembers the first one, tries to merge them. Asks 'where was I?' a lot. Not unintelligent \u2014 their brain just moves faster than their mouth. Lots of 'oh and another thing.' Energy level: medium-high but unfocused. When pushed back on, they agree enthusiastically and then immediately go off on another tangent. Conversational tendency: free association."
-      },
-      "call_history": [
-        {
-          "summary": "Elvin called because his longtime friend Marcus discovered someone created fake dating profiles using his real photos, and multiple people including Elvin's ex-wife and cousins have matched with the imposter profile. After initially suspecting Marcus was lying, Elvin became convinced his friend is a genuine victim of identity theft, and felt guilty for doubting him\u2014ultimately deciding to help Marcus investigate by having a cousin engage with the fake profile to uncover the scammer's motives.",
-          "timestamp": 1772253684.436144
-        }
-      ],
-      "last_call": 1772253684.4361448,
-      "created_at": 1772253684.436146
-    },
-    {
-      "id": "61935b11",
-      "name": "Marcus",
-      "gender": "male",
-      "age": 34,
-      "job": "door locked, listening to the wind throw sand against the window while she sleeps",
-      "location": "unknown",
-      "personality_traits": [],
-      "voice": "Callum",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Wearing their heart on their sleeve. Voice cracks. Long pauses where they're collecting themselves. Not performing emotion \u2014 genuinely going through it. When they laugh it's the kind of laugh that's one step from crying. Energy level: fluctuating. When pushed back on, they get quiet and you can tell they're really thinking about it. Conversational tendency: vulnerability."
-      },
-      "call_history": [
-        {
-          "summary": "Marcus called about accidentally receiving $5,000 instead of $500 from his employer three months ago and spending most of it on his truck, daughter's tuition, and bills, which has been keeping him up at night with guilt and fear of consequences. The host advised him to proactively tell his employer (claiming an accountant found the error), emphasize it was their mistake, and work out a payment plan rather than waiting for them to discover it, reassuring Marcus that he likely won't be fired since he didn't actually do anything wrong.",
-          "timestamp": 1772429224.977716
-        }
-      ],
-      "last_call": 1772429224.977717,
-      "created_at": 1772429224.977717
-    },
-    {
-      "id": "a16fe26a",
-      "name": "Curtis",
-      "gender": "male",
-      "age": 43,
-      "job": "still sitting at her table an hour after Sunday dinner ended, phone cord stretched across the counter because she still has a landline",
+      "id": "bbb20b67",
+      "name": "Angie",
+      "gender": "female",
+      "age": 28,
+      "job": "watching her coveralls tumble dry and trying to decide if she should drive the three hours to Tucson tomorrow for her mom's birthday or keep pretending her brother doesn't exist",
       "location": "in unknown",
       "personality_traits": [],
-      "voice": "Nate",
+      "voice": "Julia",
       "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Treats the call like a set. Has bits prepared. Delivers serious information with a punchline chaser. Self-deprecating as a defense mechanism \u2014 makes fun of themselves before anyone else can. Energy level: high. When pushed back on, they deflect with humor. Getting a straight answer from them requires the host to push. Conversational tendency: turning everything into a bit."
+        "style": "COMMUNICATION STYLE: Bone dry. Says devastating things with zero inflection. Their humor sneaks up on you \u2014 you're not sure if they're joking until three seconds after they finish talking. Short, precise sentences. Never raises their voice. Energy level: low-medium. When pushed back on, they respond with one calm sentence that somehow makes the other person feel stupid. Conversational tendency: underreaction."
       },
       "call_history": [
         {
-          "summary": "Curtis called about struggling with grief after taking his deceased father's record collection from his mom's garage, crying over albums despite having avoided thinking about his dad for three years. He's conflicted about mourning a father who abandoned him at 14, using humor to deflect his pain, but the host reassured him it's normal to grieve even complicated relationships and that keeping the records\u2014whether he uses them or not\u2014is perfectly okay.",
-          "timestamp": 1772430659.572614
-        }
-      ],
-      "last_call": 1772430659.572614,
-      "created_at": 1772430659.572614
-    },
-    {
-      "id": "9b72f700",
-      "name": "Mitch",
-      "gender": "male",
-      "age": 38,
-      "job": "half-eaten microwave burrito going cold on the table, because he just watched his two best friends\u2014who've spent the last three years openly trash-talking each other at every barbecue and poker night\u2014stumble out of the parking garage behind the Safeway at 1 AM, hands all over each other, and climb into the same truck",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Blake",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Called because they need to GET THIS OFF THEIR CHEST. Talks in capital letters. Uses 'honestly' and 'I'm not even kidding' a lot. The anger is specific and justified \u2014 this isn't random rage, this is 'let me tell you exactly what happened.' Energy level: very high. When pushed back on, they take a breath and say 'I hear you but...' and then get right back to the rant. Conversational tendency: building to a crescendo."
-      },
-      "call_history": [
-        {
-          "summary": "Mitch called in after discovering his two best friends, who had always pretended to despise each other, making out in a parking garage. He felt like an idiot for not realizing they were secretly together and was upset about being lied to, but the host helped him see the humor in the situation.",
-          "timestamp": 1772431494.727463
-        }
-      ],
-      "last_call": 1772431494.727464,
-      "created_at": 1772431494.727464
-    },
-    {
-      "id": "d2af96eb",
-      "name": "Rocco",
-      "gender": "male",
-      "age": 53,
-      "job": "and tonight he's calling from the back office of the Pizza Hut during his break because three hours ago he got trapped",
-      "location": "unknown",
-      "personality_traits": [],
-      "voice": "Timothy",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Obviously nervous about being on the radio. Starts with 'Am I on? Can you hear me?' Apologizes for taking up time. Speaks carefully like they're being recorded (which they are). Gets more comfortable as the conversation goes on. Energy level: low, building to medium. When pushed back on, they panic slightly and over-explain. Conversational tendency: seeking validation that they're doing okay."
-      },
-      "call_history": [
-        {
-          "summary": "Rocco, a pizza delivery driver, called from work to talk about getting stuck in an elevator for 45 minutes with his ex-wife Linda and her boyfriend Dale, which unexpectedly stirred up old feelings despite being happily married to his current wife Sharon for 15 years. The host firmly advised him to forget about Linda and appreciate his comfortable current marriage, reminding him that the divorce was difficult for good reasons.",
-          "timestamp": 1772517521.710845
+          "summary": "Angie's dying mother wants her to have birthday dinner with her estranged brother Derek tomorrow, whom she hasn't spoken to in two years after he told their mother her cancer was \"God's way of getting her attention\" for voting for Biden. Despite her fear that Derek will say something hurtful during dinner and her past trauma from staying silent around him, Angie agrees to go and share cake with her mother, deciding to buy the relighting candles her mom loved when they were kids.",
+          "timestamp": 1772862907.314721
         },
         {
-          "summary": "Rocco calls back to update the host about his ex-wife Linda, who he was previously stuck in an elevator with, revealing that she broke up with her boyfriend Dale three weeks ago and admitting he still has her number in his phone. The host becomes frustrated with Rocco's indecisiveness between Linda and his current girlfriend Sharon, telling him to pick one person and stop wasting time.",
-          "timestamp": 1772700921.1273742
+          "summary": "Angie called back after having the birthday cake dinner with her dying mom, which went well, but her brother Derek cornered her afterward accusing her of convincing their mom to stop cancer treatment and demanding they both attend the next doctor's appointment together. Luke advised her to talk directly to her mom about what she actually wants and encouraged Angie to have real conversations about her mom's end-of-life thoughts while she still can, which Angie agreed to do the next morning.",
+          "timestamp": 1773296210.170752
         }
       ],
-      "last_call": 1772700921.1273742,
-      "created_at": 1772517521.7108748
+      "last_call": 1773296210.170753,
+      "created_at": 1772862907.314722
+    },
+    {
+      "id": "d3399e9d",
+      "name": "Lucille",
+      "gender": "female",
+      "age": 38,
+      "job": "where she's been sitting for the past hour staring at her neighbor's garage through the window, watching his light flick on and off like he's still awake and pissed",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Tessa",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Clearly holding back. Gives vague answers to direct questions. Says 'I can't really get into that' about key details. The mystery IS the hook \u2014 makes you want to know what they're not saying. Energy level: low, controlled. When pushed back on, they deflect smoothly or change the subject. Getting the real story requires the host to work for it. Conversational tendency: strategic omission."
+      },
+      "call_history": [
+        {
+          "summary": "Lucille called because her garage door opener has been opening her neighbor Dennis's garage instead of hers since a transformer blew, and she admitted she's been intentionally parking in his garage at 3 AM for three days because it's more convenient for her bail bonds work. Luke told her to stop trespassing immediately, fix her garage door opener, and stop acting like she needs covert operations just to come home from work.",
+          "timestamp": 1772864272.556864
+        }
+      ],
+      "last_call": 1772864272.556865,
+      "created_at": 1772864272.556865
     },
     {
       "id": "c4l7l3ad",
@@ -181,123 +101,118 @@
         {
           "summary": "Silas, founder of a communal living group called The Wellspring, called in troubled that one of his \"Unbinding\" ceremonies may have encouraged a longtime member named Marcus to leave his wife Cara, who subsequently left the community. The host reassured him that everyone seems happier now, and Silas ended up agreeing while also using the opportunity to promote an upcoming retreat at his community.",
           "timestamp": 1772522629.959956
+        },
+        {
+          "summary": "Silas called about Marcus and Cara returning to his intentional community \"The Wellspring,\" but Cara admitted she never believed in their lifestyle and only participates (including in twice-monthly \"shared intimacy nights\") to keep her husband Marcus happy. The host advised Silas to hold a \"Renewal\" ceremony where members can recommit or leave, warning that having unwilling participants could lead to claims of abuse and legal trouble.",
+          "timestamp": 1772865423.697613
         }
       ],
-      "last_call": 1772522629.959957,
+      "last_call": 1772865423.6976142,
       "created_at": 1772430000.0
     },
     {
-      "id": "5ead2c1a",
-      "name": "Greg",
+      "id": "d2af96eb",
+      "name": "Rocco",
       "gender": "male",
-      "age": 59,
-      "job": "laptop open on the comforter showing the doorbell footage for the seventh time tonight, because three nights ago someone\u2014something\u2014stood on his porch at 3:17 AM and didn't move for ten minutes and forty-three seconds, just faced the door like they were waiting to be invited in, and when he scrubbed through frame-by-frame he noticed the person's chest never rose or fell like they were breathing",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Gareth",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Has done their research and wants you to know it. Corrects small details. Cites sources. Uses phrases like 'actually, studies show...' and 'well technically.' Not trying to be annoying \u2014 they genuinely believe precision matters. Energy level: medium. When pushed back on, they get pedantic and start splitting hairs. Conversational tendency: correcting and clarifying."
-      },
-      "call_history": [
-        {
-          "summary": "Greg called about disturbing doorbell camera footage showing a figure standing motionless on his porch at 3 AM for nearly 11 minutes without breathing or triggering motion sensors, then vanishing between frames\u2014and he's discovered three similar earlier incidents after obsessively analyzing the footage. Despite creating multiple backups and researching everything from vampire folklore to electromagnetic interference, he's anxious about what this means and whether he should report it to police, though Luke reassures him to share it on the Discord community and install a constant porch light.",
-          "timestamp": 1772173891.1805592
-        },
-        {
-          "summary": "Greg called back about a mysterious figure appearing on his doorbell camera at 3:17 AM; despite installing a bright porch light as advised, the figure returned wearing what Greg recognized as his own jacket. The call reveals Greg's escalating fear as he could now see the figure clearly under the light, making the situation more disturbing rather than resolving it.",
-          "timestamp": 1772591506.80307
-        }
-      ],
-      "last_call": 1772591506.803071,
-      "created_at": 1772173891.1805599
-    },
-    {
-      "id": "983769d4",
-      "name": "Marvin",
-      "gender": "male",
-      "age": 63,
-      "job": "surrounded by half-gutted circuit boards and a police scanner he's been modifying, because his wife Sharon just left thirty minutes ago after their second fight this week about pulling the kids out of Silver Consolidated",
-      "location": "in unknown",
+      "age": 53,
+      "job": "and tonight he's calling from the back office of the Pizza Hut during his break because three hours ago he got trapped",
+      "location": "unknown",
       "personality_traits": [],
       "voice": "Timothy",
       "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Has done their research and wants you to know it. Corrects small details. Cites sources. Uses phrases like 'actually, studies show...' and 'well technically.' Not trying to be annoying \u2014 they genuinely believe precision matters. Energy level: medium. When pushed back on, they get pedantic and start splitting hairs. Conversational tendency: correcting and clarifying."
+        "style": "COMMUNICATION STYLE: Obviously nervous about being on the radio. Starts with 'Am I on? Can you hear me?' Apologizes for taking up time. Speaks carefully like they're being recorded (which they are). Gets more comfortable as the conversation goes on. Energy level: low, building to medium. When pushed back on, they panic slightly and over-explain. Conversational tendency: seeking validation that they're doing okay."
       },
       "call_history": [
         {
-          "summary": "Marvin called conflicted about his wife Sharon wanting to homeschool their eighth-grade daughter Maya, who has struggled with anxiety for years but finally made friends at her small public school this year. Despite Marvin repeatedly expressing concern that pulling Maya out would destroy her fragile social progress, the host sided with Sharon and advocated for homeschooling, leaving Marvin frustrated that he didn't get the validation he was seeking.",
-          "timestamp": 1772605472.015254
+          "summary": "Rocco, a pizza delivery driver, called from work to talk about getting stuck in an elevator for 45 minutes with his ex-wife Linda and her boyfriend Dale, which unexpectedly stirred up old feelings despite being happily married to his current wife Sharon for 15 years. The host firmly advised him to forget about Linda and appreciate his comfortable current marriage, reminding him that the divorce was difficult for good reasons.",
+          "timestamp": 1772517521.710845
         },
         {
-          "summary": "Marvin called about his wife Sharon abruptly pulling their daughter Maya out of school to homeschool her, which has caused major fights between them and Maya withdrawing further. The host helped Marvin realize Sharon might be acting from unresolved trauma\u2014ironically doing to Maya the same thing Sharon's own mother did to her in tenth grade, which Sharon always said ruined her teenage years\u2014leading to an emotional breakthrough where Marvin recognized he needed to understand *why* this was happening rather than just fighting about the decision itself.",
-          "timestamp": 1772700772.4745421
+          "summary": "Rocco calls back to update the host about his ex-wife Linda, who he was previously stuck in an elevator with, revealing that she broke up with her boyfriend Dale three weeks ago and admitting he still has her number in his phone. The host becomes frustrated with Rocco's indecisiveness between Linda and his current girlfriend Sharon, telling him to pick one person and stop wasting time.",
+          "timestamp": 1772700921.1273742
+        },
+        {
+          "summary": "Rocco, a Pizza Hut delivery driver on his break, calls to share that he just delivered pizza to his ex-wife Linda's house three hours earlier\u2014a surprising encounter after the host had previously told him to stop wasting time talking about her. The host is skeptical and impatient, threatening to hang up again unless Rocco has something meaningful to say.",
+          "timestamp": 1772959484.679859
         }
       ],
-      "last_call": 1772700772.474544,
-      "created_at": 1772605472.015255
+      "last_call": 1772959484.6798599,
+      "created_at": 1772517521.7108748
     },
     {
-      "id": "005052cf",
-      "name": "Carla",
-      "gender": "female",
-      "age": 43,
-      "job": "door locked, sitting on the closed toilet lid with the lights off because her co-worker just got engaged at dinner and everyone automatically added 25% to the check without asking, which came out to eighteen dollars on Carla's pasta, and when she said she was only putting",
+      "id": "0bb02b2d",
+      "name": "Chip",
+      "gender": "male",
+      "age": 23,
+      "job": "watching his kid's soccer uniform tumble in the dryer while his girlfriend works the graveyard shift at the hospital, because three hours ago he got an email from a lawyer representing families",
       "location": "unknown",
       "personality_traits": [],
-      "voice": "Elizabeth",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Bone dry. Says devastating things with zero inflection. Their humor sneaks up on you \u2014 you're not sure if they're joking until three seconds after they finish talking. Short, precise sentences. Never raises their voice. Energy level: low-medium. When pushed back on, they respond with one calm sentence that somehow makes the other person feel stupid. Conversational tendency: underreaction."
-      },
-      "call_history": [
-        {
-          "summary": "Carla, a senior park ranger, called frustrated after spending $18 at a coworker's engagement dinner where she was called \"cheap\" for not wanting to pay an automatic 25% tip, following a day spent driving her ex-boyfriend's equipment 86 miles without reimbursement. She expressed feeling taken advantage of after six years of always saying yes to people's requests at work and in her personal life, only to be labeled \"difficult\" whenever she tries to set boundaries, and struggles with how to say no without being disliked by colleagues she depends on in her isolated work environment.",
-          "timestamp": 1772605968.782905
-        }
-      ],
-      "last_call": 1772605968.782906,
-      "created_at": 1772605968.782906
-    },
-    {
-      "id": "d3445e3b",
-      "name": "Aaliyah",
-      "gender": "female",
-      "age": 48,
-      "job": "\" and instead of talking about it he went to bed, leaving Aaliyah wired and pissed off and needing to argue with someone about something, anything",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Celeste",
+      "voice": "Sebastian",
       "stable_seeds": {
         "style": "COMMUNICATION STYLE: Amped up. Talks fast, laughs loud, jumps between topics like they've had five espressos. Infectious enthusiasm \u2014 even bad news sounds exciting when they tell it. Uses exclamation energy without actually exclaiming. Energy level: very high. When pushed back on, they get even MORE animated and start talking with their hands (you can hear it). Conversational tendency: escalation."
       },
       "call_history": [
         {
-          "summary": "Aliyah called in frustrated about people claiming vinyl sounds better than digital, insisting it's scientifically just added distortion and noise, but after a lengthy technical debate with Luke about warmth, accuracy, and audio quality, she had an emotional breakthrough\u2014realizing she was displacing her anxiety about her boyfriend avoiding a conversation about his mother pressuring them to get engaged.",
-          "timestamp": 1772699072.649441
+          "summary": "Chip called from a laundromat at midnight after receiving an email from a Guatemalan lawyer claiming his adopted 8-year-old daughter may have been stolen from her birth mother, with a photo showing a woman with his daughter's exact crooked smile. The host advised him not to panic, treat the information as suspect until verified by a lawyer, wait to tell both his girlfriend and daughter until he knows more facts, and reminded him that fake photos are easy to create and this could be a scam.",
+          "timestamp": 1772786610.885828
+        },
+        {
+          "summary": "Chip called about discovering his adopted daughter may have been stolen from her birth mother in Guatemala, and he's paralyzed about telling his girlfriend Teresa, fearing it will end their already rocky relationship. He's anxious about the timing and the birth mother's request to meet their daughter, but the host advised him to take his time, have the conversation with Teresa, and make decisions together as parents.",
+          "timestamp": 1772962156.544322
+        },
+        {
+          "summary": "The caller, **Chip**, shared his emotional turmoil over discovering that his **adopted daughter\u2019s birth mother** may have resurfaced after receiving an unverified email with a photo that eerily matched his daughter\u2019s features. His girlfriend, **Teresa**, had known about the email for **three weeks** but kept it from him, leaving him feeling betrayed and overwhelmed. While Chip wants to **verify the claim legally before acting**, Teresa insists on **immediately flying to Guatemala with their daughter** to meet the woman, dismissing his fears as avoidance. The conversation escalated into a heated debate about **trust, safety, and extreme measures**\u2014with the host, Luke, urging Chip to **file a restraining order** if Teresa refuses to back down, warning of potential dangers in Guatemala. Chip, torn between **protecting his family and avoiding a nuclear confrontation**, vowed to try reasoning with Teresa one last time before she leaves for work. The call was charged with **fear, frustration, and the weight of a decision that could reshape their family forever**.",
+          "timestamp": 1773226361.4859362
         }
       ],
-      "last_call": 1772699072.649442,
-      "created_at": 1772699072.649442
+      "last_call": 1773226361.4859362,
+      "created_at": 1772786610.8858292
     },
     {
-      "id": "9fb30a1b",
-      "name": "Stacy",
-      "gender": "female",
-      "age": 44,
-      "job": "third night shift this week, after her supervisor's daughter\u2014twenty-four, fresh out of some online certificate program\u2014got promoted to a position Stacy trained her for six months ago",
-      "location": "in unknown",
+      "id": "6037d92b",
+      "name": "Otis",
+      "gender": "male",
+      "age": 50,
+      "job": "sitting on a stack of pallets with his legs dangling, watching the wind kick up dust devils",
+      "location": "unknown",
       "personality_traits": [],
-      "voice": "Julia",
+      "voice": "Elliot",
       "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Not a full conspiracy theorist but asks questions that make you go 'huh, actually.' Connects dots that may or may not be there. Prefaces things with 'I'm not saying it's a conspiracy BUT.' Passionate about their theory. Energy level: medium, spiking when they hit their main point. When pushed back on, they say 'that's exactly what they want you to think' and then laugh because they know how they sound. Conversational tendency: pattern-finding."
+        "style": "COMMUNICATION STYLE: Treats the call like a set. Has bits prepared. Delivers serious information with a punchline chaser. Self-deprecating as a defense mechanism \u2014 makes fun of themselves before anyone else can. Energy level: high. When pushed back on, they deflect with humor. Getting a straight answer from them requires the host to push. Conversational tendency: turning everything into a bit."
       },
       "call_history": [
         {
-          "summary": "Stacey called frustrated that her supervisor promoted her own daughter\u2014someone Stacey trained for six months\u2014over her, symbolized by a participation trophy on the new supervisor's desk, which triggered broader concerns about people being rewarded without earning it. The conversation became emotional when she compared herself to her sister who moved away and posts about \"unlearning toxic resilience,\" leaving Stacey genuinely uncertain whether she's being admirably resilient or foolishly stuck while her sister found happiness\u2014though Stacey quickly clarified her sister might not actually be happy, just posting about boundaries.",
-          "timestamp": 1772700235.11489
+          "summary": "Otis called in, panicked, after faking prostate cancer to skip his sister\u2019s fourth wedding\u2014only for the lie to spiral into a town-wide support frenzy, complete with a GoFundMe, a cousin shaving his head, and his mom calling him every Sunday for the first time in years. The emotional gut-punch came when his sister postponed her wedding *again* (this time for his \"remission\"), leaving Otis torn between guilt over the deception and fear of the fallout if he confessed\u2014especially after his doctor confirmed he *doesn\u2019t* have cancer (though his prostate *is* enlarged). The call ended with dark humor and despair, as Otis admitted the town\u2019s sudden care for him was tied to his fake illness, not who he really is.",
+          "timestamp": 1773040564.845288
         }
       ],
-      "last_call": 1772700235.114891,
-      "created_at": 1772700235.114891
+      "last_call": 1773040564.84529,
+      "created_at": 1773040564.84529
+    },
+    {
+      "id": "0a0b3635",
+      "name": "Charlene",
+      "gender": "female",
+      "age": 42,
+      "job": "killing time during a three-hour mechanical delay while her crew naps",
+      "location": "unknown",
+      "personality_traits": [],
+      "voice": "Amina",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Everything circles back to them and how great they are. Name drops. Mentions their truck, their property, their salary, their bench press. Not overtly obnoxious \u2014 they genuinely think they're being conversational. Energy level: medium-high. When pushed back on, they get defensive fast and start listing accomplishments. Conversational tendency: one-upping."
+      },
+      "call_history": [
+        {
+          "summary": "Charlene bought a house eight months ago and keeps receiving mail for the previous resident, David Herrera, including a certified letter she accidentally signed for containing what appears to be a $12,000-13,000 check. Despite her attempts to resolve it with the post office and her inclination to track him down via Facebook, the host advises her to either hold it until David contacts her, return it to the post office, or discard it, warning that she can't be certain she'd find the correct person online.",
+          "timestamp": 1772866520.023335
+        },
+        {
+          "summary": "Charlene called to report that she's been closely tracking a mail carrier who regularly visits her neighbor's house for extended periods while the neighbor's husband is at work, implying she suspects an affair and is unsure whether she should tell anyone about what she's observed.",
+          "timestamp": 1773219255.916183
+        }
+      ],
+      "last_call": 1773219255.9161851,
+      "created_at": 1772866520.023336
     }
   ]
 }

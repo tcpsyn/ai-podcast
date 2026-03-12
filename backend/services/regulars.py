@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 DATA_FILE = Path(__file__).parent.parent.parent / "data" / "regulars.json"
-MAX_REGULARS = 12
+MAX_REGULARS = 8
 
 
 class RegularCallerService:

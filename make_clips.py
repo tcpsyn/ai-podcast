@@ -34,6 +34,7 @@ EPISODE_CACHE_DIR = Path(__file__).parent / "clips" / ".episode-cache"
 WHISPER_MODEL_FAST = "distil-large-v3"
 WHISPER_MODEL_QUALITY = "distil-large-v3"
 COVER_ART = Path(__file__).parent / "website" / "images" / "cover.png"
+REMOTION_DIR = Path(__file__).parent / "remotion-demo"
 
 # Fonts
 FONT_BOLD = "/Library/Fonts/Montserrat-ExtraBold.ttf"
@@ -1159,6 +1160,84 @@ def generate_clip_video(audio_path: str, background_path: str,
     return True
 
 
+def generate_clip_video_remotion(
+    audio_path: str,
+    caption_lines: list[dict],
+    clip_start: float,
+    clip_title: str,
+    episode_number: int | None,
+    output_path: str,
+    duration: float,
+) -> bool:
+    """Generate clip video using Remotion (animated captions, waveform, dynamic background)."""
+    if not REMOTION_DIR.exists():
+        print(f"    Remotion project not found at {REMOTION_DIR}")
+        return False
+
+    # Copy assets to Remotion public/ dir
+    public_dir = REMOTION_DIR / "public"
+    public_dir.mkdir(exist_ok=True)
+
+    # Copy audio
+    audio_dest = public_dir / "clip-audio.mp3"
+    import shutil
+    shutil.copy2(audio_path, audio_dest)
+
+    # Copy cover art
+    cover_dest = public_dir / "cover.png"
+    if COVER_ART.exists() and (not cover_dest.exists()
+                                or cover_dest.stat().st_mtime < COVER_ART.stat().st_mtime):
+        shutil.copy2(COVER_ART, cover_dest)
+
+    # Build caption data for Remotion — convert word timestamps to clip-relative
+    remotion_lines = []
+    for line in caption_lines:
+        remotion_words = []
+        for w in line["words"]:
+            remotion_words.append({
+                "word": w["word"].strip(),
+                "start": round(w["start"] - clip_start, 3),
+                "end": round(w["end"] - clip_start, 3),
+            })
+        remotion_lines.append({
+            "start": round(line["start"], 3),
+            "end": round(line["end"], 3),
+            "speaker": line.get("speaker", ""),
+            "words": remotion_words,
+        })
+
+    episode_label = f"EPISODE {episode_number}" if episode_number else "LUKE AT THE ROOST"
+
+    props = {
+        "captionLines": remotion_lines,
+        "clipTitle": clip_title,
+        "episodeLabel": episode_label,
+        "durationSeconds": round(duration + 0.5, 1),  # small padding
+        "audioFile": "clip-audio.mp3",
+        "coverFile": "cover.png",
+    }
+
+    # Write props to temp file
+    props_path = REMOTION_DIR / "render-props.json"
+    with open(props_path, "w") as f:
+        json.dump(props, f)
+
+    cmd = [
+        "npx", "remotion", "render",
+        "src/index.ts", "PodcastClipDemo",
+        f"--props={props_path}",
+        output_path,
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(REMOTION_DIR))
+    props_path.unlink(missing_ok=True)
+
+    if result.returncode != 0:
+        print(f"    Remotion error: {result.stderr[-500:]}")
+        return False
+    return True
+
+
 def slugify(text: str) -> str:
     """Convert text to URL-friendly slug."""
     slug = re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')
@@ -1306,6 +1385,8 @@ def main():
                         help=f"Quality Whisper model for clip refinement (default: {WHISPER_MODEL_QUALITY})")
     parser.add_argument("--single-pass", action="store_true",
                         help="Use quality model for everything (slower, no two-pass)")
+    parser.add_argument("--legacy-video", action="store_true",
+                        help="Use old PIL+ffmpeg video renderer instead of Remotion")
     args = parser.parse_args()
 
     # Default to --pick when no audio file provided
@@ -1447,7 +1528,9 @@ def main():
         return
 
     # Step N: Generate video clips
-    print(f"\n[{video_step}/{step_total}] Generating video clips...")
+    use_remotion = REMOTION_DIR.exists() and not args.legacy_video
+    renderer = "Remotion" if use_remotion else "PIL+ffmpeg"
+    print(f"\n[{video_step}/{step_total}] Generating video clips ({renderer})...")
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
@@ -1459,10 +1542,6 @@ def main():
             duration = clip["end_time"] - clip["start_time"]
 
             print(f"    Clip {i+1}: Generating video...")
-
-            # Generate background image
-            bg_path = str(tmp_dir / f"bg_{i}.png")
-            generate_background_image(episode_number, clip["title"], bg_path)
 
             # Get word timestamps — use refined segments if available
             word_source = refined[i] if (two_pass and i in refined and refined[i]) else segments
@@ -1481,18 +1560,30 @@ def main():
                 clip_words, clip["start_time"], duration
             )
 
-            # Use a per-clip temp dir for frames
-            clip_tmp = tmp_dir / f"clip_{i}"
-            clip_tmp.mkdir(exist_ok=True)
-
-            # Composite video
-            if generate_clip_video(str(mp3_path), bg_path, caption_lines,
-                                   clip["start_time"], str(mp4_path),
-                                   duration, clip_tmp):
-                file_size = mp4_path.stat().st_size / (1024 * 1024)
-                print(f"    Clip {i+1} video: {mp4_path.name} ({file_size:.1f} MB)")
+            if use_remotion:
+                if generate_clip_video_remotion(
+                    str(mp3_path), caption_lines, clip["start_time"],
+                    clip["title"], episode_number, str(mp4_path), duration
+                ):
+                    file_size = mp4_path.stat().st_size / (1024 * 1024)
+                    print(f"    Clip {i+1} video: {mp4_path.name} ({file_size:.1f} MB)")
+                else:
+                    print(f"    Error generating clip {i+1} video (Remotion)")
             else:
-                print(f"    Error generating clip {i+1} video")
+                # Legacy PIL+ffmpeg renderer
+                bg_path = str(tmp_dir / f"bg_{i}.png")
+                generate_background_image(episode_number, clip["title"], bg_path)
+
+                clip_tmp = tmp_dir / f"clip_{i}"
+                clip_tmp.mkdir(exist_ok=True)
+
+                if generate_clip_video(str(mp3_path), bg_path, caption_lines,
+                                       clip["start_time"], str(mp4_path),
+                                       duration, clip_tmp):
+                    file_size = mp4_path.stat().st_size / (1024 * 1024)
+                    print(f"    Clip {i+1} video: {mp4_path.name} ({file_size:.1f} MB)")
+                else:
+                    print(f"    Error generating clip {i+1} video")
 
     # Save clips metadata for social upload
     metadata_path = output_dir / "clips-metadata.json"

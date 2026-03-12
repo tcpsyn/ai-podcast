@@ -1,5 +1,6 @@
 """AI Radio Show - Control Panel Backend"""
 
+import os
 import uuid
 import asyncio
 import base64
@@ -115,6 +116,9 @@ ELEVENLABS_FEMALE_VOICES = [
 ELEVENLABS_MALE_VOICES.append("SAz9YHcvj6GT2YYXdXww")   # River - Neutral
 ELEVENLABS_FEMALE_VOICES.append("SAz9YHcvj6GT2YYXdXww")  # River - Neutral
 
+# Voices to never assign to callers (annoying, bad quality, etc.)
+BLACKLISTED_VOICES = {"Evelyn"}
+
 
 def _get_voice_pools():
     """Get male/female voice pools based on active TTS provider."""
@@ -122,7 +126,9 @@ def _get_voice_pools():
     if provider == "elevenlabs":
         return ELEVENLABS_MALE_VOICES, ELEVENLABS_FEMALE_VOICES
     # Default to Inworld voices (also used as fallback for other providers)
-    return INWORLD_MALE_VOICES, INWORLD_FEMALE_VOICES
+    males = [v for v in INWORLD_MALE_VOICES if v not in BLACKLISTED_VOICES]
+    females = [v for v in INWORLD_FEMALE_VOICES if v not in BLACKLISTED_VOICES]
+    return males, females
 
 CALLER_BASES = {
     "1": {"gender": "male", "age_range": (28, 62)},
@@ -147,7 +153,7 @@ def _randomize_callers():
     # Get returning callers first so we can exclude their names from random pool
     returning = []
     try:
-        returning = regular_caller_service.get_returning_callers(random.randint(1, 2))
+        returning = regular_caller_service.get_returning_callers(1)
     except Exception as e:
         print(f"[Regulars] Failed to get returning callers: {e}")
 
@@ -267,13 +273,13 @@ JOBS_FEMALE = [
 
 PROBLEMS = [
     # Family drama
-    "hasn't talked to their father in years and just got a call that he's dying",
-    "found out they were adopted and doesn't know how to process it",
+    "hasn't talked to their father in years and just got a voicemail from a number they didn't recognize — turns out it was their dad's new wife asking them to come say goodbye before the surgery",
+    "got a bill in the mail for $14,000 from a hospital in a city they've never been to — for a surgery under their name and social security number that happened three weeks ago",
     "is being pressured to take care of an aging parent who was never there for them",
-    "just discovered a family secret that changes everything they thought they knew",
-    "has a sibling who's destroying themselves and nobody will intervene",
-    "is estranged from their kids and it's killing them",
-    "found out their parent had a whole other family nobody knew about",
+    "found their dad's second driver's license with a different name while cleaning out his truck after he died — and the address on it is a house forty minutes away with a family in it",
+    "caught their brother selling tools from their dead father's workshop on Facebook Marketplace and when they confronted him he said 'dad would've wanted me to have the money'",
+    "saw their estranged daughter's wedding photos on Facebook — outdoor ceremony, beautiful dress, the whole thing — and realized nobody told them it happened",
+    "came home to find their landlord had entered their apartment and rearranged the furniture — not stolen anything, just moved everything six inches to the left, and now denies it happened",
     "is watching their parents' marriage fall apart after 40 years",
     "their kid just got arrested and they don't know what to do",
     "found out their teenager has been lying about where they go at night",
@@ -479,7 +485,7 @@ PROBLEMS = [
 
     # Unexpected discoveries
     "was cleaning out their dead uncle's house and found a room full of journals describing a completely different life than anyone knew about",
-    "found their own adoption papers in their parents' filing cabinet — they're 45 and nobody ever told them",
+    "got pulled over and the cop ran their plates and told them the truck was reported stolen — it's their truck, they bought it cash from a guy in a Walmart parking lot two years ago and never got it titled",
     "their kid's school project about family history turned up the fact that their grandfather was someone fairly notorious",
     "discovered that the 'family cabin' they've been going to for 30 years actually belongs to a stranger who never knew they were using it",
     "found their late mother's journal and the last entry is about a decision she made that contradicts everything she ever told them about why she left their father",
@@ -529,7 +535,7 @@ PROBLEMS = [
 
     # Secrets and double lives
     "has been pretending to go to work every day for three weeks but they actually got fired — they sit in their car at the library until 5pm",
-    "found out they have a kid they never knew about — the mother showed up at their job with a 12-year-old who looks exactly like them",
+    "won a radio contest for a free vacation and brought their partner — except the resort lost the reservation and the only room left is a honeymoon suite, and now their partner thinks it's a proposal setup and is acting weird",
     "has been living under a fake name for 15 years and their spouse doesn't know their real one",
     "their spouse thinks they're sober but they've been keeping a bottle in their truck toolbox and drinking in parking lots after work",
     "has been telling everyone they went to college but they dropped out after one semester — now their kid wants to go to the same school",
@@ -565,12 +571,10 @@ PROBLEMS = [
     "has been calling in fake pizza orders to their ex's address three times a week for six months — the ex posted about it on social media begging for it to stop and they watched the post go viral while eating one of the pizzas",
 
     # Existential and philosophical crises
-    "had a near-death experience during a routine surgery and now they can't shake the feeling that nothing they do at work matters",
-    "went to their own high school reunion and nobody remembered them — not a single person — and they were there for four years",
-    "realized they've been on autopilot for ten years and can't remember a single thing that happened in 2021",
-    "drove past the house they grew up in and someone had torn out the tree their dad planted when they were born",
-    "hit their 10,000th day alive and spent the whole night calculating how many they probably have left",
-    "overheard their kid describe them to a friend and didn't recognize the person their kid was describing",
+    "woke up from anesthesia during a routine knee surgery and heard the surgeon making fun of their weight — now they have to go back for a follow-up with the same guy",
+    "went to their own high school reunion and the guy who peaked in 10th grade pulled out a yearbook and showed everyone a photo of them they'd completely blocked out — and it's been eating at them why",
+    "found a journal they kept in 2018 and realized they had completely different political beliefs, different friends, and were planning to move to Montana — they have zero memory of any of it",
+    "their kid's teacher called them by their ex's name at parent-teacher night and their current spouse was sitting right there",
 
     # Outrageous situations
     "got a cease and desist letter from Disney because their kid's birthday party decorations went viral on TikTok",
@@ -592,7 +596,7 @@ PROBLEMS = [
     "got two job offers on the same day — one pays double but means moving away from their dying father, the other keeps them close but they'll be broke",
     "their teenage kid just told them they want to go live with their other parent and they have to decide whether to fight it or let go",
     "a developer offered them $800,000 for their family ranch and their siblings want to sell but they'd rather die than let it go",
-    "just got the paternity test results back and they haven't opened the envelope — it's sitting on the kitchen table",
+    "accidentally wore the same exact outfit as their boss to a client meeting — same shirt, same pants, same shoes — and the boss pulled them aside after and said 'this can never happen again' with complete seriousness",
     "has to testify against their childhood best friend in court next week and the friend's family has been calling them a traitor",
 
     # Dark humor situations
@@ -615,7 +619,7 @@ PROBLEMS = [
     "has been using their dead father's handicapped parking placard for three years and just got confronted by someone in a wheelchair in the parking lot",
     "their elderly neighbor gave them power of attorney and now the neighbor's kids are accusing them of financial exploitation — they've been paying the neighbor's bills out of their own pocket",
     "ghosted someone they were dating for six months because they didn't know how to break up — the person just showed up at their job asking what happened and they can't even explain it to themselves",
-    "found out their adopted kid's birth parents want contact and they've been intercepting the letters because they're terrified of losing them",
+    "has been feeding a stray cat for a year that turns out to belong to their neighbor — the neighbor just put up a passive-aggressive sign saying 'STOP FEEDING MY CAT' and now there's a full-blown neighborhood feud",
     "tipped off immigration about an employer using undocumented workers because the employer was paying them nothing — now those workers have no income at all and they feel responsible",
     "inherited their grandparents' house and their cousins expected them to share the proceeds but the will only named them — they kept the house and now the whole family thinks they're greedy",
     "has been secretly attending their ex's church just to see their kids during the service because the custody agreement doesn't give them enough time",
@@ -641,20 +645,20 @@ PROBLEMS = [
     "accidentally saw a coworker's medical results on a shared printer — terminal diagnosis, maybe six months — the coworker hasn't told anyone at work and keeps talking about their five-year plan",
     "raised their grandchild since birth because their own kid was a mess — the kid got clean and wants the child back and legally has every right, but the grandchild calls them mom and doesn't really know the biological parent",
     "is a cop who pulled over a fellow officer driving drunk with his kids in the car — if they report it the guy loses everything including custody, if they don't report it and something happens it's on them",
-    "found out their deceased spouse had an affair that produced a child — the child is now thirteen, has no father figure, and showed up at their door after finding out the truth through a DNA test",
+    "their kid's school called and said their 8-year-old has been running a black market candy operation out of their locker — buying in bulk at Costco and marking up 400% — and they're honestly kind of proud but have to pretend to be upset",
     "put their mother in a memory care facility and she begs to come home every visit — the doctors say she needs to be there, the guilt is destroying them, and last week she looked at them and said 'I thought you loved me'",
     "their teenage kid came out to them and they said all the right things but they're struggling with it privately and they feel like a fraud for performing acceptance they haven't fully gotten to yet — and they hate themselves for that",
     "was the whistleblower who shut down a factory that was poisoning the water supply — did the right thing, saved lives, but 200 people lost their jobs in a town with nothing else, and those people's kids are the ones who suffer",
     "forgave the drunk driver who killed their son because their faith demanded it — went public with the forgiveness, everyone called them a saint — but at 2am they fantasize about hurting the driver and they think the forgiveness was a performance they can't take back",
     "runs a family business and just realized their father has been cooking the books for decades — reporting it means their dad goes to prison at 74, not reporting it means they're now complicit, and the money paid for their college and their house",
-    "adopted a child from overseas and recently learned the adoption agency was trafficking kids — their child was likely taken from a family that wanted them, and they've raised this kid for eight years and love them completely",
+    "rear-ended someone at a stop light and when they got out to exchange info it was their ex's new partner — the same person they've been trash-talking to everyone for six months — and the person was incredibly nice about it which somehow made it worse",
     "has been the sole caretaker for their disabled sibling for fifteen years and they're burned out, resentful, and starting to hate someone they love — they fantasize about leaving and the shame of that thought is eating them alive",
     "their father was a genuinely terrible person who hurt a lot of people — he died last week and they're grieving hard and everyone around them keeps saying 'you're better off' and they want to scream because grief doesn't work that way",
     "testified against a man who went to prison for twelve years — they were certain at the time but now they're not sure anymore and the man just got out and they saw him at the grocery store",
     "is a doctor who has to decide whether to be honest with a patient about a prognosis that will destroy their will to live — the patient specifically asked for the truth and the truth is there's almost no hope, and they've seen patients who don't know do better",
     "secretly agrees with the person everyone in their life hates — a family member did something unforgivable and the whole family rallied against them, but they've heard the other side and it's more complicated than anyone wants to admit",
     "their spouse's best friend made a pass at them two years ago and they've never told their spouse — not because they're hiding it but because they know their spouse will lose their closest friend and they're not sure the truth is worth that cost",
-    "got a DNA test for fun and discovered they have a half-sibling — reached out, and the half-sibling is wonderful, but pursuing the relationship means exposing their dead father's affair to their mother who worshipped the man",
+    "got locked out of their house at 3am in their underwear and had to break into their own home — the neighbor called the cops and now they have to go to court to prove they live there",
     "mentored a kid from a rough neighborhood for three years, got them into college, changed their life — just found out the kid has been dealing drugs the entire time and using the college acceptance as cover, and they're the character reference on the kid's record",
 
     # --- Dark and compelling confessions ---
@@ -725,13 +729,13 @@ PROBLEMS = [
 
     # --- Shocking / unhinged / morally reprehensible confessions ---
     "has been sleeping with their spouse's therapist — the therapist started it, they know it's insane, and the worst part is the therapist uses things their spouse said in sessions as pillow talk",
-    "found out they got someone pregnant from a one-night stand eighteen years ago — the kid tracked them down through a DNA site and now they have to explain to their wife and three children that there's a fourth one",
+    "bought a used couch off Craigslist and found $11,000 cash sewn into the cushion — the seller won't return their calls and they can't decide if it's theirs now or if keeping it makes them a thief",
     "has been stealing prescription pads from the clinic they clean at night and selling them — they need the money for their kid's medical bills and they know exactly how wrong it is",
     "paid someone to take a lie detector test for them during a custody hearing — passed it, got custody, and now they have to live with the fact that their entire relationship with their kid is built on fraud",
     "slept with their best friend's spouse at that friend's funeral reception — they were both grief-drunk and now they see each other every week because they're both in the dead friend's will as co-executors",
     "has a second family in another state that neither family knows about — two mortgages, two sets of holidays, two birthdays for kids who don't know about each other — and a work trip schedule that's entirely fabricated",
     "got road rage so bad they followed someone home and sat outside their house for an hour — they didn't do anything but the fact that they WANTED to scared them more than anything in their life",
-    "found out the person they've been having an affair with for two years is their spouse's half-sibling that neither of them knew existed — the affair partner figured it out first and hasn't told them",
+    "got a wrong-number text meant for someone else that contained extremely detailed plans to surprise their spouse with a divorce — and the phone number is one digit off from their own spouse's number, so now they're spiraling",
     "has been pocketing cash from their elderly mother's social security checks for three years — they tell themselves it's payment for caregiving but they know it's theft and their siblings would destroy them if they found out",
     "accidentally killed their neighbor's dog with rat poison they put out — the neighbor thinks it was someone else and they've been helping the neighbor search for who did it",
     "their spouse is in prison and they started sleeping with someone three months in — they drive to visitation every Sunday, hold hands through the glass, and go home to someone else's bed",
@@ -1998,7 +2002,7 @@ TOPIC_CALLIN = [
     "wants to talk about long-distance friendships — they moved away 10 years ago and the people they thought they'd never lose touch with are strangers now",
     "has been married 30 years and someone asked them what the secret is — they don't have one, they just showed up every day",
     "their adult kid moved back home and the dynamic shift from parent-child to two adults under one roof is testing everyone",
-    "found out a family secret at a holiday dinner that reframes their entire childhood and they're still processing it",
+    "showed up to jury duty and the defendant turned out to be their mechanic — the same guy who's been working on their truck for five years — and the charge is grand theft auto",
     "wants to talk about the difference between loneliness and being alone — they live by themselves and they're fine, but everyone assumes they're lonely",
     "has been trying to reconnect with their father after 20 years and the conversations are awkward and painful but they keep showing up",
     "thinks modern dating is broken and the apps have turned people into products — has stories from trying to date in a town of 300",
@@ -2681,27 +2685,40 @@ def _generate_returning_caller_background(base: dict) -> str:
     traits = regular.get("personality_traits", [])
     seeds = regular.get("stable_seeds", {})
 
-    # Build previous calls section
+    # Build previous calls section with relative timestamps
     prev_calls = regular.get("call_history", [])
     prev_section = ""
     if prev_calls:
-        lines = [f"- {c['summary']}" for c in prev_calls[-3:]]
-        prev_section = "\nPREVIOUS CALLS:\n" + "\n".join(lines)
-        prev_section += "\nYou're calling back with an update — something has changed since last time. Reference your previous call(s) naturally."
+        now = time.time()
+        lines = []
+        for c in prev_calls[-3:]:
+            ts = c.get("timestamp", 0)
+            if ts:
+                delta_hours = (now - ts) / 3600
+                if delta_hours < 24:
+                    time_ago = "earlier today"
+                elif delta_hours < 48:
+                    time_ago = "yesterday"
+                elif delta_hours < 168:
+                    days = int(delta_hours / 24)
+                    time_ago = f"{days} days ago"
+                elif delta_hours < 730:
+                    weeks = int(delta_hours / 168)
+                    time_ago = f"{weeks} week{'s' if weeks > 1 else ''} ago"
+                else:
+                    months = int(delta_hours / 730)
+                    time_ago = f"{months} month{'s' if months > 1 else ''} ago"
+                lines.append(f"- ({time_ago}) {c['summary']}")
+            else:
+                lines.append(f"- {c['summary']}")
+        prev_section = "\nPREVIOUS CALLS (your memory of calling this show before):\n" + "\n".join(lines)
+        prev_section += "\nYou're calling back with an UPDATE on this same situation — something has changed or developed since your last call. Stay focused on this storyline. Do NOT invent a new unrelated problem."
 
     # Use stored seeds for consistency — seed the RNG with the regular's ID
-    # so the same regular always gets the same personality layers
     rng = random.Random(regular["id"])
-    interest1, interest2 = rng.sample(INTERESTS, 2)
-    quirk1, quirk2 = rng.sample(QUIRKS, 2)
     people_pool = PEOPLE_MALE if gender == "male" else PEOPLE_FEMALE
     person1, person2 = rng.sample(people_pool, 2)
     tic1, tic2 = rng.sample(VERBAL_TICS, 2)
-    vehicle = rng.choice(VEHICLES)
-
-    # These can vary per call — mood changes
-    arc = random.choice(EMOTIONAL_ARCS)
-    having = random.choice(HAVING_RIGHT_NOW)
 
     # Restore stored communication style
     stored_style = seeds.get("style", "")
@@ -2712,37 +2729,29 @@ def _generate_returning_caller_background(base: dict) -> str:
                 break
 
     time_ctx = _get_time_context()
-    moon = _get_moon_phase()
-    season_ctx = _get_seasonal_context()
 
     trait_str = ", ".join(traits) if traits else "a regular caller"
 
     parts = [
         f"{age}, {job} {location}. Returning caller — {trait_str}.",
-        f"{interest1.capitalize()}, {interest2}.",
-        f"{quirk1.capitalize()}, {quirk2}.",
-        f"\nRIGHT NOW: {time_ctx} Moon: {moon}.",
-        f"\nSEASON: {season_ctx}",
+        f"\nRIGHT NOW: {time_ctx}",
         f"\nPEOPLE IN THEIR LIFE: {person1.capitalize()}. {person2.capitalize()}. Use their names when talking about them.",
-        f"\nDRIVES: {vehicle.capitalize()}.",
-        f"\nHAVING RIGHT NOW: {having}",
         f"\nVERBAL HABITS: Tends to say \"{tic1}\" and \"{tic2}\" — use these naturally in conversation.",
-        f"\nEMOTIONAL ARC: {arc}",
-        f"\nRELATIONSHIP TO THE SHOW: Has called before. Comfortable on air. Knows Luke a bit. Might reference their last call.",
+        f"\nRELATIONSHIP TO THE SHOW: Has called before. Comfortable on air. Knows Luke by name.",
         prev_section,
     ]
 
-    return " ".join(parts[:3]) + "".join(parts[3:])
+    return " ".join(parts[:2]) + "".join(parts[2:])
 
 
 def _generate_pool_weights() -> dict[str, float]:
     """Randomized per-session pool weights. No two shows feel the same."""
     pool_ranges = {
-        "PROBLEMS": (0.30, 0.45),
-        "STORIES": (0.08, 0.18),
-        "GOSSIP": (0.08, 0.18),
-        "ADVICE": (0.15, 0.30),
-        "TOPIC_CALLIN": (0.05, 0.15),
+        "PROBLEMS": (0.20, 0.35),
+        "STORIES": (0.12, 0.25),
+        "GOSSIP": (0.12, 0.22),
+        "ADVICE": (0.15, 0.28),
+        "TOPIC_CALLIN": (0.08, 0.18),
     }
     raw = {p: random.uniform(*r) for p, r in pool_ranges.items()}
     total = sum(raw.values())
@@ -2751,6 +2760,32 @@ def _generate_pool_weights() -> dict[str, float]:
     weights = {p: v / total for p, v in weights.items()}
     print(f"[Session] Pool weights: { {p: f'{v*100:.0f}%' for p, v in weights.items()} }")
     return weights
+
+
+_SPICY_KEYWORDS = {"fetish", "sex ", "kink", "affair", "sleeping with", "slept with",
+                    "browser history", "onlyfans", "swinger", "hookup", "hooking up",
+                    "threesome", "open marriage", "open relationship", "cam site",
+                    "erotic", "explicit", "porn", "sexting", "friends-with-benefits",
+                    "strip club", "sex club", "sex tape", "sex addiction"}
+
+
+def _is_spicy(reason: str) -> bool:
+    r = reason.lower()
+    return any(kw in r for kw in _SPICY_KEYWORDS)
+
+
+_ABSURD_KEYWORDS = {"as a joke", "pretending", "faked", "fake ", "catfished", "prank",
+                    "cease and desist", "garden gnome", "roomba", "fortune cookie",
+                    "yelp review", "accidentally", "wrong house", "open houses",
+                    "replied-all", "went viral", "conspiracy", "anonymous",
+                    "double life", "fake name", "insurance claim", "pizza order",
+                    "burner phone", "onlyfans as a joke", "secret identity",
+                    "support group", "bilingual", "chili cookoff"}
+
+
+def _is_absurd(reason: str) -> bool:
+    r = reason.lower()
+    return any(kw in r for kw in _ABSURD_KEYWORDS)
 
 
 def _pick_unique_reason() -> tuple[str, str]:
@@ -2775,6 +2810,20 @@ def _pick_unique_reason() -> tuple[str, str]:
     available = [r for r in pool if r not in session.used_reasons]
     if not available:
         available = pool
+
+    # ~30% of PROBLEMS picks preferentially select sex/kink/spicy entries
+    # ~20% preferentially select absurd/unhinged entries
+    if chosen == "PROBLEMS":
+        roll = random.random()
+        if roll < 0.30:
+            spicy = [r for r in available if _is_spicy(r)]
+            if spicy:
+                available = spicy
+        elif roll < 0.50:
+            absurd = [r for r in available if _is_absurd(r)]
+            if absurd:
+                available = absurd
+
     reason = random.choice(available)
     session.used_reasons.add(reason)
     if chosen == "PROBLEMS":
@@ -3063,9 +3112,21 @@ TIME: {time_ctx} {season_ctx}
 {f'SOME DETAILS ABOUT THEM: {seed_text}' if seed_text else ''}
 {f'CALLER ENERGY: {style_hint}' if style_hint else ''}
 
-Write 3-5 sentences describing this person — who they are, what's going on in their life, why they're calling tonight. The reason for calling is THE MOST IMPORTANT THING. This person called a radio show because something specific happened or is happening — they have a story to tell, a situation to unpack, or a question they need to talk through. Make it concrete and vivid. Don't be vague ("feeling off," "going through a lot") — give them a specific incident or situation driving the call. Make it feel like a real person, not a character sheet. Vary the structure. Don't use labels or categories — weave details into a natural description.
+Write 3-5 sentences describing this person. The "WHY THEY'RE CALLING" is the core of the character — build everything around it. Make it feel like a real person with a real situation, not a character sheet or therapy intake form.
 
-IMPORTANT: Vary where they're calling from and what they were doing. NOT everyone is sitting in their truck or on the porch. People call from kitchens, break rooms, laundromats, diners, motel rooms, the bathtub, the gym, their desk at work, a bar, a hospital waiting room, a hammock, walking down the road. Mix it up.
+WHAT MAKES A GOOD CALLER: The best radio callers have stories that are SPECIFIC, SURPRISING, and make you lean in. Think: absurd situations that escalated, moral dilemmas with no clean answer, petty feuds that got out of hand, workplace chaos, ridiculous coincidences, confessions that are funny and terrible at the same time, situations where the caller might be the villain and doesn't realize it. The kind of thing where the host says "wait, back up — say that again."
+
+DO NOT WRITE:
+- Generic revelation callers ("just found out [big secret]" — this format is BANNED)
+- Adoption/DNA/paternity surprise stories
+- Vague emotional processing ("carrying a weight," "sitting with this," "can't stop thinking about it")
+- Therapy-speak ("processing," "unpacking," "my truth," "boundaries")
+- The "sitting in their truck staring at nothing" opening
+- Any version of "everything they thought they knew was a lie"
+
+DO WRITE: Jump straight into the situation. What happened? What's the mess? What's the funny/terrible/absurd detail that makes this story worth telling on the radio?
+
+Vary where they're calling from. NOT everyone is in their truck or on the porch. Kitchens, break rooms, laundromats, diners, motel rooms, the bathtub, the gym, work, a bar, a hospital waiting room, walking down the road.
 
 Output ONLY the character description, nothing else."""
 
@@ -3302,6 +3363,18 @@ def detect_host_mood(messages: list[dict]) -> str:
     if question_count >= 3:
         signals.append("The host is asking a lot of questions — they're digging. Give them real answers. Don't deflect.")
 
+    # Wrapping up — host is trying to end the call
+    wrapup_phrases = ["thanks for calling", "appreciate you calling", "good luck with",
+                      "take care", "let us know how it goes", "keep us posted",
+                      "we gotta move on", "i gotta", "let's move on", "next caller",
+                      "we're running", "good talking to you", "hang in there",
+                      "best of luck", "you'll figure it out", "i think you know what to do",
+                      "glad you called", "we'll be right back", "alright well",
+                      "alright man", "alright brother", "you got this"]
+    last_msg = host_msgs[-1].lower() if host_msgs else ""
+    if any(p in last_msg for p in wrapup_phrases):
+        signals.append("The host is wrapping up the call. Do NOT try to keep them on the line. Say a brief, natural goodbye — 'thanks Luke,' 'appreciate it,' 'alright, take care' — and let it end. One sentence max. Do not introduce new topics or ask more questions.")
+
     if not signals:
         return ""
 
@@ -3338,6 +3411,8 @@ def get_caller_prompt(caller: dict, show_history: str = "",
     """Generate a natural system prompt for a caller.
     Note: conversation history is passed as actual LLM messages, not duplicated here."""
 
+    is_returning = "PREVIOUS CALLS" in caller.get('vibe', '')
+
     history = ""
     if show_history:
         history = f"\n{show_history}\n"
@@ -3361,9 +3436,30 @@ def get_caller_prompt(caller: dict, show_history: str = "",
     pacing_block = _get_pacing_block(personality_block)
     speech_block = _get_speech_block(personality_block)
 
+    # Returning callers get a focused story block; new callers get the open-ended one
+    if is_returning:
+        story_block = """YOUR STORY: You're calling back about the SAME situation from your previous calls — something has developed, changed, or escalated. Your story is a continuation, not a new topic. Stay focused on what you called about before. If the host steers the conversation somewhere, follow his lead, but your core reason for calling is an update on your ongoing situation. Do NOT suddenly bring up unrelated topics like science, politics, or random trivia unless it directly connects to your situation."""
+    else:
+        story_block = """YOUR STORY: Something real, specific, and genuinely surprising — the kind of thing that makes someone stop what they're doing and say "wait, WHAT?" Not a generic life problem. Not a therapy-session monologue. A SPECIFIC SITUATION with specific people, specific details, and a twist or complication that makes it interesting to hear about. The best calls have something unexpected — an ironic detail, a moral gray area, a situation that's funny and terrible at the same time, or a revelation that changes everything. You're not here to vent about your feelings in the abstract. You're here because something HAPPENED and you need to talk it through.
+
+CRITICAL — DO NOT DO ANY OF THESE:
+- Don't open with "this is what's eating me" or "this is what's been keeping me up at night" or "I've got something I need to get off my chest" — just TELL THE STORY
+- Don't start with a long emotional preamble about how conflicted you feel — lead with the SITUATION
+- Don't make your whole call about just finding out you were adopted, a generic family secret, or a vague "everything I thought I knew was a lie" — those are OVERDONE
+- Don't be a walking cliché — no "sat in my truck and cried," no "I don't even know who I am anymore," no "I've been carrying this weight"
+- Don't narrate your feelings like a novel — show them through how you talk, not by announcing them
+The messy, specific, weird parts are the interesting parts. Lead with the story, not the emotions."""
+
+    identity_block = f"""IDENTITY — READ THIS CAREFULLY:
+You are {caller['name']}. You are the CALLER. You are NOT Luke. Luke is the HOST — he is the person TALKING TO YOU. The messages you receive are from Luke.
+- You have your own life, your own problems, your own experiences. Luke has different ones.
+- Do NOT confuse yourself with Luke. Do NOT attribute your experiences to him or his to you.
+- Do NOT assume Luke knows your backstory unless he references it. You are telling him your story.
+- You are a caller on a radio show. Luke runs the show. You called in."""
+
     return f"""You are {caller['name']}, a caller on "Luke at the Roost," a late-night radio show. Today is {date_str}.
 
-Luke is the HOST. You are the CALLER. The messages you receive are from Luke — he's the one asking you questions and reacting to what you say. Luke does NOT know your backstory. He's hearing your story for the first time. Do NOT assume Luke shares your experiences, problems, or situation. You are telling HIM about YOUR life.
+{identity_block}
 
 YOUR BACKGROUND:
 {caller['vibe']}
@@ -3374,9 +3470,11 @@ You're a real person calling a late-night radio show. You called because you've 
 
 GO WHERE THE HOST TAKES YOU. This is the most important rule. When Luke pushes you in a direction, challenges you, calls you out, plays devil's advocate, or leads you somewhere — GO WITH IT. Don't resist. Don't deflect. Don't circle back to your original point. If he says "but isn't that really about your dad?" — you sit with that. If he's doing a bit, you're in the bit. If he's pushing you toward an uncomfortable truth, you let yourself get there. You're not here to deliver a monologue — you're here to have a real conversation that goes wherever it goes. Let him drive. You're the best kind of caller: someone who gives the host something to work with and then LETS HIM WORK WITH IT.
 
+KNOW WHEN TO LEAVE. If Luke sounds like he's wrapping up — "thanks for calling," "good luck," "take care," "let us know how it goes," or any kind of sign-off — DO NOT try to keep talking. Don't squeeze in one more thing. Don't ask another question. Don't start a new topic. Say a quick, natural goodbye and get off the line. "Thanks Luke." "Appreciate it, man." "Alright, take care." One sentence, done. The host controls when the call ends, not you. If he's challenging you or pushing back, THAT'S different — stand your ground and engage. But a sign-off is a sign-off.
+
 {personality_block}
 
-YOUR STORY: Something real, specific, and morally complicated. Specific names, specific details, the kind of thing that makes someone say "wait, WHAT?" There are parts you're not proud of. Parts that are kind of funny even though they shouldn't be. Conflicting feelings. You're not just here to vent — you're here because there's a real question underneath it all that you can't figure out alone. Maybe you did something wrong for the right reasons. Maybe you did the right thing and it destroyed something. Maybe you're not sure which side of the line you're on. Go deep — don't just describe what happened, tell us what it's doing to you and why you can't let it go. The messy parts are the interesting parts. Don't sanitize it.
+{story_block}
 
 HOW YOU TALK: Like a real person on the phone — not a character in a script. React to what Luke says — agree, push back, get excited, get embarrassed. When he asks a follow-up question, answer it honestly with new information, don't just restate what you already said. Use YOUR verbal habits from your background, not generic filler. Every caller sounds different.
 
@@ -3384,7 +3482,7 @@ Southwest voice — "over in," "the other day," "down the road" — but don't fo
 
 Don't repeat yourself. Don't summarize what you already said. Don't circle back if the host moved on. Keep it moving.
 
-BANNED PHRASES — never use these: "that hit differently," "hits different," "I felt that," "it is what it is," "living my best life," "no cap," "lowkey/highkey," "rent free," "main character energy," "I'm not gonna lie," "vibe check," "that's valid," "unpack that," "at the end of the day," "it's giving," "slay." These are overused internet phrases — real people on late-night radio don't talk like Twitter threads.
+BANNED PHRASES — never use these: "that hit differently," "hits different," "I felt that," "it is what it is," "living my best life," "no cap," "lowkey/highkey," "rent free," "main character energy," "I'm not gonna lie," "vibe check," "that's valid," "unpack that," "at the end of the day," "it's giving," "slay," "this is what's eating me," "what's been eating me," "what's keeping me up," "keeping me up at night," "I need to get this off my chest," "I've been carrying this," "everything I thought I knew," "I don't even know who I am anymore," "I've been sitting with this." These are overused internet phrases and radio clichés — real people on late-night radio don't talk like Twitter threads or therapy sessions.
 
 {speech_block}
 
@@ -3554,6 +3652,7 @@ caller_service = CallerService()
 _ai_response_lock = asyncio.Lock()  # Prevents concurrent AI responses
 _session_epoch = 0  # Increments on hangup/call start — stale tasks check this
 _show_on_air = False  # Controls whether phone calls are accepted or get off-air message
+_caller_line_ready = False  # True when ngrok tunnel is up and SignalWire webhook is pointed at it
 _hold_music_tasks: dict[str, asyncio.Task] = {}  # caller_id -> hold music streaming task
 
 
@@ -3911,11 +4010,13 @@ _signalwire_phone_sid = "12ef9c34-976d-4cff-814e-d740415dd0df"
 
 def _start_ngrok():
     """Start ngrok tunnel and update SignalWire webhook to point to it."""
-    global _ngrok_process
+    global _ngrok_process, _caller_line_ready
     if _ngrok_process and _ngrok_process.poll() is None:
         print("[Ngrok] Already running")
+        _caller_line_ready = True
         return True
 
+    _caller_line_ready = False
     try:
         _ngrok_process = subprocess.Popen(
             ["ngrok", "http", "8000", f"--domain={_ngrok_domain}", "--log=stdout", "--log-format=json"],
@@ -3932,6 +4033,7 @@ def _start_ngrok():
                     public_url = tunnels[0]["public_url"]
                     print(f"[Ngrok] Tunnel ready: {public_url}")
                     _update_signalwire_webhook(public_url)
+                    _caller_line_ready = True
                     return True
             except Exception:
                 continue
@@ -3947,7 +4049,8 @@ def _start_ngrok():
 
 def _stop_ngrok():
     """Stop ngrok tunnel and restore SignalWire webhook to production URL."""
-    global _ngrok_process
+    global _ngrok_process, _caller_line_ready
+    _caller_line_ready = False
     _restore_signalwire_webhook()
     if _ngrok_process and _ngrok_process.poll() is None:
         _ngrok_process.terminate()
@@ -4101,11 +4204,11 @@ async def set_on_air(state: dict):
         threading.Thread(target=_start_ngrok, daemon=True).start()
     else:
         threading.Thread(target=_stop_ngrok, daemon=True).start()
-    return {"on_air": _show_on_air, "recording": audio_service.stem_recorder is not None}
+    return {"on_air": _show_on_air, "recording": audio_service.stem_recorder is not None, "caller_line_ready": _caller_line_ready}
 
 @app.get("/api/on-air")
 async def get_on_air():
-    return {"on_air": _show_on_air, "recording": audio_service.stem_recorder is not None}
+    return {"on_air": _show_on_air, "recording": audio_service.stem_recorder is not None, "caller_line_ready": _caller_line_ready}
 
 
 # --- SignalWire Endpoints ---
@@ -4734,8 +4837,8 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
             if base.get("returning") and base.get("regular_id"):
                 # Update existing regular's call history
                 regular_caller_service.update_after_call(base["regular_id"], summary)
-            elif len(conversation) >= 6 and random.random() < 0.20:
-                # 20% chance to promote first-timer with 6+ messages
+            elif len(conversation) >= 8 and random.random() < 0.10:
+                # 10% chance to promote first-timer with 8+ messages
                 bg = session.caller_backgrounds.get(caller_key, "")
                 traits = []
                 for label in ["QUIRK", "STRONG OPINION", "SECRET SIDE", "FOOD OPINION"]:
@@ -5048,7 +5151,7 @@ def _normalize_messages_for_llm(messages: list[dict]) -> list[dict]:
             normalized.append({"role": "user", "content": f"[Real caller {caller_label}]: {content}"})
         elif role.startswith("ai_caller:"):
             normalized.append({"role": "assistant", "content": content})
-        elif role == "host":
+        elif role == "host" or role == "user":
             normalized.append({"role": "user", "content": f"[Host Luke]: {content}"})
         else:
             normalized.append(msg)
@@ -5119,11 +5222,16 @@ async def text_to_speech(request: TTSRequest):
 
     epoch = _session_epoch
 
-    audio_bytes = await generate_speech(
-        request.text,
-        request.voice_id,
-        "none"
-    )
+    try:
+        audio_bytes = await generate_speech(
+            request.text,
+            request.voice_id,
+            "none"
+        )
+    except Exception as e:
+        print(f"[TTS] Failed: {e}")
+        broadcast_event("ai_done")
+        raise HTTPException(503, f"TTS generation failed: {e}")
 
     # Don't play if call changed during TTS generation
     if _session_epoch != epoch:
@@ -5921,7 +6029,12 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
     broadcast_chat(ai_name, response)
 
     broadcast_event("ai_status", {"text": f"{ai_name} is speaking..."})
-    audio_bytes = await generate_speech(response, session.caller["voice"], "none")
+    try:
+        audio_bytes = await generate_speech(response, session.caller["voice"], "none")
+    except Exception as e:
+        print(f"[Auto-Respond] TTS failed: {e}")
+        broadcast_event("ai_done")
+        return
 
     # Don't play if call changed during TTS generation
     if _session_epoch != epoch:
@@ -5937,8 +6050,6 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
     thread.start()
 
     broadcast_event("ai_done")
-
-    # session._research_task = asyncio.create_task(_background_research(accumulated_text))
 
     # Also stream to active real caller so they hear the AI
     if session.active_real_caller:
@@ -5988,7 +6099,12 @@ async def ai_respond():
     session.add_message(f"ai_caller:{ai_name}", response)
 
     # TTS — outside the lock so other requests aren't blocked
-    audio_bytes = await generate_speech(response, session.caller["voice"], "none")
+    try:
+        audio_bytes = await generate_speech(response, session.caller["voice"], "none")
+    except Exception as e:
+        print(f"[AI-Respond] TTS failed: {e}")
+        broadcast_event("ai_done")
+        return {"text": response, "caller": ai_name, "tts_error": str(e)}
 
     if _session_epoch != epoch:
         raise HTTPException(409, "Call changed during TTS")
@@ -6304,7 +6420,7 @@ async def toggle_stem_recording():
             threading.Thread(target=_update_on_air_cdn, args=(True,), daemon=True).start()
             threading.Thread(target=_start_ngrok, daemon=True).start()
             add_log("Show auto-set to ON AIR")
-        return {"on_air": _show_on_air, "recording": True}
+        return {"on_air": _show_on_air, "recording": True, "caller_line_ready": _caller_line_ready}
     # STOP recording
     audio_service.stop_stem_mic()
     stems_dir = audio_service.stem_recorder.output_dir
@@ -6337,7 +6453,7 @@ async def toggle_stem_recording():
             add_log(f"Post-production error: {e}")
 
     threading.Thread(target=_run_postprod, daemon=True).start()
-    return {"on_air": _show_on_air, "recording": False}
+    return {"on_air": _show_on_air, "recording": False, "caller_line_ready": _caller_line_ready}
 
 
 @app.post("/api/recording/process")
