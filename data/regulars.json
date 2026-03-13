@@ -1,56 +1,6 @@
 {
   "regulars": [
     {
-      "id": "37f0bfaa",
-      "name": "Murray",
-      "gender": "male",
-      "age": 36,
-      "job": "engine running for heat, watching his breath fog up the windshield while he tries to figure out how to fire his best friend of thirty years",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Tyler",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Amped up. Talks fast, laughs loud, jumps between topics like they've had five espressos. Infectious enthusiasm \u2014 even bad news sounds exciting when they tell it. Uses exclamation energy without actually exclaiming. Energy level: very high. When pushed back on, they get even MORE animated and start talking with their hands (you can hear it). Conversational tendency: escalation."
-      },
-      "call_history": [
-        {
-          "summary": "Murray called in struggling with whether to fire his best friend Danny of 30 years, who's been showing up late, bad-mouthing him to their crew, and just cost them a major contract by abandoning a job site. Through the conversation, Murray realized he'd become overly rigid and \"suit-like\" while trying to prove himself as the new business owner, and decided instead of firing Danny, he'd hold a team meeting to apologize for his approach, explain the reasoning behind new protocols, and invite the crew to be part of the solution rather than just enforcing rules from above.",
-          "timestamp": 1772250744.2312489
-        },
-        {
-          "summary": "Murray called back about Danny, who showed up for only four days after their team meeting before disappearing without notice, then had his girlfriend tell Murray he was \"taking time to think\" about the job. Murray was emotionally torn between feeling hurt that Danny accused him of being inauthentic (only having the meeting because Luke called him out on air) and recognizing he needs to let Danny go for the sake of his business and the rest of his crew.",
-          "timestamp": 1772862554.163734
-        }
-      ],
-      "last_call": 1772862554.1637352,
-      "created_at": 1772250744.2312498
-    },
-    {
-      "id": "bbb20b67",
-      "name": "Angie",
-      "gender": "female",
-      "age": 28,
-      "job": "watching her coveralls tumble dry and trying to decide if she should drive the three hours to Tucson tomorrow for her mom's birthday or keep pretending her brother doesn't exist",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Julia",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Bone dry. Says devastating things with zero inflection. Their humor sneaks up on you \u2014 you're not sure if they're joking until three seconds after they finish talking. Short, precise sentences. Never raises their voice. Energy level: low-medium. When pushed back on, they respond with one calm sentence that somehow makes the other person feel stupid. Conversational tendency: underreaction."
-      },
-      "call_history": [
-        {
-          "summary": "Angie's dying mother wants her to have birthday dinner with her estranged brother Derek tomorrow, whom she hasn't spoken to in two years after he told their mother her cancer was \"God's way of getting her attention\" for voting for Biden. Despite her fear that Derek will say something hurtful during dinner and her past trauma from staying silent around him, Angie agrees to go and share cake with her mother, deciding to buy the relighting candles her mom loved when they were kids.",
-          "timestamp": 1772862907.314721
-        },
-        {
-          "summary": "Angie called back after having the birthday cake dinner with her dying mom, which went well, but her brother Derek cornered her afterward accusing her of convincing their mom to stop cancer treatment and demanding they both attend the next doctor's appointment together. Luke advised her to talk directly to her mom about what she actually wants and encouraged Angie to have real conversations about her mom's end-of-life thoughts while she still can, which Angie agreed to do the next morning.",
-          "timestamp": 1773296210.170752
-        }
-      ],
-      "last_call": 1773296210.170753,
-      "created_at": 1772862907.314722
-    },
-    {
       "id": "d3399e9d",
       "name": "Lucille",
       "gender": "female",
@@ -105,9 +55,13 @@
         {
           "summary": "Silas called about Marcus and Cara returning to his intentional community \"The Wellspring,\" but Cara admitted she never believed in their lifestyle and only participates (including in twice-monthly \"shared intimacy nights\") to keep her husband Marcus happy. The host advised Silas to hold a \"Renewal\" ceremony where members can recommit or leave, warning that having unwilling participants could lead to claims of abuse and legal trouble.",
           "timestamp": 1772865423.697613
+        },
+        {
+          "summary": "Silas called to share that after Marcus and Cara's Renewal ceremony, Cara left The Wellspring while Marcus chose to stay, but Marcus is now falling apart emotionally and told Silas at 2 AM that he stayed out of loyalty rather than belief. The conversation revealed Silas's deeper struggle with his own need for validation through people staying at The Wellspring, with an emotional moment when he admitted his first feeling was relief when Marcus expressed he didn't want to disappoint him, leading to uncomfortable questions about whether he truly supports people finding their authentic path if it leads them away from the community.",
+          "timestamp": 1773397364.642446
         }
       ],
-      "last_call": 1772865423.6976142,
+      "last_call": 1773397364.642447,
       "created_at": 1772430000.0
     },
     {
@@ -138,35 +92,6 @@
       ],
       "last_call": 1772959484.6798599,
       "created_at": 1772517521.7108748
-    },
-    {
-      "id": "0bb02b2d",
-      "name": "Chip",
-      "gender": "male",
-      "age": 23,
-      "job": "watching his kid's soccer uniform tumble in the dryer while his girlfriend works the graveyard shift at the hospital, because three hours ago he got an email from a lawyer representing families",
-      "location": "unknown",
-      "personality_traits": [],
-      "voice": "Sebastian",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Amped up. Talks fast, laughs loud, jumps between topics like they've had five espressos. Infectious enthusiasm \u2014 even bad news sounds exciting when they tell it. Uses exclamation energy without actually exclaiming. Energy level: very high. When pushed back on, they get even MORE animated and start talking with their hands (you can hear it). Conversational tendency: escalation."
-      },
-      "call_history": [
-        {
-          "summary": "Chip called from a laundromat at midnight after receiving an email from a Guatemalan lawyer claiming his adopted 8-year-old daughter may have been stolen from her birth mother, with a photo showing a woman with his daughter's exact crooked smile. The host advised him not to panic, treat the information as suspect until verified by a lawyer, wait to tell both his girlfriend and daughter until he knows more facts, and reminded him that fake photos are easy to create and this could be a scam.",
-          "timestamp": 1772786610.885828
-        },
-        {
-          "summary": "Chip called about discovering his adopted daughter may have been stolen from her birth mother in Guatemala, and he's paralyzed about telling his girlfriend Teresa, fearing it will end their already rocky relationship. He's anxious about the timing and the birth mother's request to meet their daughter, but the host advised him to take his time, have the conversation with Teresa, and make decisions together as parents.",
-          "timestamp": 1772962156.544322
-        },
-        {
-          "summary": "The caller, **Chip**, shared his emotional turmoil over discovering that his **adopted daughter\u2019s birth mother** may have resurfaced after receiving an unverified email with a photo that eerily matched his daughter\u2019s features. His girlfriend, **Teresa**, had known about the email for **three weeks** but kept it from him, leaving him feeling betrayed and overwhelmed. While Chip wants to **verify the claim legally before acting**, Teresa insists on **immediately flying to Guatemala with their daughter** to meet the woman, dismissing his fears as avoidance. The conversation escalated into a heated debate about **trust, safety, and extreme measures**\u2014with the host, Luke, urging Chip to **file a restraining order** if Teresa refuses to back down, warning of potential dangers in Guatemala. Chip, torn between **protecting his family and avoiding a nuclear confrontation**, vowed to try reasoning with Teresa one last time before she leaves for work. The call was charged with **fear, frustration, and the weight of a decision that could reshape their family forever**.",
-          "timestamp": 1773226361.4859362
-        }
-      ],
-      "last_call": 1773226361.4859362,
-      "created_at": 1772786610.8858292
     },
     {
       "id": "6037d92b",
@@ -213,6 +138,81 @@
       ],
       "last_call": 1773219255.9161851,
       "created_at": 1772866520.023336
+    },
+    {
+      "id": "0bb02b2d",
+      "name": "Chip",
+      "gender": "male",
+      "age": 23,
+      "job": "watching his kid's soccer uniform tumble in the dryer while his girlfriend works the graveyard shift at the hospital, because three hours ago he got an email from a lawyer representing families",
+      "location": "unknown",
+      "personality_traits": [],
+      "voice": "Sebastian",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Amped up. Talks fast, laughs loud, jumps between topics like they've had five espressos. Infectious enthusiasm \u2014 even bad news sounds exciting when they tell it. Uses exclamation energy without actually exclaiming. Energy level: very high. When pushed back on, they get even MORE animated and start talking with their hands (you can hear it). Conversational tendency: escalation."
+      },
+      "call_history": [
+        {
+          "summary": "Chip called from a laundromat at midnight after receiving an email from a Guatemalan lawyer claiming his adopted 8-year-old daughter may have been stolen from her birth mother, with a photo showing a woman with his daughter's exact crooked smile. The host advised him not to panic, treat the information as suspect until verified by a lawyer, wait to tell both his girlfriend and daughter until he knows more facts, and reminded him that fake photos are easy to create and this could be a scam.",
+          "timestamp": 1772786610.885828
+        },
+        {
+          "summary": "Chip called about discovering his adopted daughter may have been stolen from her birth mother in Guatemala, and he's paralyzed about telling his girlfriend Teresa, fearing it will end their already rocky relationship. He's anxious about the timing and the birth mother's request to meet their daughter, but the host advised him to take his time, have the conversation with Teresa, and make decisions together as parents.",
+          "timestamp": 1772962156.544322
+        },
+        {
+          "summary": "The caller, **Chip**, shared his emotional turmoil over discovering that his **adopted daughter\u2019s birth mother** may have resurfaced after receiving an unverified email with a photo that eerily matched his daughter\u2019s features. His girlfriend, **Teresa**, had known about the email for **three weeks** but kept it from him, leaving him feeling betrayed and overwhelmed. While Chip wants to **verify the claim legally before acting**, Teresa insists on **immediately flying to Guatemala with their daughter** to meet the woman, dismissing his fears as avoidance. The conversation escalated into a heated debate about **trust, safety, and extreme measures**\u2014with the host, Luke, urging Chip to **file a restraining order** if Teresa refuses to back down, warning of potential dangers in Guatemala. Chip, torn between **protecting his family and avoiding a nuclear confrontation**, vowed to try reasoning with Teresa one last time before she leaves for work. The call was charged with **fear, frustration, and the weight of a decision that could reshape their family forever**.",
+          "timestamp": 1773226361.4859362
+        }
+      ],
+      "last_call": 1773226361.4859362,
+      "created_at": 1772786610.8858292
+    },
+    {
+      "id": "bbb20b67",
+      "name": "Angie",
+      "gender": "female",
+      "age": 28,
+      "job": "watching her coveralls tumble dry and trying to decide if she should drive the three hours to Tucson tomorrow for her mom's birthday or keep pretending her brother doesn't exist",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Julia",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Bone dry. Says devastating things with zero inflection. Their humor sneaks up on you \u2014 you're not sure if they're joking until three seconds after they finish talking. Short, precise sentences. Never raises their voice. Energy level: low-medium. When pushed back on, they respond with one calm sentence that somehow makes the other person feel stupid. Conversational tendency: underreaction."
+      },
+      "call_history": [
+        {
+          "summary": "Angie's dying mother wants her to have birthday dinner with her estranged brother Derek tomorrow, whom she hasn't spoken to in two years after he told their mother her cancer was \"God's way of getting her attention\" for voting for Biden. Despite her fear that Derek will say something hurtful during dinner and her past trauma from staying silent around him, Angie agrees to go and share cake with her mother, deciding to buy the relighting candles her mom loved when they were kids.",
+          "timestamp": 1772862907.314721
+        },
+        {
+          "summary": "Angie called back after having the birthday cake dinner with her dying mom, which went well, but her brother Derek cornered her afterward accusing her of convincing their mom to stop cancer treatment and demanding they both attend the next doctor's appointment together. Luke advised her to talk directly to her mom about what she actually wants and encouraged Angie to have real conversations about her mom's end-of-life thoughts while she still can, which Angie agreed to do the next morning.",
+          "timestamp": 1773296210.170752
+        }
+      ],
+      "last_call": 1773296210.170753,
+      "created_at": 1772862907.314722
+    },
+    {
+      "id": "3721ebf2",
+      "name": "Maxine",
+      "gender": "female",
+      "age": 26,
+      "job": "and the math doesn't add up\u2014there's a six-foot gap between her bedroom and the bathroom that shouldn't exist, and when she finally pried open the door she thought led to a closet, it was just drywall, fresh enough that she could smell the joint compound",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Kelsey",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Quiet, a little nervous. Short sentences, lots of pauses. Doesn't volunteer information \u2014 you have to pull it out of them. When they do open up it comes out in a rush. Gets flustered by direct questions. Tends to backtrack and qualify everything they say. Energy level: low. When pushed back on, they fold quickly and agree even if they don't mean it. Conversational tendency: understatement."
+      },
+      "call_history": [
+        {
+          "summary": "Maxine called after discovering a hidden 6-foot space behind a sealed door in her house, and when she cut through the drywall, she found multiple boxes filled with banded stacks of $20 bills from the 1990s\u2014potentially tens or hundreds of thousands of dollars left by the previous owner who died there. She struggled with whether to keep the money or contact the deceased owner's family, with the host arguing it was legally hers since she bought the house \"as-is,\" though Maxine remained conflicted about what felt morally right.",
+          "timestamp": 1773395481.8522182
+        }
+      ],
+      "last_call": 1773395481.8522189,
+      "created_at": 1773395481.8522189
     }
   ]
 }

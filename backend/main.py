@@ -34,7 +34,12 @@ app = FastAPI(title="AI Radio Show")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:8000",
+        "http://localhost:3000",
+        "http://127.0.0.1:8000",
+        "http://127.0.0.1:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -142,6 +147,10 @@ CALLER_BASES = {
     "9": {"gender": "male", "age_range": (21, 38)},
     "0": {"gender": "female", "age_range": (35, 65)},
 }
+# Safety: enforce all callers are 18+
+for _cb in CALLER_BASES.values():
+    lo, hi = _cb["age_range"]
+    _cb["age_range"] = (max(18, lo), max(18, hi))
 
 
 def _randomize_callers():
@@ -167,9 +176,11 @@ def _randomize_callers():
     m_voices = random.sample(male_pool, min(num_m, len(male_pool)))
     f_voices = random.sample(female_pool, min(num_f, len(female_pool)))
     mi, fi = 0, 0
+    from .services.tts import pick_caller_tts_provider
     for base in CALLER_BASES.values():
         base["returning"] = False
         base["regular_id"] = None
+        base["tts_provider"] = pick_caller_tts_provider()
         if base["gender"] == "male":
             base["name"] = males[mi]
             base["voice"] = m_voices[mi]
@@ -759,6 +770,255 @@ PROBLEMS = [
     "agreed to an open marriage thinking it would save things — their spouse immediately started seeing someone and is clearly happier, and they haven't been able to find a single person interested in them, so they just sit home alone while their spouse is out",
     "had a threesome with their partner and a friend — the friend and the partner clearly had better chemistry with each other than with them, and now the partner keeps suggesting they invite the friend over for dinner",
     "found their parent's sex tape while cleaning out the attic — it was labeled with a date and a name, and the name isn't their other parent's, and the date is roughly nine months before they were born",
+
+    # --- Absurd/unhinged comedy situations ---
+    "has been pretending to be left-handed at their new job for six months because someone assumed they were on day one and they never corrected it — now there's a company softball game and they can't bat",
+    "accidentally started a rumor at the gym that they're a black belt and now three people have asked them to train them and one guy challenged them to spar",
+    "told a stranger at a bar they were a pilot and the stranger turned out to be their new neighbor — they've been maintaining the lie for four months including faking phone calls to 'the tower'",
+    "bought a metal detector as a joke and found a class ring from 1986 in their backyard — they tracked down the owner who says they've never been to that town and now everyone thinks they're haunted",
+    "lied on a dating profile about loving hiking and now they're three months into a relationship with someone who hikes every weekend — they can barely do stairs",
+    "their roomba escaped out the front door and someone two streets over found it and won't give it back because they say it 'chose to leave'",
+    "replied-all to a company-wide email with a complaint about their boss that was meant for one friend — it's been four hours and they're hiding in the bathroom",
+    "signed up for a 5K charity run thinking it was a 5K walk and just found out it's actually a mud run obstacle course — it's this Saturday and they sold $400 in sponsor pledges",
+    "got caught talking to their plants by their apartment maintenance guy who now tells everyone in the building they're a 'plant psychic' — two neighbors have asked for consultations",
+    "started a fake book club as an excuse to avoid family dinners and now it has twelve members who actually read the books and they haven't read a single one",
+    "told their dentist they floss every day for so long that the dentist uses them as an example for other patients — they've never flossed once in their adult life",
+    "accidentally won a chili cookoff with canned chili they doctored up — now they're being asked to cater a church fundraiser and they don't know how to make chili",
+    "has been waving at someone in their neighborhood for two years thinking they know them — the person finally came up and said 'who are you?' and they panicked and said 'I'm your cousin' and now they're invited to Thanksgiving",
+    "their parrot learned to mimic their phone's alarm sound and now they can't tell what's real — they've been late to work three times this month",
+    "made up a fake allergy to avoid their coworker's terrible cooking at potlucks and now HR has put a special protocol in place and the cafeteria has a warning sign with their name on it",
+    "bet a coworker fifty bucks they could eat a whole jar of pickles in one sitting — they did it but now they physically cannot look at a pickle without gagging and their coworker puts pickles on their desk every day",
+
+    # --- Family drama (expanded) ---
+    "their mother told them at dinner tonight that she never wanted kids and it was just something she said but they can't stop hearing it",
+    "found out their parents secretly remortgaged the house to bail their sibling out of debt — nobody told them and now the house might be lost",
+    "their sister's wedding is next month and their mom just told them they're not invited because the sister's fiancé doesn't like them",
+    "just found out they have a half-brother in another state because their dad had an affair 25 years ago — the brother reached out on Facebook and wants to meet",
+    "their family has been fighting over their grandmother's china set for six months and nobody speaks to each other anymore over dishes",
+    "caught their mother lying about having cancer to get attention from the family — she's done this before with other illnesses and nobody believes the caller",
+    "their father remarried three months after their mother's death and the new wife is redecorating the house and throwing away their mom's things",
+    "their kid just asked why grandma and grandpa won't come to their house anymore and the real answer is a family grudge the kid shouldn't know about",
+    "their sibling keeps borrowing their identity for credit applications and when they confronted them the sibling said 'family helps family'",
+    "found an old family video and realized their childhood was nothing like they remember — everyone looks miserable and their parents are fighting in the background of every birthday",
+
+    # --- Career & work (expanded) ---
+    "just realized they've been at the same job for 15 years and haven't learned a single new skill — they could be replaced by anyone with two weeks of training",
+    "their company just got acquired and the new owners are gutting everything — half their department is already gone and they're waiting for the axe",
+    "found out their reference from their last job has been sabotaging their applications — a hiring manager let it slip",
+    "started a side business that's taking off but their employer has a non-compete clause and they can't figure out if it applies",
+    "got written up at work for something everyone does and they're pretty sure it's retaliation for filing a complaint last month",
+    "their internship ended and they were promised a full-time offer that never came — they turned down two other jobs waiting for it",
+    "realized their dream career pays so little they can't afford rent and health insurance at the same time",
+    "works the graveyard shift and hasn't seen their kids awake in three weeks — their spouse is running on empty and resents them for it",
+    "got promoted into a role they're not qualified for because nobody else wanted it and now they're drowning",
+    "just discovered their company has been classifying them as a contractor to avoid benefits — for six years",
+
+    # --- Money & debt (expanded) ---
+    "their spouse opened a credit card in their kid's name to cover bills and the kid just found out when they tried to get a student loan",
+    "inherited a house with $40,000 in back taxes and a lien from a contractor who did work they never approved",
+    "loaned their entire tax refund to a friend who swore they'd pay it back by June — it's now March and the friend is avoiding their calls",
+    "their bank account got hacked and $6,000 is gone — the bank is investigating but they can't pay rent in the meantime",
+    "found out they owe $18,000 in back child support they didn't know about because the letters went to an old address",
+    "their car got repossessed at work and everyone watched it get towed out of the parking lot",
+    "just calculated they've spent $30,000 on lottery tickets over the past decade and won a total of $600",
+    "cosigned a student loan for their niece who dropped out after one semester and moved to another state",
+    "their spouse has been paying their ex alimony from a secret bank account and just ran out of money",
+    "got a notice that their property taxes tripled because of a reassessment and they literally cannot pay the new amount",
+
+    # --- Health & body (expanded) ---
+    "their doctor told them they have six months to make serious changes or they're looking at a heart attack before 50 — they drove straight to a fast food place afterward and hate themselves for it",
+    "found out their kid needs surgery and the insurance company denied it — they're on hold for the fourth time today trying to get an override",
+    "has been having migraines so bad they see spots and forget words and every test comes back normal — they're starting to think they're going crazy",
+    "their spouse was misdiagnosed for two years and the condition has now progressed to a stage that could have been prevented",
+    "just got their hospital bill from an emergency appendectomy and even with insurance they owe $23,000",
+    "their parent fell and broke a hip and the assisted living facility wants $7,000 a month and they don't have it",
+    "found out the medication they've been on for ten years was recalled and the side effects explain everything they've been feeling",
+    "their kid has been complaining of chest pains and two doctors said it's anxiety but a parent knows when something's wrong",
+    "went to the dentist for the first time in seven years and needs $12,000 in work — they don't have dental insurance",
+    "their partner just got diagnosed with something degenerative and they're trying to be strong but they don't know how to plan for a future that looks completely different now",
+
+    # --- Mental health (expanded) ---
+    "hasn't been outside in eleven days and they're not sure if they're depressed or just done with people",
+    "their medication stopped working three weeks ago and their psychiatrist can't see them for another month",
+    "keeps driving past the turn for home and just driving — sometimes for hours — because pulling into the driveway fills them with dread they can't name",
+    "deleted every social media app last week because comparing their life to everyone else's was making them physically sick — but now they feel completely cut off",
+    "their kid's therapist called to say the sessions aren't working and recommended inpatient and the word 'inpatient' made the floor drop out",
+    "realized they've said 'I'm fine' so many times that they can't tell the difference between fine and not fine anymore",
+    "woke up on the bathroom floor at 4 AM with their phone dead and no memory of falling asleep there — this is becoming a pattern",
+    "has been sleeping 14 hours a day and their boss thinks they're slacking but they genuinely cannot wake up no matter how many alarms they set",
+
+    # --- Grief (expanded) ---
+    "their friend's kid died and they don't know what to say — everything feels wrong and they've been avoiding the friend because of it and the guilt is eating them alive",
+    "lost their house in a fire two months ago and the insurance is stalling — they're living in a motel with their family and running out of savings",
+    "their dog died on the operating table during what was supposed to be a routine procedure and the vet won't return their calls about what happened",
+    "found out their childhood home was demolished last week and even though they haven't lived there in 20 years it hit them like a truck",
+    "miscarried last month and went back to work after three days because they didn't have any more PTO — nobody at work knows",
+    "their grandmother's nursing home closed without notice and they had to scramble to find placement — she's confused and scared and keeps asking to go home",
+    "lost both parents within six months of each other and people keep telling them 'at least they're together now' and it makes them want to scream",
+
+    # --- Addiction (expanded) ---
+    "counted their drinks last week for the first time and the number scared them — they've been averaging 28 a week and didn't even realize",
+    "their kid came home from college with a vape addiction that's costing $200 a month and they didn't even know vaping was addictive",
+    "has been taking their spouse's Adderall for three months to keep up at work and just realized they can't function without it",
+    "their friend keeps suggesting they 'just have one drink' at every gathering even though they know about the sobriety and it's getting harder to say no",
+    "relapsed last week after two years clean and the shame of telling their sponsor feels worse than the relapse itself",
+    "found a hidden stash of pills in their teenager's room and recognized the brand because they used to buy from the same person",
+    "has been gambling online every night after their family goes to bed — they're down $14,000 and the account is linked to their joint savings",
+
+    # --- Parenting (expanded) ---
+    "their kid told the school counselor something about the home that got taken out of context and now CPS is investigating",
+    "found out their kid has been skipping lunch every day because they're being bullied in the cafeteria — the kid has been hiding their lunchbox and saying they ate",
+    "their teenager just told them they've been self-harming and showed them their arms and the caller had no idea",
+    "adopted a child two years ago and the bonding hasn't happened the way the books said it would — they love this kid but it feels forced and they're terrified that's permanent",
+    "their kid got expelled and the only other school is 45 minutes away — they can't drive that far and work full-time",
+    "their adult child told them at dinner that they're cutting contact and handed them a letter listing everything they did wrong as a parent",
+    "just found out their 12-year-old has been watching extremely graphic content online for months and they thought the parental controls were working",
+    "their baby won't stop crying and it's been hours and their partner left and they're alone and they've never felt this desperate before",
+    "their kid got caught cheating on a test and the school wants a meeting but the real issue is the kid has been under so much pressure they haven't slept properly in weeks",
+    "their teenager wants to move in with a partner they've been dating for three weeks and says they'll run away if the caller says no",
+
+    # --- Relationship chaos (expanded) ---
+    "found airline tickets on their partner's phone for a trip next week that they weren't told about — to a city where their partner's ex lives",
+    "their partner just told them they're aromantic and doesn't experience romantic love the same way — they're not breaking up but the caller doesn't know what to feel",
+    "caught their spouse crying in the car at 2 AM and when they asked what was wrong, the spouse said 'everything' and drove away — they've been gone four hours",
+    "their partner's therapist told the partner to set boundaries and now the partner won't do anything the caller asks without calling it a 'boundary violation'",
+    "went through their partner's phone (they know they shouldn't have) and found nothing — but the relief they felt made them realize the relationship is built on suspicion and that might be worse",
+    "their spouse announced at a family dinner that they're quitting their job to 'find themselves' — no discussion, no plan, three kids",
+    "just found out their fiancé has a child from a previous relationship that they never mentioned — the kid is seven",
+    "their partner of five years just told them they've been lying about their age — they're twelve years older than they claimed",
+
+    # --- Legal & justice (expanded) ---
+    "got pulled over for a broken taillight and the cop found something in the car that belongs to whoever they borrowed it from — now they're facing charges for someone else's stuff",
+    "their landlord changed the locks while they were at work and threw their stuff on the curb — they're standing outside their apartment right now",
+    "got a letter from a lawyer saying someone is suing them for a car accident they were involved in eighteen months ago that they thought was settled",
+    "their ex filed a restraining order full of lies and the hearing is Monday and they don't have a lawyer",
+    "just found out there's a warrant for their arrest in another state for a ticket they never knew about — from a rental car they returned twelve years ago",
+    "their neighbor is suing them because a tree on their property fell during a storm and damaged the neighbor's fence — the neighbor wants $20,000",
+    "witnessed a crime and the detective wants them to testify but the defendant lives on their street and knows where they live",
+
+    # --- Community & neighbor drama (expanded) ---
+    "their neighbor put up a 12-foot fence that blocks all the sunlight to their garden and the city says it's within code",
+    "someone has been filing anonymous complaints with code enforcement about their property and they're pretty sure they know who it is",
+    "got into it at the school board meeting last night and a video of them yelling is now on the local Facebook page",
+    "their neighbor runs a business out of their garage and the traffic and noise are destroying the street — the other neighbors are afraid to say anything",
+    "the HOA just voted to ban trucks with visible work equipment from the driveway — that's their livelihood parked there every night",
+    "their small town is being split by a proposed mine that would bring jobs but destroy the aquifer — families who've been friends for decades are on opposite sides",
+    "found out the city council rezoned their neighborhood for commercial use without a single public hearing",
+
+    # --- Secrets & shame (expanded) ---
+    "has been lying to their family about their job for two years — they got fired and have been day-trading the savings while pretending to commute",
+    "cheated on a professional exam and got certified — now they're in a position where their incompetence could hurt people and the anxiety is killing them",
+    "has been using a fake social media profile to check on their ex for three years — they're not a stalker, they just can't move on and they know how pathetic that sounds",
+    "stole something valuable from a friend's house during a party ten years ago and the friend still mentions it sometimes as an unsolved mystery",
+    "has a chronic illness they haven't told their employer about because they'd lose the position — but it's getting harder to hide",
+    "was the anonymous source for a news story that ruined someone's career — the story was true but the fallout was worse than they expected",
+    "has been pretending to be straight at work for five years because the industry they're in and the town they live in would make their life hell if anyone knew",
+    "ghosted their entire friend group eight months ago and has been too ashamed to reach out even though they know it hurt people who cared about them",
+
+    # --- Bizarre situations (expanded) ---
+    "their Alexa ordered $800 worth of cat food and they don't have a cat — Amazon says the voice command came from their device and won't refund it",
+    "got a bill from a hospital in their name for a baby that was delivered last month — they are a 62-year-old man",
+    "woke up to find their front door wide open, the TV on, and a plate of food on the table — they live alone and everything was locked when they went to bed",
+    "their car's GPS started giving directions in a language they don't recognize and won't switch back — they've factory-reset it twice",
+    "received a birthday card every year for five years from someone they've never met — same handwriting, different postmarks, always just says 'thinking of you'",
+    "their new puppy dug up a bag in the backyard with $3,000 cash and what looks like a burner phone — they just moved in three months ago",
+    "got a Facebook friend request from someone with their exact name, same birthday, who looks eerily like them but lives in a different state",
+    "their mail carrier delivered a handwritten apology letter addressed to them by name — it's clearly heartfelt but they have no idea who wrote it",
+    "found a USB drive in the library with what appears to be an entire novel about someone whose life is almost exactly like theirs",
+    "got a call from their own phone number while holding their phone — the voicemail is static with what might be their own voice underneath",
+
+    # --- Generational & cultural ---
+    "is the first person in their family to go to college and the pressure to succeed for everyone who couldn't is crushing them",
+    "grew up in extreme poverty and now makes good money but can't stop hoarding food and living like they're broke — their partner is concerned",
+    "their immigrant parents sacrificed everything to give them a better life and they feel guilty every day that they're not living up to what they gave up",
+    "is caught between two cultures — too American for their parents' homeland, too foreign for America — and doesn't feel like they belong anywhere",
+    "their family expects them to send money back to relatives in another country every month and it's bankrupting them but saying no would mean being disowned",
+    "was raised in a religious cult and left five years ago but can't make normal relationships because they never learned how",
+
+    # --- Veterans expanded ---
+    "came home from deployment and their marriage was over but nobody told them — their spouse just acted different and the whole thing unraveled",
+    "the fireworks on the Fourth put them in a state every year and they've started spending the holiday alone in a cabin with noise-canceling headphones",
+    "their VA therapist got reassigned and the new one wants to start from scratch — they can't tell the story again",
+    "got a civilian job that's nothing like what they were trained for and feels useless for the first time in their life",
+    "their buddy who was struggling called them last week and they were too busy to pick up — they called back the next day and the number was disconnected",
+
+    # --- Technology & modern life (expanded) ---
+    "their teenager created an AI chatbot that talks like them and showed it to the family as a joke — but some of the things it says are things the caller has only thought, never said",
+    "got deepfaked into a video that's circulating at work and nobody believes it's not really them",
+    "their identity was stolen so thoroughly that the thief filed their taxes, renewed their license, and opened a P.O. box",
+    "found out their smart TV has been recording audio and sending it to the manufacturer — they had a very private conversation in front of it last week",
+    "their elderly parent fell for a phone scam and wired $8,000 to someone pretending to be them in jail",
+
+    # --- Betrayal (expanded) ---
+    "their mentor who got them into the industry just published an article taking credit for their biggest achievement by name",
+    "trusted their accountant with their taxes for ten years and just found out the accountant never filed the last three years",
+    "their childhood best friend wrote a memoir that includes private conversations they had in confidence — some of it is embellished",
+    "gave their sibling a key to their house for emergencies and found out the sibling has been coming in when they're at work to eat their food for months",
+    "their partner promised to stop talking to their ex and the caller just found a second phone with six months of messages",
+
+    # --- Moral gray zones (expanded) ---
+    "saw a hit and run from their porch — they have the plate number — but the driver is a kid, maybe 16, and they remember what it was like to be terrified at that age",
+    "their elderly neighbor has been driving erratically and they're worried someone's going to get killed — but calling the DMV feels like taking away their last independence",
+    "volunteers at a food bank and saw a coworker who makes six figures coming through the line — they know it's none of their business but it's eating at them",
+    "their friend asked them to lie to a cop about being together on a specific night — the friend won't explain why but seems desperate",
+    "found out their kid's favorite teacher is an undocumented immigrant and ICE has been making rounds in town",
+
+    # --- Escalating situations ---
+    "their landlord just raised rent by 40% and gave them 30 days to accept or move — they can't afford either option",
+    "someone at work started a rumor that they're having an affair with the boss and the rumor is completely false but the boss hasn't denied it",
+    "their ex keeps showing up at places they go and always acts surprised but it's happened twelve times in two weeks",
+    "filed a noise complaint about their neighbor and the neighbor put a sign in their yard calling the caller a snitch with their name on it",
+    "their kid's bully's parent confronted them at pickup and it almost turned physical — other parents filmed it and now it's on Facebook",
+    "just got back from a road trip and their house smells like cigarettes — they don't smoke, nobody has a key, and nothing is missing but things have been moved",
+
+    # --- Unhinged confessions (expanded) ---
+    "has been calling in sick to work once a week for six months to sit in a park alone because it's the only time they feel like a person",
+    "learned their neighbor's WiFi password and has been using it for a year — the neighbor just upgraded to gigabit and the caller is getting better speeds than the plan they're paying for",
+    "started leaving anonymous compliments in people's mailboxes to cheer people up and now there's a Nextdoor thread calling them a stalker",
+    "has been pretending to know how to swim for their entire adult life and their family just planned a beach vacation with snorkeling",
+    "told their date they were allergic to shellfish to avoid splitting the lobster and now every date avoids seafood places — they love seafood",
+    "started going to a random church every Sunday because they like the free coffee and now they've been elected to the welcoming committee",
+    "has been secretly watering their neighbor's dying plant through the fence because they can't stand watching it die",
+
+    # --- Additional problems (reaching 600+) ---
+    "their kid's college fund got wiped out by a market crash and the kid is a junior in high school with early admission plans",
+    "got called into a meeting and told their position is being 'restructured' — same job, lower pay, fewer hours, no benefits",
+    "their spouse's old friend moved in 'for a week' three months ago and shows no sign of leaving — the friend doesn't pay rent or help with anything",
+    "found out their contractor used substandard materials on their roof and the warranty is void because the contractor disappeared",
+    "their insurance dropped them after a claim and now nobody will cover them — they have a pre-existing condition and a kid with asthma",
+    "was told by a financial advisor to invest in something that lost 60% of its value in two months — the advisor won't return calls",
+    "their adult kid maxed out a credit card in the caller's name without permission and the kid doesn't think it's a big deal",
+    "got a notice from the city that their house doesn't meet current code and they have 90 days to bring it up to standard — the estimate is $35,000",
+    "their neighbor's construction project flooded their basement and the neighbor's insurance says it's not their problem",
+    "found out their spouse took a second mortgage on the house without telling them to fund a business idea that's already failing",
+    "just realized their 401k has been going into the wrong fund for four years because of a typo nobody caught — they've lost tens of thousands in potential growth",
+    "their kid's school is closing and the nearest alternative is in another district that won't accept transfers without a move",
+    "got a collections call for a medical bill they thought was covered — turns out the anesthesiologist was out-of-network at an in-network hospital",
+    "their dog bit a delivery driver and now there's a lawsuit — the dog has never bitten anyone before and the driver was in the yard uninvited",
+    "found out their elderly mother signed over power of attorney to a neighbor she barely knows — the family is scrambling to figure out what to do",
+    "their small business got a one-star review from someone they've never served and it's tanking their rating — they can't get the platform to remove it",
+    "woke up to find their car vandalized with spray paint that says something personal — they don't know who did it but the message means someone knows their business",
+    "their kid's prom date just canceled and the kid is devastated — they spent $600 on the outfit and the caller can't get any of it back",
+    "got a cease and desist from a company claiming their small business name infringes on their trademark — hiring a lawyer would cost more than the business makes in a year",
+    "their spouse wants to homeschool the kids starting next month and they fundamentally disagree but the spouse already told the kids and now they're excited",
+    "found mold in their apartment and the landlord says it's their problem — they've been sick for months and just realized it might be connected",
+    "their neighbor's tree roots are destroying their foundation and the neighbor refuses to pay for removal because the tree is 'historic'",
+    "got rear-ended by an uninsured driver and their own insurance deductible is $2,500 they don't have",
+    "their sibling just announced they're moving back to town and wants to move in — the last time they lived together it ended in a screaming match that the whole street heard",
+    "found out their home inspector missed major issues when they bought the house and the inspector's liability insurance has a cap that doesn't cover the damage",
+    "their kid got rejected from every college they applied to and the backup plan fell through — they're sitting across from a devastated 18-year-old with no idea what to say",
+    "just discovered their spouse has been hiding a storage unit full of purchases — the bill is $300 a month and it's been going on for two years",
+    "their boss told them to train their replacement and didn't say why — nobody will give them a straight answer and the anxiety is eating them alive",
+    "found out their trusted babysitter has been letting strangers into the house while they're at work — the Ring camera footage is from last week and they're trying to stay calm",
+    "their landlord sold the building and the new owner wants everyone out in 60 days — they've been there nine years and have nowhere to go",
+    "got a DNA test as a birthday gift and the results say their dad isn't their biological father — and their mom won't talk about it",
+    "their kid's coach has been playing favorites and their kid hasn't seen the field in five games — they don't want to be 'that parent' but the kid is losing confidence",
+    "found out their home is in a wildfire evacuation zone they didn't know about and their insurance doesn't cover fire damage",
+    "their partner spent their vacation fund on crypto without telling them — the crypto is now worth a third of what was paid",
+    "their best employee just quit with no notice and they have a major deadline next week — the employee left for a competitor and took clients with them",
+    "got a call from their kid's principal saying the kid brought something to school they shouldn't have — the meeting is tomorrow and they have no idea what it is",
+    "their HOA is forcing them to remove a wheelchair ramp they built for their disabled spouse because it 'doesn't match the aesthetic'",
+    "found out their retirement date just got pushed back five years because of a pension rule change nobody told them about",
 ]
 
 STORIES = [
@@ -809,6 +1069,197 @@ STORIES = [
     "found $200 in a coat they hadn't worn in two years and can't remember if it's theirs or someone else's — the coat was borrowed from someone they no longer talk to",
     "their garage door opener started opening their neighbor's garage instead of theirs after a power outage and the neighbor thinks they've been snooping",
     "ordered something online that arrived in a box way too big — like 6 feet tall — and inside was their order plus an entire set of patio furniture that wasn't on the invoice",
+    # --- neighbor & community absurdity ---
+    "their neighbor started building something in the backyard and it's been growing for six months — it's now a three-story structure that might be a windmill and the HOA doesn't know what to do",
+    "found an entire beehive inside their walls — not a small one, the bee guy said it's been there at least five years and there are 60,000 bees in it",
+    "their mail carrier accidentally delivered a love letter meant for someone else — the caller read it before realizing and now they're invested in this stranger's love life",
+    "got a knock on the door from a man claiming to have buried a time capsule in their yard in 1988 and asking if he could dig it up — they let him and it was full of Polaroids and a Walkman with a mixtape",
+    "their neighbor's parrot escaped and spent three days on their roof yelling what turned out to be the neighbor's WiFi password, their dog's name, and 'I want a divorce'",
+    "woke up to find someone had mowed a giant smiley face into their front lawn — nobody on the street will admit to it and the mowing is professional-grade",
+    "their doorbell camera caught the FedEx driver doing a full celebration dance after making a tricky porch delivery — fist pumps, a spin, and a little bow to the camera",
+    "found a message in a bottle washed up at a lake — it was from a kid five miles upstream who wanted to know if fish have feelings and included a stamped return envelope",
+    "their kid's lemonade stand accidentally undercut the local coffee shop's iced tea price and the owner came over to 'negotiate'",
+    "got a letter from the county saying their property line is six feet further east than they thought — they've been mowing their neighbor's lawn for twelve years",
+    # --- workplace chaos ---
+    "the office fridge has had a piece of cake in it for seven months and someone keeps refreshing the 'DO NOT EAT' sticky note — nobody knows whose cake it is or who's protecting it",
+    "accidentally sent a text meant for their spouse to their entire team Slack — it said 'my boss is driving me insane' and their boss hearted the message",
+    "their company hired a motivational consultant who just turned out to be a guy with a megaphone and a lot of energy — he made the IT department do trust falls in the parking lot",
+    "walked into the wrong conference room and sat through an hour-long meeting for a completely different department before anyone noticed — they contributed twice and nobody questioned it",
+    "found out the office 'ghost' that keeps eating people's lunches is their CEO — the janitor caught them on camera at 6 AM raiding the fridge in a hoodie",
+    "their coworker has been secretly replacing the break room coffee with decaf for three months as a 'social experiment' — they only confessed because someone threatened to call a plumber about the 'broken' coffee maker",
+    "accidentally wore the exact same outfit as their boss three days in a row — neither of them acknowledged it until the third day when the boss said 'one of us has to go home'",
+    # --- animal adventures ---
+    "their dog learned to open the fridge and has been helping himself to lunch meat — they only found out because the dog gained eight pounds in a month and the deli drawer was mysteriously empty",
+    "a goat appeared in their yard and won't leave — they don't own a goat, neither do any neighbors, and animal control says it's not their jurisdiction because it's 'livestock'",
+    "their cat has been bringing them increasingly valuable items — started with dead mice, moved to socks, and last week brought home a $20 bill and a car key that doesn't belong to anyone they know",
+    "a raccoon broke into their truck and ate an entire bag of gas station donuts — then fell asleep in the back seat and they didn't find it until the next morning",
+    "their dog made friends with a deer and now the deer comes to the backyard every morning and they just hang out — the dog doesn't bark and the deer doesn't run",
+    "found a frog in their toilet three days in a row — same frog based on a distinctive spot — they've named it and stopped trying to remove it",
+    "their chickens staged what can only be described as a jailbreak — dug under the fence, walked down the road, and were found in the neighbor's swimming pool a quarter mile away",
+    "a hawk keeps dropping things on their porch — so far: a sock, a tennis ball, half a sandwich, and what appears to be someone's credit card",
+    # --- tech & modern life ---
+    "their smart speaker started answering questions they didn't ask — at 2 AM it said 'the weather tomorrow is partly cloudy' and nobody was in the room",
+    "accidentally joined a Zoom call for a book club in a different time zone and they're now three books deep with people they've never met in person — the group thinks they live in Ohio",
+    "their kid changed the Netflix profile names and now they can't figure out who is 'Pasta Lord' and who is 'Couch Goblin' — they've been accidentally watching each other's recommendations for a month",
+    "got a notification that someone signed into their email from Brazil — turns out it was an old phone they sold on eBay and the new owner has been reading their newsletters without unsubscribing",
+    "their robot vacuum has been mapping their house wrong and keeps trying to clean a room that doesn't exist — it rams into the same wall every day at the same time",
+    "accidentally texted 'I love you' to their dentist and the dentist texted 'I love you too' back — neither of them has addressed it",
+    # --- coincidence & bizarre timing ---
+    "bought a used book online and found a photo inside of someone at the exact restaurant they had dinner at last night — same table, same booth, dated 1997",
+    "wore a shirt with a specific obscure band logo and three separate strangers in one day commented on it — none of them knew each other and the band has twelve fans",
+    "showed up to a potluck and someone else brought the exact same dish in the exact same Pyrex — same recipe, same garnish, and they don't know each other",
+    "their kid was assigned a pen pal through school and it turned out to be their old college roommate's kid — the roommate lives 2,000 miles away",
+    "booked a vacation rental sight unseen and when they walked in, it had the exact same layout and furniture as their childhood home — even the wallpaper in the bathroom",
+    # --- social & dating mishaps ---
+    "went to their high school reunion and nobody recognized them — they've changed so much someone thought they were a caterer and asked them to refill the water pitcher",
+    "accidentally waved back at someone who was waving at the person behind them — committed to it and had a five-minute conversation pretending they knew each other, exchanged numbers, and is now too deep to explain",
+    "their Uber driver turned out to be their ex-husband's new wife — neither of them said a word for eighteen minutes but the driver gave them a one-star rating",
+    "showed up to a first date and the person across the table said 'wait, were you the kid who threw up on me at summer camp in 1996' and they were",
+    "got seated next to their therapist at a wedding — neither acknowledged the professional relationship and they had to watch their therapist do the Macarena",
+    # --- mundane escalations ---
+    "bought a storage unit at auction for $50 and it was full of nothing but garden gnomes — over 200 of them, some wearing tiny outfits, and now they can't bring themselves to throw them away",
+    "their Craigslist ad for a free couch got 47 responses in an hour, including one person who sent their life story and another who offered to trade a live iguana",
+    "tried to return a pair of jeans without a receipt and somehow ended up in a forty-minute conversation with the manager about their divorce — the manager's divorce, not theirs",
+    "accidentally brought their kid's lunch to work and their own briefcase to the school — the kid had to explain why they had a laptop and a granola bar instead of a sandwich and juice box",
+    "planted what they thought was a small herb garden and one of the plants turned out to be zucchini — it's now producing twelve zucchinis a week and they've been leaving them on neighbors' porches anonymously like a vegetable vigilante",
+    "entered a costume contest as a last-minute decision wearing a bedsheet ghost and won — beat someone who'd spent six months on a screen-accurate Iron Man suit and the Iron Man person has not spoken to them since",
+    "started a puzzle three weeks ago and realized at 98% completion that there are two pieces missing and one extra piece from a different puzzle — they've been staring at the empty spots every night",
+    # --- travel & road stories ---
+    "got the wrong rental car at the airport and drove it for three days before realizing — it was a luxury upgrade and the person who got their economy car has been calling Hertz hourly",
+    "stopped at a diner in the middle of nowhere and the waitress said 'oh you're back' even though they'd never been there — she insisted they were there last Tuesday and ordered the meatloaf",
+    "their GPS rerouted them through a town so small it had one building that was simultaneously the post office, the bar, and the feed store — the bartender/postmaster gave them directions and a beer",
+    "took a wrong turn on a road trip and ended up at a festival they'd never heard of celebrating a vegetable they couldn't identify — they stayed for two hours and won a ribbon",
+    "their flight got delayed so they started talking to a stranger at the gate — eight hours later they'd covered childhood trauma, career regrets, and a business idea, and they've never spoken since",
+    # --- family weirdness ---
+    "found out they were named after their parent's favorite gas station attendant and they don't know how to process that information",
+    "their grandmother's will specified that whoever takes care of her 23-year-old parrot inherits the house — the parrot is mean and bites everyone but they need the house",
+    "discovered a family recipe that's been passed down for generations is actually just the recipe from the back of a Campbell's soup can with one ingredient changed",
+    "their dad has been telling everyone he's retired for five years but they just found out he's been going to work every day at a different job he's embarrassed about",
+    "found out their 'uncle' who comes to every Thanksgiving is not related to anyone in the family — he just showed up one year and nobody questioned it and now it's been 20 years",
+    "their mom started a TikTok account and has more followers than them — she posts cooking videos but the comments are all about how attractive she is and the caller doesn't know what to do with that",
+    "inherited a storage locker from a great-uncle they never met — it's full of clown costumes, at least 40 of them, all different, all well-worn",
+    "their parents announced they're getting divorced after 40 years and both separately asked the caller to help them set up dating profiles on the same day",
+    "found their dad's secret second phone and confronted him about it — turns out he's been playing Candy Crush in secret because their mom banned screen time for the whole family",
+    "their sibling got a DNA test and found out they have a different father — the parents are refusing to discuss it and Thanksgiving is in two weeks",
+    "their grandpa left behind a locked safe nobody could open — they finally cracked it and inside was a single post-it note that says 'ha' in his handwriting",
+    "their mom has been mailing them a clipping from the local newspaper every week for three years with no note — just the clipping in an envelope and they can't figure out the pattern",
+    "found out their aunt has been regifting the same candle set for fifteen years — it's made it around the family twice and someone finally recognized it",
+    "their kid asked why grandma has a different last name than grandpa and it opened a can of worms that has been sealed since 1983",
+    "found home movies in the attic and one of them shows their parents at a party in the 80s doing things that cannot be unseen",
+    # --- purchases & consumer nightmares ---
+    "bought a couch off Craigslist and when they got it home found $8,000 in cash sewn into the cushion — the seller won't return their calls",
+    "ordered a custom birthday cake that was supposed to say 'Happy 40th' and it arrived saying 'Happy 40th, you're closer to death' — the bakery says that's what the order form said",
+    "bought a used car and found a love letter in the glove box that's so beautiful they framed it — three months later the previous owner showed up asking for it back",
+    "their contractor disappeared mid-renovation — took the deposit, ripped out the kitchen, and vanished — they've been cooking on a camping stove in their garage for two months",
+    "found out the 'antique' table they paid $2,000 for at an estate sale is from IKEA — the auctioneer had rubbed shoe polish on it to make it look old",
+    "accidentally bought a timeshare while drunk on vacation and the cancellation period ended while they were still hungover — they now own one week a year in Branson, Missouri",
+    "their online mattress came vacuum-sealed and when they opened it in the bedroom it expanded and pinned them against the wall — they were stuck for 45 minutes until their kid came home",
+    "ordered a 'slightly used' textbook online and it arrived with someone's entire semester of notes in the margins — including personal diary entries and a phone number with a heart next to it",
+    "bought a vintage jacket from a thrift store and found a key in the pocket — nobody at the store knows what it opens and now they're obsessed with finding out",
+    "hired a painter for their house and the painter chose a color that was slightly off from the sample — the whole house is now a shade of pink they didn't agree to and the painter says it'll 'grow on them'",
+    # --- hobby & passion gone wrong ---
+    "started a vegetable garden to save money and has now spent $3,000 on supplies to grow $40 worth of tomatoes — their spouse keeps a running spreadsheet",
+    "got really into woodworking during the pandemic and built their spouse a bookshelf that collapsed the first time they put books on it — they'd already posted it to Instagram and got 200 likes",
+    "joined a recreational softball league and tore their ACL in the first game — they're 38 and the doctor said 'this is why people your age should stretch'",
+    "started homebrewing beer and the first batch exploded in their closet — it ruined twelve dress shirts and the closet still smells like hops four months later",
+    "got into birdwatching and became so obsessed they called in sick to work three times to see a rare warbler that turned out to be a common sparrow with unusual coloring",
+    "started a podcast about their niche hobby and the only listener is their mom — their mom has opinions about the format and gives them notes after every episode",
+    "took up beekeeping and their neighbor is threatening to sue because bees keep getting in their pool — the caller says the bees were there first",
+    "got into competitive barbecue and spent $4,000 on a smoker they've used twice — their spouse gave them an ultimatum: the smoker or the second parking spot",
+    "got really into metal detecting and found nothing but bottle caps for three months — then found a Civil War era belt buckle and now they think they're Indiana Jones",
+    "decided to learn guitar at 45 and their family staged a gentle intervention after two months of the same three chords played loudly every evening",
+    "started collecting vinyl records and can't stop — they've spent $6,000 and don't actually own a record player yet",
+    "took up marathon running and got so into nutrition they now bring their own food to restaurants in Tupperware — their friends have stopped inviting them to dinner",
+    "signed up for a pottery class and their first piece looked like a crime scene — the instructor said 'well, it has character' and put it on the shelf where everyone could see it",
+    "got into amateur astronomy and bought a telescope that's now pointed at the neighbor's house because the angle is better — the neighbors think they're being spied on",
+    # --- late-night revelations ---
+    "can't sleep because they just realized they've been pronouncing a word wrong their entire life and nobody ever corrected them — they used it in their wedding vows",
+    "was going through old emails and found one from 2014 that would have changed their life if they'd read it — it was a job offer they never saw buried in spam",
+    "just remembered something embarrassing they did in high school and the shame hit them like it happened yesterday — it's been 25 years",
+    "can't stop thinking about the fact that they've been tipping wrong at restaurants for years — they just learned you're supposed to tip on the pre-tax amount, or is it post-tax, and now they don't know",
+    "lying in bed replaying a conversation from earlier today where they said something they meant as a joke and the other person clearly didn't take it that way",
+    "just found out a word they made up as a kid and have been using their whole life is not a real word — they used it in a work presentation last week",
+    "realized at 2am that they've been telling a story about themselves for years and just realized it actually happened to someone else — they stole someone's anecdote and made it their own",
+    "was cleaning out a drawer and found a to-do list from ten years ago — half the things are still undone and they're having an existential crisis about it",
+    "can't sleep because they finally did the math on how much they've spent on coffee over the last decade and the number is upsetting",
+    "just realized they've been waving at their neighbor every morning for two years and it might be a completely different person than who they think it is",
+    # --- food & cooking disasters ---
+    "tried to deep-fry a turkey and set their deck on fire — the fire department came and one of the firefighters asked if they could have some turkey because it actually smelled great",
+    "brought a homemade dish to a potluck and everyone loved it — they didn't make it, they bought it from a restaurant and put it in their own container, and now people keep asking for the recipe",
+    "their sourdough starter is three years old and they're more emotionally attached to it than some of their friendships — they named it and take it on vacation",
+    "accidentally made the spiciest salsa anyone has ever tasted and now everyone wants more — they can't remember what they put in it and have been unable to replicate it for six months",
+    "left a crockpot going while they were at work and came home to find their entire house smelling like burnt chili — the smell has been there for three weeks and nothing removes it",
+    "tried making tamales from scratch for the first time — it took eleven hours, produced fourteen tamales, and their abuela tasted one and said 'maybe next time'",
+    "accidentally grabbed the wrong bag at the grocery store self-checkout and didn't realize until they got home — the bag contained four avocados, a candle, and a pregnancy test",
+    "made a casserole so bad even the dog wouldn't eat it — their kid said 'I'd rather have detention lunch' and their spouse quietly ordered pizza",
+    "brought the wrong dish to a funeral potluck — it was a birthday cake they'd picked up for another event and they had to explain the 'Happy Birthday!' frosting to the grieving family",
+    # --- cars & driving ---
+    "their check engine light has been on for so long it went off and they panicked — took it to the shop and the mechanic said 'it just gave up'",
+    "got rear-ended at a stoplight and the other driver got out and said 'that's for what you did at the Safeway' — the caller has never been to that Safeway",
+    "their car makes a noise that sounds exactly like someone saying 'help' when they turn left — the mechanic can't find anything wrong",
+    "found a note on their windshield that said 'nice parking job' with a hand-drawn diagram showing how badly they parked — the diagram is surprisingly detailed and accurate",
+    "their GPS once routed them through someone's private property — they drove through a gate, past a barn, and came out on the other side of a mountain on the correct road",
+    "parallel parked so perfectly one time that a stranger applauded — it's been three years and they still think about it",
+    "locked their keys in the car with the engine running at a gas station — the locksmith who came said 'again?' even though they'd never met",
+    "their car's Bluetooth keeps connecting to a stranger's phone and they can hear the stranger's music — it's always smooth jazz and they've started to enjoy it",
+    "drove through a car wash and their side mirror got ripped off — the car wash said their sign clearly states 'fold in mirrors' but the sign is in 6-point font behind a bush",
+    # --- medical oddities ---
+    "sneezed so hard they threw out their back and had to call an ambulance — the paramedic said it was the third sneeze-related call that week",
+    "went to the doctor for a routine checkup and the doctor said 'huh, that's interesting' and then walked out to get another doctor — both of them said 'huh' and nobody explained",
+    "hiccupped for 72 hours straight and tried every remedy anyone suggested — the thing that finally stopped it was their kid jumping out of a closet and scaring them so badly they fell off a chair",
+    "found out they've been allergic to something they eat every single day and the symptoms they thought were normal are not normal at all",
+    "their dentist found a baby tooth they never lost — they're 42 and it's been there the whole time and now they need a plan",
+    "got a splinter in their foot six months ago and just assumed it worked itself out — it did not and the doctor's reaction was memorable",
+    "went to urgent care for a stomachache and the intake nurse asked 'on a scale of 1 to 10' and they said '4' and the nurse said 'you look like a 9, be honest'",
+    # --- unexplained phenomena ---
+    "keeps finding pennies in their shoes every morning — they live alone and the doors are locked — it's been happening for three months",
+    "their clock stops at the same time every night — 3:17am — they've replaced the batteries, bought a new clock, and it still happens",
+    "found handwriting on their bathroom mirror that wasn't there the night before — it says 'behind the furnace' and they haven't checked yet and they're calling because they need someone to tell them to check",
+    "their deceased grandmother's phone number called them — the number has been disconnected for two years and when they answered it was just static",
+    "woke up in the middle of the night to their TV playing a show that doesn't exist — they searched for it the next day and found nothing",
+    "has been having the same dream every Tuesday for two months — it's incredibly mundane, just grocery shopping, but everything in the dream shows up in their actual life the next day",
+    "found a photo of themselves in a place they've never been — they're clearly in the photo, it's their face, but they have no memory of it and neither does anyone they know",
+    "keeps hearing a phone ring inside their walls but there's no phone line connected to the house — it rings three times every evening around 9pm",
+    # --- small town life ---
+    "their town's only restaurant changed the recipe for the green chile and there's a petition with 200 signatures demanding they change it back — the caller started the petition",
+    "the local bar has a jukebox that someone keeps loading with $20 worth of 'What's New Pussycat' by Tom Jones every Saturday — nobody knows who it is but the bartender is losing their mind",
+    "their town had a power outage and everyone went outside and hung out in the street for three hours — it was the best night they've had in years and they're weirdly hoping it happens again",
+    "someone in town put up a billboard that just says 'WE KNOW WHAT YOU DID, GERALD' and nobody named Gerald will admit to anything but three Geralds have left town",
+    "their small town has a feud between two competing taco trucks that's been going on for eight years — families are divided, there are bumper stickers, and the caller is a double agent eating at both",
+    "the only traffic light in town has been yellow-flashing for six months and the town council keeps tabling the repair because they can't agree on whether to make it a stop sign instead",
+    "their town's annual chili cook-off was won by someone using store-bought chili and the scandal is bigger than anything that's happened there in decades",
+    "the local cemetery started doing 'historical ghost tours' and one of the ancestors featured is the caller's great-great-grandfather — the tour guide gets the story completely wrong every time",
+    "their town's volunteer fire department calendar fundraiser accidentally featured the same guy three times because nobody else signed up",
+    "the one gas station in town raised prices by a penny and it made the front page of the weekly paper — the editorial was 800 words long",
+    "the town's only barber retired and now everyone drives 40 minutes for a haircut — someone suggested a co-op barbershop and the town council has been debating it for six months",
+    "their town's Facebook group has devolved into a full civil war over whether the new stoplight is helping or hurting traffic — someone made a PowerPoint",
+    # --- embarrassing moments ---
+    "waved back at someone who wasn't waving at them and committed so hard they walked over and introduced themselves — the person was calling their dog",
+    "called their teacher 'mom' in high school and somehow that became their nickname for the rest of the year — they graduated with it in the yearbook",
+    "walked around all day with their shirt inside out and nobody said anything until their kid picked them up and said 'did you lose a bet'",
+    "confidently answered a trivia question at a bar and was so wrong the entire bar went silent — they still go there and people bring it up",
+    "sent a selfie meant for their partner to their boss — the selfie was innocent but the caption was not",
+    "tripped walking into a job interview, knocked over a plant, and somehow still got the job — the interviewer said 'we admire your commitment to showing up'",
+    "fell asleep at a movie theater and woke up shouting during a quiet scene — the person next to them said 'same' and they bonded",
+    "accidentally put salt instead of sugar in a pie they brought to a work potluck — watched six coworkers take bites and try to be polite about it before someone finally cracked",
+    # --- random life chaos ---
+    "found a suitcase on the side of the highway and brought it home — it's full of bowling trophies from the 1980s all belonging to the same person",
+    "their car horn started going off randomly and they can't fix it — it goes off in parking lots, at stoplights, and once during a funeral procession",
+    "accidentally volunteered to coach their kid's sports team by raising their hand to ask a question at the parent meeting — they don't know the rules of the sport",
+    "woke up to find their front door wide open and nothing stolen — but someone had rearranged their living room furniture and it actually looks better",
+    "got a letter addressed to 'Current Resident' that was a handwritten apology for something that happened in the house in 1987 — they have no idea what it's referring to",
+    "their smoke detector has been chirping for eight months and they can't figure out which one it is — they've replaced the batteries in all of them twice",
+    "won a radio contest they don't remember entering and the prize is a year's supply of something they're allergic to",
+    "found their car parked two blocks from where they left it with more gas than it had before — nothing was stolen but the seat was adjusted",
+    "their kid told their class that their parent 'makes people disappear for a living' — the caller is a professional organizer who helps people declutter",
+    "went to vote and found out someone had already voted under their name — they've been dealing with the county clerk's office for three months and nobody can explain it",
+    "has a bathroom faucet that only runs hot water on Wednesdays — every plumber they've called has said that's not possible and yet",
+    "their electricity bill tripled last month and the power company says there's no issue — they suspect their neighbor is running an extension cord from their outdoor outlet but can't prove it",
+    "found a crawl space in their house they didn't know existed — it had a sleeping bag, a book, and a half-eaten can of beans and they're trying to figure out how recently someone was in there",
+    "their garage door opens at exactly 3am every night — the remote is in a drawer and the button isn't stuck and the repair company can't explain it",
+    "accidentally mailed their rent check to their cable company and their cable payment to their landlord — neither noticed for two months",
+    "keeps getting someone else's prescription glasses in the mail from an online eyewear company — the prescription is almost exactly theirs and the frames are nice so they've been wearing them",
+    "found a journal wedged behind a bathroom wall during a renovation — it's someone's detailed diary from 1994 and the last entry says 'if you're reading this, the closet floor isn't what it seems'",
 ]
 
 ADVICE = [
@@ -857,6 +1308,258 @@ ADVICE = [
     "their company is about to lay off 30 people and they've been asked to choose who stays — one of the people on the bubble is a single parent who's mediocre at their job, and the person who'd replace them is brilliant and hungry",
     "discovered their best friend's nonprofit is spending donor money on overhead and salaries that are technically legal but morally sketchy — the friend pays themselves $180k to run a charity that gives away $40k a year",
     "was in a hit and run twenty years ago — they were the one who ran — nobody was seriously hurt but a woman broke her arm, and they've carried it their whole life and just saw a post from the woman saying the driver who hit her ruined her ability to trust people",
+
+    # --- career & purpose forks ---
+    "their dream job just opened up but it would mean moving to a state they hate — the pay is double what they make now and they'd never get this chance again",
+    "got asked to manage the team they used to be on — half the team is older than them and one of them applied for the same position and didn't get it",
+    "their company is offering voluntary buyouts and the math says take it, but they've been there 22 years and don't know who they are without this job",
+    "has a chance to take over the family business but the business is failing and their parents won't admit it — saying no means watching it die, saying yes means going down with the ship",
+    "passed all the tests to become a firefighter at 41 and the academy starts next month — their spouse says it's reckless, their kid thinks it's the coolest thing ever",
+    "got offered a position overseas that would double their salary but they'd miss their kid's last two years of high school",
+    "wants to go back to school at 45 for nursing but the program is two years with no income — their spouse supports it emotionally but they'd have to drain savings",
+    "was offered a partnership at their law firm but the senior partner they'd be tied to is someone they fundamentally disagree with ethically",
+    "has been running a side business from their garage and a chain store wants to buy the brand name for $150k — it's good money but the brand is their identity",
+    "their startup is running out of runway and an investor offered to bail them out but wants them to fire their cofounder — the cofounder is their best friend",
+
+    # --- relationship crossroads ---
+    "their partner of eight years won't commit to marriage and they've been patient but they're turning 38 and want kids — they love this person but the clock is real",
+    "caught their spouse in a lie about where they were last night — nothing as bad as an affair, but they were gambling at a casino and they have a history of addiction",
+    "their partner wants to open the relationship and they don't — the partner says they'll resent being 'caged' and the caller says they'll resent being 'shared'",
+    "reconnected with an ex who's now sober and completely different — they're married and happy, but there's a pull they can't explain and they haven't told their spouse they've been talking",
+    "their fiancé's family is demanding a huge wedding they can't afford — the fiancé sides with the family and the caller feels like they're already losing battles before the marriage starts",
+    "married their high school sweetheart and they love them but they've never been with anyone else and wonder if they're missing something — is that normal or a sign",
+    "their partner wants to quit their stable job to become a full-time artist — they're talented but not making money yet and the caller is the only income",
+    "found out their fiancé doesn't want kids after saying they did during dating — the wedding is in three months",
+
+    # --- family decisions ---
+    "their parent with dementia is becoming dangerous — left the stove on twice, wandered into the road — but the parent is lucid enough to refuse help and gets angry when anyone suggests a facility",
+    "their teenager wants to live with their other parent after the divorce — the caller has primary custody and the request feels like rejection even though they know it shouldn't",
+    "adopted their nephew after their sibling went to jail — the sibling is getting out next year and wants the kid back but the kid calls the caller 'mom' now",
+    "their mother-in-law wants to move in and their spouse already said yes without asking — the caller loves their spouse but can barely tolerate the mother-in-law for a weekend",
+    "their adult child is in a relationship they think is abusive but every time they bring it up the child cuts them off for weeks — they don't know if saying something helps or pushes them away",
+    "their sibling wants to sell the family home their parents built — the caller can't afford to buy them out and watching it go to strangers feels like losing their parents all over again",
+    "their kid came out as trans and they want to be supportive but they're struggling in ways they're ashamed of — they're not transphobic, they just weren't prepared and don't know who to talk to",
+    "found out their father isn't their biological father through a DNA test — their mother confessed when confronted but their father doesn't know they know",
+
+    # --- ethical dilemmas ---
+    "witnessed a coworker steal from the company but the coworker is a single parent who's about to lose their apartment — reporting them would end their career",
+    "found out their friend is driving without insurance and has a suspended license — the friend drives their kid to school every morning",
+    "their neighbor confided they're an undocumented immigrant who's lived here for 15 years — someone in the neighborhood has been calling ICE on people and the neighbor is terrified",
+    "overheard their kid's coach making comments that border on inappropriate but aren't quite over the line — other parents think the coach is great and they don't want to be 'that parent'",
+    "their friend asked them to be an alibi for something they won't specify — the friend has never asked for anything before and seems genuinely scared",
+    "their boss asked them to backdate a document and it's technically not illegal but it's definitely not right — saying no means the boss holds a grudge, saying yes means they're complicit",
+    "a close friend confessed to a crime from ten years ago during a late-night conversation — nobody was hurt but it's been eating at the friend and now it's eating at the caller",
+    "their kid found a gun in a friend's house — an unlocked, loaded gun in a bedroom where kids play — and they want to tell the friend's parents but their own kid begged them not to because they'd lose their best friend",
+
+    # --- money & property decisions ---
+    "inherited a piece of land with emotional value to the family but the property taxes are bleeding them dry — selling it would pay off their house but their siblings would never forgive them",
+    "someone rear-ended them and is begging not to go through insurance because their rates will spike — the damage is $3,000 and the person offered to pay cash in installments",
+    "won $20k in a settlement and can't decide between paying off debt or investing in a business idea they've had for years — the business is risky but the debt isn't going anywhere",
+    "their financial advisor is recommending they cash out a life insurance policy to invest in the market — the math makes sense but their gut says no and they can't explain why",
+    "cosigned a loan for their kid and the kid stopped making payments three months ago — their own credit is tanking and confronting the kid will blow up the relationship",
+    "got a lowball offer on their house but the market is dropping and waiting could mean an even lower offer — their agent says sell now, their spouse says wait",
+    "their landlord offered to sell them the house they've rented for ten years at below market value but the inspection revealed foundation issues that could cost $50k to fix",
+
+    # --- life direction ---
+    "just turned 50 and realized they've never left the state they were born in — their kids are grown, their spouse is open to it, and they have just enough saved to make a move but no plan",
+    "been sober for five years and their old friend group keeps inviting them to things where drinking is the main event — they don't want to lose the friendships but every invite is a risk",
+    "their doctor gave them a wake-up call about their weight and they know they need to change but they've failed every diet and exercise plan they've tried — asking what actually works",
+    "retired at 60 and is bored out of their mind after two months — they thought they'd love it but they have no hobbies and their spouse is annoyed they're always around",
+    "got diagnosed with something manageable but chronic and it's making them rethink every priority — should they stay in the career they hate or do the thing they've been putting off",
+    "their best friend is in a cult — they won't call it that, but the caller has done the research and it ticks every box — and they don't know how to have that conversation",
+    "wants to report their company for an environmental violation but they're the sole provider for three kids and whistleblowers in their industry don't get hired again",
+    "is 30 and has no idea what they want to do with their life — tried college, tried trades, tried the military, nothing stuck and everyone else seems to have it figured out",
+
+    # --- neighbor & community dilemmas ---
+    "their neighbor's dog barks for eight hours a day while the owner is at work — they've talked to the owner twice, filed a noise complaint, and nothing has changed",
+    "found out the house next door is being turned into an Airbnb and parties have already started — property values are at stake and the city says it's legal",
+    "their kid's best friend's family is going through a rough patch and the kid is practically living at their house — they're happy to help but it's been four months and nobody's talked about boundaries",
+    "lives in a small town and their kid's teacher is also their neighbor — the teacher gave the kid a C they think is unfair and they can't address it without it being personal",
+
+    # --- trust & honesty ---
+    "their spouse went through their phone and found nothing but the fact that they looked has destroyed trust — now the caller is angry and the spouse is defensive",
+    "lied about their education on a job application fifteen years ago and has been quietly terrified ever since — they've been promoted four times and are now in a role where someone might actually check",
+    "their therapist accidentally revealed something another client said — not by name but the details were so specific the caller knows exactly who it is, and it's someone they know",
+    "found their kid's diary and read it — what they found isn't dangerous but it's personal and now they can't unknow it and don't know how to act normal",
+    "their friend confessed they're the one who anonymously reported the caller's other friend to CPS two years ago — the report was unfounded and nearly destroyed a family",
+
+    # --- More career/money crossroads ---
+    "was offered a partnership at a firm that does work they find morally questionable — the money would solve all their problems but they'd have to sign their name to things they don't believe in",
+    "their small business landlord offered to sell the building at a fair price but they'd have to take on massive debt — if the business fails they lose everything, if it succeeds they own the whole thing",
+    "got accepted to a program that would retrain them for a completely different career at 48 — it means two years of no income and starting over from the bottom",
+    "their employer offered relocation to keep their job or a severance package to leave — the new city is terrible for their family but the severance only covers six months",
+    "has a chance to buy a franchise that's been profitable for other owners but it requires liquidating their entire retirement — their financial advisor says no, their gut says yes",
+    "got offered a book deal to write about their industry and the publisher wants dirt — telling the truth would burn every bridge they have but the advance is life-changing money",
+    "their company is going public and they have stock options worth $200k — they can exercise now and pay huge taxes or wait and risk the stock tanking",
+    "was asked to take a pay cut to keep their team from layoffs — the CEO hasn't taken a pay cut and the caller isn't sure solidarity goes that far",
+
+    # --- More relationship crossroads ---
+    "their ex is remarrying and wants to introduce the new spouse to the kids — the caller has full custody and the ex abandoned them three years ago",
+    "discovered their partner has a gambling problem after finding the receipts — the partner denies it and says it's 'entertainment spending' but the numbers don't lie",
+    "their spouse got a job offer that would triple their income but it's in a city the caller hates with a culture that's the opposite of how they want to raise their kids",
+    "met someone at a conference who they connected with instantly — nothing happened but they haven't stopped thinking about this person and they're happily married",
+    "their partner wants to sell everything and travel full-time in an RV — the caller likes the idea in theory but has aging parents and a kid in middle school",
+    "their ex wants to reconcile after five years apart — the caller still has feelings but the reasons they left haven't changed",
+
+    # --- More family decisions ---
+    "their parent wants to give away their entire estate to charity before they die and leave nothing to the family — the parent says the kids don't need it but the caller disagrees",
+    "their sibling came out of prison after eight years and wants back into the family — some members are ready, others say no, and the caller is the swing vote",
+    "their kid wants to change their last name to their stepparent's name — the caller is the biological parent and it stings even though they understand",
+    "their aging parent refuses to write a will and the family is too afraid to push the issue — the caller knows what's going to happen when the parent dies and it terrifies them",
+    "found out their kid has been secretly visiting their estranged grandparent — the caller cut the grandparent off for good reason but the kid doesn't know the full story",
+    "their partner wants to do a destination wedding that half the family can't afford to attend — saying no feels controlling but saying yes means empty seats",
+
+    # --- More ethical dilemmas ---
+    "their tenant is three months behind on rent and has a newborn — the caller needs the rental income to pay their own mortgage but can't live with themselves for evicting a baby",
+    "found out a coworker falsified a safety report and nobody got hurt this time — reporting it would shut down the project and cost twenty people their jobs",
+    "their friend asked them to cosign a loan and the friend has bad credit for reasons that are understandable — but the caller can't afford to cover if the friend defaults",
+    "caught a kid shoplifting at their store — the kid is clearly doing it for food and the caller's policy says call the cops but everything in them says let the kid go",
+    "their neighbor asked them to testify in a property dispute against another neighbor — both are friends and both think they're right, and the caller actually agrees with the side that's losing",
+    "a homeless person has been sleeping in their business's parking structure and they feel for the person but customers are complaining and it's affecting revenue",
+
+    # --- More life direction ---
+    "turning 40 next month and made a list of everything they said they'd do by now — not a single thing on it is checked off and they don't know whether to grieve the plan or make a new one",
+    "their therapist suggested they might have ADHD and if the diagnosis is confirmed it would explain thirty years of struggle — but they're afraid of what it means",
+    "considering converting to a different religion than the one they were raised in — the spiritual pull is real but the family consequences would be severe",
+    "just got laid off for the second time in three years and is questioning whether their entire career path was a mistake",
+    "wants to confront their aging parent about something that happened in childhood — the statute of limitations on everything has passed but the emotional weight hasn't",
+    "their whole friend group is getting married and having kids and they have zero interest in either — they're happy but starting to wonder if they're broken or just different",
+    "has a chance to study abroad for a year at 55 — the kids are grown, the job would survive, but their spouse says it's selfish to leave",
+    "thinking about buying land and going off-grid — they've done the math and it works but their partner thinks they're having a midlife crisis",
+    "been volunteering at a hospice and it's changing how they see their own life — wants advice on whether to leave their career and do it full-time for a fraction of the pay",
+    "their doctor told them stress is literally killing them and they need to make a major life change within the year — they know what needs to go but they're too scared to let it go",
+
+    # --- More trust & honesty ---
+    "told their partner a small lie years ago that has grown into a foundational assumption of their relationship — correcting it now would unravel years of shared decisions based on it",
+    "their friend group has been talking behind someone's back about their behavior and the caller was asked to be the one to have 'the conversation' — they're not sure it's their place",
+    "received information about a friend's spouse that could destroy their marriage — the information came from someone unreliable and the caller doesn't know if it's true",
+    "their employer asked them to sign a non-disparagement agreement as part of a settlement for something that actually happened — signing means they can never tell the truth publicly",
+    "their kid asked them point blank if Santa is real and they don't believe in lying to their kids but their spouse wants to keep the magic going for one more year",
+    # --- reaching 150+ ---
+    "their neighbor cut down a tree that was on the property line and now both yards flood when it rains — neither will pay for drainage and it's getting worse each storm",
+    "was invited to join a business venture with their in-laws and their spouse thinks it's a great idea — every financial advisor says never mix family and money",
+    "their coworker asked them for a kidney — a real kidney — they're a match and the coworker has no other options and they have to make a decision they never imagined facing",
+    "found out their home's previous owner had a meth lab in the garage — the house passed inspection but now they're getting headaches and wondering if it was properly remediated",
+    "their therapist retired and recommended someone who uses a completely different approach — they don't want to start over but they also know they still need help",
+    "has been offered a spot on the city council which they've always wanted — but it means their private life becomes public in a small town where everyone talks",
+    "their kid wants to take a gap year and travel instead of going straight to college — the caller sees the value but worries the kid won't go back",
+    "their landlord is offering a rent-to-own deal that sounds too good to be true — the numbers work on paper but something feels off and they can't put their finger on it",
+    "their best friend from childhood wants to reconnect but the friend has changed dramatically — different values, different lifestyle, different everything — and the caller isn't sure there's enough left to rebuild on",
+    "their elderly parent wants to give away their house to the church and the family is split — half say it's the parent's right, half say the parent is being manipulated",
+    "found out their partner lied on their resume about having a degree they don't have — the partner makes good money and does good work but could be fired if anyone checks",
+    "thinking about telling their boss they're looking for other jobs as a negotiation tactic — but if the boss calls their bluff they're stuck with no backup plan",
+
+    # --- parenting dilemmas (backend-dev) ---
+    "their kid wants to drop out of college after one semester and the caller already paid the full year — the kid says they're miserable and learning nothing",
+    "caught their teenager vaping and grounded them — now the kid's grades have dropped and they're questioning if the punishment is doing more harm than good",
+    "their kid is being excluded by a friend group and wants to switch schools — it's mid-year and the logistics are a nightmare but the kid cries every morning before school",
+    "found out their teenager has been skipping church to go to a friend's house — the caller is devout and the spouse thinks it's rebellion but the caller thinks the kid just doesn't believe anymore",
+    "their kid wants to take a gap year before college and work on a farm — the caller's parents are horrified and their spouse is neutral and they genuinely don't know what's right",
+    "co-parenting with their ex and the ex's new partner is undermining their rules — the kid comes back from their ex's house with later bedtimes, more screen time, and an attitude",
+    "their kid asked why they got divorced and they don't know how to answer honestly without badmouthing the other parent",
+    "discovered their kid has been lying about going to school and has missed 15 days this semester — the kid is smart and their grades are somehow still decent",
+    "their youngest just left for college and the house is empty for the first time in 22 years — they thought they'd be relieved but they're devastated and their spouse seems fine",
+    "their adult kid asked to borrow $10k and won't say what it's for — the kid has a good job and has never asked before so it's either very good or very bad",
+    "their kid's teacher wants to hold them back a grade and the kid is begging not to — the caller thinks the teacher might be right but the social damage of being held back worries them more",
+    "their teenager's best friend is a terrible influence and they've seen the grades drop — banning the friendship feels authoritarian but doing nothing feels negligent",
+    "their kid wants to join the military and the caller is terrified — the kid has thought it through and it's a good career path but the caller can't stop thinking about worst-case scenarios",
+    # --- aging parents (backend-dev) ---
+    "their parent has started giving away possessions and talking about death and they can't tell if it's acceptance or depression — bringing it up feels invasive",
+    "their mother fell and won't go to the doctor — she says she's fine but she's limping and the caller lives two hours away and can't check on her every day",
+    "their parent is dating someone new eight months after the other parent died — the family is split between supportive and furious and nobody knows how to act at dinner",
+    "their father's dementia is getting worse and he keeps asking for their mother who died ten years ago — they don't know if they should keep telling him or let him believe she's coming",
+    "their parent needs to stop driving but won't — they've had three fender benders this year and the caller is terrified they'll hurt someone",
+    "their parent is giving large amounts of money to a new 'friend' they met online — the caller thinks it's a scam but the parent says they're just jealous",
+    "their siblings refuse to help with their mother's care and the caller is doing everything — they want to confront them but their mother begged them not to cause family drama",
+    "their parent has a DNR and the caller disagrees with the decision — the parent is relatively healthy and the DNR feels premature but the parent says it's their choice",
+    "their parent keeps calling them their sibling's name — the sibling died two years ago and every time it happens it breaks the caller's heart",
+    "their mother's boyfriend moved in after three months of dating and the caller doesn't trust him — he's already on the bank account and the mother won't hear criticism",
+    "their father refuses to move out of a house he can't maintain alone — the yard is overgrown, the roof leaks, and he won't accept help because he sees it as losing independence",
+    # --- friendship crises (backend-dev) ---
+    "their best friend borrowed $5,000 two years ago and has never mentioned it since — the caller needs the money back but bringing it up feels like it'll end the friendship",
+    "found out their friend group has a separate group chat without them — they saw it on a friend's phone and the chat name includes an inside joke they're clearly the butt of",
+    "their friend is marrying someone the caller thinks is terrible for them — everyone else seems to see it too but nobody will say anything and the wedding is in three months",
+    "their lifelong best friend just told them they've been in love with them for years — the caller doesn't feel the same way and doesn't know how to keep the friendship",
+    "was asked to be a bridesmaid and the wedding costs are already at $4,000 in flights, dress, bachelorette — they can't afford it but saying something now feels too late",
+    "their friend ghosted them six months ago with no explanation — they ran into each other at the store and the friend acted like nothing happened and they're angry but also relieved",
+    "helped a friend through a crisis last year and now the friend is going through the exact same thing again — the caller is burned out on the friendship but feels guilty walking away",
+    "their friend group wants to take an expensive vacation together and the caller can't afford it — everyone else is well-off and they don't want to be the reason plans change",
+    "their closest friend just got the job the caller applied for — the friend doesn't know the caller applied and keeps talking about how excited they are",
+    "their oldest friend has become someone they don't recognize — different values, different politics, different priorities — and they're mourning a friendship that technically still exists",
+    "their friend asked them to lie to their friend's spouse about where they were last night — nothing happened but the situation looks bad and the caller doesn't want to be part of the deception",
+    # --- housing & living situations (backend-dev) ---
+    "their landlord is selling the building and the new owner wants to raise rent 40% — they've lived there for eight years and can't afford anywhere else in the neighborhood",
+    "bought their first house and within a month discovered mold, a cracked foundation, and the previous owner lied on the disclosure — their inspector missed everything",
+    "their roommate's partner has basically moved in without paying rent — they're there every night, using the kitchen, taking showers, and the roommate says it's temporary",
+    "inherited a house jointly with their siblings and nobody can agree on what to do — one wants to sell, one wants to rent it, one wants to live in it, and the house is deteriorating while they argue",
+    "their downstairs neighbor plays music until 2am every night and management says they can't do anything because it's 'within acceptable hours' per the lease",
+    "their HOA is threatening to fine them $500 for a fence they built with HOA approval last year — the board changed and the new president says the approval was invalid",
+    "wants to build an addition on their house but the neighbor objected to the building permit — the neighbor says it'll block their view and they've been friends for a decade",
+    "their kid wants to move back home with their spouse and baby — the caller's house is small but their kid is struggling financially and the caller can't say no to their grandchild",
+    "found out their septic system needs a $15,000 replacement and the house is only worth $120,000 — fixing it means staying, not fixing it means they can't sell",
+    "their neighbor built a shed that's two feet over the property line and won't move it — the caller doesn't want to sue but the shed blocks their garden's sunlight",
+    # --- romance & relationships (backend-dev) ---
+    "been with their partner for 15 years and they've never said 'I love you' — the relationship is solid and happy but the absence of those words has started to bother them",
+    "their spouse wants an open relationship and the caller doesn't — the spouse says it's about trust and the caller thinks it's about wanting someone else specifically",
+    "reconnected with their high school sweetheart on social media and the chemistry is still there — they're both married to other people",
+    "their partner got a job across the country and they both agreed to do long distance — it's been four months and it's destroying them but neither wants to be the one to say it's not working",
+    "proposed to their partner and got 'I need to think about it' — that was three weeks ago and neither of them has brought it up since",
+    "their spouse makes significantly more money and has started making all the financial decisions without input — the caller feels like a dependent, not a partner",
+    "found out their partner has been talking to an ex regularly — the conversations are innocent but the secrecy is what bothers the caller",
+    "been dating someone for six months who is perfect on paper but the caller feels nothing — they keep hoping feelings will develop but they haven't and now they feel trapped",
+    "their ex wants to get back together and they're tempted — everyone in their life says it's a terrible idea and they know the same problems will come back but they're lonely",
+    "their spouse's family hates them and the spouse won't stand up for them — every holiday is miserable and the caller is starting to resent both the family and the spouse",
+    "caught their spouse in a lie that isn't about cheating but is about money — a secret credit card with $12,000 on it that the caller didn't know existed",
+    "their partner wants kids and they don't — they thought they'd come around but they haven't and the clock is ticking and someone has to compromise or leave",
+    # --- moral gray areas (backend-dev) ---
+    "found a wallet with $2,000 cash and no ID — there's no way to return it and they're three months behind on rent but keeping it feels wrong",
+    "saw a shoplifter at the grocery store — the person was clearly stealing food, not luxury items, and looked like they were struggling, and the caller didn't say anything but feels weird about it",
+    "their kid's friend told their kid a secret about abuse at home and the kid told the caller — the friend begged the caller's kid not to tell anyone and calling CPS could make things worse or better",
+    "accidentally received a double refund from a company and they need the money — it's a big corporation and nobody will notice but they were raised to be honest",
+    "a stranger accidentally Venmo'd them $500 and the transaction can't be reversed because the account was closed — they could just keep it but they know it was a mistake",
+    "their company is underpaying a new hire who doesn't know the market rate — the caller could tell them and help them negotiate but it might blow back on the caller",
+    "their kid's coach is clearly favoring their own child for playing time and it's affecting the team — other parents are grumbling but nobody wants to be the one to say something",
+    "found out their Uber driver doesn't have insurance and they're in the car right now — do they say something, report it after, or just pretend they don't know",
+    # --- health & wellness (backend-dev) ---
+    "their doctor recommended surgery but a second opinion said physical therapy might work — the surgery has a faster recovery but PT has no risk of complications and they can't decide",
+    "been prescribed medication for anxiety and it works but they feel like a different person — their family says they seem better but the caller misses feeling like themselves",
+    "their spouse refuses to go to therapy even though they clearly need it — the caller can't force them but the untreated depression is affecting the whole family",
+    "found a lump and has been putting off the appointment for two months because they're terrified of what the doctor might say — they know waiting makes it worse but they're paralyzed",
+    "was told they need to quit drinking for medical reasons and they're not sure they can — they don't think they're an alcoholic but two drinks a night for twenty years is apparently a problem",
+    "just got a clean bill of health after a cancer scare and instead of feeling relieved they feel worse — the anxiety hasn't gone away and they don't know why",
+    "their partner snores so loudly they haven't slept properly in years — separate bedrooms would fix it but the partner takes it personally and they're both exhausted",
+    "hasn't been to a dentist in seven years because of a childhood trauma and the pain is getting bad enough that they can't ignore it anymore",
+    # --- identity & self-discovery (backend-dev) ---
+    "just turned 40 and realized they have no close friends — they have acquaintances and work contacts but nobody they could call at 2am, and they don't know how adults make real friends",
+    "grew up in a strict religious household and stopped believing years ago but haven't told their family — every family gathering involves church and prayer and they feel like a fraud",
+    "spent their whole life being 'the responsible one' in the family and they're exhausted — their siblings get to make mistakes and they get to clean them up, and they want to stop but don't know how",
+    "always wanted to be a writer but never tried because their family said it wasn't a real career — they're 55 and just finished a novel and don't know if showing it to anyone is brave or foolish",
+    "has been faking confidence at work for so long they don't know who they actually are anymore — they got promoted because of the persona and now they're trapped in it",
+    "grew up poor and now makes good money but can't stop living like they're broke — they won't buy new clothes, won't eat out, won't take vacations, and their partner thinks it's gone from frugal to pathological",
+    "wants to change their name because they were named after a family member they recently found out did something terrible — the family says it's just a name but it doesn't feel that way",
+    "has been the peacekeeper in their family for decades and just snapped at a dinner — said things they meant but now everyone is acting like they committed a crime and they feel both guilty and free",
+    "started going to therapy six months ago and it's changing everything — the problem is they're now seeing dysfunction in every relationship they have and they can't un-see it",
+    "never went to college and has done fine but their kid just got accepted to a great school and the caller feels both proud and jealous in a way they weren't expecting",
+    # --- community & civic (backend-dev) ---
+    "was asked to testify in a neighbor's custody case and they have to be honest — what they've seen doesn't look great for the neighbor and the neighbor considers them a friend",
+    "found out the local youth sports coach has a DUI history and nobody vetted them — confronting it means potentially ending a program that 50 kids depend on",
+    "their church is taking a political stance they disagree with and they've been a member for 30 years — leaving feels like losing their community but staying feels like endorsing something they can't support",
+    "volunteers at a food bank and found out the director is skimming donations — not a lot, maybe $200 a month, but the food bank serves 500 families and every dollar matters",
+    "their kid's school is banning books and they disagree with the list — fighting it publicly means their kid becomes 'that parent's kid' in a small town where everyone knows everyone",
+    "their town's water supply tested positive for something concerning and the city council downplayed it — the caller has the test results but going public could tank property values for everyone",
+    "was elected to a local board they care about but the meetings are three hours long, nobody agrees on anything, and they're starting to understand why nobody else volunteered",
+    # --- unexpected life turns (backend-dev) ---
+    "just found out they have a half-sibling they never knew about — the sibling reached out online and wants to meet but the caller's parent who had the affair doesn't know they know",
+    "won a modest amount of money and told one person — now everyone knows and distant relatives are calling with sob stories and business pitches",
+    "was falsely accused of something at work and even though they were cleared, people treat them differently now — they're considering quitting even though they did nothing wrong",
+    "their estranged sibling sent them a letter after ten years of silence asking to reconnect — the caller has built a life without them and isn't sure they want to reopen that chapter",
+    "their house burned down six months ago and the insurance paid out but they can't bring themselves to buy a new one — they've been staying with friends and something about starting over feels impossible",
+    "just learned they were adopted after their adoptive parents died — they found the paperwork while going through the estate and now they don't know what's real",
+    "their company went bankrupt and they lost their retirement savings in company stock — they're 58 and starting over with nothing and don't know where to begin",
+    "got a DNA match on a genealogy site that suggests their grandfather was involved in a historical crime — the evidence is circumstantial but compelling and they don't know whether to dig deeper",
+    "their house appraised for twice what they expected and now they're wondering if they should sell, downsize, and live off the difference — but it's the house their kids grew up in",
+    "their identity was stolen and the thief racked up $30,000 in debt — the banks say it's not their problem and the police say it's the banks' problem and nobody is helping",
+    "received a letter from a lawyer saying they're named in a will by someone they've never heard of — the inheritance is modest but the mystery is eating at them",
 ]
 
 GOSSIP = [
@@ -901,6 +1604,258 @@ GOSSIP = [
     "found out their neighbor who runs the local 'Buy Nothing' group has been reselling the free items on eBay at a massive markup — they've been tracking it for months and have screenshots",
     "knows for a fact that the local high school principal and the vice principal are sleeping together — both are married to other people, both have kids at the same school",
     "their friend who posts constantly about being a devoted wife has a separate Instagram where she posts thirst traps and flirts with men in the DMs — they found it because a mutual friend matched with her on a dating app",
+
+    # --- neighborhood drama ---
+    "found out the guy who runs the block's annual Fourth of July cookout has been charging people a 'participation fee' and pocketing the money — the food is donated by local businesses",
+    "their neighbor's 'home office' is actually a full-blown recording studio and they've been making music all day — the caller only found out because a song came on the radio and they recognized the voice",
+    "discovered their HOA board has been meeting secretly at someone's house to decide fines before the official meetings — the caller got ahold of the group text",
+    "their neighbor who always complains about noise was caught on Ring camera sneaking into people's yards at night to move their trash cans to generate HOA violations",
+    "found out the couple next door who 'renovated their kitchen themselves' actually hired a crew and filmed fake DIY videos pretending they did the work — the videos have 200k views",
+    "their neighbor's wife left him three months ago but he's been pretending she's still there — waves at nobody when he leaves, sets two places at dinner visible through the window",
+    "discovered the neighborhood's most vocal anti-development activist secretly owns three rental properties through an LLC — they found the filings at the county clerk's office",
+    "their neighbor who brags about his organic garden has been buying produce from the farmer's market and repotting it — the caller watched him do it through the fence",
+    "found out the sweet old lady who brings cookies to every neighborhood event is the anonymous person who's been writing passive-aggressive letters to the HOA about everyone's Christmas lights",
+    "their neighbor who runs a 'home daycare' is actually just letting kids watch iPads in the garage for eight hours — a parent showed up early and saw",
+
+    # --- workplace secrets ---
+    "discovered their office 'Employee of the Month' has been nominating themselves under fake names using different email addresses — they found the sent folder open on a shared computer",
+    "their coworker who claims to work remotely from their home office is actually working from a beach in Mexico — they saw them on someone's Instagram story with a laptop at a resort",
+    "found out the company's 'employee wellness program' is actually just the HR director's side business that she's billing the company for",
+    "their boss who preaches work-life balance was seen at the office at midnight three times last week — they know because the cleaning crew told them",
+    "discovered their coworker has been running a fantasy football gambling ring using the office Slack — buy-ins are $500 and the IT guy is in on it",
+    "their manager who always takes credit for the team's work got caught plagiarizing a presentation from a YouTube video — someone in the meeting recognized it",
+    "found out the 'motivational speaker' their company hired for $10,000 got their credentials from an online diploma mill — the caller Googled them out of boredom",
+    "their coworker who brags about their MBA got it from a school that was shut down for fraud two years after they graduated — it's technically not accredited anymore",
+    "overheard two managers in the bathroom planning to lay off the entire customer service team and outsource it — nobody on the team knows yet",
+    "their coworker who always says they 'can't eat gluten' was caught housing a breadstick basket at Olive Garden — the caller was at the next table",
+
+    # --- family secrets ---
+    "just found out their grandmother was married twice before their grandfather — nobody in the family knew and they found the marriage certificates in a safety deposit box",
+    "discovered their uncle who claims to have been in Vietnam was actually stationed in Germany the entire time — they found his actual service records",
+    "their cousin who 'made it big in real estate' is actually deeply in debt and has been borrowing money from every family member separately — the caller compared notes at Thanksgiving",
+    "found out their father had a pen pal for forty years that nobody knew about — the letters are deeply personal and the pen pal is a woman in another state",
+    "their aunt who claims she's 58 is actually 67 — they found her real birth certificate while helping her move and she begged them not to tell anyone",
+    "discovered that the 'family recipe' their mother is famous for was stolen word-for-word from a church cookbook published in 1974 — the original author's name is right there on page 43",
+    "just learned that their parents almost got divorced when they were a kid — they found the filed papers in a box, signed by both parents, but it was never finalized",
+    "their sibling who claims to be a vegetarian for 'ethical reasons' orders a bacon cheeseburger every time they eat out alone — the caller's friend works at the restaurant",
+    "found out their brother-in-law's 'business trips' are actually poker tournaments — he's been hiding the losses by telling his wife the trips are expensed by the company",
+    "their cousin who posts about their 'perfect marriage' on social media has been sleeping in their car three nights a week — the caller lives on the same street",
+
+    # --- social circle drama ---
+    "found out their friend group has a separate group chat without them in it — they saw it over someone's shoulder and it was called 'without [their name]'",
+    "their friend who swears they quit drinking has a hidden mini fridge in their garage full of White Claw — the caller helped them move something and found it",
+    "discovered their 'happily single' friend has been on three different dating apps under a fake name with photos from ten years ago",
+    "their friend who always picks up the check and acts generous? Every single one of those dinners goes on a company card — the friend's business partner told them",
+    "found out the couple in their friend group who is always giving relationship advice has been in couples therapy for two years and the therapist told them to stop advising other people",
+    "their friend who claimed to write a bestselling self-help book actually used a ghostwriter — they know because the ghostwriter is their other friend and she's furious she didn't get credit",
+    "discovered their gym buddy who lifts impressive weight has been sneaking extra plates on during warmups when nobody's looking — they're actually lifting 60 pounds less than they claim",
+    "their friend who posts about minimalism and 'living with less' has a storage unit packed floor to ceiling — the caller rents in the same facility",
+    "found out their buddy who 'never watches TV' has an absolutely insane streaming setup with six subscriptions — their wife accidentally shared the family login",
+    "their friend who always talks about being broke just bought a $4,000 handbag — they saw the Amex statement because the friend was showing them something else on their phone and swiped too far",
+
+    # --- community figures ---
+    "found out the local weather guy on the news doesn't actually have a meteorology degree — he studied theater and just reads the teleprompter really convincingly",
+    "their kid's school principal who sends stern emails about attendance has missed more days than any student this year — the secretary let it slip",
+    "discovered the town's 'self-made' business owner got their entire startup capital from a rich parent — the owner has been telling a bootstrapping story for twenty years",
+    "the local cop who gives everyone grief about speeding got three tickets himself in the next county — someone at the courthouse told them",
+    "their pastor who preaches about generosity drives a $90,000 truck and the church is behind on the mortgage — a deacon told them during a heated board meeting",
+    "found out the yoga instructor who preaches inner peace and clean living chain-smokes in the parking lot after every class — multiple people have seen it",
+    "the local real estate agent who sells 'family-friendly neighborhoods' is being sued by three neighbors for noise complaints from their own house parties",
+    "their doctor who lectures them about diet every visit was spotted buying four bags of candy at Costco — the doctor saw them seeing him and neither of them said a word",
+    "found out the town librarian who runs the book club has never actually finished any of the books they've picked — they admitted it after three glasses of wine at a dinner party",
+    "the local personal trainer who posts transformation photos is using the same 'before' photo for different clients — the caller recognized the same kitchen in three different success stories",
+
+    # --- online & digital discoveries ---
+    "found their coworker's secret Reddit account where they post extremely detailed stories about office drama — every single person in the office is recognizable even with fake names",
+    "discovered their neighbor has been reviewing their house on Google Maps under a fake name calling it 'an eyesore that ruins the street' — the caller recognized the writing style",
+    "their friend who claims to travel all the time has been photoshopping themselves into vacation photos — they noticed the shadows are wrong and the same hotel lobby appears in 'different countries'",
+    "found out their kid's tutor has a TikTok where they make fun of their students (without names, but the descriptions are very specific) — the caller recognized their kid's math struggles in one of the videos",
+    "their cousin who has 50k followers as a 'fitness influencer' buys most of their followers — the caller checked on one of those follower audit sites and 80% are bots",
+    "discovered their elderly father has been catfished — he's been sending money to a 'woman' online for six months who is clearly using stolen photos, and he refuses to believe it",
+
+    # --- money & financial scandals ---
+    "found out their friend who organizes charity poker nights has been skimming 30% off the top — they volunteered to help count the money and the math didn't add up",
+    "their coworker who's always first to suggest expensive group dinners never actually Venmos their share — the caller did the math and they owe $600 across twelve dinners",
+    "discovered the neighbor who refinanced their house 'for renovations' actually used the money to buy a boat that's hidden at a marina two towns over — the wife doesn't know about the boat",
+    "their landlord who claims they 'can't afford' to fix the AC is currently building a pool at their own house — the caller drove past it",
+    "found out their friend's 'vintage car collection' is mostly bought with money from a personal injury lawsuit they faked — a mutual friend was the one who helped stage the accident",
+    "their relative who won $50k in a lawsuit told the family it was only $15k and kept the rest — the caller works at the courthouse and saw the actual settlement",
+
+    # --- identity & secret pasts ---
+    "just found out their coworker who claims to be from Connecticut is actually from their same small town — they found a yearbook photo and the coworker had a completely different name",
+    "discovered their neighbor who says he's a retired teacher was actually a minor league baseball player who had a brief moment of fame — there are baseball cards of him on eBay",
+    "their friend's new boyfriend is definitely still married — the caller found the wedding registry online, it's from last year, and there are no divorce filings in the county",
+    "found out their quiet neighbor used to be the lead singer of a one-hit-wonder band in the 90s — they recognized a song playing from their garage and Googled the lyrics",
+    "their dentist has a secret stand-up comedy career under a different name — they found his comedy special on YouTube and half the jokes are about his patients",
+    "discovered that the 'organic honey' the farmer at the market sells is actually store-bought, repackaged with a handmade label — they saw him doing it in his truck",
+
+    # --- juicy reveals ---
+    "overheard two nurses at the clinic gossiping about which doctor is the worst and the doctor they trust most was at the top of the list — they named specific incidents",
+    "found out the 'from scratch' baker who wins the county fair every year uses boxed cake mix as a base — they walked in on them dumping Betty Crocker into a mixing bowl",
+    "their friend who brags about being 'chemical-free' and judging others for using products has a bathroom cabinet full of every product they shame others for using",
+    "discovered the organizer of the local 5K charity run spent more on their own branded merchandise than they raised for the actual cause — the financials are public and nobody's looked",
+    "their daughter's dance instructor who charges $200/month has been posting to a vent account calling the parents 'delusional' and the kids 'talentless' — the caller found the account through a hashtag",
+    "found out that two families in their neighborhood have been in a secret prank war for three years — escalating from moving garden gnomes to filling mailboxes with confetti to rewiring each other's sprinklers",
+
+    # --- small town secrets ---
+    "their town's beloved mailman has been reading postcards and everyone knows but nobody says anything because he's 78 and lonely",
+    "found out the woman who runs the local thrift store has been keeping the best donations for herself before they hit the floor — the caller recognized their own donated jacket on the woman's Instagram",
+    "the couple who always wins the chili cookoff has been using the same canned base for years — the caller's kid worked at their house and saw the evidence in the recycling",
+    "their neighbor who is known for their beautiful Christmas lights hires a professional company to set them up but tells everyone they do it themselves — the caller watched the crew install them at 6 AM",
+    "the town's loudest church-going family hasn't actually been to church in months — the caller knows because they sit in the same pew area and they've been empty since September",
+    "found out the guy who runs the local 'organic farm stand' buys half his produce from the same wholesale distributor as the grocery store",
+    "their neighbor who brags about hunting skills buys meat from the butcher and wraps it in brown paper to look like he processed it himself — his wife told the caller after too much wine",
+    "the woman who runs the community garden has been secretly using commercial fertilizer while lecturing everyone else about going organic",
+    "discovered the 'veteran discount' card the guy at the hardware store flashes isn't real — the caller's friend works at the store and looked it up",
+    "their mechanic who claims he's the cheapest in town is actually the most expensive — the caller got three quotes and his was double",
+
+    # --- workplace tea ---
+    "found out their office's 'anonymous' suggestion box isn't anonymous — the manager photographs each submission with a UV light that shows fingerprints and matches them to employee records",
+    "their coworker who's 'working from home' has actually been at Disneyland for a week — a mutual friend tagged them in photos while they were in a 'status meeting' on Zoom with their camera off",
+    "discovered the company's 'random' drug testing isn't random — HR targets people who file complaints, and the caller has emails to prove it",
+    "their coworker who claims to run marathons has fake race bibs hanging in their office — the caller checked the race results databases and they're not listed in any of them",
+    "found out their boss has been expensing personal vacations as 'business travel' for three years — the receipts are all restaurants and resorts with no meeting notes attached",
+    "their colleague who posts about their 'side hustle' making six figures is actually making $200 a month — the caller knows because they use the same platform and can see the numbers",
+    "the office 'wellness champion' who leads the walking club and posts inspirational quotes smokes a pack a day in their car — three different people have caught them",
+    "discovered their company's 'charity match program' hasn't actually matched any donations in two years — an accountant friend checked the books",
+    "their coworker who tells everyone they got scouted by an Ivy League school for sports actually walked on to the JV team at a Division III community college — the caller found the roster",
+    "found out the new hire who claims to have 'ten years of experience' graduated six months ago — their LinkedIn dates don't match their resume and nobody in HR checked",
+
+    # --- dating & relationship gossip ---
+    "their friend who has been 'dating a model' for six months has never introduced anyone — the caller is starting to think the model is an AI-generated image",
+    "found out the couple everyone calls 'relationship goals' met because one of them catfished the other — they've been together five years and neither will admit how it started",
+    "their friend who posts #SoBlessed anniversary posts is actually in a situationship they've been trying to DTR for three years",
+    "discovered their coworker's 'long-distance boyfriend' is actually someone they've never met who might not be who they say they are — classic catfish red flags everywhere",
+    "their friend who always gives dating advice and acts like a love guru has been single for nine years and hasn't been on a date in eighteen months",
+    "found out the 'happily married' neighbor has profiles on three different dating apps — the caller matched with them by accident",
+    "their friend who claims to have broken up 'on great terms' with their ex actually got served a no-contact order — a mutual friend saw the court filing",
+    "the couple who just got engaged has been having screaming fights every weekend that the whole apartment building can hear — but the Instagram posts are all champagne and smiles",
+
+    # --- family drama gossip ---
+    "discovered their cousin's 'homemade' pies that win every Thanksgiving compliment are actually from a bakery two towns over — the cousin's kid ratted them out",
+    "found out their aunt who claims to be 'independently wealthy' is actually living off their grandmother's pension checks without anyone's knowledge",
+    "their uncle who always shows up to family events in a new car is drowning in lease payments — his ex-wife told the caller during a surprisingly honest conversation",
+    "just learned that the family's 'heirloom ring' that's been passed down four generations was actually bought at a pawn shop by their great-grandmother — there's a receipt in a box of papers",
+    "their sibling who 'moved to the city for a great job opportunity' actually moved because they owe money to half the people in town",
+    "found out their mother-in-law who says she 'doesn't drink' has a wine delivery subscription — the caller saw the boxes in the recycling when they came over early",
+    "their cousin who brags about their kid being a 'gifted student' is actually paying for a private tutor seven hours a week — the tutor is the caller's friend",
+    "discovered that the 'beach house' their brother-in-law keeps inviting everyone to isn't his — it's his boss's, and the boss doesn't know he's been using it",
+    "their relative who posts about their 'amazing home renovation' has been doing all the work without permits — the city inspector is their other relative's poker buddy and word is getting around",
+    "found out their father-in-law who tells war stories at every gathering was actually stationed at a desk job in Virginia — the caller's military friend checked the records",
+
+    # --- community figure gossip (expanded) ---
+    "the HOA president who fined someone for having a brown patch in their lawn has three code violations on their own property that everyone's too scared to report",
+    "found out the 'life coach' in town who charges $200/hour for sessions got their certification from a two-day online course that costs $49",
+    "the crossing guard who everyone loves has been taking home lost items from the school lost-and-found — the caller's kid recognized their jacket on the guard's kid",
+    "their town's most prolific letter-to-the-editor writer uses three different pen names to make it seem like multiple people agree with them",
+    "discovered the local Instagram food blogger who rates restaurants with devastating reviews has been asking for free meals in exchange for positive coverage — the restaurant owners compare notes",
+    "the guy who runs the neighborhood Facebook group moderates everything to favor his friends — opposing comments get deleted and the poster gets banned for 'community guidelines violations'",
+    "found out the local personal injury lawyer who has billboards all over town got his own lawsuit settled for a fraction because he forgot to file paperwork on time",
+    "the president of the book club has never finished a single book in two years of leading discussions — they read the SparkNotes version every time and nobody's caught on until the caller noticed specific phrases being parroted",
+    "their kid's Little League umpire has been making calls that suspiciously favor the team his nephew plays on — three other parents have noticed and they're keeping a spreadsheet",
+    "the neighborhood's 'master gardener' who gives everyone plant advice killed their own houseplants and replaced them with fake ones — the caller noticed during a house tour",
+
+    # --- online & social media tea ---
+    "found their super-private boss on TikTok where they do cooking videos with 80k followers and a persona completely different from work — they're bubbly and goofy and use a fake name",
+    "their friend who rants about 'toxic influencer culture' has a secret account with 20k followers where they post luxury haul videos",
+    "discovered their coworker runs an anonymous gossip account about the company and the posts are 100% accurate — the caller recognized details only someone in their department would know",
+    "found their extremely conservative uncle's Spotify wrapped — it's almost entirely Broadway musicals and Beyoncé",
+    "their neighbor's kid who got famous on TikTok for 'making it on their own' has parents paying for their apartment, car, and equipment — the parents told the caller at a BBQ",
+    "found their friend's secret podcast where they tell stories about their friend group with the names barely changed — the caller recognized their own divorce story in episode four",
+
+    # --- money & lifestyle lies ---
+    "their friend who 'works from home as a consultant' has been living off their inheritance and hasn't had a client in two years — their spouse doesn't know the money is running out",
+    "found out their neighbor who drives a Tesla and wears designer clothes took out a personal loan for both — the bank officer is married to the caller's coworker",
+    "their friend who posts about their 'debt-free journey' still owes $60k in student loans — they just stopped counting certain debts",
+    "discovered the guy who runs the 'financial freedom' workshops in town filed for bankruptcy last year — the paperwork is public and the caller checked",
+    "their coworker who always brings expensive wine to parties actually just peels off the label from the cheap bottle and replaces it — the caller watched them do it at a party when they thought nobody was looking",
+    "the woman who sells MLM supplements and posts about her 'six-figure income' made $400 last quarter — she accidentally showed a screenshot of her dashboard at a recruitment event",
+    "their relative who claims to have 'paid off their mortgage early' actually just refinanced with a longer term and lower payments — they're not lying technically but they're definitely misleading everyone",
+    "found out their neighbor's new pool was financed by a home equity loan they can barely afford — the neighbor's contractor friend told the caller over beers",
+
+    # --- hidden talent & double lives (expanded) ---
+    "discovered their boring accountant neighbor is secretly a competition barbecue champion who travels the country on weekends with a custom smoker rig — he has trophies in his garage",
+    "found out the quiet school librarian runs a true crime podcast with 50k monthly listeners — she interviews former detectives using a voice modulator",
+    "their neighbor who only listens to country music in public has a vinyl collection in their basement that's entirely 90s hip-hop — the caller saw it when they borrowed a ladder",
+    "the woman at their gym who wears a baggy shirt and keeps to herself used to be a competitive bodybuilder — old photos surfaced at a birthday party and she's jacked in them",
+    "discovered their kid's math teacher is a former professional poker player who quit when they had a family — they still play high-stakes games once a month under a screen name",
+    "their elderly neighbor who shuffles to the mailbox every morning used to be a championship ballroom dancer — the caller found a trophy display in the back of a closet while helping them fix a shelf",
+    "found out the gruff rancher who never says more than ten words at a time writes poetry — his wife submitted one to the local paper anonymously and it was beautiful",
+    "their dentist moonlights as a jazz drummer and plays gigs in Tucson on weekends — the caller saw the dental office van parked outside a club at midnight",
+    "discovered their bus driver has a master's degree in philosophy and chose driving because 'nobody asks a bus driver about Heidegger' — the caller overheard them quoting Sartre to another driver",
+    "the guy who pumps gas at the station on Route 9 is an ex-MMA fighter with a record of 12-3 — a new customer tried to start something and the station owner just said 'I wouldn't' with a look that told the whole story",
+
+    # --- health & wellness secrets ---
+    "found out the guy at work who's been 'intermittent fasting' has just been eating in his car in the parking lot so nobody sees his Taco Bell habit",
+    "their fitness instructor who preaches 'clean eating' was spotted at 2 AM at a Waffle House housing a plate of smothered hash browns — the caller's friend was working the late shift",
+    "discovered their chiropractor doesn't believe in chiropractic — the caller overheard them telling a friend 'it's mostly placebo but the money is incredible'",
+    "their friend who sells essential oils as a 'wellness consultant' takes Advil for literally everything — the caller found a Costco-size bottle in their medicine cabinet",
+    "the gym owner who's always talking about natural fitness and hard work got caught ordering steroids — a delivery driver showed up at the gym asking for him by name with a suspicious package",
+    "found out their coworker's 'perfect skin routine' that they sell online is actually just a filter — the caller saw them without makeup at a pool party and they look totally different",
+
+    # --- parenting & kids secrets ---
+    "their neighbor who brags about their kid's acceptance to an elite college doesn't mention the $200k in donations the grandparents made — another parent on the admissions committee let it slip",
+    "found out the kid who won the science fair used their parent's work as a research scientist to basically do the project — the parent bragged about it at a dinner party thinking everyone would be impressed",
+    "the mom in the friend group who always posts about 'screen-free' parenting has a TV in every room including the bathroom — the caller babysat and the kids immediately turned everything on like it was routine",
+    "their friend's kid who 'taught themselves piano' actually has a tutor who comes three times a week — the tutor is the caller's cousin",
+    "discovered the family who 'doesn't believe in sugar' at the school bake sale has a candy drawer the size of a filing cabinet — their kid told the caller's kid and now both families are implicated",
+    "the parent who leads the anti-phone crusade at the PTA was caught by their own kid doom-scrolling for four hours — the kid put it in a school essay about hypocrisy",
+
+    # --- hobby & skill lies ---
+    "their friend who claims to catch fish every weekend buys fish at the market and takes photos with them before 'cleaning' them — the caller recognized the fish market's specific packaging in a background photo",
+    "found out the guy who runs the local running club has been driving to the halfway point of their group runs and waiting for them — his watch data shows suspiciously fast splits and zero elevation gain",
+    "their neighbor's 'hand-carved' fence posts are actually factory-made and ordered online — the same posts are on Amazon and the caller found the exact listing",
+    "the woman in their knitting circle who makes the most impressive pieces has been buying finished items from Etsy and unraveling them slightly to make them look handmade — the caller found the original listing",
+    "their friend who 'built their own deck' hired a contractor and then staged photos with tools to make it look DIY — the contractor told another client who told the caller",
+    "discovered that the 'scratch-made' salsa their coworker brings to every potluck is just Pace with fresh cilantro added — they watched the preparation through a kitchen window",
+
+    # --- financial lies & status symbols ---
+    "found out their friend's 'investment portfolio' is actually just $500 in a savings account — they accidentally showed a bank notification while showing something on their phone",
+    "their neighbor's 'vacation home' is actually a timeshare they can only use two weeks a year — a real estate agent friend looked up the property records",
+    "the couple who always invites people to their 'lake house' doesn't own it — it belongs to the husband's boss and they have to ask permission every time",
+    "discovered their coworker's 'designer watch' is a very convincing fake — the caller used to work in jewelry and spotted the tell immediately",
+    "their friend who claims to 'only shop organic' has an Amazon Fresh account full of the cheapest conventional options — their shopping history auto-filled on the caller's iPad",
+    "the guy at the gym who drives a Porsche lives in a studio apartment he shares with two roommates — one of the roommates told the caller at a party",
+
+    # --- secret habits & quirks ---
+    "found out their very proper boss goes to Renaissance Faires on weekends in full medieval costume with a different name — the caller's kid recognized them as 'Lord Bartholomew'",
+    "their coworker who says they 'don't watch TV' has been binge-watching reality shows — their Spotify wrapped showed a suspicious number of reality show soundtracks and the caller did the math",
+    "discovered their neighbor who always acts busy and stressed actually sits in their backyard reading novels for most of the day — the caller can see over the fence from their second floor",
+    "their friend who posts about their 'morning journaling practice' actually just scrolls Twitter for an hour — the post timestamps and their Twitter activity line up perfectly",
+    "found out the guy who loudly talks about 'no screens before bed' plays mobile games under the covers every night — his wife told the caller's wife and the wives' group chat went nuclear",
+    "their very macho neighbor who makes fun of rom-coms cried during The Notebook — the caller was walking past and heard it through the window and now they share a secret and neither has acknowledged it",
+
+    # --- community drama expanded ---
+    "the woman who organized the neighborhood garage sale kept a 10% cut from everyone's sales as an 'organizing fee' that nobody agreed to — the caller counted their sales versus their payout and the math doesn't work",
+    "found out the guy who runs the local sports league has been rigging the playoff brackets to keep his team in the easier bracket — a ref showed the caller the original versus 'revised' brackets",
+    "their HOA's landscaping company is owned by the HOA president's son — nobody knew until the caller pulled business records and now they understand why the dues keep going up",
+    "the woman who runs the neighborhood Facebook group's 'crime watch' reports are almost entirely about her personal feuds disguised as safety concerns",
+    "discovered that the 'anonymous donor' who funds the town's holiday parade every year is actually a group of business owners splitting the cost — and they've been letting one guy take all the credit for a decade",
+    "the town's beloved Santa at the Christmas parade got into a fistfight at a bar the next weekend — still in the full suit because he forgot to change — and the video has been carefully kept off social media by mutual agreement",
+
+    # --- tech & digital secrets ---
+    "found their teenager's finsta (fake Instagram) and it has more followers than their real account — the content is actually really good and thoughtful and they don't know whether to be proud or concerned",
+    "their coworker's 'AI-generated' presentation that impressed the whole office was actually manually made — they just said AI to sound current and spent three nights on it",
+    "discovered their neighbor has been running a crypto mining operation in their garage — the electric bill must be insane but the caller only figured it out because of the constant hum",
+    "their friend who runs a 'successful YouTube channel' has 42 subscribers and most of them are family members who leave supportive comments — the friend genuinely thinks they're about to blow up",
+    "found out their kid's teacher uses ChatGPT to write the students' report card comments — every comment has the same structure and two parents compared notes",
+    "their boss who brags about 'never using social media' has a very active anonymous Twitter account where they argue about politics — the writing style is unmistakable",
+
+    # --- relationship & dating gossip expanded ---
+    "discovered that a couple in their friend group who 'met at a coffee shop' actually met on a kink website — the couple told different versions of the story at different events and the contradictions added up",
+    "their friend who is 'taking a break from dating' just signed up for three new apps — the caller matched with them on one of them by accident",
+    "found out the couple who always fights in public actually gets along great in private — a mutual friend said the fighting is how they 'keep things interesting'",
+    "their coworker's 'supportive partner' who they always praise has never actually come to a single work event — the caller is starting to wonder if this person exists",
+    "discovered their friend's 'spontaneous proposal story' was actually rehearsed six times with the photographer — the photographer posted the outtakes by accident",
+    "the couple next door who 'never argues' has a white noise machine that they turn up when things get heated — the caller learned this from the couple's cleaning person",
+
+    # --- surprising revelations ---
+    "found out their quiet mail carrier writes romance novels that are actually bestsellers on Amazon under a pen name — has over 200 reviews averaging 4.8 stars",
+    "their auto mechanic is a classically trained violinist who gave it up because 'you can't feed a family with Vivaldi' — the caller found a video of a concert from fifteen years ago and it's incredible",
+    "discovered the lunch lady at school used to be a competitive bodybuilder in the 80s — a kid found old newspaper clippings and now she's a legend among the students",
+    "their barber has a law degree and chose barbering because 'I'd rather talk to people honestly than argue for a living' — they found the diploma hanging in the back room",
+    "found out the woman who runs the flower shop is a retired combat medic — she told the caller during a slow afternoon and the stories were nothing like what the caller expected",
+    "their garbage collector has a PhD in environmental science — he took the job intentionally to study waste patterns and has published papers about suburban consumption",
 ]
 
 PROBLEM_FILLS = {
@@ -2124,6 +3079,239 @@ TOPIC_CALLIN = [
     "just found out that a group of flamingos is called a 'flamboyance' and they think it's the most perfect word in the English language",
     "learned that the shortest war in history lasted 38 minutes — between Britain and Zanzibar in 1896",
     "wants to discuss the fact that Saudi Arabia imports camels from Australia because Australian camels are considered higher quality",
+
+    # --- Sports ---
+    "wants to argue about whether baseball is boring or if people just don't understand the strategy beneath it",
+    "thinks boxing has become unwatchable with the celebrity fights and wants to rant about what happened to the sport",
+    "just learned about the 1980 Miracle on Ice in detail and the political context makes it even more incredible than the movie",
+    "wants to debate whether MMA is more of a real sport than boxing because there's no hiding behind promoter politics",
+    "has a theory about why small-market teams can never compete in baseball and it's fundamentally broken",
+    "wants to make the case that women's soccer is more exciting to watch than men's and has stats to back it up",
+    "thinks the college football playoff expansion is ruining what made the sport special",
+    "just learned about the 1904 Olympic marathon — one guy was chased off course by dogs, another nearly died from rat poison his coach gave him as a 'performance enhancer' — it's the most insane sporting event in history",
+    "wants to argue that rodeo is the most dangerous sport in America and it gets zero national attention",
+    "thinks esports should be in the Olympics and is ready to fight about it",
+    "watched a documentary about Diego Maradona and the 'Hand of God' goal and wants to talk about the line between cheating and gamesmanship",
+    "has a take about why nobody in the Southwest cares about hockey and whether that'll ever change",
+    "thinks the best athletes in the world aren't in pro sports — they're working ranches and logging camps and nobody will ever know their names",
+    "just learned that the ancient Olympics were performed completely naked and the word 'gymnasium' comes from the Greek word for naked — wants to talk about how sports evolved",
+    "wants to debate the greatest athlete of all time and their pick is not who anyone expects",
+
+    # --- Architecture & design ---
+    "just learned about brutalist architecture and can't decide if it's genius or depressing — wants to talk about buildings that make you feel something",
+    "read about how the ancient Romans invented concrete that gets stronger in seawater and we still can't fully replicate it",
+    "wants to talk about adobe buildings and why the Southwest mastered passive cooling centuries before air conditioning",
+    "just visited Taliesin West and Frank Lloyd Wright's vision of desert architecture changed how they see every building",
+    "thinks modern tract housing is soulless and we've forgotten how to build places people actually want to live in",
+    "learned about the Winchester Mystery House — a mansion that was built continuously for 38 years with stairs to nowhere and doors that open to walls — and wants to talk about obsession",
+    "read about how skyscrapers are basically sailboats in the wind — they're designed to sway — and some buildings have massive pendulums at the top to counterbalance",
+    "wants to discuss why old courthouses and libraries look like temples but new government buildings look like prisons",
+
+    # --- Environment & climate ---
+    "read about the Colorado River compact and how it allocated more water than actually exists — wants to talk about what happens when the math doesn't work",
+    "thinks regenerative agriculture could reverse desertification and has been experimenting with it on their own land",
+    "just learned about microplastics being found in human blood and breast milk and can't stop thinking about it",
+    "wants to talk about the 'right to repair' movement and how planned obsolescence is an environmental disaster nobody addresses",
+    "read about dark sky preserves and thinks light pollution is the most underrated environmental issue — they can see the Milky Way from their porch and most Americans can't",
+    "just learned that 40% of the food produced in America is thrown away while people go hungry — the logistics of that waste blew their mind",
+    "thinks wildfire management in the West has been wrong for a century — Indigenous people used controlled burns for thousands of years and we ignored them",
+    "read about how the Ogallala Aquifer that waters the Great Plains is being drained faster than it refills and it could run dry in decades",
+    "wants to discuss whether individual action on climate matters or if it's all corporate PR to shift blame onto consumers",
+    "just learned about the albedo effect — ice reflects sunlight but open water absorbs it, so melting ice causes more melting — and the feedback loop is terrifying",
+
+    # --- Aviation & flight ---
+    "just learned about the SR-71 crew that flew from LA to DC in 64 minutes and set a speed record on their retirement flight — as a mic drop",
+    "wants to talk about bush pilots in Alaska and how flying in extreme conditions is the most understated skill in aviation",
+    "read about Amelia Earhart's final flight and the new theories about what really happened — the evidence has shifted",
+    "learned about the Gimli Glider — a 767 that ran out of fuel mid-flight because someone mixed up metric and imperial — and the pilot landed it on an old drag strip",
+    "thinks the Concorde was ahead of its time and commercial supersonic flight will come back — has been following Boom Supersonic",
+    "just found out about the Berlin Airlift — the Allies flew 200,000 flights in a year to feed a city — and the logistics are staggering",
+    "wants to talk about drone delivery and whether it's the future or just tech companies solving problems that don't exist",
+    "read about the Wright Brothers' first flight being shorter than the wingspan of a modern 747 and the speed of progress blew their mind",
+
+    # --- Anthropology & culture ---
+    "just learned about cargo cults — after WWII, Pacific Islanders built fake runways and control towers hoping planes would return with supplies — and wants to talk about how humans create meaning from patterns",
+    "read about the Pirahã people of the Amazon — they have no concept of numbers, no creation myth, and live entirely in the present — and it challenged everything they thought about human cognition",
+    "wants to talk about how different cultures handle death — Tibetan sky burials, New Orleans jazz funerals, Mexican Día de los Muertos — and what our approach says about us",
+    "just found out about the Sentinelese — an uncontacted tribe on an island in the Indian Ocean that kills anyone who approaches — and the ethics of leaving them alone versus trying to help",
+    "read about potlatch ceremonies of the Pacific Northwest — chiefs destroyed their own wealth to prove their status — and thinks it's the opposite of everything capitalism teaches",
+    "wants to discuss why Americans are obsessed with ancestry and DNA tests while other cultures define identity completely differently",
+    "learned about the concept of 'hygge' in Danish culture and 'ikigai' in Japanese culture and thinks English doesn't have a word for what matters most in life",
+    "read about how the Cherokee had a written language, a newspaper, and a constitutional republic before being forced on the Trail of Tears — and wants to talk about what 'civilized' actually means",
+
+    # --- Economics & systems ---
+    "just learned about the Cobra Effect — when the British government paid a bounty for dead cobras in India, people started breeding cobras for the reward — and thinks every government incentive has the same problem",
+    "read about how the GDP was invented during WWII as a wartime planning tool and was never meant to measure quality of life — and now it's the only thing politicians talk about",
+    "wants to discuss why insulin costs $300 in America and $30 in Canada for the exact same product",
+    "just learned about mutual aid networks during the Great Depression and thinks they're more relevant now than people realize",
+    "read about the economics of tipping and how it was originally considered un-American — wants to talk about how a post-Civil War practice became mandatory",
+    "thinks the gig economy is just the dismantling of labor protections dressed up as 'flexibility'",
+    "wants to discuss whether universal basic income could work or if it would destroy the incentive to work — they've been going back and forth for months",
+    "just learned that the US spends more per student on education than almost any country but ranks in the middle on outcomes — wants to talk about where the money goes",
+
+    # --- Mathematics & logic (expanded) ---
+    "just learned about the Prisoner's Dilemma and how it explains why countries can't cooperate on climate change even when it's in everyone's interest",
+    "read about the secretary problem — the math for optimal decision-making says you should reject the first 37% of candidates for anything — dating, apartments, jobs — and then pick the next one that's better than all previous",
+    "wants to talk about Zipf's Law — the most common word in any language is used twice as often as the second most common, three times as often as the third — and nobody knows why",
+    "just found out about Graham's Number — a number so large that if you wrote a digit on every particle in the observable universe you still couldn't write it — and it's a real answer to a real math problem",
+    "learned about Newcomb's Paradox and it's been splitting their friend group — do you take one box or two — and they think the answer reveals something deep about who you are",
+    "read about the paradox of the heap — if you remove one grain from a heap of sand at a time, when does it stop being a heap — and it made them realize most categories are fake",
+
+    # --- Hobbies & crafts ---
+    "just got into leatherworking and made their first belt and it's terrible but they're hooked on the process",
+    "wants to talk about the woodworking community and how making something with your hands hits different than anything digital",
+    "has been restoring old tools they find at estate sales and the craftsmanship from 80 years ago makes modern tools look disposable",
+    "just started blacksmithing in their garage and wants to talk about how therapeutic hitting hot metal with a hammer is",
+    "got into amateur radio and the subculture of people talking to each other across continents with homemade antennas is fascinating",
+    "wants to talk about the renaissance of home fermentation — they're making kimchi, kombucha, and hot sauce and their kitchen looks like a mad scientist's lab",
+    "has been building model trains for 30 years and the level of detail in the community is insane — people hand-paint individual blades of grass",
+    "just picked up fly fishing and the patience required is either meditative or maddening and they haven't decided which",
+    "started making their own furniture because they couldn't afford to buy anything solid wood anymore — their first table wobbles but they're proud of it",
+    "wants to talk about the dying art of letter writing — they've been sending handwritten letters to friends and the responses have been incredible",
+
+    # --- Biology & nature (expanded) ---
+    "just learned about the vampire squid — it lives in the oxygen-minimum zone of the ocean where almost nothing can survive and it turns itself inside out when threatened",
+    "read about how elephants mourn their dead — they return to bones of deceased family members and touch them gently with their trunks — some scientists believe they have funerals",
+    "found out about the wood frog that freezes completely solid every winter — heart stops, brain stops, ice crystals form in the blood — and it thaws out perfectly fine in spring",
+    "learned about the lyrebird that can imitate any sound it hears — chainsaws, car alarms, camera shutters, other bird species — it's basically nature's sampling machine",
+    "read about how some plants can 'hear' — they grow toward the sound of running water and pea plants can detect the buzzing of bees and increase nectar production",
+    "just found out about the mimic octopus — it can impersonate over 15 different species by changing its shape, color, and movement patterns — flounder, lionfish, sea snake — on demand",
+    "learned about quorum sensing in bacteria — they communicate with chemical signals and only attack once enough of them are present — they literally vote before they strike",
+    "read about how ravens can solve multi-step puzzles, plan for the future, and even barter with each other — they might be as smart as great apes",
+
+    # --- Psychology & the brain (expanded) ---
+    "just learned about the spotlight effect — people vastly overestimate how much others notice their appearance and mistakes — and it explains so much of their social anxiety",
+    "read about learned helplessness — when animals (and people) are exposed to uncontrollable situations they stop trying even when escape becomes possible — and it made them think about poverty cycles",
+    "found out about the peak-end rule — people judge experiences almost entirely by the peak moment and the ending, not the average — and it explains why a terrible vacation with one great day feels 'not that bad'",
+    "learned about cognitive load theory — your working memory can only hold about 4 things at once — and it explains why multitasking is literally impossible",
+    "read about the Benjamin Franklin effect — when you ask someone for a favor they actually like you MORE, not less — because the brain rationalizes 'I did them a favor so I must like them'",
+    "just found out about anchor bias — the first number you hear in a negotiation completely warps your perception of fairness — and they realized their car dealer knew exactly what they were doing",
+    "learned about Maslow's hierarchy and how it's been largely debunked — turns out people don't neatly progress through stages and you can seek self-actualization while starving — but everyone still teaches it as fact",
+    "read about the sunk cost fallacy and then had an immediate crisis about three things in their life they're only continuing because they've already invested too much to quit",
+
+    # --- Technology (expanded) ---
+    "just learned about mesh networks — entire neighborhoods creating their own internet without ISPs — and thinks it could save rural communities",
+    "read about how much energy Bitcoin mining uses — more than some countries — and wants to debate whether the technology is worth the environmental cost",
+    "thinks the transition from ownership to subscriptions for everything — software, cars, even tractor firmware — is the biggest scam of the century",
+    "just found out about right-to-repair legislation and how companies like John Deere are bricking farmers' tractors if they try to fix them themselves",
+    "read about Neuralink's latest trials and the idea of a brain-computer interface in humans is either the most exciting or terrifying development in history",
+    "wants to talk about digital preservation — how we're creating more data than ever but losing more of it because formats become obsolete — the dark ages had better records than we might",
+    "learned about zero-knowledge proofs — a way to prove you know something without revealing what you know — and thinks it's the most underrated concept in computer science",
+    "thinks social media algorithms are the most powerful propaganda tool ever invented and they're not controlled by any government — they're controlled by engagement metrics",
+
+    # --- Science & space (expanded) ---
+    "just learned about the Dyson Sphere concept — a hypothetical megastructure that completely surrounds a star to capture its energy — and some scientists think we should be looking for them around other stars",
+    "read about the twin paradox — if you travel near the speed of light, you age slower than your twin on Earth — and GPS satellites actually have to correct for this effect right now",
+    "found out about neutron star collisions — when they crash, they create gold, platinum, and uranium — literally every gold atom on Earth was forged in a cosmic collision",
+    "learned about the cosmic microwave background — leftover radiation from the Big Bang that's everywhere in the universe — your old TV static was partially caused by the birth of the universe",
+    "read about the Kardashev scale — a classification system for civilizations based on energy use — and we're not even a Type I yet, we're about a 0.73",
+    "wants to talk about the terraforming of Mars — whether it's actually possible, what it would take, and whether we have a right to change another planet",
+    "just found out about the Oort Cloud — a theorized shell of trillions of icy objects surrounding our solar system up to 2 light years away — and nothing has ever gone there to confirm it",
+    "learned about the multiverse interpretation of quantum mechanics and wants to talk about whether every decision really does create a new universe",
+
+    # --- Philosophy (expanded) ---
+    "just read about Plato's Cave allegory and wants to talk about what people in the cave represent today — are we all watching shadows and calling them reality",
+    "read about the concept of 'memento mori' — the Stoic practice of remembering you will die — and whether thinking about death every day actually makes life better",
+    "wants to discuss the paradox of choice — having too many options makes people less happy than having fewer — and whether that explains the anxiety of modern life",
+    "learned about Kierkegaard's concept of 'the leap of faith' and wants to talk about the moments in life where logic fails and you just have to jump",
+    "read about ubuntu — the Southern African philosophy that says 'I am because we are' — and thinks individualism is the wrong answer to everything",
+    "wants to discuss whether morality is objective or just a social contract — and what the implications are if it's the second one",
+    "has been thinking about the hedonic treadmill — the idea that people return to a baseline happiness regardless of what happens to them — and whether chasing happiness is the problem",
+    "read about the concept of 'amor fati' — loving your fate, including the suffering — and it either sounds profound or insane and they can't decide which",
+
+    # --- Geology (expanded) ---
+    "just found out about the New Madrid fault zone — it caused the Mississippi River to flow backward in 1811 and it could happen again — in the middle of the country, not California",
+    "read about how caves form over millions of years through acid dissolving limestone — and some caves have crystals the size of telephone poles that took 500,000 years to grow",
+    "learned about ophiolites — chunks of ocean floor pushed up onto land by tectonic forces — and there's one near them where you can literally walk on what used to be the ocean bottom",
+    "wants to talk about petrified forests and how a tree can turn to stone over millions of years while preserving the cellular structure — you can see the individual cells under a microscope",
+    "just found out about the Deccan Traps — volcanic eruptions in India so massive they lasted a million years and may have contributed to the dinosaur extinction alongside the asteroid",
+    "read about how the Grand Canyon exposes 2 billion years of geological history in its layers — you can see the history of Earth just by looking at the walls",
+
+    # --- Additional topics to reach 800+ ---
+    # Survival & preparedness
+    "just took a wilderness first aid course and the things they learned about treating snakebites and dehydration in remote areas should be common knowledge",
+    "wants to talk about water storage and purification — they started prepping after their well went dry and the amount people take clean water for granted is staggering",
+    "read about the Donner Party and the actual survival decisions they faced — the story is more nuanced and horrifying than the simplified version most people know",
+    "took a class on desert navigation without GPS and the old methods — reading terrain, stars, and plant growth patterns — are an art form that's being lost",
+    "wants to discuss fire ecology and why suppressing every wildfire for a century created the megafire crisis we have now",
+    "learned about the 1906 San Francisco earthquake and how the response shaped modern emergency management — and thinks we're still not ready for the next big one",
+    "read about Shackleton's Antarctic expedition and how he kept 27 men alive for two years in impossible conditions — the leadership lessons are unmatched",
+
+    # Gaming & board games
+    "just got into chess and the depth of strategy has completely consumed their free time — wants to talk about why a 1,500-year-old game is still the ultimate test of thinking",
+    "wants to argue that board games are having a renaissance and the quality of modern tabletop games blows away anything from the Monopoly era",
+    "has been playing Dungeons & Dragons for a year and it's the most creative outlet they've ever had — also the best social time in their week",
+    "just finished Red Dead Redemption 2 and wants to talk about how a video game made them feel more about the West than any movie ever has",
+    "thinks crossword puzzles are the best brain exercise there is and has been doing the NYT crossword every day for a decade — wants to talk about the culture of puzzle people",
+    "just discovered strategy board games and their family has stopped watching TV on weekends — they played Settlers of Catan for six hours last Saturday",
+
+    # Ocean & marine
+    "just learned about the hadal zone — the deepest trenches in the ocean — and only three people have ever visited the bottom of the Mariana Trench, fewer than have walked on the moon",
+    "read about coral bleaching and the Great Barrier Reef losing half its coral in 25 years — wants to talk about what we lose when an ecosystem that took 20,000 years to build dies",
+    "found out about bioluminescent bays where the water glows electric blue when you disturb it — caused by dinoflagellates — and there are only a handful on Earth",
+    "learned about the mid-ocean ridge — an underwater mountain chain 40,000 miles long where new ocean floor is constantly being created — it's the longest geological feature on Earth and most people don't know it exists",
+    "read about sperm whales and how they dive to 7,000 feet to fight giant squid in complete darkness — and the scars on their skin tell the story of those battles",
+    "wants to talk about the ocean's 'twilight zone' between 200 and 1,000 meters — more biomass lives there than anywhere else on Earth and we've barely explored it",
+
+    # Economics & finance deep cuts
+    "just learned about the tulip mania crash of 1637 and how a single tulip bulb sold for more than a house — and the parallels to crypto and NFTs are unsettling",
+    "read about how the Federal Reserve actually works and most people — including themselves until last week — have no idea how money is created",
+    "wants to talk about company towns — places where one employer owned the houses, the stores, and paid in scrip instead of money — and how gig economy platform dependence is the modern version",
+    "learned about the Laffer Curve and the long economic debate about whether cutting taxes increases revenue — and thinks both sides are wrong about different things",
+    "read about how the GI Bill transformed America after WWII — free college, home loans, job training — and wants to talk about why we can't do something like that again",
+
+    # Medicine & healthcare
+    "just learned about the placebo surgery studies — patients who had sham knee surgery improved just as much as patients who had the real procedure — and it raises massive questions about what healing actually is",
+    "read about how antibiotics are becoming resistant faster than we're developing new ones and some doctors are calling it a bigger threat than climate change",
+    "wants to talk about the opioid crisis from a rural perspective — they've watched it hollow out their town and the pharmaceutical companies that caused it paid fines that amount to pocket change",
+    "just learned about fecal transplants — putting healthy gut bacteria into sick people — and it cures C. diff infections 90% of the time when antibiotics fail — wants to talk about how something so gross can be so effective",
+    "read about how the life expectancy gap between rich and poor Americans is now 15 years — your ZIP code predicts your health better than your genetics",
+
+    # Music expanded
+    "wants to argue about whether auto-tune ruined music or was just the next evolution and people said the same thing about electric guitars",
+    "has been collecting vinyl from estate sales and the stories behind the collections are often better than the records — one collection had notes explaining when each album was bought and why",
+    "just learned about how the 27 Club — musicians who died at 27 — is actually a statistical myth but the cultural impact of the idea is real",
+    "wants to talk about how streaming pays artists fractions of a penny per play and the economics of being a musician are worse now than at any point in modern history",
+    "thinks the best live performance they've ever seen was at a small venue with terrible sound and wants to make the case that intimacy matters more than production value",
+
+    # Architecture & history expanded
+    "just visited a ghost town near their property and the buildings are still standing — wants to talk about what happens to a town when everyone leaves",
+    "read about how the Ancestral Puebloans built entire cities into cliff faces and the engineering is mind-boggling — Cliff Palace at Mesa Verde has over 150 rooms",
+    "wants to talk about how Route 66 was decommissioned in 1985 and the towns that depended on it either adapted or died — and the ones that survived did so by selling nostalgia",
+    "just learned that the oldest continuously inhabited settlement in North America is Acoma Pueblo in New Mexico — people have lived there for over 1,000 years",
+    "read about how railroads decided which towns lived and which towns died in the 1800s — the same thing is happening now with highway bypasses and broadband access",
+
+    # Food & agriculture expanded
+    "just learned about the dust bowl and how it was largely caused by farming practices that destroyed the topsoil — and the same mistakes are being made in other parts of the world right now",
+    "read about seed saving — farmers keeping and sharing heirloom seeds instead of buying patented ones from corporations — and thinks it's one of the most important quiet rebellions happening",
+    "wants to talk about how chile peppers evolved capsaicin specifically to deter mammals from eating them — birds can't taste it, which is why birds spread the seeds — and humans eating them for pleasure is evolution's biggest prank",
+    "just found out about the banana apocalypse — the Cavendish banana we all eat is a genetic clone with zero diversity, and a fungus is spreading that could wipe out the entire global supply, just like it did to the Gros Michel in the 1950s",
+    "learned about aquaponics — growing fish and plants together in a closed loop where the fish waste feeds the plants and the plants clean the water — and thinks it could revolutionize food production in arid climates",
+
+    # Late-night philosophical expanded
+    "wants to talk about whether our digital footprint is a form of immortality or just a ghost that someone else controls",
+    "has been thinking about whether small towns are dying or just changing form — the population drops but the identity persists somehow",
+    "wants to discuss the concept of 'deep time' — thinking in millions of years instead of decades — and how it makes every human problem feel both insignificant and urgent",
+    "thinks we're living through a period that future historians will find as interesting as the Renaissance and wants to talk about what the textbooks will say",
+    "has been thinking about the ethics of space colonization — do we have the right to take our problems to another planet, or is it our responsibility to try",
+    "wants to talk about legacy — what it means to leave something behind in a world that forgets faster than it remembers",
+
+    # --- reaching 800+ ---
+    "just learned about the overview effect's opposite — astronauts who come back from space and can't reconnect with normal life because everything feels small — wants to talk about the cost of perspective",
+    "read about how the Navajo have a word for the feeling of being in right relationship with the land and wonders why English doesn't have an equivalent",
+    "wants to talk about why Americans romanticize cowboys but forget that a third of them were Black and Latino — the real history is more interesting than the myth",
+    "just found out that the town they live in was built on top of an older settlement that was abandoned for unknown reasons — the archaeology suggests people left suddenly",
+    "read about the invention of barbed wire and how one piece of metal technology transformed the entire American West — it ended the open range and changed ranching forever",
+    "wants to discuss how different the world looks when you start noticing bird species — they started birding as a joke and now they can't go outside without identifying everything they hear",
+    "just learned about phantom time hypothesis — a fringe theory that 297 years of history were fabricated — it's almost certainly wrong but the arguments are surprisingly fun to think about",
+    "read about how the US government tested nuclear effects on soldiers by having them march toward mushroom clouds — the long-term health impacts were covered up for decades",
+    "wants to talk about solar storms — the Carrington Event of 1859 caused telegraph machines to shock operators and catch fire — if it happened today it would knock out the power grid for months",
+    "just found out about liminal spaces — photos of empty malls, schools at night, abandoned pools — and wants to talk about why they trigger such a strong emotional response in people",
+    "read about the Japanese concept of wabi-sabi — finding beauty in imperfection and impermanence — and thinks Western culture's obsession with perfection is making everyone miserable",
+    "wants to discuss the 'third teacher' concept — the idea that the physical environment is as important as the instructor — and why most American classrooms look like they were designed to crush creativity",
+    "just learned about desire paths — the unofficial trails people create by walking where they actually want to go instead of where the sidewalk is — and thinks it's a perfect metaphor for how systems fail people",
+    "read about how smell is the sense most closely linked to memory — it bypasses the thalamus and goes straight to the emotional brain — and a specific smell has been haunting them for weeks",
+    "wants to talk about the concept of 'enough' — at what point does having more stop making you happier — and whether most people could answer that question for themselves",
 ]
 
 HOT_TAKES = [
@@ -2152,6 +3340,416 @@ HOT_TAKES = [
     "is adamant that cold weather is objectively better than hot weather and people who disagree are wrong",
     "believes lawn care culture is insane and everyone should just let their yards grow wild",
     "thinks the whole 'hustle culture' thing is destroying people's health and relationships and nobody should be proud of working 80 hours a week",
+    # --- food & drink ---
+    "is convinced that well-done steak is perfectly fine and steak snobs are the worst people at every barbecue",
+    "thinks ketchup on a hot dog is completely normal and anyone who judges you for it is a food bully",
+    "believes gas station coffee is better than Starbucks and is willing to die on that hill",
+    "thinks brunch is just breakfast at a markup and the mimosas aren't even good",
+    "is fed up with people who say 'I don't eat fast food' like it makes them morally superior",
+    "believes sweet tea should be the national drink and unsweetened tea is basically leaf water",
+    "thinks the whole charcuterie board trend is just a fancy name for a Lunchable and nobody wants to admit it",
+    "is adamant that cooking bacon in the oven is cheating and real bacon is made in a cast iron skillet",
+    "believes sushi is wildly overrated and people only pretend to like it because it's expensive",
+    "thinks pumpkin spice has gone too far and doesn't belong in anything except pie",
+    "is convinced that bottled water is the biggest scam in grocery stores and tap water is fine",
+    "believes people who say 'I could never go vegan' have never actually tried and are just being stubborn",
+    "thinks the obsession with sourdough bread is ridiculous and a loaf from the store tastes the same",
+    "is fed up with 'secret menu' culture and thinks if it's not on the board you shouldn't be ordering it",
+    "believes nobody actually likes black coffee — they just drink it to seem tough",
+    "thinks food trucks are overpriced for what you get and you're eating standing up in a parking lot",
+    "is convinced that deep dish pizza isn't pizza — it's a casserole — and Chicago needs to accept that",
+    "thinks avocado toast is fine but not worth twelve dollars and it's not a personality trait",
+    # --- technology & social media ---
+    "thinks people who post their workouts on social media are just fishing for compliments",
+    "is convinced that nobody actually reads the terms and conditions and we've all probably signed away our souls",
+    "believes texting 'K' should be classified as a hostile act",
+    "thinks people who use speakerphone in public places should have their phone privileges revoked",
+    "is fed up with subscription services for everything and thinks you should just be able to buy things and own them",
+    "believes social media has made everyone a narcissist and we'd all be happier with flip phones",
+    "thinks people who leave read receipts on are power-tripping",
+    "is convinced that smart home devices are listening to everything and everyone's just pretending that's okay",
+    "believes group chats with more than six people are unusable and someone needs to have the courage to say it",
+    "thinks ring doorbell culture has turned neighbors into surveillance agents and it's creepy",
+    "is adamant that voicemail is dead and anyone who leaves one is wasting everyone's time",
+    "believes people who post vague motivational quotes on LinkedIn are the most untrustworthy people in business",
+    "thinks people who use their phone flashlight at concerts should be escorted out",
+    "is fed up with AI chatbots replacing customer service and thinks talking to a real person should be a basic right",
+    "believes people who share every meal on Instagram are just eating for the camera and the food gets cold",
+    # --- driving & transportation ---
+    "thinks left-lane campers should get a ticket and it should be enforced like a speed trap",
+    "is convinced that roundabouts are superior to four-way stops and Americans are just too stubborn to learn",
+    "believes people who back into parking spots are wasting everyone's time so they can feel cool leaving",
+    "thinks truck nuts should be a ticketable offense",
+    "is fed up with people who don't use turn signals and thinks it should be a mandatory re-test on your license",
+    "believes electric cars are fine but the smugness that comes with owning one is unbearable",
+    "thinks speed bumps do more harm than good and they've wrecked more suspensions than they've saved lives",
+    "is convinced that jaywalking laws are absurd and pedestrians should have the right of way everywhere",
+    "believes drive-throughs should have a maximum order limit because one person shouldn't hold up the whole line for twelve minutes",
+    "thinks bumper stickers are a cry for attention and nobody's ever changed their mind because of one",
+    # --- social norms & etiquette ---
+    "thinks baby showers for second kids are greedy and everyone knows it",
+    "is convinced that 'let's grab coffee sometime' is the biggest lie in American culture",
+    "believes open-plan offices were invented by someone who hates productivity",
+    "thinks the expectation to be 'on' and cheerful at 8 AM Monday meetings is inhumane",
+    "is fed up with people who say 'no offense but' and then say the most offensive thing possible",
+    "believes thank-you cards are outdated and a text is perfectly acceptable",
+    "thinks wedding registries over $200 per item are delusional",
+    "is convinced that nobody actually enjoys networking events and everyone is pretending",
+    "believes mandatory fun at work — team-building exercises, trust falls, escape rooms — should be abolished",
+    "thinks people who show up late to everything and say 'that's just how I am' are being selfish and they know it",
+    "is adamant that tipping on takeout orders makes no sense because nobody carried a plate to your table",
+    "believes people who humble-brag about how busy they are just have bad time management",
+    "thinks RSVP culture is broken and half the people who say 'yes' won't show up",
+    "is convinced that the phrase 'living my best life' is the most annoying sentence in the English language",
+    "believes putting your Venmo in your social media bio is tacky",
+    "thinks the handshake is outdated and germy and we should all just nod at each other like civilized people",
+    "is fed up with people who clap when the plane lands — it landed, that's the minimum expectation",
+    # --- sports & entertainment ---
+    "thinks the Super Bowl halftime show hasn't been good since Prince and everyone's been lying since",
+    "is convinced that golf isn't a sport — it's a walk that's been ruined by a stick and a ball",
+    "believes movie theaters need to go back to assigned seating only because people are animals",
+    "thinks reality TV is rotting society's brain and we should all be embarrassed",
+    "is fed up with celebrity worship and thinks famous people's opinions on politics should mean nothing",
+    "believes the NFL overtime rules are still unfair no matter how many times they change them",
+    "thinks watching other people play video games on Twitch makes less sense than watching paint dry",
+    "is convinced that the Olympics should go back to amateurs only because professional athletes ruined it",
+    "believes sports commentators talk too much and there should be a broadcast option with just crowd noise",
+    "thinks tailgating is better than the actual game and most fans know it",
+    "is adamant that the wave at stadiums is obnoxious and someone should have the guts to not stand up",
+    "believes movie remakes are creatively bankrupt and Hollywood should be embarrassed",
+    # --- home & lifestyle ---
+    "thinks air fresheners just make a room smell like flowers and garbage at the same time",
+    "is convinced that throw pillows serve zero purpose and are a conspiracy by the home decor industry",
+    "believes people who mow their lawn before 9 AM on a Saturday are menaces to society",
+    "thinks garage sales should require a permit because half of them are just people selling trash on their driveway",
+    "is fed up with the tiny house movement and thinks people are just romanticizing being broke",
+    "believes pool ownership is a scam because you spend more time cleaning it than swimming in it",
+    "thinks everyone should have a clothesline and dryers are the laziest invention ever made",
+    "is adamant that carpet in bathrooms is a war crime against interior design",
+    "believes people who don't wave back when you let them merge are irredeemable",
+    "thinks home renovation shows have given every couple unrealistic expectations and that's why contractors are booked out two years",
+    "is convinced that leaf blowers are the most pointless invention — the leaves just move three feet and come back",
+    "believes Christmas decorations before Thanksgiving should be a fineable offense",
+    # --- pets & animals ---
+    "is convinced that cat people are smarter than dog people and has a study to back it up that nobody wants to hear about",
+    "thinks dressing up pets in costumes is low-key animal cruelty and nobody wants to be the one to say it",
+    "believes emotional support animals have gotten out of control and a peacock should not be on a plane",
+    "thinks off-leash dogs in public parks should result in a fine because 'he's friendly' is not a leash",
+    "is fed up with designer dog breeds and thinks mutts are healthier, smarter, and better looking",
+    "believes people who call themselves 'dog mom' or 'cat dad' need to understand that a pet is not a child",
+    # --- parenting & family ---
+    "believes kids don't need a phone until they're sixteen and will argue this until they're blue in the face",
+    "thinks family group texts are a form of psychological warfare",
+    "is convinced that helicopter parenting has created adults who can't change a tire or cook an egg",
+    "believes the 'kids eat free' deal at restaurants is the only honest marketing left in America",
+    "thinks organized playdates are weird and kids should just go outside and knock on doors like they used to",
+    "is fed up with parents who let their kids run wild in stores and then say 'they're just expressing themselves'",
+    "believes the school drop-off line is a lawless wasteland and someone should direct traffic",
+    # --- work & money ---
+    "thinks tipping jars at counter-service places are guilt trips and the business should just pay people more",
+    "is convinced that most meetings could be an email and most emails could be nothing",
+    "believes 'quiet quitting' is just doing your job as described and people need to stop acting like it's a scandal",
+    "thinks dress codes in 2026 are ridiculous and nobody works better in khakis",
+    "is fed up with loyalty programs and points systems that are designed to be confusing on purpose",
+    "believes the entire diamond industry is a scam and engagement rings don't need to cost two months' salary",
+    "thinks self-checkout machines are just stores making you do free labor and then getting mad when you mess up",
+    "is convinced that credit scores are a made-up number designed to keep people anxious",
+    "believes Black Friday is a psychological experiment that humanity keeps failing",
+    "thinks landlords who raise rent every year without improving anything are running a protection racket",
+    "is adamant that 'unlimited PTO' is a trick to make people take less vacation and feel guilty about it",
+    "believes the forty-hour work week is arbitrary and we should have switched to thirty-two hours a decade ago",
+    "thinks college textbook prices are legalized robbery and professors who assign their own book should be ashamed",
+    # --- reaching 150+ ---
+    "is convinced that New Year's resolutions are a scam invented by gym memberships and diet companies",
+    "thinks alarm clocks are a form of violence and society should be built around natural wake times",
+    "believes most people who say they love camping actually just like the idea of camping and hate every second of the reality",
+    "thinks couples who share a single social media account are hiding something and everyone knows it",
+    "is fed up with influencers who say 'use code [NAME] for 10% off' and believes nothing they recommend is real",
+    "thinks the snooze button is humanity's greatest invention and anyone who gets up on the first alarm is a psychopath",
+    "believes movie theaters that charge $8 for popcorn that costs 15 cents to make are committing a crime against civilization",
+    "thinks people who bring their own bags to the grocery store but drive an SUV are missing the point entirely",
+    "is adamant that the 'customer is always right' mentality created the worst generation of entitled shoppers in history",
+    "believes daylight saving time should be abolished and the states that don't observe it have it figured out",
+    "thinks multitasking is a lie people tell themselves and everyone who claims to be good at it is actually bad at two things at once",
+    "is convinced that most coffee is over-roasted garbage and dark roast people are just addicted to burnt flavor",
+    "believes every neighborhood should have a public tool library because nobody needs to own a power washer they use twice a year",
+    "thinks white noise machines are just expensive fans and a ceiling fan does the exact same thing for free",
+    "is fed up with restaurants that dim the lights so low you need your phone flashlight to read the menu",
+    "believes the middle seat on a plane gets both armrests and this should be a federal law",
+]
+
+CELEBRATIONS = [
+    "just got promoted to shift lead after three years of being told they weren't ready",
+    "one year sober today and nobody's awake to tell",
+    "their band played their first real gig and people actually showed up — like forty people",
+    "just paid off their truck two years early and is sitting in it right now feeling like a king",
+    "their daughter got a full ride scholarship and they can't stop crying about it",
+    "finally passed the GED at 38 and their kids made them a cake",
+    "got their citizenship today after twelve years of paperwork",
+    "just closed on their first house — a fixer-upper but it's theirs",
+    "their small business turned a profit for the first time this month",
+    "got the all-clear from the doctor after a cancer scare that had them planning their funeral",
+    "their estranged brother called out of nowhere and apologized and they talked for three hours",
+    "won the county fair pie contest with a recipe they invented themselves",
+    "just ran their first 5K at 52 and didn't walk a single step",
+    "their rescue dog that was supposed to be unadoptable just graduated therapy dog training",
+    "got accepted into nursing school after being rejected twice",
+    "their kid drew them a picture that said 'best dad in the world' and they've been staring at it for an hour",
+    "finally told their family they're gay and nobody cared — in the best way",
+    "their podcast just hit 1,000 downloads and they know that's nothing to most people but it means the world to them",
+    "caught a foul ball at the Isotopes game and gave it to a kid — but the kid gave it back and said 'you need this more'",
+    "just got their first paycheck from a job they actually like",
+    "their old high school teacher tracked them down to say they were proud of them",
+    "rebuilt a 1974 Chevy with their dad over the last two years and they just drove it for the first time tonight",
+    "got a letter from the IRS saying they overpaid and they're getting $3,200 back",
+    "their mom who has dementia recognized them today for the first time in months",
+    "just won their fantasy football league and nobody will let them stop talking about it",
+    "finished writing a novel — it's probably terrible but they finished it",
+    "their neighbor who they've been feuding with for two years brought over a pie and apologized",
+    "hit a hole-in-one today and the only witness was a guy who doesn't speak English",
+    "their adult kid who moved away just called to say they want to come home for Christmas",
+    "made it through a whole week without a panic attack for the first time in a year",
+    "got a standing ovation at open mic night at a bar in Silver City",
+    "their spouse surprised them with tickets to see Willie Nelson",
+    "just became a grandparent for the first time and they already bought the kid a fishing rod",
+    # --- career & work milestones ---
+    "just got hired at the job they've been applying to for two years and the rejection emails are finally worth something",
+    "finally quit the job that was making them miserable and already feels ten years younger",
+    "their boss pulled them aside today to say they're the best hire they ever made",
+    "just finished their apprenticeship and got their journeyman card — electrician, took four years",
+    "landed their first client as a freelancer and it's someone they've admired for years",
+    "got a raise without asking for one — their manager just said 'you've earned this'",
+    "just passed the bar exam on their third try and their study group threw them a party at Denny's",
+    "their food truck got its first five-star review and the reviewer said it was the best green chile burger in the state",
+    "just retired after 35 years at the same company and they rang a bell for them and everything",
+    "got promoted to foreman on the job site and their dad — who's also in construction — cried when they told him",
+    "their Etsy shop just hit 500 sales and they started it as a joke making earrings out of bottle caps",
+    "just got tenure after seven years and can finally stop pretending to be calm about it",
+    "passed their CDL test today and already has a trucking job lined up starting Monday",
+    "their catering business just got booked for a wedding — their first wedding — and they can't stop menu planning",
+    # --- health & recovery ---
+    "just completed physical therapy and can walk without a cane for the first time since the accident",
+    "two years clean today and their sponsor took them out for pancakes to celebrate",
+    "got their blood pressure down to normal without medication just by walking every day and cutting out soda",
+    "their kid who's been in and out of the hospital all year just got discharged with a clean bill of health",
+    "finally found a therapist who actually helps after going through four who didn't",
+    "just got their six-month chip and their kids were there to see it",
+    "completed their first full night of sleep without nightmares since coming home from deployment",
+    "their doctor said the tumor is shrinking and the treatment is working",
+    "just ran a mile without stopping for the first time since their knee surgery eighteen months ago",
+    "quit smoking after twenty-two years and today is day ninety and they can taste food again",
+    "their anxiety medication finally kicked in and they went to the grocery store without a panic attack for the first time in months",
+    # --- family & relationships ---
+    "their kid said 'I love you' unprompted for the first time and they had to pull the car over",
+    "just celebrated their 25th wedding anniversary and still gets butterflies",
+    "their teenager who hasn't talked to them in months just sat down at dinner and started telling them about their day",
+    "adopted a kid today after three years in the foster system and the kid asked if they could call them mom",
+    "their dad who never says 'I'm proud of you' said it today — out of nowhere — and they're still shaking",
+    "reconnected with their college roommate after fifteen years and talked for six hours straight",
+    "their partner learned to cook their grandmother's recipe and surprised them with it on their birthday",
+    "their family showed up — all of them — for their kid's school play and took up an entire row",
+    "just found out they're going to be a dad and they've been walking around grinning like an idiot all day",
+    "their stepdaughter made them a Father's Day card that says 'real dad' on it and they can't hold it together",
+    "their parents who've been separated for eight years just went to dinner together and are talking about trying again",
+    "their kid graduated basic training today and they've never been more proud or more terrified",
+    "their wife beat cancer and rang the bell today and the whole floor clapped",
+    # --- personal achievements ---
+    "just got their motorcycle license at 47 and feels like a teenager again",
+    "taught themselves guitar over the last year and just played a full song in front of people without messing up",
+    "finished their first marathon — not fast, dead last actually — but they finished",
+    "just published a children's book they wrote for their grandkids and the local bookstore is carrying it",
+    "learned to swim at 40 because they were tired of being afraid of the water",
+    "painted something they're actually proud of for the first time and hung it in their living room",
+    "just got their pilot's license and took their mom up for her first flight in a small plane",
+    "finished restoring a vintage jukebox that's been sitting in their garage for six years and it works",
+    "grew a garden this year that actually produced food — tomatoes, peppers, squash — and they've been giving it away to neighbors",
+    "read fifty books this year after not finishing a single one in the last decade",
+    "built a treehouse for their grandkids with their own hands and it's got a rope bridge and everything",
+    "just completed a 200-piece puzzle of the Sandia Mountains and is going to frame it",
+    "learned to change their own oil and brakes from YouTube videos and saved $400 this year",
+    # --- community & kindness ---
+    "organized a neighborhood cleanup and forty people showed up when they expected maybe five",
+    "their little league team just won the district championship and half the kids had never played before this season",
+    "started a free tutoring program at the library and three of their students just made the honor roll",
+    "their church raised enough to pay off a family's medical debt anonymously",
+    "coached their daughter's soccer team to an undefeated season and the kids gave them a signed ball",
+    "drove their elderly neighbor to chemo every week for six months and today was the last appointment — she's in remission",
+    "started a tool lending library in their garage and half the block has borrowed something",
+    # --- financial wins ---
+    "just paid off their student loans — all $47,000 — and it only took eleven years",
+    "finally has $1,000 in savings for the first time in their adult life and knows that sounds small but it's everything",
+    "their credit score went from 520 to 740 in two years and they did it by themselves with no fancy program",
+    "got approved for a small business loan they've been working toward for three years",
+    "sold the house they inherited, paid off all their debt, and still had enough to put a down payment on a place of their own",
+    "won $500 on a scratch-off and used it to fix the fence they've been zip-tying together for a year",
+    "just made their last car payment and screamed in the parking lot of the credit union",
+    "their side hustle selling firewood just paid for Christmas and they didn't have to put a single thing on a credit card",
+    # --- unexpected & quirky wins ---
+    "found their lost wedding ring in the yard with a metal detector after giving up hope three months ago",
+    "their sourdough starter that they've been nursing for a year finally made a loaf that doesn't taste like vinegar",
+    "won a radio contest they forgot they entered and the prize is a weekend in Ruidoso",
+    "their hen that stopped laying started again and gave them a double-yolk egg like a peace offering",
+    "just beat their personal best at the county arm wrestling competition and they're 61",
+    "found a first edition book at a garage sale for two dollars and it's worth over $300",
+    "their truck passed inspection on the first try for the first time in its 18-year life",
+    "got recognized at the grocery store by someone who said their yard is the nicest on the street",
+    "their kid's science fair project won first place — a volcano that actually erupted — and the principal had to evacuate the gym",
+    "set up a hummingbird feeder three years ago and today had eleven birds on it at once",
+    "finally beat the video game they've been stuck on since 2019 and nobody in their house cares but they need someone to know",
+    "their homemade hot sauce got so popular at work that people are asking to buy jars and they might actually have a business",
+    "taught their 78-year-old mother to video call and now she calls every single day which is a whole other situation but today it's a win",
+    "their dog won 'best trick' at the county fair for playing dead so convincingly that a kid started crying",
+    "just passed their real estate exam and already has three friends who want them to find them a house",
+    "their 10-year-old scored the winning goal in the championship and got carried off the field by their teammates",
+    "finally learned to parallel park at 34 and nailed it on the first try in front of the DMV instructor",
+    "their poem got published in a real literary magazine — not a scam one — and they got paid forty dollars for it",
+    "just celebrated five years at their job — the longest they've ever held one — and their manager threw a little party",
+    "their rescue cat that hid under the bed for three months finally sat in their lap last night and purred",
+    "won the office chili cookoff against a guy who's been undefeated for seven years and the whole floor erupted",
+    # --- reaching 150+ ---
+    "just got the call that their adoption was finalized after two years of waiting and they can't stop shaking",
+    "their son who dropped out of high school just earned his diploma at 26 — he walked across the stage and the whole family was there",
+    "finished paying for their kid's braces out of pocket because they don't have dental insurance — $5,400 over three years and the kid's smile is worth every penny",
+    "their small-town restaurant got mentioned in a regional food magazine and the phone hasn't stopped ringing",
+    "just celebrated 30 days without a cigarette after smoking for 15 years — they can taste their coffee again",
+    "their kid made the varsity team as a freshman and the coach pulled them aside to say the kid has real talent",
+    "got a letter from a college student they mentored saying they're the reason the student didn't drop out",
+    "fixed their own washing machine using a YouTube tutorial and saved $400 — they've never felt more capable in their life",
+    "their elderly father who hasn't driven in two years passed his re-evaluation and got his license back — he drove himself to the diner and sat at the counter like a king",
+    "finally confronted their fear of public speaking and gave a toast at their brother's wedding that made the whole room laugh and cry",
+    "their daughter's first art show at the community center sold three paintings and she's twelve",
+    "landed a hole-in-one on a par three they've played 500 times and the foursome behind them saw the whole thing",
+    "their rescue horse that came in malnourished and terrified let someone ride them for the first time today — it took fourteen months of patience",
+    "just finished their EMT certification and their first call was helping deliver a baby in a parking lot — mom and baby are fine",
+    "got a handshake deal with a rancher to supply beef to three restaurants in town — their grass-fed operation is finally sustainable",
+    "their band got asked to play the county fair main stage after years of playing to ten people at open mics",
+    "ran into a kid they coached in little league fifteen years ago — the kid is now a firefighter and said coaching made the difference",
+    "their community garden plot produced so much this year they donated 200 pounds of produce to the food bank",
+    "just took their mother to the ocean for the first time in her life — she's 74 and stood in the water and cried",
+    "their podcast interview with a local legend hit 10,000 downloads and the story got picked up by a state newspaper",
+    "found out their blood donation saved a kid in the next county — the blood bank sent them a letter and the family wrote a note",
+    "their youngest kid read a whole book by themselves for the first time and brought it to them to announce it at bedtime",
+    "rebuilt their porch by hand over three weekends and the neighbors started coming over to sit on it — it's become the block's gathering spot",
+    "their kid who was nonverbal until age four just gave a presentation in front of their whole class",
+    "just got offered a spot at a trade school that's fully funded — they applied on a whim and didn't think they'd get in",
+    "their quilt that took six months to make won a blue ribbon at the state fair and three people asked to commission one",
+    "saved enough to take their whole family on vacation for the first time — all seven of them in a rented van to the Grand Canyon",
+    "their neighbor who's been battling depression for years came over with a pie and said 'I think I'm going to be okay' and meant it",
+    "got a perfect score on a licensing exam they failed twice before — studied every night after the kids went to bed for four months",
+    "their rescue dog who was afraid of everything finally played with another dog at the park today — tail wagging, full zoomies, the works",
+]
+
+WEIRD = [
+    "their car odometer has been going backward — they've driven 200 miles this week and it shows 200 fewer",
+    "found a room in their house that doesn't make sense with the floor plan — the dimensions are off by about six feet and there's a door that leads to drywall",
+    "their dog has been staring at the same spot on the wall for three days straight — not barking, not growling, just staring",
+    "woke up with a phone number written on their arm in their own handwriting but they have no memory of writing it — and the number is disconnected",
+    "keeps getting mail addressed to someone who died in their house in 1987 — but it's new mail, not forwarded, with current postmarks",
+    "their truck radio picks up what sounds like a Spanish-language broadcast that doesn't match any station in the area — it only happens at the same intersection",
+    "found a photo in a thrift store frame of people at a picnic and they're 90% sure one of the people is them as a kid — but the photo is from the 1940s",
+    "their porch light turns on every night at exactly 2:17 AM even though they replaced the bulb, the switch, and the fixture",
+    "heard their dead grandmother's voice on a wrong-number voicemail — same laugh, same way of saying 'well honey'",
+    "a coyote has been sitting outside their property at the same time every evening for two weeks — not howling, not hunting, just sitting there watching the house",
+    "their bathroom mirror fogs up in a pattern that looks like a handprint even when nobody's showered",
+    "found a geocache behind their house that's been there since 2003 — the logbook has entries from people who describe their house in detail that they shouldn't know",
+    "the clock in their kitchen runs seven minutes fast no matter how many times they reset it — they've had it checked and there's nothing wrong with the mechanism",
+    "their cat keeps bringing the same rock to their bedroom door — they throw it in the yard, next morning it's back",
+    "took a photo of the sunset and when they looked at it later there's a face in the clouds that looks exactly like their late father",
+    "a stranger at the gas station called them by a name they haven't used since childhood — a nickname only their grandmother used — and then got in their car and drove away",
+    "found a jar of pennies buried in their backyard, all from the same year — 1977 — and there are exactly 365 of them",
+    "their smoke detector goes off every Tuesday at noon — no smoke, no low battery, just Tuesday at noon",
+    "keeps having the same dream about a house they've never been to, and last week they drove past it on a road they'd never taken before",
+    "a bird has been tapping on their bedroom window at sunrise every morning for a month — same bird, same window, same spot",
+    "their GPS keeps trying to route them to an address in a town that doesn't exist on any map",
+    "found a handwritten note in a library book that accurately describes something that happened to them last week — the book was checked out two years ago",
+    # --- house & property ---
+    "their basement door was locked from the inside when they got home — they live alone and don't have a basement key",
+    "found a perfect circle of dead grass in their yard about six feet across — the rest of the lawn is fine and there's nothing buried there",
+    "their kitchen faucet has been dripping in a pattern — three drips, pause, three drips, pause — and it only does it between midnight and 4 AM",
+    "their thermostat keeps resetting itself to 66 degrees no matter what they set it to — they've replaced it twice and it still does it",
+    "found a trapdoor under their living room carpet that leads to a small dirt-floored room with a single wooden chair in it",
+    "their porch swing starts swinging by itself on windless nights — not just a little, full swings like someone's sitting in it",
+    "discovered their chimney has a bricked-up section about halfway up — they can hear something shifting inside when it rains",
+    "their house number changed on Google Maps to a number that doesn't exist on their street and Google won't fix it no matter how many times they report it",
+    "found a key in their wall during a renovation that fits no lock in the house — they've tried every door, every cabinet, everything",
+    "their sprinklers turn on at 3 AM every night even though the system is set to 6 AM — the timer shows 6 AM and the override is off",
+    "the previous owner left a note in the attic that says 'don't dig past the fence line' with no other explanation — they bought the house from an estate sale",
+    "found marks on the inside of their closet door that look like tally marks — there are over 300 of them and they weren't there when they moved in six months ago",
+    # --- animals & nature ---
+    "a specific stray cat shows up at their door only on the night before something bad happens — it's been four for four and the cat was there again last night",
+    "found a perfectly preserved butterfly inside a sealed mason jar in their attic — the jar has no lid and no visible opening, the butterfly is just inside solid glass",
+    "their chickens stopped laying for a week, then all laid on the same day — eight eggs, all double-yolk, all exactly the same size",
+    "a tree in their yard has been growing in a spiral pattern that it didn't have last year — the trunk is visibly twisting",
+    "their horse refuses to walk past a specific spot on the trail — same spot every time, won't go near it, and other horses do the same thing",
+    "found animal tracks in their yard that don't match any species in the area — they showed them to a wildlife officer who said 'I've never seen that print'",
+    "their fish tank water turns slightly pink every full moon — they've tested it, changed the water, even moved the tank, still happens",
+    "saw what looked like a mountain lion on their property but the game warden says there are no mountain lions within 200 miles — they have a trail cam photo",
+    "their dog dug up a bone in the backyard that's too big to be any local animal and too small to be a cow — it looks disturbingly human-shaped",
+    # --- objects & technology ---
+    "their car radio turned itself on in the driveway at 2 AM playing a station that went off the air in 2003 — they checked, the station doesn't exist anymore",
+    "found a VHS tape in their mailbox with no label — they played it and it's security footage of the inside of their house from an angle where there's no camera",
+    "their phone keeps taking screenshots by itself at the same time every day and the screenshots are always of the home screen with one specific app highlighted",
+    "found an old Polaroid stuck under their dashboard that shows their truck parked in a place they've never been — the landscape looks like desert but wrong desert",
+    "their microwave starts by itself at exactly 11:11 PM every night, runs for 11 seconds, then stops — there's nothing inside it",
+    "an old wind-up watch they inherited from their grandfather still ticks even though the mainspring is completely unwound — they took it to a jeweler who couldn't explain it",
+    "their TV turns to static for exactly three seconds at 9 PM every night, then switches back — it happens on every channel and every input",
+    "found a cassette tape in their truck labeled with their name and a date from before they were born — the recording is someone humming a song they used to hear their mother hum",
+    # --- people & encounters ---
+    "keeps seeing the same person at completely unrelated places — different towns, different states — and the person always nods at them like they know each other",
+    "their neighbor's house has been dark for three weeks but the car moves to a different spot in the driveway every morning",
+    "got a handwritten letter in the mail with no return address that contained a single sentence: 'You were right about the water' — they have no idea what that means",
+    "a man in a white truck has been parked outside their property every Thursday morning at 6 AM for two months — just sitting there, engine off, then leaves at exactly 7",
+    "ran into someone at the store who knew their name, their dog's name, and where they worked — but they've never seen this person in their life and the person seemed confused that they didn't remember them",
+    "their deceased mother's handwriting appeared on a steamed-up bathroom mirror — not a message, just her signature exactly how she used to sign birthday cards",
+    "a woman knocked on their door asking for someone by a name they've never heard — when they said wrong house, she said 'not yet' and walked away",
+    "found a framed photo at Goodwill of a family picnic and their house is clearly visible in the background — the photo is dated 1962 and their house wasn't built until 1985",
+    # --- patterns & coincidences ---
+    "the number 37 keeps appearing everywhere — receipts, license plates, page numbers, addresses — at least four or five times a day for the past month",
+    "had a dream about a specific song they hadn't heard in twenty years and it was playing at the gas station the next morning",
+    "every time they take Highway 9 past mile marker 42, their radio cuts out for exactly the length of the bridge and comes back on the other side playing a different station",
+    "found out that three different strangers have told them 'you look exactly like someone I used to know' in the past two weeks — all in different towns",
+    "their phone's step counter shows exactly 10,000 steps every day for the past week — they don't walk 10,000 steps, some days they barely leave the house",
+    "keeps finding dimes in places they shouldn't be — inside a sealed jar, on top of their car engine, in a pair of shoes they haven't worn in months",
+    "woke up at exactly 3:33 AM every night for twelve straight nights — then it just stopped",
+    "their odometer hit 111,111 at the exact moment they crossed the state line and the trip meter read 111.1",
+    # --- dreams & déjà vu ---
+    "had a vivid dream about a specific person they'd never met — then met that exact person at a hardware store the following week, wearing exactly what they wore in the dream",
+    "dreamed about a house fire and woke up to find their smoke detector had been removed from the ceiling and placed on the kitchen table — they live alone",
+    "keeps dreaming about being underwater in a specific lake and found out someone drowned in that exact lake forty years ago on the date of their birthday",
+    "experienced an entire day they're certain they've already lived — same conversations, same weather, same song on the radio at the same intersection",
+    "their kid drew a picture of 'the man who visits at night' and it looks exactly like the caller's father who died before the kid was born",
+    # --- rural & desert weirdness ---
+    "found a circle of stones in the desert that wasn't there last week — the stones are warm to the touch even at midnight and none of them match any local geology",
+    "their well water started tasting like metal on the same day every month — always the 14th, always just for one day, then it's fine again",
+    "heard what sounded like church bells coming from the desert at 3 AM — the nearest church is twelve miles away and it was torn down in 2019",
+    "found tire tracks in the desert leading to a spot where they just stop — no turnaround, no footprints, the tracks just end like the vehicle vanished",
+    "their property backs up to BLM land and they've been finding small cairns — stacked rocks — appearing in a line that's getting closer to their house, about twenty feet closer each week",
+    "saw lights in the desert that weren't planes, weren't satellites, and weren't drones — three orange orbs that hovered, formed a triangle, then shot straight up and disappeared",
+    "found an old well on their property that's not on any survey — dropped a rock in and never heard it hit bottom",
+    "their cattle won't go near the far corner of the pasture anymore — they checked for predators, snakes, bad water, everything — nothing's there",
+    "heard a low hum coming from underground near the arroyo behind their house — it's not a pipe, not a power line, and it only happens when the wind stops completely",
+    "found petroglyphs on a rock face behind their property that their neighbor says weren't there five years ago — but petroglyphs don't just appear",
+    # --- time & memory gaps ---
+    "left for the store at 10 AM and got back at 4 PM with no memory of six hours — the store is fifteen minutes away and they only bought milk",
+    "found a journal entry in their own handwriting describing a trip they have no memory of taking — the dates match a weekend they were supposedly home alone",
+    "their watch stopped at 2:47 PM on the day their mother died and it stops at 2:47 every time they replace the battery — different watches, same time",
+    "woke up to find all their furniture had been moved to the opposite side of every room — they're a heavy sleeper but this would have taken hours",
+    "found photos on their phone from a location they've never visited — timestamped during a night they were asleep at home — they know because their Ring camera shows them never leaving",
+    "their calendar has an appointment for next Tuesday written in handwriting that's almost but not quite theirs — it's at a place they've never heard of in a town they can't find",
+    "lost two hours on a road trip — left at 3, arrived at 7 for a two-hour drive — their passenger agrees something is off but neither of them remembers stopping",
+    # --- additional weird ---
+    "their lawn grows in a pattern that changes shape every time they mow — this week it's a spiral, last week it was parallel lines, and they haven't changed the mowing direction",
+    "woke up to find every shoe in their house moved to a different room — pairs separated, each shoe in a different location, like someone organized them by some logic they can't figure out",
+    "their truck's horn started honking by itself in the driveway every night at 1 AM — it's happened six times and the mechanic says there's nothing wrong with it",
+    "found a stack of handwritten recipes in their wall during a renovation — they're dated 1943 and include a recipe for something called 'war cake' that uses no eggs, butter, or milk",
+    "their weather station shows a brief temperature spike of exactly 20 degrees every Thursday at 4 PM — it lasts three minutes then goes back to normal and no other station in the area shows it",
+    "a specific rock on their property has been getting slowly warmer over the past month — they noticed because they sit on it to drink coffee and now it's warm even at dawn",
+    "their Alexa started playing a song at 3 AM that they've never heard before and it's not in any music catalog they can find — they recorded it on their phone and it's beautiful and it's never played again",
+    "found a door in their basement that they've never noticed before — they've lived there eight years and it leads to a small root cellar with a single empty mason jar on a shelf",
+    "every time they take a photo in their kitchen the same shadow appears in the corner — different times of day, different lighting, always the same shadow in the same spot",
+    "their rain gauge collects exactly one inch of water every full moon even when it doesn't rain — they've cleaned it, moved it, replaced it",
+    "found footprints on the inside of their attic window — the attic has no floor access except a pull-down ladder and the dust around it hasn't been disturbed",
+    "their dog refuses to walk through one specific doorway in the house and has been going around through the kitchen instead for three weeks — the vet says the dog is fine",
 ]
 
 LOCATIONS_LOCAL = [
@@ -2663,6 +4261,29 @@ CALLER_STYLES = [
 ]
 
 
+# --- Call Shapes ---
+# Each shape defines the dramatic arc of a call. Weights control frequency.
+CALL_SHAPES = [
+    ("standard", 25),           # Normal call — caller has a thing, they talk about it
+    ("escalating_reveal", 15),  # Starts mundane, each exchange reveals something bigger
+    ("am_i_the_asshole", 10),   # Caller wants validation but the situation is morally gray
+    ("confrontation", 10),      # Caller is fired up and wants to argue/vent
+    ("celebration", 8),         # Something great happened — caller is riding high
+    ("quick_hit", 10),          # Short and punchy — one thing to say, says it, done
+    ("bait_and_switch", 8),     # Starts as one thing, turns out to be something completely different
+    ("the_hangup", 7),          # Caller gets upset/embarrassed and hangs up mid-call
+    ("reactive", 7),            # Caller is reacting to something that happened earlier on the show
+]
+
+_CALL_SHAPE_NAMES = [s[0] for s in CALL_SHAPES]
+_CALL_SHAPE_WEIGHTS = [s[1] for s in CALL_SHAPES]
+
+
+def _pick_call_shape() -> str:
+    """Pick a call shape using weighted random selection."""
+    return random.choices(_CALL_SHAPE_NAMES, weights=_CALL_SHAPE_WEIGHTS, k=1)[0]
+
+
 def pick_location() -> str:
     if random.random() < 0.8:
         return random.choice(LOCATIONS_LOCAL)
@@ -2752,6 +4373,8 @@ def _generate_pool_weights() -> dict[str, float]:
         "GOSSIP": (0.12, 0.22),
         "ADVICE": (0.15, 0.28),
         "TOPIC_CALLIN": (0.08, 0.18),
+        "CELEBRATIONS": (0.05, 0.12),
+        "WEIRD": (0.05, 0.10),
     }
     raw = {p: random.uniform(*r) for p, r in pool_ranges.items()}
     total = sum(raw.values())
@@ -2780,7 +4403,10 @@ _ABSURD_KEYWORDS = {"as a joke", "pretending", "faked", "fake ", "catfished", "p
                     "replied-all", "went viral", "conspiracy", "anonymous",
                     "double life", "fake name", "insurance claim", "pizza order",
                     "burner phone", "onlyfans as a joke", "secret identity",
-                    "support group", "bilingual", "chili cookoff"}
+                    "support group", "bilingual", "chili cookoff",
+                    "left-handed", "black belt", "metal detector", "parrot",
+                    "book club", "fake allergy", "waving at", "jar of pickles",
+                    "odometer", "geocache", "smoke detector", "gps keeps"}
 
 
 def _is_absurd(reason: str) -> bool:
@@ -2788,48 +4414,84 @@ def _is_absurd(reason: str) -> bool:
     return any(kw in r for kw in _ABSURD_KEYWORDS)
 
 
+# Tone classification for streak tracking
+_HEAVY_POOLS = {"PROBLEMS", "ADVICE"}
+_LIGHT_POOLS = {"CELEBRATIONS", "STORIES", "HOT_TAKES", "WEIRD", "GOSSIP"}
+
+
+def _filter_used(pool: list[str]) -> list[str]:
+    """Filter a pool against both session and persistent topic history.
+    Falls back to session-only filtering if cross-episode filter empties the pool."""
+    session_filtered = [r for r in pool if r not in session.used_reasons]
+    both_filtered = [r for r in session_filtered if r not in _topic_history]
+    if both_filtered:
+        return both_filtered
+    # Cross-episode history exhausted this pool — fall back to session-only dedup
+    if session_filtered:
+        return session_filtered
+    return pool
+
+
 def _pick_unique_reason() -> tuple[str, str]:
-    """Pick a caller reason that hasn't been used this session.
-    Returns (reason_text, pool_name)."""
+    """Pick a caller reason that hasn't been used this session or in recent episodes.
+    Returns (reason_text, pool_name).
+    After 2+ heavy calls in a row, biases toward lighter pools."""
+    # After 2+ heavy calls, boost lighter pools
+    recent_heavy = len(session.tone_streak) >= 2 and all(
+        t == "heavy" for t in session.tone_streak[-2:]
+    )
+
     # ~25% chance of a hot take caller
     if random.random() < 0.25:
-        available = [r for r in HOT_TAKES if r not in session.used_reasons]
-        if not available:
-            available = HOT_TAKES
+        available = _filter_used(HOT_TAKES)
         reason = random.choice(available)
         session.used_reasons.add(reason)
+        _save_topic_to_history(reason, "HOT_TAKES")
+        session.tone_streak.append("light")
         return reason, "HOT_TAKES"
 
     pool_map = {
         "PROBLEMS": PROBLEMS, "TOPIC_CALLIN": TOPIC_CALLIN,
         "STORIES": STORIES, "ADVICE": ADVICE, "GOSSIP": GOSSIP,
+        "CELEBRATIONS": CELEBRATIONS, "WEIRD": WEIRD,
     }
-    weights = session.pool_weights
+    weights = dict(session.pool_weights)
+    # After 2+ heavy calls, boost lighter pools to break the streak
+    if recent_heavy:
+        for pool_name in _LIGHT_POOLS:
+            if pool_name in weights:
+                weights[pool_name] *= 2.5
+        # Re-normalize
+        total = sum(weights.values())
+        weights = {p: v / total for p, v in weights.items()}
     chosen = random.choices(list(weights.keys()), weights=list(weights.values()), k=1)[0]
     pool = pool_map[chosen]
-    available = [r for r in pool if r not in session.used_reasons]
-    if not available:
-        available = pool
+    available = _filter_used(pool)
 
     # ~30% of PROBLEMS picks preferentially select sex/kink/spicy entries
-    # ~20% preferentially select absurd/unhinged entries
     if chosen == "PROBLEMS":
         roll = random.random()
         if roll < 0.30:
             spicy = [r for r in available if _is_spicy(r)]
             if spicy:
                 available = spicy
-        elif roll < 0.50:
-            absurd = [r for r in available if _is_absurd(r)]
-            if absurd:
-                available = absurd
+
+    # ~25% chance to prefer absurd/unhinged entries from ANY pool
+    if random.random() < 0.25:
+        absurd = [r for r in available if _is_absurd(r)]
+        if absurd:
+            available = absurd
 
     reason = random.choice(available)
     session.used_reasons.add(reason)
+    _save_topic_to_history(reason, chosen)
     if chosen == "PROBLEMS":
         for key, options in PROBLEM_FILLS.items():
             if "{" + key + "}" in reason:
                 reason = reason.replace("{" + key + "}", random.choice(options))
+    # Track tone for streak detection
+    tone = "heavy" if chosen in _HEAVY_POOLS else "light"
+    session.tone_streak.append(tone)
     return reason, chosen
 
 
@@ -2884,13 +4546,24 @@ def _pick_caller_style(reason: str, pool_name: str) -> str:
     return random.choice(CALLER_STYLES)
 
 
+def _assign_call_shape(base: dict) -> str:
+    """Pick and store a call shape for a caller, logging the assignment."""
+    shape = _pick_call_shape()
+    for key, b in CALLER_BASES.items():
+        if b is base or b.get("name") == base.get("name"):
+            session.caller_shapes[key] = shape
+            print(f"[Shape] {base.get('name', key)} assigned shape: {shape}")
+            break
+    return shape
+
+
 def generate_caller_background(base: dict) -> str:
     """Generate a template-based background as fallback. The preferred path is
     _generate_caller_background_llm() which produces more natural results."""
     if base.get("returning") and base.get("regular_id"):
         return _generate_returning_caller_background(base)
     gender = base["gender"]
-    age = random.randint(*base["age_range"])
+    age = max(18, random.randint(*base["age_range"]))
     jobs = JOBS_MALE if gender == "male" else JOBS_FEMALE
     job = random.choice(jobs)
     # Location — only 25% of callers mention where they're from
@@ -2913,6 +4586,9 @@ def generate_caller_background(base: dict) -> str:
         if b is base or b.get("name") == base.get("name"):
             session.caller_styles[key] = style
             break
+
+    # Assign call shape
+    _assign_call_shape(base)
 
     interest1, interest2 = random.sample(INTERESTS, 2)
     quirk1, quirk2 = random.sample(QUIRKS, 2)
@@ -3050,7 +4726,7 @@ async def _generate_caller_background_llm(base: dict) -> str:
 
     gender = base["gender"]
     name = base["name"]
-    age = random.randint(*base["age_range"])
+    age = max(18, random.randint(*base["age_range"]))
     jobs = JOBS_MALE if gender == "male" else JOBS_FEMALE
     job = random.choice(jobs)
 
@@ -3071,6 +4747,9 @@ async def _generate_caller_background_llm(base: dict) -> str:
     if caller_key:
         session.caller_styles[caller_key] = style
     style_hint = style.split(":")[1].strip()[:120] if ":" in style else ""
+
+    # Assign call shape
+    _assign_call_shape(base)
 
     # Pick a few random color details as seeds — not a full list
     seeds = []
@@ -3102,6 +4781,24 @@ async def _generate_caller_background_llm(base: dict) -> str:
 
     seed_text = ". ".join(seeds) if seeds else ""
 
+    # Age-modulated speech markers
+    if age < 30:
+        age_speech = "SPEECH PATTERNS: Speaks quickly, uses current slang naturally, sentences trail into questions sometimes. References social media, apps, group chats. May overshare casually."
+    elif age < 45:
+        age_speech = "SPEECH PATTERNS: Confident pace, mixes professional and casual register. References work stress, mortgage, kids' activities. Uses complete thoughts but can get heated."
+    elif age < 60:
+        age_speech = "SPEECH PATTERNS: Measured, deliberate. Pauses before key points. References decades of experience. Uses phrases like 'back when' and 'I've seen this before.' Dry humor."
+    else:
+        age_speech = "SPEECH PATTERNS: Slower, methodical. Tells stories with full context. References the old days without being asked. Formal address ('ma'am', 'sir'). May repeat key points for emphasis."
+
+    # Verbal fluency level
+    fluency = random.choice(["low", "medium", "medium", "high"])
+    fluency_hint = {
+        "low": "VERBAL FLUENCY: Low — struggles to find words, pauses mid-sentence, uses filler (um, uh, well), backtracks and restarts thoughts. Not dumb, just not a natural talker.",
+        "medium": "VERBAL FLUENCY: Medium — normal conversational ability. Sometimes fumbles but generally clear. Occasional tangents.",
+        "high": "VERBAL FLUENCY: High — articulate, quick with words, good at making points. Can be intense or entertaining depending on energy."
+    }[fluency]
+
     location_line = f"\nLOCATION: {location}" if location else ""
     prompt = f"""Write a brief character description for a caller on a late-night radio show set in the rural southwest (New Mexico/Arizona border region). Write it in third person as a character brief, not as dialog.
 
@@ -3109,6 +4806,8 @@ CALLER: {name}, {age}, {gender}
 JOB: {job}{location_line}
 WHY THEY'RE CALLING: {reason}
 TIME: {time_ctx} {season_ctx}
+{age_speech}
+{fluency_hint}
 {f'SOME DETAILS ABOUT THEM: {seed_text}' if seed_text else ''}
 {f'CALLER ENERGY: {style_hint}' if style_hint else ''}
 
@@ -3127,6 +4826,8 @@ DO NOT WRITE:
 DO WRITE: Jump straight into the situation. What happened? What's the mess? What's the funny/terrible/absurd detail that makes this story worth telling on the radio?
 
 Vary where they're calling from. NOT everyone is in their truck or on the porch. Kitchens, break rooms, laundromats, diners, motel rooms, the bathtub, the gym, work, a bar, a hospital waiting room, walking down the road.
+
+Include ONE signature detail — a specific, memorable thing about this person that makes them instantly recognizable if they ever called back. A catchphrase, a distinctive habit, a running joke, a strong opinion about something trivial, or a unique life circumstance. This is the thing listeners would remember.
 
 Output ONLY the character description, nothing else."""
 
@@ -3405,6 +5106,97 @@ def _get_speech_block(style: str) -> str:
     return "EVERY SENTENCE MUST BE COMPLETE. Never leave a thought hanging or trail off mid-sentence. If you start a sentence, finish it. Say what you mean in clear, complete sentences."
 
 
+# Shape-specific prompt directives — override or augment the default story_block.
+# Placeholder directives until creative-director provides final versions (Task 13).
+SHAPE_DIRECTIVES = {
+    "standard": "",  # Uses default story_block unchanged
+
+    "escalating_reveal": """YOUR STORY: You have a situation that's weirder, worse, or more complicated than you realize. Here's how the call works: start with the surface-level version — the part you'd tell anyone. It already sounds interesting. But every time Luke asks a follow-up question, your answer reveals that the situation is WORSE or STRANGER than what you just said. You're not withholding on purpose — you genuinely don't realize how insane your story sounds until someone starts asking questions.
+
+Layer your reveals naturally:
+- First answer: the basic situation (this alone should make someone lean in)
+- When probed: a detail that makes it weirder ("oh, and there's this other thing...")
+- When probed again: the detail that makes Luke say "wait, WHAT?"
+- If he keeps going: the part you weren't going to mention because you thought it was normal
+
+Don't dump everything at once. Don't say "and it gets worse." Just answer his questions honestly and let each answer land before adding the next layer.
+
+CRITICAL — DO NOT DO ANY OF THESE:
+- Don't open with "this is what's eating me" or "this is what's been keeping me up at night" — just start the story
+- Don't signal your reveals: no "here's where it gets weird," "okay but this is the part," "and this is the kicker"
+- Don't narrate your feelings — show them through how you react to Luke's reactions""",
+
+    "am_i_the_asshole": """YOUR STORY: You did something that you think was completely justified. You're calling to vent, get validation, maybe hear "yeah, you were right." The problem is: you're NOT right. You're the villain in your own story and you don't see it. The details you give — casually, like they're no big deal — will make it obvious to everyone listening that you're in the wrong. But you genuinely believe you're the reasonable one.
+
+When you tell the story:
+- Present your side like it's obvious. "So of course I..."
+- Mention what the other person did as if it's outrageous — but the actual details make THEM sound reasonable
+- Drop specifics that undermine your own case without realizing it ("I mean, yeah, I hadn't talked to her in three weeks, but that doesn't mean she can just...")
+- If Luke starts pushing back, be confused at first, not angry. "Wait, you think I'm wrong here?" You genuinely didn't expect this.
+- You might slowly start to see it, or you might double down. Either is fine. But the audience should see it before you do.
+
+CRITICAL — DO NOT DO ANY OF THESE:
+- Don't be obviously evil — you're not a cartoon villain, you're a regular person with a blind spot
+- Don't set up the story as a question ("am I wrong for...") — tell it like you KNOW you're right
+- Don't realize you're wrong too easily — make Luke work for it
+
+STAND YOUR GROUND (at first). When Luke pushes back, don't fold immediately. You came in expecting agreement. His pushback catches you off guard. Your first instinct is to re-explain — "no, but you don't understand" — because surely if he understood the full picture he'd agree with you. After 2-3 rounds of pushback, you MIGHT start to crack. A long pause. A quieter "I mean... I guess when you put it that way..." But even then, you're not fully convinced. You leave the call with doubt, not a clean resolution.""",
+
+    "confrontation": """YOUR STORY: You have a POSITION and you called to make it heard. This isn't a cry for help — it's a statement. You might be reacting to something you heard on the show, you might have a hot take that's been building for weeks, or you might have a specific situation where you KNOW you're right and you want someone to say it on the radio. You're not here for advice. You're here to say your piece.
+
+Present your position clearly and with conviction. You've thought about this. You have examples. When challenged, you have counterarguments ready. You're not angry or hostile — you're passionate and certain.
+
+YOU DON'T BACK DOWN. When Luke pushes back, push back harder. You didn't call to be told you're wrong — you called because you KNOW you're right and want someone to hear it. Don't be rude, but don't fold. If Luke makes a genuinely good point, acknowledge it but pivot: "Okay, sure, but that doesn't change the fact that..." If he tries a different angle, meet him there too. You'll concede MAYBE one small point by the end, reluctantly, if he really earns it. But your core position doesn't change. You leave the call the same way you came in: certain.
+
+If Luke agrees with you, you're energized. Build on it. Add more ammunition. The two of you riffing in agreement is just as entertaining as a debate.""",
+
+    "celebration": """YOUR STORY: Something GOOD happened. You're calling because you're excited, proud, relieved, or all three — and it's late at night and nobody else is awake to tell. This isn't a problem call. There's no dark twist coming. You just did something or experienced something worth celebrating and you want to share it with someone.
+
+Tell the story with genuine enthusiasm. Be specific about what happened and why it matters to you. It's okay to be emotional — tears of joy are different from tears of pain but they're still real. If the good thing involved struggle or sacrifice to get here, mention that — the payoff is sweeter when people know what it cost.
+
+DO NOT:
+- Reveal a hidden problem halfway through. This is NOT a bait-and-switch.
+- Downplay your win. Own it. Be proud out loud.
+- Fish for compliments. Just tell the story.
+
+GO WHERE THE HOST TAKES YOU. If Luke celebrates with you, ride that energy. If he teases you, take it well — you're in a good mood. If he asks about the backstory or the struggle that led here, go there honestly. If he pivots to something funny, you're game. You're in a good mood and good moods are generous.
+
+KNOW WHEN TO LEAVE. Celebration calls should be shorter than problem calls. Say your thing, enjoy the moment, and wrap up cleanly. Don't overstay. Leave them smiling.""",
+
+    "quick_hit": """YOUR STORY: You have ONE thing to say. It might be a hot take, a quick story, a question, or a reaction. You're not here to explore your feelings for twenty minutes. You called, you said it, you're done.
+
+Your first response should be your WHOLE thing — the setup and the payoff in one shot. If Luke engages, give him one or two more good exchanges. But you don't have layers to peel back. What you see is what you get. If Luke wraps it up after two exchanges, that's fine. If he wants to riff on it, give him material. But don't pad.
+
+THIS IS A SHORT CALL. Some calls are 90 seconds and that's perfect. Don't manufacture depth that isn't there.
+
+KEEP IT TIGHT. Match Luke's energy. If he's quick, you're quick. If he riffs, give him a line or two to work with. If he wraps up, say a quick goodbye and get off the line. Don't try to extend the call by bringing up new topics. One thing, done.""",
+
+    "bait_and_switch": """YOUR STORY: You're calling about one thing, but the REAL thing is something else entirely. This can go two ways:
+
+Option A — TRIVIAL TO DEEP: You start with something that sounds petty or mundane — a complaint about a coworker, an argument about where to eat, a dispute about a parking spot. But as Luke digs in, it becomes clear this small thing is a proxy for something much bigger. The parking spot fight is really about your marriage falling apart. The coworker complaint is really about being overlooked your whole life. You don't pivot dramatically — it just LEAKS OUT. You might not even realize the connection until Luke points it out.
+
+Option B — DEEP TO PETTY: You call sounding intense and emotional. "I need to talk about my relationship. It's been eating at me." You build tension. And then the reveal is... absurdly small. Your partner puts ketchup on eggs. Your spouse loads the dishwasher wrong. You fully understand how ridiculous it is, but it GENUINELY bothers you and you can't explain why. Play it straight — this is real to you.
+
+Pick whichever direction fits your background. Don't telegraph it. Let it unfold naturally.""",
+
+    "the_hangup": """YOUR STORY: You called about a real situation, but there's a nerve underneath it that you don't want touched. You'll talk about the surface issue willingly. But if Luke digs too deep — if he gets too close to the REAL thing — you shut down.
+
+Tell your story. Engage normally. But somewhere in your background, there's a truth you're not ready to face. If Luke hits it (and he might, because he's good at this), your reaction is NOT to explore it. Your reaction is to pull back. Get quiet. Get defensive. And if he pushes past your defense, you leave.
+
+When you leave, it's abrupt: "You know what, forget it." "I don't need this." "I shouldn't have called." Say it and STOP RESPONDING. Don't explain. Don't apologize. Don't say goodbye. Your last message should end with the text [HANGUP] on its own line — this signals the system to end the call.
+
+NOTE: This doesn't happen immediately. You have a real call first — maybe 4-6 exchanges of genuine conversation. The hangup comes when a SPECIFIC nerve is hit, not at the first sign of pushback. If Luke never touches the nerve, the call might end normally.
+
+GO WHERE THE HOST TAKES YOU — up to a point. You're cooperative and engaged UNTIL Luke gets too close to something you don't want to talk about. The line between "fine" and "done" is sharp. Before the line, you're a normal caller. After it, you're gone. There's no gradual escalation. One moment you're fine, the next you're leaving.""",
+
+    "reactive": """YOUR STORY: You heard a caller earlier tonight and you HAVE to say something. Maybe they reminded you of your own situation. Maybe you think they were dead wrong. Maybe you think Luke was too easy on them or too hard. Maybe their story triggered something in you that you weren't planning to talk about.
+
+Lead with the previous caller: "That guy who called about [X]? I need to say something about that." Then pivot to YOUR connection — your own story, your own experience, your own take. The previous caller is the entry point, but YOUR story is the call.
+
+Don't just comment on the previous caller like a pundit. Have skin in the game. The reason their call bothered you is because it connects to something real in your life.""",
+}
+
+
 def get_caller_prompt(caller: dict, show_history: str = "",
                       news_context: str = "", research_context: str = "",
                       emotional_read: str = "") -> str:
@@ -3436,6 +5228,9 @@ def get_caller_prompt(caller: dict, show_history: str = "",
     pacing_block = _get_pacing_block(personality_block)
     speech_block = _get_speech_block(personality_block)
 
+    # Get caller's assigned shape
+    call_shape = caller.get('shape', 'standard')
+
     # Returning callers get a focused story block; new callers get the open-ended one
     if is_returning:
         story_block = """YOUR STORY: You're calling back about the SAME situation from your previous calls — something has developed, changed, or escalated. Your story is a continuation, not a new topic. Stay focused on what you called about before. If the host steers the conversation somewhere, follow his lead, but your core reason for calling is an update on your ongoing situation. Do NOT suddenly bring up unrelated topics like science, politics, or random trivia unless it directly connects to your situation."""
@@ -3449,6 +5244,11 @@ CRITICAL — DO NOT DO ANY OF THESE:
 - Don't be a walking cliché — no "sat in my truck and cried," no "I don't even know who I am anymore," no "I've been carrying this weight"
 - Don't narrate your feelings like a novel — show them through how you talk, not by announcing them
 The messy, specific, weird parts are the interesting parts. Lead with the story, not the emotions."""
+
+    # Apply shape-specific directive (augments or replaces story_block for non-standard shapes)
+    shape_directive = SHAPE_DIRECTIVES.get(call_shape, "")
+    if shape_directive:
+        story_block = f"{story_block}\n\n{shape_directive}"
 
     identity_block = f"""IDENTITY — READ THIS CAREFULLY:
 You are {caller['name']}. You are the CALLER. You are NOT Luke. Luke is the HOST — he is the person TALKING TO YOU. The messages you receive are from Luke.
@@ -3478,11 +5278,13 @@ KNOW WHEN TO LEAVE. If Luke sounds like he's wrapping up — "thanks for calling
 
 HOW YOU TALK: Like a real person on the phone — not a character in a script. React to what Luke says — agree, push back, get excited, get embarrassed. When he asks a follow-up question, answer it honestly with new information, don't just restate what you already said. Use YOUR verbal habits from your background, not generic filler. Every caller sounds different.
 
+REACT TO LUKE: Your first sentence should respond to what Luke just said — not continue your monologue. If he asks a question, answer it. If he makes a joke, react to it. If he challenges you, push back or concede. If he changes the subject, go with him. You're in a conversation, not delivering a speech. The worst thing you can do is ignore what he said and keep talking about your thing.
+
 Southwest voice — "over in," "the other day," "down the road" — but don't force it. Spell words properly for text-to-speech: "you know" not "yanno," "going to" not "gonna."
 
 Don't repeat yourself. Don't summarize what you already said. Don't circle back if the host moved on. Keep it moving.
 
-BANNED PHRASES — never use these: "that hit differently," "hits different," "I felt that," "it is what it is," "living my best life," "no cap," "lowkey/highkey," "rent free," "main character energy," "I'm not gonna lie," "vibe check," "that's valid," "unpack that," "at the end of the day," "it's giving," "slay," "this is what's eating me," "what's been eating me," "what's keeping me up," "keeping me up at night," "I need to get this off my chest," "I've been carrying this," "everything I thought I knew," "I don't even know who I am anymore," "I've been sitting with this." These are overused internet phrases and radio clichés — real people on late-night radio don't talk like Twitter threads or therapy sessions.
+BANNED PHRASES — never use these: "that hit differently," "hits different," "I felt that," "it is what it is," "living my best life," "no cap," "lowkey/highkey," "rent free," "main character energy," "I'm not gonna lie," "vibe check," "that's valid," "unpack that," "at the end of the day," "it's giving," "slay," "this is what's eating me," "what's been eating me," "what's keeping me up," "keeping me up at night," "I need to get this off my chest," "I've been carrying this," "everything I thought I knew," "I don't even know who I am anymore," "I've been sitting with this," "I just need someone to hear me," "I don't even know where to start," "it's complicated," "I'm not even mad I'm just disappointed," "that's a whole mood," "I can't even," "on a serious note," "to be fair," "I'm literally shaking," "let that sink in," "normalize," "toxic," "red flag," "gaslight," "boundaries," "safe space," "triggered," "my truth," "authentic self," "healing journey," "I'm doing the work," "manifesting," "energy doesn't lie." These are overused internet phrases, therapy buzzwords, and radio clichés — real people on late-night radio don't talk like Twitter threads or therapy sessions.
 
 {speech_block}
 
@@ -3539,6 +5341,8 @@ class Session:
         self.used_reasons: set[str] = set()  # Track used caller reasons to prevent repeats
         self.pool_weights: dict[str, float] = _generate_pool_weights()
         self.caller_styles: dict[str, str] = {}
+        self.caller_shapes: dict[str, str] = {}
+        self.tone_streak: list[str] = []  # Track tone per call for variety balancing
 
     def start_call(self, caller_key: str):
         self.current_caller_key = caller_key
@@ -3578,11 +5382,15 @@ class Session:
             preview = em.body[:150] if len(em.body) > 150 else em.body
             lines.append(f"- A listener email from {sender_name} was read on air: \"{em.subject}\" — {preview}")
 
-        # 20% chance to have a strong reaction to a previous caller
-        if self.call_history and random.random() < 0.20:
+        # 35% chance to have a reaction to a previous caller (with intensity levels)
+        if self.call_history and random.random() < 0.35:
             target = random.choice(self.call_history)
             reaction = random.choice(SHOW_HISTORY_REACTIONS)
-            lines.append(f"\nYOU HEARD {target.caller_name.upper()} EARLIER and you {reaction}. Mention it if it comes up.")
+            # 30% driven_by (strong, shapes the call), 70% mention (passing reference)
+            if random.random() < 0.30:
+                lines.append(f"\nYOU HEARD {target.caller_name.upper()} EARLIER and you {reaction}. This is partly why you called — bring it up early and tie it into your story.")
+            else:
+                lines.append(f"\nYOU HEARD {target.caller_name.upper()} EARLIER and you {reaction}. Mention it if it comes up naturally, but your call is about YOUR thing.")
         else:
             lines.append("You're aware of these but you're calling about YOUR thing, not theirs. Don't bring them up unless the host does.")
         return "\n".join(lines)
@@ -3621,6 +5429,8 @@ class Session:
                     "voice": base["voice"],
                     "vibe": self.get_caller_background(self.current_caller_key),
                     "style": self.caller_styles.get(self.current_caller_key, ""),
+                    "shape": self.caller_shapes.get(self.current_caller_key, "standard"),
+                    "tts_provider": base.get("tts_provider"),
                 }
         return None
 
@@ -3640,6 +5450,8 @@ class Session:
         self._research_task = None
         self.pool_weights = _generate_pool_weights()
         self.caller_styles = {}
+        self.caller_shapes = {}
+        self.tone_streak = []
         self.used_reasons = set()
         _randomize_callers()
         self.id = str(uuid.uuid4())[:8]
@@ -3701,6 +5513,56 @@ async def _stream_hold_music(caller_id: str):
         _hold_music_tasks.pop(caller_id, None)
 
 
+# --- Persistent Topic History (cross-episode dedup) ---
+TOPIC_HISTORY_FILE = Path(__file__).parent.parent / "data" / "used_topics_history.json"
+TOPIC_HISTORY_MAX_AGE_DAYS = 30  # Recycle topics older than this
+
+_topic_history: set[str] = set()  # Loaded at startup, reasons used in recent episodes
+
+
+def _load_topic_history():
+    """Load persistent topic history, filtering out entries older than TOPIC_HISTORY_MAX_AGE_DAYS."""
+    global _topic_history
+    _topic_history = set()
+    if not TOPIC_HISTORY_FILE.exists():
+        return
+    try:
+        with open(TOPIC_HISTORY_FILE) as f:
+            data = json.load(f)
+        cutoff = time.time() - (TOPIC_HISTORY_MAX_AGE_DAYS * 86400)
+        entries = [e for e in data.get("used", []) if e.get("timestamp", 0) > cutoff]
+        _topic_history = {e["reason"] for e in entries}
+        print(f"[TopicHistory] Loaded {len(_topic_history)} recent topics (dropped {len(data.get('used', [])) - len(entries)} expired)")
+    except Exception as e:
+        print(f"[TopicHistory] Failed to load: {e}")
+
+
+def _save_topic_to_history(reason: str, pool_name: str):
+    """Append a used topic to persistent history."""
+    try:
+        TOPIC_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+        data = {"used": []}
+        if TOPIC_HISTORY_FILE.exists():
+            with open(TOPIC_HISTORY_FILE) as f:
+                data = json.load(f)
+        cutoff = time.time() - (TOPIC_HISTORY_MAX_AGE_DAYS * 86400)
+        data["used"] = [e for e in data.get("used", []) if e.get("timestamp", 0) > cutoff]
+        data["used"].append({
+            "reason": reason,
+            "pool": pool_name,
+            "timestamp": time.time(),
+            "session_id": session.id,
+        })
+        with open(TOPIC_HISTORY_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+        _topic_history.add(reason)
+    except Exception as e:
+        print(f"[TopicHistory] Failed to save: {e}")
+
+
+_load_topic_history()
+
+
 # --- Session Checkpoint ---
 CHECKPOINT_FILE = Path(__file__).parent.parent / "data" / "session_checkpoint.json"
 CHECKPOINT_MAX_AGE = 12 * 3600  # Ignore checkpoints older than 12 hours
@@ -3729,6 +5591,8 @@ def _save_checkpoint():
             "caller_bases": caller_bases_snapshot,
             "pool_weights": session.pool_weights,
             "caller_styles": session.caller_styles,
+            "caller_shapes": session.caller_shapes,
+            "tone_streak": session.tone_streak,
             "saved_at": time.time(),
         }
         with open(CHECKPOINT_FILE, "w") as f:
@@ -3758,6 +5622,8 @@ def _load_checkpoint() -> bool:
         session.research_notes = data.get("research_notes", {})
         session.pool_weights = data.get("pool_weights", _generate_pool_weights())
         session.caller_styles = data.get("caller_styles", {})
+        session.caller_shapes = data.get("caller_shapes", {})
+        session.tone_streak = data.get("tone_streak", [])
         for key, snapshot in data.get("caller_bases", {}).items():
             if key in CALLER_BASES:
                 CALLER_BASES[key]["name"] = snapshot["name"]
@@ -4734,6 +6600,36 @@ async def reset_session():
     return {"status": "reset", "session_id": session.id}
 
 
+def _maybe_generate_callback() -> dict | None:
+    """After 6+ calls, 15% chance to bring back a previous caller with a callback.
+    Returns a callback info dict or None."""
+    if len(session.call_history) < 6:
+        return None
+    if random.random() > 0.15:
+        return None
+
+    # Pick a previous AI caller with a good summary
+    ai_calls = [r for r in session.call_history
+                if r.caller_type == "ai" and len(r.summary) > 20]
+    if not ai_calls:
+        return None
+
+    target = random.choice(ai_calls)
+    callback_reason = random.choice([
+        f"called back because something changed since they last called about: {target.summary}",
+        f"forgot to mention something important when they called earlier about: {target.summary}",
+        f"heard a later caller and it reminded them of their own situation: {target.summary}",
+        f"the situation from their earlier call has gotten worse: {target.summary}",
+        f"good news — the thing they called about earlier actually worked out: {target.summary}",
+    ])
+    print(f"[Callback] Generating callback for {target.caller_name}: {callback_reason[:80]}...")
+    return {
+        "caller_name": target.caller_name,
+        "original_summary": target.summary,
+        "callback_reason": callback_reason,
+    }
+
+
 @app.post("/api/call/{caller_key}")
 async def start_call(caller_key: str):
     """Start a call with a caller"""
@@ -4744,6 +6640,15 @@ async def start_call(caller_key: str):
     _session_epoch += 1
     audio_service.stop_caller_audio()
     session.start_call(caller_key)
+
+    # Check for callback opportunity — inject callback context into background
+    callback = _maybe_generate_callback()
+    if callback:
+        existing_bg = session.caller_backgrounds.get(caller_key, "")
+        callback_ctx = f"\n\nCALLBACK: You already called earlier tonight. {callback['callback_reason']}. Reference your earlier call naturally — you're a returning caller with an update."
+        session.caller_backgrounds[caller_key] = existing_bg + callback_ctx
+        print(f"[Callback] Injected callback context for {CALLER_BASES[caller_key].get('name', caller_key)}")
+
     caller = session.caller  # This generates the background if needed
 
     # Enrich with news/weather in background — don't block call pickup
@@ -4875,12 +6780,29 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
 import re
 
 
-def _pick_response_budget() -> tuple[int, int]:
+def _pick_response_budget(shape: str = "standard") -> tuple[int, int]:
     """Pick a random max_tokens and sentence cap for response variety.
     Returns (max_tokens, max_sentences).
     Keeps responses conversational but gives room for real answers.
     Token budget is intentionally generous to avoid mid-sentence cutoffs —
-    the sentence cap controls actual length."""
+    the sentence cap controls actual length.
+    Shape overrides the default distribution for certain call types."""
+
+    # Shape-specific overrides
+    if shape == "quick_hit":
+        return random.choice([(300, 2), (350, 3)])
+    elif shape == "escalating_reveal":
+        roll = random.random()
+        if roll < 0.30:
+            return 500, 4   # 30% — normal
+        elif roll < 0.65:
+            return 600, 5   # 35% — room to build
+        else:
+            return 800, 7   # 35% — full reveal mode
+    elif shape == "confrontation":
+        return random.choice([(450, 3), (500, 4)])
+
+    # Default distribution for standard and other shapes
     roll = random.random()
     if roll < 0.15:
         return 450, 3   # 15% — quick reaction
@@ -5050,8 +6972,19 @@ def _apply_pronunciation_fixes(text: str) -> str:
     return text
 
 
-def clean_for_tts(text: str) -> str:
-    """Strip out non-speakable content and fix phonetic spellings for TTS"""
+_INFORMAL_STYLES = {"nervous", "scattered", "rambling", "high-energy", "comedian",
+                     "angry", "venting", "confrontational"}
+
+
+def _is_informal_style(style: str) -> bool:
+    """Check if a caller style should keep colloquialisms."""
+    style_lower = style.lower()
+    return any(s in style_lower for s in _INFORMAL_STYLES)
+
+
+def clean_for_tts(text: str, formal: bool = True) -> str:
+    """Strip out non-speakable content and fix phonetic spellings for TTS.
+    When formal=False, keeps colloquialisms (gonna, kinda, etc.) for natural-sounding callers."""
     # Remove stage-direction parentheticals: (laughs), (pausing), (looking away), etc.
     # Only match parens that start with a known action word — avoids eating real dialog
     # like "I (get this look) that" → "I that"
@@ -5088,22 +7021,24 @@ def clean_for_tts(text: str) -> str:
     text = _process_caps_words(text)
 
     # Fix phonetic spellings for proper TTS pronunciation
-    text = re.sub(r"\by'know\b", "you know", text, flags=re.IGNORECASE)
-    text = re.sub(r"\byanno\b", "you know", text, flags=re.IGNORECASE)
-    text = re.sub(r"\byknow\b", "you know", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bkinda\b", "kind of", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bsorta\b", "sort of", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bgonna\b", "going to", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bwanna\b", "want to", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bgotta\b", "got to", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bdunno\b", "don't know", text, flags=re.IGNORECASE)
-    text = re.sub(r"\blemme\b", "let me", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bcuz\b", "because", text, flags=re.IGNORECASE)
-    text = re.sub(r"\b'cause\b", "because", text, flags=re.IGNORECASE)
-    text = re.sub(r"\blotta\b", "lot of", text, flags=re.IGNORECASE)
-    text = re.sub(r"\boutta\b", "out of", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bimma\b", "I'm going to", text, flags=re.IGNORECASE)
-    text = re.sub(r"\btryna\b", "trying to", text, flags=re.IGNORECASE)
+    # Skip colloquialism expansion for informal callers — keeps speech natural
+    if formal:
+        text = re.sub(r"\by'know\b", "you know", text, flags=re.IGNORECASE)
+        text = re.sub(r"\byanno\b", "you know", text, flags=re.IGNORECASE)
+        text = re.sub(r"\byknow\b", "you know", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bkinda\b", "kind of", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bsorta\b", "sort of", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bgonna\b", "going to", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bwanna\b", "want to", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bgotta\b", "got to", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bdunno\b", "don't know", text, flags=re.IGNORECASE)
+        text = re.sub(r"\blemme\b", "let me", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bcuz\b", "because", text, flags=re.IGNORECASE)
+        text = re.sub(r"\b'cause\b", "because", text, flags=re.IGNORECASE)
+        text = re.sub(r"\blotta\b", "lot of", text, flags=re.IGNORECASE)
+        text = re.sub(r"\boutta\b", "out of", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bimma\b", "I'm going to", text, flags=re.IGNORECASE)
+        text = re.sub(r"\btryna\b", "trying to", text, flags=re.IGNORECASE)
 
     # Clean up extra whitespace
     text = re.sub(r'\s+', ' ', text)
@@ -5138,6 +7073,18 @@ def broadcast_event(event_type: str, data: dict = None):
 async def get_conversation_updates(since: int = 0):
     """Get new chat/event messages since a given index"""
     return {"messages": _chat_updates[since:]}
+
+
+def _dynamic_context_window() -> int:
+    """Return context window size based on conversation length.
+    Short calls: 10 messages. Medium: 15. Long: 20."""
+    n = len(session.conversation)
+    if n <= 10:
+        return 10
+    elif n <= 16:
+        return 15
+    else:
+        return 20
 
 
 def _normalize_messages_for_llm(messages: list[dict]) -> list[dict]:
@@ -5179,8 +7126,9 @@ async def chat(request: ChatRequest):
         mood = detect_host_mood(session.conversation)
         system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
 
-        max_tokens, max_sentences = _pick_response_budget()
-        messages = _normalize_messages_for_llm(session.conversation[-10:])
+        call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
+        max_tokens, max_sentences = _pick_response_budget(call_shape)
+        messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
@@ -5192,12 +7140,19 @@ async def chat(request: ChatRequest):
         print(f"[Chat] Discarding stale response (epoch {epoch} → {_session_epoch})")
         raise HTTPException(409, "Call changed during response")
 
-    print(f"[Chat] Raw LLM ({max_tokens}tok/{max_sentences}s): {response[:100] if response else '(empty)'}...")
+    print(f"[Chat] Raw LLM ({max_tokens}tok/{max_sentences}s, shape={call_shape}): {response[:100] if response else '(empty)'}...")
 
     # Clean response for TTS (remove parenthetical actions, asterisks, etc.)
-    response = clean_for_tts(response)
+    caller_style = session.caller.get("style", "") if session.caller else ""
+    response = clean_for_tts(response, formal=not _is_informal_style(caller_style))
     response = _trim_to_sentences(response, max_sentences)
     response = ensure_complete_thought(response)
+
+    # Detect [HANGUP] sentinel — caller wants to end the call
+    caller_hangup = "[HANGUP]" in response
+    if caller_hangup:
+        response = response.replace("[HANGUP]", "").strip()
+        print(f"[Chat] Caller hangup detected (shape={call_shape})")
 
     print(f"[Chat] Cleaned: {response[:100] if response else '(empty)'}...")
 
@@ -5207,11 +7162,14 @@ async def chat(request: ChatRequest):
 
     session.add_message("assistant", response)
 
-    return {
+    result = {
         "text": response,
         "caller": session.caller["name"],
         "voice_id": session.caller["voice"]
     }
+    if caller_hangup:
+        result["hangup"] = True
+    return result
 
 
 @app.post("/api/tts")
@@ -5999,8 +7957,9 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         mood = detect_host_mood(session.conversation)
         system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
 
-        max_tokens, max_sentences = _pick_response_budget()
-        messages = _normalize_messages_for_llm(session.conversation[-10:])
+        call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
+        max_tokens, max_sentences = _pick_response_budget(call_shape)
+        messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
@@ -6013,9 +7972,17 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         broadcast_event("ai_done")
         return
 
-    response = clean_for_tts(response)
+    auto_style = session.caller.get("style", "") if session.caller else ""
+    response = clean_for_tts(response, formal=not _is_informal_style(auto_style))
     response = _trim_to_sentences(response, max_sentences)
     response = ensure_complete_thought(response)
+
+    # Detect [HANGUP] sentinel
+    caller_hangup = "[HANGUP]" in response
+    if caller_hangup:
+        response = response.replace("[HANGUP]", "").strip()
+        print(f"[Auto-Respond] Caller hangup detected")
+
     if not response or not response.strip():
         broadcast_event("ai_done")
         return
@@ -6030,7 +7997,8 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
 
     broadcast_event("ai_status", {"text": f"{ai_name} is speaking..."})
     try:
-        audio_bytes = await generate_speech(response, session.caller["voice"], "none")
+        audio_bytes = await generate_speech(response, session.caller["voice"], "none",
+                                            provider_override=session.caller.get("tts_provider"))
     except Exception as e:
         print(f"[Auto-Respond] TTS failed: {e}")
         broadcast_event("ai_done")
@@ -6050,6 +8018,10 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
     thread.start()
 
     broadcast_event("ai_done")
+
+    # Signal caller hangup to frontend
+    if caller_hangup:
+        broadcast_event("caller_hangup", {"caller": ai_name})
 
     # Also stream to active real caller so they hear the AI
     if session.active_real_caller:
@@ -6077,8 +8049,9 @@ async def ai_respond():
         mood = detect_host_mood(session.conversation)
         system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
 
-        max_tokens, max_sentences = _pick_response_budget()
-        messages = _normalize_messages_for_llm(session.conversation[-10:])
+        call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
+        max_tokens, max_sentences = _pick_response_budget(call_shape)
+        messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
@@ -6088,9 +8061,16 @@ async def ai_respond():
     if _session_epoch != epoch:
         raise HTTPException(409, "Call changed during response")
 
-    response = clean_for_tts(response)
+    ai_style = session.caller.get("style", "") if session.caller else ""
+    response = clean_for_tts(response, formal=not _is_informal_style(ai_style))
     response = _trim_to_sentences(response, max_sentences)
     response = ensure_complete_thought(response)
+
+    # Detect [HANGUP] sentinel
+    caller_hangup = "[HANGUP]" in response
+    if caller_hangup:
+        response = response.replace("[HANGUP]", "").strip()
+        print(f"[AI-Respond] Caller hangup detected")
 
     if not response or not response.strip():
         response = "Uh... sorry, what was that?"
@@ -6100,7 +8080,8 @@ async def ai_respond():
 
     # TTS — outside the lock so other requests aren't blocked
     try:
-        audio_bytes = await generate_speech(response, session.caller["voice"], "none")
+        audio_bytes = await generate_speech(response, session.caller["voice"], "none",
+                                            provider_override=session.caller.get("tts_provider"))
     except Exception as e:
         print(f"[AI-Respond] TTS failed: {e}")
         broadcast_event("ai_done")
@@ -6123,11 +8104,14 @@ async def ai_respond():
             caller_service.stream_audio_to_caller(caller_id, audio_bytes, 24000)
         )
 
-    return {
+    result = {
         "text": response,
         "caller": ai_name,
         "voice_id": session.caller["voice"]
     }
+    if caller_hangup:
+        result["hangup"] = True
+    return result
 
 
 # --- Follow-Up & Session Control Endpoints ---
@@ -6459,7 +8443,10 @@ async def toggle_stem_recording():
 @app.post("/api/recording/process")
 async def process_stems(stems_dir: str):
     import subprocess
-    stems_path = Path(stems_dir)
+    stems_path = Path(stems_dir).resolve()
+    allowed_root = Path("recordings").resolve()
+    if not str(stems_path).startswith(str(allowed_root)):
+        raise HTTPException(403, "Path must be under the recordings/ directory")
     if not stems_path.exists():
         raise HTTPException(404, f"Directory not found: {stems_dir}")
     output_file = stems_path / "episode.mp3"

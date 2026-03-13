@@ -600,6 +600,32 @@ async def generate_speech_chattts(text: str, voice_id: str) -> tuple[np.ndarray,
     return audio.astype(np.float32), 24000
 
 
+_EXCITED_KEYWORDS = {"excited", "amazing", "incredible", "can't believe", "so happy",
+                     "hell yeah", "fired up", "furious", "pissed", "angry", "what the hell",
+                     "are you kidding", "unbelievable", "!!", "oh my god"}
+_SAD_KEYWORDS = {"sad", "miss them", "passed away", "funeral", "crying", "broke my heart",
+                 "can't stop thinking", "lonely", "depressed", "sorry", "regret",
+                 "wish I could", "never got to", "lost", "grief"}
+
+
+def _detect_speech_rate(text: str, base_speed: float) -> float:
+    """Adjust speech rate based on emotional content of the text.
+    Returns a speed value clamped to Inworld's 0.5-1.5 range."""
+    text_lower = text.lower()
+    excited = sum(1 for kw in _EXCITED_KEYWORDS if kw in text_lower)
+    sad = sum(1 for kw in _SAD_KEYWORDS if kw in text_lower)
+
+    if excited >= 2:
+        return min(1.5, base_speed + 0.15)
+    elif excited >= 1:
+        return min(1.5, base_speed + 0.08)
+    elif sad >= 2:
+        return max(0.5, base_speed - 0.2)
+    elif sad >= 1:
+        return max(0.5, base_speed - 0.1)
+    return base_speed
+
+
 async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray, int]:
     """Generate speech using Inworld TTS API (high quality, natural voices)"""
     import httpx
@@ -617,8 +643,9 @@ async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray,
     if not api_key:
         raise RuntimeError("INWORLD_API_KEY not set in environment")
 
-    speed = INWORLD_SPEED_OVERRIDES.get(voice, DEFAULT_INWORLD_SPEED)
-    print(f"[Inworld TTS] Voice: {voice}, Speed: {speed}, Text: {text[:50]}...")
+    base_speed = INWORLD_SPEED_OVERRIDES.get(voice, DEFAULT_INWORLD_SPEED)
+    speed = _detect_speech_rate(text, base_speed)
+    print(f"[Inworld TTS] Voice: {voice}, Speed: {speed:.2f} (base {base_speed}), Text: {text[:50]}...")
 
     url = "https://api.inworld.ai/tts/v1/voice"
     headers = {
@@ -671,6 +698,20 @@ async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray,
     return audio.astype(np.float32), 24000
 
 
+def pick_caller_tts_provider() -> str | None:
+    """Randomly assign a TTS provider for a caller.
+    Returns None to use the global default, or a specific provider name.
+    ~70% inworld (default), ~20% kokoro, ~10% other available."""
+    import random
+    roll = random.random()
+    if roll < 0.70:
+        return None  # Use global default (typically inworld)
+    elif roll < 0.90:
+        return "kokoro"
+    else:
+        return random.choice(["kokoro", "f5tts", "chattts"])
+
+
 _TTS_PROVIDERS = {
     "kokoro": lambda text, vid: generate_speech_kokoro(text, vid),
     "f5tts": lambda text, vid: generate_speech_f5tts(text, vid),
@@ -690,7 +731,8 @@ async def generate_speech(
     text: str,
     voice_id: str,
     phone_quality: str = "normal",
-    apply_filter: bool = True
+    apply_filter: bool = True,
+    provider_override: str = None
 ) -> bytes:
     """
     Generate speech from text with automatic retry on failure.
@@ -700,14 +742,15 @@ async def generate_speech(
         voice_id: ElevenLabs voice ID (mapped to local voice if using local TTS)
         phone_quality: Quality of phone filter ("none" to disable)
         apply_filter: Whether to apply phone filter
+        provider_override: Override the global TTS provider for this call
 
     Returns:
         Raw PCM audio bytes (16-bit signed int, 24kHz)
     """
     import asyncio
 
-    provider = settings.tts_provider
-    print(f"[TTS] Provider: {provider}, Text: {text[:50]}...")
+    provider = provider_override or settings.tts_provider
+    print(f"[TTS] Provider: {provider}{' (override)' if provider_override else ''}, Text: {text[:50]}...")
 
     gen_fn = _TTS_PROVIDERS.get(provider)
     if not gen_fn:

@@ -432,7 +432,7 @@ def mix_stems(stems: dict[str, np.ndarray],
 
             if name == "music" and music_width > 0:
                 # Widen music: delay right channel by ~0.5ms for Haas effect
-                delay_samples = int(0.0005 * 44100)  # ~22 samples at 44.1kHz
+                delay_samples = int(0.0005 * sr)  # ~22 samples at target sample rate
                 left += signal * (1 + music_width * 0.5)
                 right_delayed = np.zeros_like(signal)
                 right_delayed[delay_samples:] = signal[:-delay_samples] if delay_samples > 0 else signal

@@ -247,12 +247,14 @@ def _run_db_query(sql):
 
     db_pass = os.getenv("CASTOPOD_DB_PASS", "")
     if docker_bin:
-        cmd = [docker_bin, "exec", "-i", CASTOPOD_DB_CONTAINER,
-               "mysql", "-u", "castopod", f"-p{db_pass}", "castopod", "-N"]
+        # Pass password via MYSQL_PWD env var instead of command line (not visible in ps)
+        cmd = [docker_bin, "exec", "-i", "-e", f"MYSQL_PWD={db_pass}",
+               CASTOPOD_DB_CONTAINER,
+               "mysql", "-u", "castopod", "castopod", "-N"]
     else:
         cmd = [
             "ssh", "-p", NAS_SSH_PORT, NAS_SSH,
-            f"{DOCKER_BIN} exec -i {CASTOPOD_DB_CONTAINER} mysql -u castopod -p{db_pass} castopod -N"
+            f"{DOCKER_BIN} exec -i -e MYSQL_PWD={db_pass} {CASTOPOD_DB_CONTAINER} mysql -u castopod castopod -N"
         ]
     try:
         proc = subprocess.run(cmd, input=sql, capture_output=True, text=True, timeout=30)

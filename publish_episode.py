@@ -31,8 +31,8 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from dotenv import load_dotenv
 
 
-class TLSAdapter(HTTPAdapter):
-    """Adapter to handle servers with older TLS configurations."""
+class CastopodTLSAdapter(HTTPAdapter):
+    """Adapter for Castopod's older TLS configuration (scoped to Castopod only)."""
     def init_poolmanager(self, *args, **kwargs):
         ctx = create_urllib3_context()
         ctx.set_ciphers('DEFAULT@SECLEVEL=1')
@@ -46,9 +46,10 @@ class TLSAdapter(HTTPAdapter):
         return super().send(*args, **kwargs)
 
 
-# Use a session with TLS compatibility for all Castopod requests
+# TLS compatibility only for Castopod domain — all other HTTPS uses default secure verification
 _session = requests.Session()
-_session.mount('https://', TLSAdapter())
+_CASTOPOD_ORIGIN = "https://podcast.macneilmediagroup.com"
+_session.mount(_CASTOPOD_ORIGIN, CastopodTLSAdapter())
 
 # Load environment variables
 load_dotenv(Path(__file__).parent / ".env")
@@ -485,7 +486,7 @@ def _create_episode_direct(audio_path: str, metadata: dict, episode_number: int,
 
     # Copy SQL into MariaDB container and execute
     run_ssh_command(f'{DOCKER_PATH} cp {nas_sql_path} {MARIADB_CONTAINER}:/tmp/_insert.sql')
-    exec_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} sh -c "mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -N < /tmp/_insert.sql"'
+    exec_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} sh -c "mysql --defaults-extra-file=/tmp/.my.cnf -u {DB_USER} {DB_NAME} -N < /tmp/_insert.sql"'
     success, output = run_ssh_command(exec_cmd, timeout=30)
     run_ssh_command(f'rm -f {nas_sql_path}')
     run_ssh_command(f'{DOCKER_PATH} exec {MARIADB_CONTAINER} rm -f /tmp/_insert.sql')
@@ -496,7 +497,7 @@ def _create_episode_direct(audio_path: str, metadata: dict, episode_number: int,
 
     episode_id = int(output.strip().split('\n')[-1])
     # Get the audio media ID for CDN upload
-    audio_id_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -N -e "SELECT audio_id FROM cp_episodes WHERE id = {episode_id};"'
+    audio_id_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql --defaults-extra-file=/tmp/.my.cnf -u {DB_USER} {DB_NAME} -N -e "SELECT audio_id FROM cp_episodes WHERE id = {episode_id};"'
     success, audio_id_str = run_ssh_command(audio_id_cmd)
     audio_id = int(audio_id_str.strip()) if success else None
     if audio_id:
@@ -582,10 +583,29 @@ def run_ssh_command(command: str, timeout: int = 30) -> tuple[bool, str]:
         return False, str(e)
 
 
+def _setup_mysql_auth():
+    """Create a temp MySQL defaults file inside the MariaDB container.
+    This avoids passing the DB password on the command line (visible in ps)."""
+    content = f"[client]\npassword={DB_PASS}\n"
+    b64 = base64.b64encode(content.encode()).decode()
+    cmd = (f'{DOCKER_PATH} exec {MARIADB_CONTAINER} sh -c '
+           f'"echo {b64} | base64 -d > /tmp/.my.cnf && chmod 600 /tmp/.my.cnf"')
+    success, output = run_ssh_command(cmd)
+    if not success:
+        print(f"Warning: Failed to set up MySQL auth file: {output}")
+        return False
+    return True
+
+
+def _cleanup_mysql_auth():
+    """Remove the temp MySQL defaults file from the MariaDB container."""
+    run_ssh_command(f'{DOCKER_PATH} exec {MARIADB_CONTAINER} rm -f /tmp/.my.cnf')
+
+
 def _check_episode_exists_in_db(episode_number: int) -> bool | None:
     """Check if an episode with this number already exists in Castopod DB.
     Returns True/False on success, None if the check itself failed."""
-    cmd = (f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} '
+    cmd = (f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql --defaults-extra-file=/tmp/.my.cnf -u {DB_USER} {DB_NAME} '
            f'-N -e "SELECT COUNT(*) FROM cp_episodes WHERE number = {episode_number};"')
     success, output = run_ssh_command(cmd)
     if success and output.strip():
@@ -685,7 +705,7 @@ def upload_transcript_to_castopod(episode_slug: str, episode_id: int, transcript
         f"uploaded_by, updated_by, uploaded_at, updated_at) VALUES "
         f"('{remote_path}', {file_size}, '{mimetype}', {metadata_sql_escaped}, 'transcript', 1, 1, NOW(), NOW())"
     )
-    db_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -e "{insert_sql}; SELECT LAST_INSERT_ID();"'
+    db_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql --defaults-extra-file=/tmp/.my.cnf -u {DB_USER} {DB_NAME} -e "{insert_sql}; SELECT LAST_INSERT_ID();"'
     success, output = run_ssh_command(db_cmd)
     if not success:
         print(f"    Warning: Failed to insert transcript in database: {output}")
@@ -699,7 +719,7 @@ def upload_transcript_to_castopod(episode_slug: str, episode_id: int, transcript
         return False
 
     update_sql = f"UPDATE cp_episodes SET transcript_id = {media_id} WHERE id = {episode_id}"
-    db_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -e "{update_sql}"'
+    db_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql --defaults-extra-file=/tmp/.my.cnf -u {DB_USER} {DB_NAME} -e "{update_sql}"'
     success, output = run_ssh_command(db_cmd)
     if not success:
         print(f"    Warning: Failed to link transcript to episode: {output}")
@@ -739,7 +759,7 @@ def upload_chapters_to_castopod(episode_slug: str, episode_id: int, chapters_pat
     # Insert into media table
     insert_sql = f"""INSERT INTO cp_media (file_key, file_size, file_mimetype, type, uploaded_by, updated_by, uploaded_at, updated_at)
         VALUES ('{remote_path}', {file_size}, 'application/json', 'chapters', 1, 1, NOW(), NOW())"""
-    db_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -e "{insert_sql}; SELECT LAST_INSERT_ID();"'
+    db_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql --defaults-extra-file=/tmp/.my.cnf -u {DB_USER} {DB_NAME} -e "{insert_sql}; SELECT LAST_INSERT_ID();"'
     success, output = run_ssh_command(db_cmd)
     if not success:
         print(f"    Warning: Failed to insert chapters in database: {output}")
@@ -755,7 +775,7 @@ def upload_chapters_to_castopod(episode_slug: str, episode_id: int, chapters_pat
 
     # Link chapters to episode
     update_sql = f"UPDATE cp_episodes SET chapters_id = {media_id} WHERE id = {episode_id}"
-    db_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -e "{update_sql}"'
+    db_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql --defaults-extra-file=/tmp/.my.cnf -u {DB_USER} {DB_NAME} -e "{update_sql}"'
     success, output = run_ssh_command(db_cmd)
     if not success:
         print(f"    Warning: Failed to link chapters to episode: {output}")
@@ -822,7 +842,7 @@ def sync_episode_media_to_bunny(episode_id: int, already_uploaded: set):
         f"UNION ALL SELECT transcript_id FROM cp_episodes WHERE id = {ep_id} AND transcript_id IS NOT NULL "
         f"UNION ALL SELECT chapters_id FROM cp_episodes WHERE id = {ep_id} AND chapters_id IS NOT NULL)"
     )
-    cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -N -e "{query};"'
+    cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql --defaults-extra-file=/tmp/.my.cnf -u {DB_USER} {DB_NAME} -N -e "{query};"'
     success, output = run_ssh_command(cmd)
     if not success or not output:
         return
@@ -1209,7 +1229,7 @@ def upload_to_youtube(audio_path: str, metadata: dict, chapters: list,
 def get_next_episode_number() -> int:
     """Get the next episode number from Castopod (DB first, API fallback)."""
     # Query DB directly — the REST API is unreliable
-    cmd = (f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} '
+    cmd = (f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql --defaults-extra-file=/tmp/.my.cnf -u {DB_USER} {DB_NAME} '
            f'-N -e "SELECT COALESCE(MAX(number), 0) FROM cp_episodes WHERE podcast_id = {PODCAST_ID};"')
     success, output = run_ssh_command(cmd)
     if success and output.strip():
@@ -1286,6 +1306,9 @@ def main():
     except Exception:
         pass
 
+    # Set up MySQL auth (avoids password on command line)
+    _setup_mysql_auth()
+
     # Determine episode number
     if args.episode_number:
         episode_number = args.episode_number
@@ -1299,12 +1322,14 @@ def main():
         if exists is None:
             print(f"Error: Could not reach Castopod DB to check for duplicates. "
                   f"Aborting to prevent duplicate uploads. Fix NAS connectivity and retry.")
+            _cleanup_mysql_auth()
             lock_fp.close()
             LOCK_FILE.unlink(missing_ok=True)
             sys.exit(1)
         if exists:
             print(f"Error: Episode {episode_number} already exists in Castopod. "
                   f"Use --episode-number to specify a different number, or remove the existing episode first.")
+            _cleanup_mysql_auth()
             lock_fp.close()
             LOCK_FILE.unlink(missing_ok=True)
             sys.exit(1)
@@ -1374,20 +1399,38 @@ def main():
     episode = create_episode(str(audio_path), metadata, episode_number, duration=transcript["duration"])
     _mark_step_done(episode_number, "castopod", {"episode_id": episode["id"], "slug": episode.get("slug")})
 
-    # Step 3.5: Upload to BunnyCDN
-    print("[3.5/5] Uploading to BunnyCDN...")
+    # Step 3.5: Upload chapters and transcript to Castopod
+    # (must happen before CDN sync so media records exist for syncing)
+    chapters_uploaded = upload_chapters_to_castopod(
+        episode["slug"],
+        episode["id"],
+        str(chapters_path)
+    )
+
+    transcript_uploaded = upload_transcript_to_castopod(
+        episode["slug"],
+        episode["id"],
+        str(srt_path)
+    )
+
+    # Step 3.7: Upload to BunnyCDN
+    # All media must be on CDN before publish triggers RSS rebuild
+    print("[3.7/5] Uploading to BunnyCDN...")
     uploaded_keys = set()
 
     # Audio: query file_key from DB, then upload to CDN
     ep_id = episode["id"]
-    audio_media_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql -u {DB_USER} -p{DB_PASS} {DB_NAME} -N -e "SELECT m.file_key FROM cp_media m JOIN cp_episodes e ON e.audio_id = m.id WHERE e.id = {ep_id};"'
+    audio_media_cmd = f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql --defaults-extra-file=/tmp/.my.cnf -u {DB_USER} {DB_NAME} -N -e "SELECT m.file_key FROM cp_media m JOIN cp_episodes e ON e.audio_id = m.id WHERE e.id = {ep_id};"'
     success, audio_file_key = run_ssh_command(audio_media_cmd)
     if success and audio_file_key:
         audio_file_key = audio_file_key.strip()
         if direct_upload:
             # Direct upload: we have the original file locally, upload straight to CDN
             print(f"    Uploading audio to BunnyCDN")
-            upload_to_bunny(str(audio_path), f"media/{audio_file_key}", "audio/mpeg")
+            if upload_to_bunny(str(audio_path), f"media/{audio_file_key}", "audio/mpeg"):
+                uploaded_keys.add(audio_file_key)
+            else:
+                print(f"    Warning: Audio CDN upload failed, will be served from Castopod")
         else:
             # API upload: download Castopod's copy (ensures byte-exact match with RSS metadata)
             with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
@@ -1396,13 +1439,18 @@ def main():
                 print(f"    Downloading from Castopod: {audio_file_key}")
                 if download_from_castopod(audio_file_key, tmp_audio):
                     print(f"    Uploading audio to BunnyCDN")
-                    upload_to_bunny(tmp_audio, f"media/{audio_file_key}", "audio/mpeg")
+                    if upload_to_bunny(tmp_audio, f"media/{audio_file_key}", "audio/mpeg"):
+                        uploaded_keys.add(audio_file_key)
+                    else:
+                        print(f"    Warning: Audio CDN upload failed, will be served from Castopod")
                 else:
                     print(f"    Castopod download failed, uploading original file")
-                    upload_to_bunny(str(audio_path), f"media/{audio_file_key}", "audio/mpeg")
+                    if upload_to_bunny(str(audio_path), f"media/{audio_file_key}", "audio/mpeg"):
+                        uploaded_keys.add(audio_file_key)
+                    else:
+                        print(f"    Warning: Audio CDN upload failed, will be served from Castopod")
             finally:
                 Path(tmp_audio).unlink(missing_ok=True)
-        uploaded_keys.add(audio_file_key)
     else:
         print(f"    Error: Could not determine audio file_key from Castopod DB")
         print(f"    Audio will be served from Castopod directly (not CDN)")
@@ -1410,8 +1458,8 @@ def main():
     # Chapters
     chapters_key = f"podcasts/{PODCAST_HANDLE}/{episode['slug']}-chapters.json"
     print(f"    Uploading chapters to BunnyCDN")
-    upload_to_bunny(str(chapters_path), f"media/{chapters_key}")
-    uploaded_keys.add(chapters_key)
+    if upload_to_bunny(str(chapters_path), f"media/{chapters_key}"):
+        uploaded_keys.add(chapters_key)
 
     # Transcript
     print(f"    Uploading transcript to BunnyCDN")
@@ -1427,7 +1475,12 @@ def main():
     # Add to sitemap
     add_episode_to_sitemap(episode["slug"])
 
+    # Sync any remaining episode media to BunnyCDN (cover art, etc.)
+    print("    Syncing remaining episode media to CDN...")
+    sync_episode_media_to_bunny(episode["id"], uploaded_keys)
+
     # Step 4: Publish via API (triggers RSS rebuild, federation, etc.)
+    # All media is now on CDN, so RSS links will resolve immediately
     try:
         published = publish_episode(episode["id"])
         if "slug" in published:
@@ -1437,24 +1490,6 @@ def main():
             print("    Warning: Publish API failed, but episode is in DB with published_at set")
         else:
             raise
-
-    # Step 4.5: Upload chapters and transcript via SSH
-    chapters_uploaded = upload_chapters_to_castopod(
-        episode["slug"],
-        episode["id"],
-        str(chapters_path)
-    )
-
-    # Upload SRT transcript to Castopod (preferred for podcast apps)
-    transcript_uploaded = upload_transcript_to_castopod(
-        episode["slug"],
-        episode["id"],
-        str(srt_path)
-    )
-
-    # Sync any remaining episode media to BunnyCDN (cover art, transcripts, etc.)
-    print("    Syncing episode media to CDN...")
-    sync_episode_media_to_bunny(episode["id"], uploaded_keys)
 
     # Step 5: Deploy website (transcript + sitemap must be live before social links go out)
     print("[5/5] Deploying website...")
@@ -1520,6 +1555,9 @@ def main():
             start_new_session=True,
         )
         print("    Server restarted on port 8000")
+
+    # Clean up MySQL auth file
+    _cleanup_mysql_auth()
 
     # Release lock
     lock_fp.close()

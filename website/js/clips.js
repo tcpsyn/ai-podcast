@@ -2,24 +2,34 @@ const CLIPS_JSON_URL = '/data/clips.json';
 
 const clipPlaySVG = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>';
 
+function escapeHTML(str) {
+  const el = document.createElement('span');
+  el.textContent = str;
+  return el.innerHTML;
+}
+
 function renderClipCard(clip, featured) {
   const card = document.createElement('div');
   card.className = 'clip-card' + (featured ? ' clip-card-featured' : '');
-  if (clip.youtube_id) card.dataset.youtubeId = clip.youtube_id;
 
-  const hasVideo = !!clip.youtube_id;
-  const epLabel = clip.episode_number ? `Episode ${clip.episode_number}` : '';
+  const youtubeId = (clip.youtube_id || '').replace(/[^a-zA-Z0-9_-]/g, '');
+  if (youtubeId) card.dataset.youtubeId = youtubeId;
+  const hasVideo = !!youtubeId;
+  const epLabel = clip.episode_number ? `Episode ${Number(clip.episode_number)}` : '';
+  const title = escapeHTML(clip.title || '');
+  const desc = escapeHTML(clip.description || '');
 
-  const thumbStyle = clip.thumbnail
-    ? `style="background-image: url('/${clip.thumbnail}'); background-size: cover; background-position: center;"`
+  const thumbImg = clip.thumbnail && /^[\w\/.-]+$/.test(clip.thumbnail)
+    ? `<img class="clip-card-thumb" src="/${clip.thumbnail}" alt="${title}" loading="lazy">`
     : '';
 
   card.innerHTML = `
-    <div class="clip-card-inner" ${thumbStyle}>
+    <div class="clip-card-inner">
+      ${thumbImg}
       <div class="clip-card-overlay">
         <span class="clip-episode-label">${epLabel}</span>
-        <h3 class="clip-card-title">${clip.title || ''}</h3>
-        <p class="clip-card-desc">${clip.description || ''}</p>
+        <h3 class="clip-card-title">${title}</h3>
+        <p class="clip-card-desc">${desc}</p>
         ${hasVideo ? `<button class="clip-play-btn" aria-label="Play clip">${clipPlaySVG}</button>` : ''}
       </div>
     </div>
@@ -29,7 +39,7 @@ function renderClipCard(clip, featured) {
     card.querySelector('.clip-play-btn').addEventListener('click', (e) => {
       e.stopPropagation();
       const inner = card.querySelector('.clip-card-inner');
-      inner.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${clip.youtube_id}?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+      inner.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     });
   }
 
