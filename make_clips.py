@@ -1194,10 +1194,14 @@ def generate_clip_video_remotion(
     for line in caption_lines:
         remotion_words = []
         for w in line["words"]:
+            w_start = max(0, round(w["start"] - clip_start, 3))
+            w_end = min(round(duration, 3), round(w["end"] - clip_start, 3))
+            if w_end <= w_start:
+                w_end = w_start + 0.1
             remotion_words.append({
                 "word": w["word"].strip(),
-                "start": round(w["start"] - clip_start, 3),
-                "end": round(w["end"] - clip_start, 3),
+                "start": w_start,
+                "end": w_end,
             })
         remotion_lines.append({
             "start": round(line["start"], 3),
@@ -1226,6 +1230,8 @@ def generate_clip_video_remotion(
         "npx", "remotion", "render",
         "src/index.ts", "PodcastClipDemo",
         f"--props={props_path}",
+        "--timeout=60000",
+        "--log=verbose",
         output_path,
     ]
 
@@ -1233,7 +1239,13 @@ def generate_clip_video_remotion(
     props_path.unlink(missing_ok=True)
 
     if result.returncode != 0:
-        print(f"    Remotion error: {result.stderr[-500:]}")
+        stderr = result.stderr
+        # Show head (error message) and tail (stack trace) of stderr
+        if len(stderr) > 1000:
+            print(f"    Remotion error (first 500 chars): {stderr[:500]}")
+            print(f"    ... (last 500 chars): {stderr[-500:]}")
+        else:
+            print(f"    Remotion error: {stderr}")
         return False
     return True
 
