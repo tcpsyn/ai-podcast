@@ -12,6 +12,7 @@
     --text-muted: #9a8b78;
     --radius: 12px;
     --radius-sm: 8px;
+    --transition: 0.2s ease;
 }
 
 * {
@@ -169,6 +170,7 @@ section {
     padding: 16px;
     border-radius: var(--radius);
     border: 1px solid rgba(232, 121, 29, 0.08);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 section h2 {
@@ -197,6 +199,30 @@ section h2 {
     cursor: pointer;
     font-size: 0.85rem;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: center;
+    position: relative;
+}
+
+.energy-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.shape-badge {
+    font-size: 0.6rem;
+    background: rgba(232, 121, 29, 0.25);
+    color: var(--accent);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
 
 .caller-btn:hover {
@@ -217,8 +243,15 @@ section h2 {
     margin-bottom: 12px;
 }
 
+/* Call action buttons row */
+.call-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
 .hangup-btn {
-    width: 100%;
+    flex: 1;
     background: var(--accent-red);
     color: white;
     border: none;
@@ -227,6 +260,103 @@ section h2 {
     cursor: pointer;
     font-weight: bold;
     transition: background 0.2s;
+}
+
+.wrapup-btn {
+    flex: 1;
+    background: #7a6020;
+    color: #f0d060;
+    border: 2px solid #d4a030;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.wrapup-btn:hover:not(:disabled) {
+    background: #d4a030;
+    color: #1a1209;
+}
+
+.wrapup-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.wrapup-btn.active {
+    background: #d4a030;
+    color: #1a1209;
+    animation: wrapup-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes wrapup-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(212, 160, 48, 0.4); }
+    50% { box-shadow: 0 0 16px rgba(212, 160, 48, 0.8); }
+}
+
+/* Caller info panel */
+.caller-info-panel {
+    background: var(--bg-light);
+    border: 1px solid rgba(232, 121, 29, 0.15);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    margin: 8px 0;
+}
+
+.caller-info-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.info-badge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.info-badge.shape {
+    background: rgba(232, 121, 29, 0.2);
+    color: var(--accent);
+}
+
+.info-badge.energy {
+    color: white;
+    font-size: 0.7rem;
+}
+
+.info-badge.emotion {
+    background: rgba(154, 139, 120, 0.2);
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.caller-signature {
+    font-size: 0.8rem;
+    color: var(--accent);
+    margin-bottom: 4px;
+    font-style: italic;
+}
+
+.caller-situation {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+.caller-background-full {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.caller-background-full summary {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.7rem;
 }
 
 .hangup-btn:hover {
@@ -399,10 +529,11 @@ section h2 {
     }
 }
 
-.soundboard {
+.soundboard-pinned {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 .sound-btn {
@@ -416,6 +547,43 @@ section h2 {
     transition: all 0.1s;
 }
 
+.sound-btn.pinned {
+    padding: 18px 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-width: 2px;
+}
+
+.sound-btn.pin-cheer {
+    border-color: #5a8a3c;
+    color: #7abf52;
+}
+.sound-btn.pin-cheer:hover {
+    background: #5a8a3c;
+    border-color: #5a8a3c;
+    color: #fff;
+}
+
+.sound-btn.pin-applause {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.sound-btn.pin-applause:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.sound-btn.pin-boo {
+    border-color: var(--accent-red);
+    color: #e85050;
+}
+.sound-btn.pin-boo:hover {
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+    color: #fff;
+}
+
 .sound-btn:hover {
     background: var(--accent);
     border-color: var(--accent);
@@ -424,6 +592,57 @@ section h2 {
 
 .sound-btn:active {
     transform: scale(0.95);
+}
+
+.soundboard-toggle {
+    width: 100%;
+    background: none;
+    border: 1px solid rgba(232, 121, 29, 0.1);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    padding: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+}
+
+.soundboard-toggle:hover {
+    color: var(--text);
+    border-color: rgba(232, 121, 29, 0.3);
+}
+
+.toggle-arrow {
+    font-size: 0.7rem;
+    margin-left: 4px;
+}
+
+.soundboard-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+}
+
+/* Keyboard shortcut labels */
+.shortcut-label {
+    display: inline-block;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    background: rgba(232, 121, 29, 0.08);
+    border: 1px solid rgba(232, 121, 29, 0.12);
+    border-radius: 3px;
+    padding: 1px 4px;
+    margin-left: 6px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    vertical-align: middle;
+    opacity: 0.7;
+}
+
+.caller-btn .shortcut-label {
+    display: block;
+    margin: 3px auto 0;
+    margin-left: auto;
+    width: fit-content;
 }
 
 /* Modal */
@@ -776,3 +995,213 @@ section h2 {
 .email-preview { font-size: 0.8rem; color: var(--text-muted); line-height: 1.3; }
 .email-item .vm-actions { margin-top: 0.25rem; }
 .email-body-expanded { margin-top: 0.4rem; padding: 0.5rem; background: rgba(232, 121, 29, 0.08); border-radius: var(--radius-sm); font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
+
+/* === Visual Polish === */
+
+/* 1. Thinking pulse on chat when waiting for AI */
+@keyframes thinking-pulse {
+    0%, 100% { border-color: rgba(232, 121, 29, 0.06); }
+    50% { border-color: rgba(232, 121, 29, 0.3); }
+}
+
+.chat-log.thinking {
+    animation: thinking-pulse 1.5s ease-in-out infinite;
+}
+
+/* 3 & 5. Active call section glow + chat highlight when call is live */
+.callers-section.call-active {
+    border-color: rgba(232, 121, 29, 0.35);
+    box-shadow: 0 0 16px rgba(232, 121, 29, 0.1);
+}
+
+.chat-section.call-active {
+    border-color: rgba(232, 121, 29, 0.25);
+    box-shadow: 0 0 12px rgba(232, 121, 29, 0.06);
+}
+
+/* 7. Compact media row — Music / Ads / Idents side by side */
+.media-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    grid-column: span 2;
+}
+
+@media (max-width: 700px) {
+    .media-row {
+        grid-template-columns: 1fr;
+        grid-column: span 1;
+    }
+}
+
+.media-row .music-section {
+    padding: 12px;
+}
+
+.media-row .music-section h2 {
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+}
+
+.media-row .music-section select {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+}
+
+.media-row .music-controls {
+    gap: 4px;
+}
+
+.media-row .music-controls button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
+/* Devon (Intern) */
+.message.devon {
+    border-left: 3px solid #4ab5a0;
+    padding-left: 0.5rem;
+    background: rgba(74, 181, 160, 0.06);
+}
+
+.message.devon strong {
+    color: #4ab5a0;
+}
+
+.devon-bar {
+    margin-bottom: 10px;
+}
+
+.devon-ask-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.devon-input {
+    flex: 1;
+    padding: 8px 10px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid rgba(74, 181, 160, 0.2);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+}
+
+.devon-input:focus {
+    outline: none;
+    border-color: #4ab5a0;
+}
+
+.devon-input::placeholder {
+    color: var(--text-muted);
+}
+
+.devon-ask-btn {
+    background: #4ab5a0;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.devon-ask-btn:hover {
+    background: #5cc5b0;
+}
+
+.devon-interject-btn {
+    background: var(--bg);
+    color: #4ab5a0;
+    border: 1px solid rgba(74, 181, 160, 0.25);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.devon-interject-btn:hover {
+    border-color: #4ab5a0;
+    background: rgba(74, 181, 160, 0.1);
+}
+
+.devon-monitor-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.devon-monitor-label input[type="checkbox"] {
+    accent-color: #4ab5a0;
+}
+
+.devon-suggestion {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 8px 12px;
+    background: rgba(74, 181, 160, 0.08);
+    border: 1px solid rgba(74, 181, 160, 0.25);
+    border-radius: var(--radius-sm);
+    animation: devon-pulse 2s ease-in-out infinite;
+}
+
+.devon-suggestion.hidden {
+    display: none !important;
+}
+
+@keyframes devon-pulse {
+    0%, 100% { border-color: rgba(74, 181, 160, 0.25); }
+    50% { border-color: rgba(74, 181, 160, 0.6); }
+}
+
+.devon-suggestion-text {
+    flex: 1;
+    font-size: 0.85rem;
+    color: #4ab5a0;
+    font-weight: 600;
+}
+
+.devon-play-btn {
+    background: #4ab5a0;
+    color: #fff;
+    border: none;
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.devon-play-btn:hover {
+    background: #5cc5b0;
+}
+
+.devon-dismiss-btn {
+    background: none;
+    color: var(--text-muted);
+    border: 1px solid rgba(232, 121, 29, 0.15);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.devon-dismiss-btn:hover {
+    color: var(--text);
+    border-color: rgba(232, 121, 29, 0.3);
+}

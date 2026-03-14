@@ -50,11 +50,23 @@
                     </label>
                 </div>
                 <div id="call-status" class="call-status">No active call</div>
-                <details id="caller-background-details" class="caller-background hidden">
-                    <summary>Caller Background</summary>
-                    <div id="caller-background"></div>
-                </details>
-                <button id="hangup-btn" class="hangup-btn" disabled>Hang Up</button>
+                <div id="caller-info-panel" class="caller-info-panel hidden">
+                    <div class="caller-info-row">
+                        <span id="caller-shape-badge" class="info-badge shape"></span>
+                        <span id="caller-energy-badge" class="info-badge energy"></span>
+                        <span id="caller-emotion" class="info-badge emotion"></span>
+                    </div>
+                    <div id="caller-signature" class="caller-signature"></div>
+                    <div id="caller-situation" class="caller-situation"></div>
+                    <details id="caller-background-details" class="caller-background-full">
+                        <summary>Full Background</summary>
+                        <div id="caller-background"></div>
+                    </details>
+                </div>
+                <div class="call-actions">
+                    <button id="wrapup-btn" class="wrapup-btn" disabled>Wrap It Up <span class="shortcut-label">W</span></button>
+                    <button id="hangup-btn" class="hangup-btn" disabled>Hang Up <span class="shortcut-label">H</span></button>
+                </div>
             </section>
 
             <!-- Call Queue -->
@@ -84,6 +96,21 @@
             <!-- Chat -->
             <section class="chat-section">
                 <div id="chat" class="chat-log"></div>
+                <div class="devon-bar">
+                    <div class="devon-ask-row">
+                        <input type="text" id="devon-input" placeholder="Ask Devon..." class="devon-input">
+                        <button id="devon-ask-btn" class="devon-ask-btn">Ask <span class="shortcut-label">D</span></button>
+                        <button id="devon-interject-btn" class="devon-interject-btn" title="Devon interjects on current conversation">Interject</button>
+                        <label class="devon-monitor-label" title="Devon auto-monitors conversations">
+                            <input type="checkbox" id="devon-monitor" checked> Monitor
+                        </label>
+                    </div>
+                    <div id="devon-suggestion" class="devon-suggestion hidden">
+                        <span class="devon-suggestion-text">Devon has something</span>
+                        <button id="devon-play-btn" class="devon-play-btn">Play</button>
+                        <button id="devon-dismiss-btn" class="devon-dismiss-btn">Dismiss</button>
+                    </div>
+                </div>
                 <div class="talk-controls">
                     <button id="talk-btn" class="talk-btn">Hold to Talk</button>
                     <button id="type-btn" class="type-btn">Type</button>
@@ -91,36 +118,36 @@
                 <div id="status" class="status hidden"></div>
             </section>
 
-            <!-- Music -->
-            <section class="music-section">
-                <h2>Music</h2>
-                <select id="track-select"></select>
-                <div class="music-controls">
-                    <button id="play-btn">Play</button>
-                    <button id="stop-btn">Stop</button>
-                    <input type="range" id="volume" min="0" max="100" value="30">
-                </div>
-            </section>
+            <!-- Music / Ads / Idents -->
+            <div class="media-row">
+                <section class="music-section">
+                    <h2>Music</h2>
+                    <select id="track-select"></select>
+                    <div class="music-controls">
+                        <button id="play-btn">Play <span class="shortcut-label">M</span></button>
+                        <button id="stop-btn">Stop</button>
+                        <input type="range" id="volume" min="0" max="100" value="30">
+                    </div>
+                </section>
 
-            <!-- Ads -->
-            <section class="music-section">
-                <h2>Ads</h2>
-                <select id="ad-select"></select>
-                <div class="music-controls">
-                    <button id="ad-play-btn">Play Ad</button>
-                    <button id="ad-stop-btn">Stop</button>
-                </div>
-            </section>
+                <section class="music-section">
+                    <h2>Ads</h2>
+                    <select id="ad-select"></select>
+                    <div class="music-controls">
+                        <button id="ad-play-btn">Play Ad</button>
+                        <button id="ad-stop-btn">Stop</button>
+                    </div>
+                </section>
 
-            <!-- Idents -->
-            <section class="music-section">
-                <h2>Idents</h2>
-                <select id="ident-select"></select>
-                <div class="music-controls">
-                    <button id="ident-play-btn">Play Ident</button>
-                    <button id="ident-stop-btn">Stop</button>
-                </div>
-            </section>
+                <section class="music-section">
+                    <h2>Idents</h2>
+                    <select id="ident-select"></select>
+                    <div class="music-controls">
+                        <button id="ident-play-btn">Play Ident</button>
+                        <button id="ident-stop-btn">Stop</button>
+                    </div>
+                </section>
+            </div>
 
             <!-- Sound Effects -->
             <section class="sounds-section">
@@ -251,6 +278,6 @@
         </div>
     </div>
 
-    <script src="/js/app.js?v=18"></script>
+    <script src="/js/app.js?v=20"></script>
 </body>
 </html>

@@ -130,6 +130,89 @@ INWORLD_SPEED_OVERRIDES = {
 }
 DEFAULT_INWORLD_SPEED = 1.1  # Slight bump for all voices
 
+# Voice profiles — perceptual dimensions for each Inworld voice.
+# Used by style-to-voice matching to pair caller personalities with fitting voices.
+# weight: vocal depth/richness (light, medium, heavy)
+# energy: default speaking animation (low, medium, high)
+# warmth: friendliness/openness in the voice (cool, neutral, warm)
+# age_feel: perceived speaker age (young, middle, mature)
+VOICE_PROFILES = {
+    # --- Male voices ---
+    # Known characterizations from INWORLD_VOICES mapping and usage
+    "Alex":      {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},    # energetic, expressive, mildly nasal
+    "Edward":    {"weight": "medium", "energy": "high",   "warmth": "neutral", "age_feel": "middle"},   # fast-talking, emphatic, streetwise
+    "Shaun":     {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": "middle"},   # friendly, dynamic, conversational
+    "Craig":     {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "mature"},   # older British, refined, articulate
+    "Timothy":   {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},    # lively, upbeat American
+    "Dennis":    {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": "middle"},   # energetic, default voice
+    "Ronald":    {"weight": "heavy",  "energy": "medium", "warmth": "neutral", "age_feel": "mature"},   # gruff, authoritative
+    "Theodore":  {"weight": "heavy",  "energy": "low",    "warmth": "warm",    "age_feel": "mature"},   # slow, deliberate
+    "Blake":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Carter":    {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Clive":     {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
+    "Mark":      {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Sebastian": {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "middle"},   # used by Silas (cult leader) & Chip
+    "Elliot":    {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": "young"},    # used by Otis (comedian)
+    # Remaining male pool voices
+    "Arjun":     {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},
+    "Brian":     {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},
+    "Callum":    {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "young"},
+    "Derek":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Ethan":     {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "young"},
+    "Evan":      {"weight": "light",  "energy": "medium", "warmth": "neutral", "age_feel": "young"},
+    "Gareth":    {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Graham":    {"weight": "heavy",  "energy": "low",    "warmth": "neutral", "age_feel": "mature"},
+    "Grant":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Hades":     {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
+    "Hamish":    {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},
+    "Hank":      {"weight": "heavy",  "energy": "medium", "warmth": "warm",    "age_feel": "mature"},
+    "Jake":      {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": "young"},
+    "James":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Jason":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Liam":      {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": "young"},
+    "Malcolm":   {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
+    "Mortimer":  {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
+    "Nate":      {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},
+    "Oliver":    {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},
+    "Rupert":    {"weight": "medium", "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
+    "Simon":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Tyler":     {"weight": "light",  "energy": "high",   "warmth": "neutral", "age_feel": "young"},
+    "Victor":    {"weight": "heavy",  "energy": "medium", "warmth": "cool",    "age_feel": "mature"},
+    "Vinny":     {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": "middle"},
+    # --- Female voices ---
+    # Known characterizations
+    "Hana":      {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},    # bright, expressive young
+    "Ashley":    {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},   # warm, natural
+    "Wendy":     {"weight": "medium", "energy": "low",    "warmth": "cool",    "age_feel": "mature"},   # posh, middle-aged British
+    "Sarah":     {"weight": "light",  "energy": "high",   "warmth": "neutral", "age_feel": "middle"},   # fast-talking, questioning
+    "Deborah":   {"weight": "medium", "energy": "low",    "warmth": "warm",    "age_feel": "mature"},   # gentle, elegant
+    "Olivia":    {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},
+    "Julia":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},   # used by Angie (deadpan)
+    "Priya":     {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": "young"},
+    "Amina":     {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},   # used by Charlene (bragger)
+    "Tessa":     {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},   # used by Lucille
+    "Kelsey":    {"weight": "light",  "energy": "medium", "warmth": "neutral", "age_feel": "young"},    # used by Maxine (quiet/nervous)
+    # Remaining female pool voices
+    "Anjali":    {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": "young"},
+    "Celeste":   {"weight": "light",  "energy": "medium", "warmth": "cool",    "age_feel": "middle"},
+    "Chloe":     {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},
+    "Claire":    {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Darlene":   {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "mature"},
+    "Elizabeth":  {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "mature"},
+    "Jessica":   {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},
+    "Kayla":     {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},
+    "Lauren":    {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Loretta":   {"weight": "medium", "energy": "low",    "warmth": "warm",    "age_feel": "mature"},
+    "Luna":      {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": "young"},
+    "Marlene":   {"weight": "medium", "energy": "low",    "warmth": "neutral", "age_feel": "mature"},
+    "Miranda":   {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "middle"},
+    "Pippa":     {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},
+    "Saanvi":    {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": "young"},
+    "Serena":    {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "middle"},
+    "Veronica":  {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "middle"},
+    "Victoria":  {"weight": "medium", "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
+}
+
 
 def preprocess_text_for_kokoro(text: str) -> str:
     """

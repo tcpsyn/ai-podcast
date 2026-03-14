@@ -14,6 +14,8 @@ let lastLogCount = 0;
 // Track lists
 let tracks = [];
 let sounds = [];
+let isMusicPlaying = false;
+let soundboardExpanded = false;
 
 
 // --- Helpers ---
@@ -165,6 +167,49 @@ function initEventListeners() {
         stopRecording();
     });
 
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        if (_isTyping()) return;
+        // Don't fire shortcuts when a modal is open (except Escape to close it)
+        const modalOpen = document.querySelector('.modal:not(.hidden)');
+        if (e.key === 'Escape') {
+            if (modalOpen) {
+                modalOpen.classList.add('hidden');
+                e.preventDefault();
+            }
+            return;
+        }
+        if (modalOpen) return;
+
+        const key = e.key.toLowerCase();
+        // 1-9, 0: Start call with caller in that slot
+        if (/^[0-9]$/.test(key)) {
+            e.preventDefault();
+            const idx = key === '0' ? 9 : parseInt(key) - 1;
+            const btns = document.querySelectorAll('.caller-btn');
+            if (btns[idx]) btns[idx].click();
+            return;
+        }
+        switch (key) {
+            case 'h':
+                e.preventDefault();
+                hangup();
+                break;
+            case 'w':
+                e.preventDefault();
+                wrapUp();
+                break;
+            case 'm':
+                e.preventDefault();
+                toggleMusic();
+                break;
+            case 'd':
+                e.preventDefault();
+                document.getElementById('devon-input')?.focus();
+                break;
+        }
+    });
+
     // Type button
     document.getElementById('type-btn')?.addEventListener('click', () => {
         document.getElementById('type-modal')?.classList.remove('hidden');
@@ -194,6 +239,31 @@ function initEventListeners() {
     document.getElementById('ident-play-btn')?.addEventListener('click', playIdent);
     document.getElementById('ident-stop-btn')?.addEventListener('click', stopIdent);
 
+    // Devon (Intern)
+    document.getElementById('devon-ask-btn')?.addEventListener('click', () => {
+        const input = document.getElementById('devon-input');
+        if (input?.value.trim()) {
+            askDevon(input.value.trim());
+            input.value = '';
+        }
+    });
+    document.getElementById('devon-input')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const input = e.target;
+            if (input.value.trim()) {
+                askDevon(input.value.trim());
+                input.value = '';
+            }
+        }
+    });
+    document.getElementById('devon-interject-btn')?.addEventListener('click', interjectDevon);
+    document.getElementById('devon-monitor')?.addEventListener('change', e => {
+        toggleInternMonitor(e.target.checked);
+    });
+    document.getElementById('devon-play-btn')?.addEventListener('click', playDevonSuggestion);
+    document.getElementById('devon-dismiss-btn')?.addEventListener('click', dismissDevonSuggestion);
+
     // Settings
     document.getElementById('settings-btn')?.addEventListener('click', async () => {
         document.getElementById('settings-modal')?.classList.remove('hidden');
@@ -208,6 +278,9 @@ function initEventListeners() {
         phoneFilter = e.target.checked;
     });
     document.getElementById('refresh-ollama')?.addEventListener('click', refreshOllamaModels);
+
+    // Wrap-up button
+    document.getElementById('wrapup-btn')?.addEventListener('click', wrapUp);
 
     // Real caller hangup
     document.getElementById('hangup-real-btn')?.addEventListener('click', async () => {
@@ -413,12 +486,34 @@ async function loadCallers() {
         if (!grid) return;
         grid.innerHTML = '';
 
-        data.callers.forEach(caller => {
+        data.callers.forEach((caller, idx) => {
             const btn = document.createElement('button');
             btn.className = 'caller-btn';
             if (caller.returning) btn.classList.add('returning');
-            btn.textContent = caller.returning ? `\u2605 ${caller.name}` : caller.name;
             btn.dataset.key = caller.key;
+
+            let html = '';
+            if (caller.energy_level) {
+                const energyColors = { low: '#4a7ab5', medium: '#5a8a3c', high: '#e8791d', very_high: '#cc2222' };
+                const color = energyColors[caller.energy_level] || '#9a8b78';
+                html += `<span class="energy-dot" style="background:${color}" title="${caller.energy_level} energy"></span>`;
+            }
+            html += caller.returning ? `<span class="caller-name">\u2605 ${caller.name}</span>` : `<span class="caller-name">${caller.name}</span>`;
+            if (caller.call_shape && caller.call_shape !== 'standard') {
+                const shapeLabels = {
+                    escalating_reveal: 'ER', am_i_the_asshole: 'AITA', confrontation: 'VS',
+                    celebration: '\u{1F389}', quick_hit: 'QH', bait_and_switch: 'B&S',
+                    the_hangup: 'HU', reactive: 'RE'
+                };
+                const label = shapeLabels[caller.call_shape] || caller.call_shape.substring(0, 2).toUpperCase();
+                html += `<span class="shape-badge" title="${caller.call_shape.replace(/_/g, ' ')}">${label}</span>`;
+            }
+            // Shortcut label: 1-9 for first 9, 0 for 10th
+            if (idx < 10) {
+                const shortcutKey = idx === 9 ? '0' : String(idx + 1);
+                html += `<span class="shortcut-label">${shortcutKey}</span>`;
+            }
+            btn.innerHTML = html;
             btn.addEventListener('click', () => startCall(caller.key, caller.name));
             grid.appendChild(btn);
         });
@@ -443,6 +538,8 @@ async function startCall(key, name) {
     const data = await res.json();
 
     currentCaller = { key, name };
+    document.querySelector('.callers-section')?.classList.add('call-active');
+    document.querySelector('.chat-section')?.classList.add('call-active');
 
     // Check if real caller is active (three-way scenario)
     const realCallerActive = document.getElementById('real-caller-info') &&
@@ -455,6 +552,8 @@ async function startCall(key, name) {
     }
 
     document.getElementById('hangup-btn').disabled = false;
+    const wrapupBtn = document.getElementById('wrapup-btn');
+    if (wrapupBtn) { wrapupBtn.disabled = false; wrapupBtn.classList.remove('active'); }
 
     // Show AI caller in active call indicator
     const aiInfo = document.getElementById('ai-caller-info');
@@ -462,13 +561,25 @@ async function startCall(key, name) {
     if (aiInfo) aiInfo.classList.remove('hidden');
     if (aiName) aiName.textContent = name;
 
-    // Show caller background in disclosure triangle
-    const bgDetails = document.getElementById('caller-background-details');
-    const bgEl = document.getElementById('caller-background');
-    if (bgDetails && bgEl && data.background) {
-        bgEl.textContent = data.background;
-        bgDetails.classList.remove('hidden');
+    // Show caller info panel with structured data
+    const infoPanel = document.getElementById('caller-info-panel');
+    if (infoPanel && data.caller_info) {
+        const ci = data.caller_info;
+        const energyColors = { low: '#4a7ab5', medium: '#5a8a3c', high: '#e8791d', very_high: '#cc2222' };
+        const shapeBadge = document.getElementById('caller-shape-badge');
+        const energyBadge = document.getElementById('caller-energy-badge');
+        const emotionBadge = document.getElementById('caller-emotion');
+        const signature = document.getElementById('caller-signature');
+        const situation = document.getElementById('caller-situation');
+        if (shapeBadge) shapeBadge.textContent = (ci.call_shape || 'standard').replace(/_/g, ' ');
+        if (energyBadge) { energyBadge.textContent = (ci.energy_level || '').replace('_', ' '); energyBadge.style.background = energyColors[ci.energy_level] || '#9a8b78'; }
+        if (emotionBadge) emotionBadge.textContent = ci.emotional_state || '';
+        if (signature) signature.textContent = ci.signature_detail ? `"${ci.signature_detail}"` : '';
+        if (situation) situation.textContent = ci.situation_summary || '';
+        infoPanel.classList.remove('hidden');
     }
+    const bgEl = document.getElementById('caller-background');
+    if (bgEl && data.background) bgEl.textContent = data.background;
 
     document.querySelectorAll('.caller-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.key === key);
@@ -512,12 +623,17 @@ async function hangup() {
     currentCaller = null;
     isProcessing = false;
     hideStatus();
+    document.querySelector('.callers-section')?.classList.remove('call-active');
+    document.querySelector('.chat-section')?.classList.remove('call-active');
 
     document.getElementById('call-status').textContent = 'No active call';
     document.getElementById('hangup-btn').disabled = true;
+    const wrapBtn = document.getElementById('wrapup-btn');
+    if (wrapBtn) { wrapBtn.disabled = true; wrapBtn.classList.remove('active'); }
     document.querySelectorAll('.caller-btn').forEach(btn => btn.classList.remove('active'));
 
-    // Hide caller background
+    // Hide caller info panel and background
+    document.getElementById('caller-info-panel')?.classList.add('hidden');
     const bgDetails2 = document.getElementById('caller-background-details');
     if (bgDetails2) bgDetails2.classList.add('hidden');
 
@@ -526,6 +642,26 @@ async function hangup() {
     updateActiveCallIndicator();
 }
 
+
+async function wrapUp() {
+    if (!currentCaller) return;
+    try {
+        await fetch('/api/wrap-up', { method: 'POST' });
+        const wrapupBtn = document.getElementById('wrapup-btn');
+        if (wrapupBtn) wrapupBtn.classList.add('active');
+        log(`Wrapping up ${currentCaller.name}...`);
+    } catch (err) {
+        console.error('wrapUp error:', err);
+    }
+}
+
+function toggleMusic() {
+    if (isMusicPlaying) {
+        stopMusic();
+    } else {
+        playMusic();
+    }
+}
 
 // --- Server-Side Recording ---
 async function startRecording() {
@@ -722,11 +858,13 @@ async function playMusic() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ track, action: 'play' })
     });
+    isMusicPlaying = true;
 }
 
 
 async function stopMusic() {
     await fetch('/api/music/stop', { method: 'POST' });
+    isMusicPlaying = false;
 }
 
 
@@ -845,14 +983,60 @@ async function loadSounds() {
         if (!board) return;
         board.innerHTML = '';
 
+        const pinnedNames = ['cheer', 'applause', 'boo'];
+        const pinned = [];
+        const rest = [];
+
         sounds.forEach(sound => {
+            const lower = (sound.name || sound.file || '').toLowerCase();
+            if (pinnedNames.some(p => lower.includes(p))) {
+                pinned.push(sound);
+            } else {
+                rest.push(sound);
+            }
+        });
+
+        // Pinned buttons — always visible
+        const pinnedRow = document.createElement('div');
+        pinnedRow.className = 'soundboard-pinned';
+        pinned.forEach(sound => {
             const btn = document.createElement('button');
-            btn.className = 'sound-btn';
+            btn.className = 'sound-btn pinned';
+            const lower = (sound.name || sound.file || '').toLowerCase();
+            if (lower.includes('cheer')) btn.classList.add('pin-cheer');
+            else if (lower.includes('applause')) btn.classList.add('pin-applause');
+            else if (lower.includes('boo')) btn.classList.add('pin-boo');
             btn.textContent = sound.name;
             btn.addEventListener('click', () => playSFX(sound.file));
-            board.appendChild(btn);
+            pinnedRow.appendChild(btn);
         });
-        console.log('Loaded', sounds.length, 'sounds');
+        board.appendChild(pinnedRow);
+
+        // Collapsible section for remaining sounds
+        if (rest.length > 0) {
+            const toggle = document.createElement('button');
+            toggle.className = 'soundboard-toggle';
+            toggle.innerHTML = 'More Sounds <span class="toggle-arrow">&#9660;</span>';
+            toggle.addEventListener('click', () => {
+                soundboardExpanded = !soundboardExpanded;
+                grid.classList.toggle('hidden', !soundboardExpanded);
+                toggle.querySelector('.toggle-arrow').innerHTML = soundboardExpanded ? '&#9650;' : '&#9660;';
+            });
+            board.appendChild(toggle);
+
+            const grid = document.createElement('div');
+            grid.className = 'soundboard-grid hidden';
+            rest.forEach(sound => {
+                const btn = document.createElement('button');
+                btn.className = 'sound-btn';
+                btn.textContent = sound.name;
+                btn.addEventListener('click', () => playSFX(sound.file));
+                grid.appendChild(btn);
+            });
+            board.appendChild(grid);
+        }
+
+        console.log('Loaded', sounds.length, 'sounds', `(${pinned.length} pinned)`);
     } catch (err) {
         console.error('loadSounds error:', err);
     }
@@ -972,6 +1156,8 @@ function addMessage(sender, text) {
         className += ' host';
     } else if (sender === 'System') {
         className += ' system';
+    } else if (sender === 'DEVON') {
+        className += ' devon';
     } else if (sender.includes('(caller)') || sender.includes('Caller #')) {
         className += ' real-caller';
     } else {
@@ -1008,12 +1194,14 @@ function showStatus(text) {
         status.textContent = text;
         status.classList.remove('hidden');
     }
+    document.getElementById('chat')?.classList.add('thinking');
 }
 
 
 function hideStatus() {
     const status = document.getElementById('status');
     if (status) status.classList.add('hidden');
+    document.getElementById('chat')?.classList.remove('thinking');
 }
 
 
@@ -1298,8 +1486,16 @@ async function fetchConversationUpdates() {
                 } else if (msg.type === 'caller_queued') {
                     // Queue poll will pick this up, just ensure it refreshes
                     fetchQueue();
+                } else if (msg.type === 'intern_response') {
+                    addMessage('DEVON', msg.text);
+                } else if (msg.type === 'intern_suggestion') {
+                    showDevonSuggestion(msg.text);
                 }
             }
+        }
+        // Check for intern suggestion in polling response
+        if (data.intern_suggestion) {
+            showDevonSuggestion(data.intern_suggestion.text);
         }
     } catch (err) {}
 }
@@ -1511,4 +1707,84 @@ async function deleteEmail(id) {
     } catch (err) {
         log('Failed to delete email: ' + err.message);
     }
+}
+
+
+// --- Devon (Intern) ---
+
+async function askDevon(question) {
+    addMessage('You', `Devon, ${question}`);
+    log(`[Devon] Looking up: ${question}`);
+    try {
+        const res = await safeFetch('/api/intern/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question }),
+        });
+        if (res.text) {
+            addMessage('DEVON', res.text);
+            log(`[Devon] Responded (tools: ${(res.sources || []).join(', ') || 'none'})`);
+        } else {
+            log('[Devon] No response');
+        }
+    } catch (err) {
+        log('[Devon] Error: ' + err.message);
+    }
+}
+
+async function interjectDevon() {
+    log('[Devon] Checking for interjection...');
+    try {
+        const res = await safeFetch('/api/intern/interject', { method: 'POST' });
+        if (res.text) {
+            addMessage('DEVON', res.text);
+            log('[Devon] Interjected');
+        } else {
+            log('[Devon] Nothing to add');
+        }
+    } catch (err) {
+        log('[Devon] Interject error: ' + err.message);
+    }
+}
+
+async function toggleInternMonitor(enabled) {
+    try {
+        await safeFetch('/api/intern/monitor', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled }),
+        });
+        log(`[Devon] Monitor ${enabled ? 'on' : 'off'}`);
+    } catch (err) {
+        log('[Devon] Monitor toggle error: ' + err.message);
+    }
+}
+
+function showDevonSuggestion(text) {
+    const el = document.getElementById('devon-suggestion');
+    const textEl = el?.querySelector('.devon-suggestion-text');
+    if (el && textEl) {
+        textEl.textContent = text ? `Devon: "${text.substring(0, 60)}${text.length > 60 ? '...' : ''}"` : 'Devon has something';
+        el.classList.remove('hidden');
+    }
+}
+
+async function playDevonSuggestion() {
+    try {
+        const res = await safeFetch('/api/intern/suggestion/play', { method: 'POST' });
+        if (res.text) {
+            addMessage('DEVON', res.text);
+        }
+        document.getElementById('devon-suggestion')?.classList.add('hidden');
+        log('[Devon] Played suggestion');
+    } catch (err) {
+        log('[Devon] Play suggestion error: ' + err.message);
+    }
+}
+
+async function dismissDevonSuggestion() {
+    try {
+        await safeFetch('/api/intern/suggestion/dismiss', { method: 'POST' });
+        document.getElementById('devon-suggestion')?.classList.add('hidden');
+    } catch (err) {}
 }

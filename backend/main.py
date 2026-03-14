@@ -7,7 +7,7 @@ import base64
 import subprocess
 import threading
 import traceback
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request, Response
 from fastapi.staticfiles import StaticFiles
@@ -29,6 +29,7 @@ from .services.audio import audio_service
 from .services.stem_recorder import StemRecorder
 from .services.news import news_service, extract_keywords, STOP_WORDS
 from .services.regulars import regular_caller_service
+from .services.intern import intern_service
 
 app = FastAPI(title="AI Radio Show")
 
@@ -1019,6 +1020,17 @@ PROBLEMS = [
     "got a call from their kid's principal saying the kid brought something to school they shouldn't have — the meeting is tomorrow and they have no idea what it is",
     "their HOA is forcing them to remove a wheelchair ramp they built for their disabled spouse because it 'doesn't match the aesthetic'",
     "found out their retirement date just got pushed back five years because of a pension rule change nobody told them about",
+    # Self-inflicted / ego-driven problems
+    "has been pretending to know how to swim for their entire adult life and their spouse just booked a Caribbean cruise with a snorkeling excursion for their anniversary — they leave in three weeks and googled 'how to swim' last night and immediately closed the laptop when their wife walked in",
+    "has been telling their coworkers they speak fluent Italian for two years as a personality thing and now the company is sending them to Rome to lead a client meeting — they've been doing Duolingo fourteen hours a day and can currently order coffee and ask where the bathroom is",
+    "got into a road rage incident where they followed the other driver to a parking lot to yell at them — turns out the parking lot was a police station and the other driver was an off-duty officer who walked inside, came back out in uniform, and wrote them three tickets",
+    "told their new girlfriend they own their house and now she wants to move in — they rent, the landlord lives next door, and the girlfriend just introduced herself to the landlord and said 'so nice to meet our neighbor' and the landlord looked at the caller and raised one eyebrow",
+    "refused to apologize to their neighbor over a fence dispute out of principle and it's been four years — their kid and the neighbor's kid are now dating and both families have to sit at the same table for graduation dinner and nobody has acknowledged the fence once",
+    "has been faking an injury at work for three months to keep getting light duty and just found out the company hired a private investigator — they saw the PI's car outside their house while they were carrying two bags of concrete mix into the backyard for a patio project",
+    "got drunk and told their wife's entire family what they actually think of them at Thanksgiving dinner — called the brother-in-law a 'grown man who collects swords' and told the mother-in-law her casserole 'tastes like revenge' — and now their wife is saying she agrees with her family that he needs anger management but won't disagree about the casserole",
+    "made a fake LinkedIn profile to catfish their ex and accidentally built a real professional network with it — the fake persona now has 3,000 connections and a recruiter just reached out with a six-figure offer for a person who doesn't exist and the caller is seriously considering showing up to the interview in a wig",
+    "lied on their dating profile about being 6'1\" and they're 5'8\" — it worked until the woman showed up in heels and he was eye level with her chin, and when she said 'you're not six one' he said 'I am in boots' and she said 'you're wearing sneakers' and he said 'yeah'",
+    "told everyone at work they ran a marathon and now there's a company team signing up for one in their name — they have never run more than the length of a driveway and the race is in six weeks and their boss already ordered shirts with their name on them",
 ]
 
 STORIES = [
@@ -1260,6 +1272,32 @@ STORIES = [
     "accidentally mailed their rent check to their cable company and their cable payment to their landlord — neither noticed for two months",
     "keeps getting someone else's prescription glasses in the mail from an online eyewear company — the prescription is almost exactly theirs and the frames are nice so they've been wearing them",
     "found a journal wedged behind a bathroom wall during a renovation — it's someone's detailed diary from 1994 and the last entry says 'if you're reading this, the closet floor isn't what it seems'",
+    # Comedy writer entries
+    "walked in on their roommate having a full conversation with a sex doll at the kitchen table — not a sexual situation, they were eating breakfast across from it and arguing about politics — and when the caller said 'what the hell' the roommate said 'do you mind, we're in the middle of something'",
+    "got a lap dance at a strip club and halfway through realized the dancer was their kid's second-grade teacher — they made eye contact, she said 'we will never speak of this,' he said 'agreed,' and now they both pretend not to recognize each other at parent-teacher conferences",
+    "accidentally liked their ex's Instagram photo from 2019 at 3am and instead of unliking it they panicked and liked every single photo going back to 2016 so it would look like they were hacked — the ex called the next morning and said 'are you okay' and they said 'I think someone got into my account' and the ex said 'whoever it was also ordered you a pizza because I can see the Domino's box on your story'",
+    "clogged the toilet at their boss's dinner party and couldn't find a plunger so they reached in barehanded and fixed it — washed their hands for five minutes, came back to the table, and their boss handed them a bread roll and said 'you've got great hands, you should try the piano' and they've never told anyone until now",
+    "their elderly neighbor died and they went to the estate sale and accidentally bought back their own lawnmower the neighbor had 'borrowed' seven years ago — they paid forty dollars for their own property and didn't realize until they saw the scratch mark from when their kid hit the fence with it",
+    "went on a first date and the woman asked 'what do you do for fun' and they blanked so hard they said 'I collect rocks' — they don't collect rocks, have never collected rocks, but now they're six dates in and she bought them a geode for their birthday and they have a shelf of rocks they pretend to care about",
+    "farted so loud during a moment of silence at a funeral that the pastor stopped and looked directly at them — the deceased's wife started laughing which made the whole front row laugh and now the family says grandpa would have loved it but the caller has not recovered",
+    "got pulled over doing 95 in a 55 and when the cop asked where the fire was they accidentally said 'my wife is having a baby' — the cop gave them a full escort to the hospital with lights and sirens and they had to stand in the maternity ward explaining to nurses that nobody was actually pregnant while the cop waited to congratulate them",
+    "accidentally sent a sext meant for their girlfriend to the family group chat — their dad responded 'wrong chat, son' and their mother hasn't spoken to them in three weeks but their uncle sent a thumbs up",
+    "their coworker microwaved fish at work and when someone complained, the coworker brought in a laminated printout of the company handbook highlighting that there's no policy against it — then started microwaving increasingly aggressive fish every day as a form of protest and HR is now involved in what they're calling 'the fish situation'",
+    "told their barber they liked the haircut when they didn't and has been going to the same barber getting the same bad haircut for four years because they can't figure out how to ask for something different without admitting they've been lying since the first visit",
+    "went to their high school reunion and someone said 'you look exactly the same' and they can't figure out if it was a compliment because they were ugly in high school and they've been thinking about it every day for two months",
+    "sneezed during a work video call and their camera unfroze at the exact moment their face was fully contorted — someone screenshotted it and it's been the team's Slack emoji for six months and they can't get IT to remove it",
+    "their Tinder date showed up and it was their cousin's ex-wife — they both knew immediately but neither said anything and they sat through an entire dinner making small talk about the weather before she said 'this never happened' and he said 'what never happened' and they've never spoken again",
+    "was at a urinal and their boss walked up to the one next to them and started a performance review — full eye contact, talked about quarterly goals, mentioned areas for improvement — and the caller didn't know whether to respond professionally or acknowledge that they were both holding their dicks",
+    "went to a couples massage with their wife and accidentally moaned — not a little, a full audible moan — and the masseuse stopped, their wife sat up, and nobody has spoken about it but his wife has not booked another massage and it's been eight months",
+    "got into a fender bender in a grocery store parking lot and when they got out to exchange information it was the same person they'd gotten into a fender bender with two years ago in a different parking lot — the other driver said 'you again?' and they now have each other's insurance memorized",
+    "left a brutally honest Yelp review for a restaurant and the owner responded publicly with the caller's full order history — including seventeen orders of the dish they said they hated, a note that they always request extra ranch, and a reminder that they asked for a birthday discount three times in one year",
+    "called in sick to work to go to a baseball game and ended up on the Jumbotron — their manager was watching the broadcast and texted them 'nice seats, see you Monday' with no further comment and now they don't know if they're fired or forgiven",
+    "their smart speaker overheard them talking trash about their mother-in-law and added 'divorce lawyer' to their shopping list — their wife saw it before they did and the conversation that followed was worse than anything the lawyer could have helped with",
+    "was trying to impress a date by cooking dinner and set off the smoke alarm so badly that the fire department came — one of the firefighters looked at the pan and said 'were you trying to cook this or punish it' and the date married them anyway but tells this story at every party",
+    "accidentally wore their shirt inside out to a job interview, got the job, and has been wearing the same shirt inside out to work every day because they think it's lucky — a coworker finally told them after three months and they said 'I know' because admitting it was an accident felt worse",
+    "got into an argument with a stranger on the internet that lasted three days and when they finally looked at the profile picture they realized they'd been arguing with their own brother using a fake account — neither of them has brought it up in person",
+    "told a long, elaborate story at a dinner party and absolutely nailed the delivery — everyone laughed, people applauded — and then their spouse leaned over and whispered 'that happened to me, not you' and they've been telling this person's story as their own for so long they genuinely forgot",
+    "their dog got loose and when they found him he was sitting on the porch of a house three blocks away with another family who'd already named him, bought him a bowl, and seemed genuinely upset to give him back — the dog looked at the caller like he'd been caught cheating",
 ]
 
 ADVICE = [
@@ -1560,6 +1598,19 @@ ADVICE = [
     "their house appraised for twice what they expected and now they're wondering if they should sell, downsize, and live off the difference — but it's the house their kids grew up in",
     "their identity was stolen and the thief racked up $30,000 in debt — the banks say it's not their problem and the police say it's the banks' problem and nobody is helping",
     "received a letter from a lawyer saying they're named in a will by someone they've never heard of — the inheritance is modest but the mystery is eating at them",
+    # Comedy writer entries
+    "has been lying about their salary to their spouse for six years — telling them they make $20k less than they do and putting the difference in a secret account — they've got $130k saved and the original reason was a surprise house down payment but now they're addicted to the secret and don't want to stop",
+    "found their teenage son's search history and it's not porn — it's hours of research on how to legally emancipate yourself from your parents — the kid is 15, gets good grades, and has never once complained, and the caller doesn't know if they should confront him or just sit with the fact that their kid is quietly planning to leave them",
+    "wants to know if they're a bad person for being relieved their mother-in-law's Alzheimer's is getting worse — she was cruel to them for twenty years, called them trash to their face at their own wedding, and now she smiles at them and holds their hand and they finally have the mother-in-law they always wanted and they feel sick about how good it feels",
+    "needs advice on whether to tell their friend that nobody likes their friend's cooking — the friend hosts dinner parties every month, everyone pretends the food is good, and now the friend is talking about quitting their accounting job to open a restaurant and the caller is the only one who can stop it but saying something means admitting they've been lying for three years",
+    "wants to know if it's okay to break up with someone because of how they chew — they've been together two years and everything else is perfect but the chewing is so loud they've started wearing earbuds at dinner and last week they had a dream about smothering their partner with a pillow and woke up feeling calm",
+    "let their neighbor borrow a ladder eight months ago and the neighbor hasn't returned it — they've hinted six times, the neighbor keeps saying 'oh yeah I'll bring it over,' and last week the caller saw the neighbor lending THEIR ladder to another neighbor and they're trying to figure out at what point they can just walk into the guy's garage and take it back without it being a crime",
+    "their best friend got a terrible tattoo and keeps asking if it looks good — it does not look good, it's a wolf howling at the moon but it looks like a dog having a seizure, it's on their forearm where everyone can see it, and now the friend wants the caller to get a matching one and the appointment is next Thursday",
+    "is in love with their best friend's wife and has been for eight years — nothing has ever happened, they've never said a word, but the friend just asked them to be the executor of his will and the person who takes care of his wife and kids if anything happens to him, and the caller said yes immediately and hates themselves for how fast they said it",
+    "secretly got a vasectomy two years ago and hasn't told their wife — she thinks they've been trying for a baby and he goes along with the fertility appointments and the ovulation tracking and watches her cry every month when the test is negative because he's too much of a coward to tell her he doesn't want another kid",
+    "found out their brother has been telling people their mother died to get sympathy and free things — their mother is alive and well and living in Tucson, and the brother has used the dead mom story to get out of speeding tickets, get upgraded at hotels, and get a month of free meals from a church group",
+    "has been going to the wrong therapist for three months — they mixed up the address at the first appointment, walked into a different practice, and the therapist never questioned it because the caller's name is close to an actual patient's — the therapy has been going great and they don't want to switch",
+    "is agonizing over whether to tell their coworker they've been calling another coworker by the wrong name for eleven months — the wrong-name coworker has started answering to it out of politeness and now half the office uses the wrong name too and correcting it would humiliate everyone involved",
 ]
 
 GOSSIP = [
@@ -1856,6 +1907,22 @@ GOSSIP = [
     "their barber has a law degree and chose barbering because 'I'd rather talk to people honestly than argue for a living' — they found the diploma hanging in the back room",
     "found out the woman who runs the flower shop is a retired combat medic — she told the caller during a slow afternoon and the stories were nothing like what the caller expected",
     "their garbage collector has a PhD in environmental science — he took the job intentionally to study waste patterns and has published papers about suburban consumption",
+    # Comedy writer entries
+    "their youth pastor who preaches about sexual purity was just spotted leaving an adult bookstore off the highway at 1am — the caller knows because they were also leaving the adult bookstore and they locked eyes in the parking lot and now they have mutually assured destruction",
+    "found out the PTA mom who organized the 'family values' book banning campaign at school has an OnlyFans — a dad from another school district recognized her at a basketball game and showed the caller on his phone and it's not even a little bit ambiguous",
+    "their coworker who makes $55k a year just bought a $90k truck with cash and told everyone his grandmother died and left him money — the caller went to the grandmother's funeral three years ago because they're also friends with the family, and that grandmother had nothing",
+    "just found out their neighbor who puts up the biggest 'Support Our Troops' flag display every Fourth of July dodged the draft in the '70s by having his dentist write a letter about his teeth — the caller's father served two tours and lost a leg and the neighbor thanks him for his service every year at the block party",
+    "their friend's husband who lectures everyone about loyalty and commitment has a separate phone, a separate email, and a PO box — the caller knows because they share a mailman and the mailman let it slip after a few beers at the VFW",
+    "their neighbor who has a 'Live Laugh Love' sign in every room and posts daily gratitude affirmations screamed at a teenager at the Sonic drive-through until the kid cried — over a missing pickle",
+    "found out the guy at work who always talks about his 'lake house' has been sleeping in his car in the office parking garage three nights a week — security showed them the footage and he brings a pillow and everything",
+    "their town's most vocal anti-drinking city councilman was just pulled over for a DUI at 2pm on a Wednesday — in a neighboring town, driving a car registered to a woman who is not his wife, with an open container of Four Loko in the cupholder",
+    "their boss who fires people for being five minutes late has been leaving at 3pm every day for six months — the caller knows because they started parking behind the building and timing it, and they've got a spreadsheet going back to September",
+    "discovered that the woman in their neighborhood who runs a 'clean living' blog and sells essential oils for everything from headaches to infertility keeps a pack of Marlboro Reds in her glove compartment — the caller saw them when they helped her jump her car and she said 'those are my husband's' but her husband died in 2021",
+    "their coworker who talks constantly about their 'amazing marriage' on social media just got caught on the office security camera making out with the night janitor in the supply closet — the security guard showed the caller because the janitor is the caller's nephew",
+    "found out the man who runs the neighborhood watch and sends emails about 'suspicious activity' weekly has two outstanding warrants in another state — the caller's brother is a bail bondsman and recognized the name",
+    "their fitness influencer neighbor who posts shirtless transformation photos and sells a $200 meal plan eats McDonald's in his truck every night at 10pm — the caller can see the golden arches glow from across the street and has photo evidence on four separate occasions",
+    "just learned that the couple on their street who are always holding hands and posting anniversary tributes have been separated for a year — they keep up appearances because they co-own a wedding photography business and the brand depends on them looking happy",
+    "their coworker who brings elaborate homemade lunches every day and talks about their meal prep routine buys pre-made meals from the deli section at Whole Foods and transfers them into Tupperware in the parking lot — the caller watched the whole transfer through the break room window",
 ]
 
 PROBLEM_FILLS = {
@@ -3476,6 +3543,22 @@ HOT_TAKES = [
     "thinks white noise machines are just expensive fans and a ceiling fan does the exact same thing for free",
     "is fed up with restaurants that dim the lights so low you need your phone flashlight to read the menu",
     "believes the middle seat on a plane gets both armrests and this should be a federal law",
+    # Comedy writer entries
+    "thinks most people's dogs are poorly trained nightmares and the owners know it but saying anything about someone's dog is now treated like criticizing their child — and half the time the child is also a nightmare but at least the kid might grow out of it",
+    "is convinced that couples who say they 'never fight' are either lying or so dead inside they've stopped having opinions — healthy people disagree, and if you haven't told your partner they're wrong about something you don't respect them enough to be honest",
+    "believes the gym is the most dishonest place in America — everyone's pretending not to look at each other, pretending they know how to use the machines, pretending their music isn't too loud, and pretending they're not judging the person next to them who is absolutely doing that exercise wrong",
+    "thinks anyone who posts a picture of themselves crying on social media has never experienced a real emotion in their life — real grief doesn't need an audience and if your first instinct when something terrible happens is to open your front-facing camera you need a therapist not followers",
+    "is convinced that 'I'm not like other guys' is the most reliable indicator that a man is exactly like every other guy — the guys who are actually different never announce it because they don't know they're different, that's what makes them different",
+    "believes every man has a number — an amount of money where they'd do something they currently think is beneath them — and most men's number is a lot lower than they'd admit, and pretending otherwise is the biggest lie men tell themselves",
+    "thinks baby showers for a second kid should be illegal and the fact that people have the nerve to ask for gifts twice for doing the same thing is the kind of entitlement that's wrong with this country",
+    "is fed up with people who say 'money doesn't buy happiness' because it was clearly invented by someone who's never had to choose between gas and groceries — money absolutely buys happiness up to about a hundred grand and after that it buys a nicer version of the same unhappiness",
+    "believes the worst people at any barbecue are the ones who show up, eat everything, and then say 'I could have made this better' — if you could have, you would have, but you didn't, you brought a bag of ice and you should be grateful anyone invited you",
+    "thinks people who say 'I tell it like it is' are just rude people who found a way to brand their personality disorder as a virtue — telling it like it is would mean occasionally saying something nice and they never do",
+    "is adamant that the invention of the 'open floor plan' office was revenge by management on workers — nobody in history has ever done their best thinking while a coworker eats yogurt four feet from their face",
+    "believes people who post their gym routine on social media are compensating for a complete lack of personality — nobody who bench presses 225 needs to tell you about it, they just walk around looking like they bench 225 and that's enough",
+    "thinks the concept of a 'guilty pleasure' is cowardice — either you like something or you don't, and calling it guilty is just preemptively apologizing for having taste that someone might judge, and that's weaker than whatever you're watching",
+    "is convinced that 90% of people who say they 'love to cook' actually love to eat and tolerate cooking — the ones who really love cooking are weird about knives and have opinions about salt that nobody asked for",
+    "believes the worst invention of the 21st century isn't social media — it's the read receipt — because at least with social media you can pretend you didn't see it, but a read receipt is proof that someone looked at your message, understood it, and chose silence, which is violence",
 ]
 
 CELEBRATIONS = [
@@ -3637,6 +3720,17 @@ CELEBRATIONS = [
     "their neighbor who's been battling depression for years came over with a pie and said 'I think I'm going to be okay' and meant it",
     "got a perfect score on a licensing exam they failed twice before — studied every night after the kids went to bed for four months",
     "their rescue dog who was afraid of everything finally played with another dog at the park today — tail wagging, full zoomies, the works",
+    # Comedy writer entries
+    "finally told their micromanaging boss to go to hell — didn't quit, didn't get fired, just said it in a meeting and the boss went quiet and now treats them with respect for the first time in four years and they realize they should have done it on day one",
+    "their ex who left them for someone 'more ambitious' just got fired and is delivering for DoorDash — the caller just got promoted to regional manager and ordered lunch through the app and guess who showed up at their office with a bag of pad thai",
+    "finally got their mother to admit that their aunt's potato salad is terrible and has always been terrible — thirty years of Thanksgivings vindicated in one sentence and they screamed in their truck in the driveway",
+    "their dad, who has never once complimented a meal in 65 years of life, said their brisket was 'not bad' and they're treating it like a James Beard Award because from this man that IS a James Beard Award",
+    "just won a small claims court case against their former landlord who kept their security deposit — the judge looked at the photos, looked at the landlord, and said 'you should be ashamed of yourself' and the caller said that sentence was worth more than the $1,800",
+    "won an argument with their spouse about whether you can make a left turn at a specific intersection — drove back to the intersection, pointed at the sign, and the spouse said 'huh, I guess you're right' which is the closest thing to a trophy this marriage has ever produced",
+    "got confirmed their vasectomy took and is celebrating the most underrated freedom a man can have — his wife is equally thrilled and they're going to take the money they'd been putting into a college fund and buy a bass boat",
+    "their neighbor who's been playing music at full volume every night for two years just got evicted — the caller watched the moving truck from their porch with a beer and it was the most satisfying thing they've experienced since their wedding day, and honestly it might have edged that out",
+    "caught a fish so big that nobody believes them even with the photo — their buddy said it was a 'forced perspective' and their wife said 'why does the fish look fake' and they've been defending this fish's honor for three weeks and they will not stop until justice is served",
+    "successfully lied about their age at a new job and has been getting away with it for two years — they're 52, everyone thinks they're 44, and when a coworker said 'you look amazing for your age' they just said 'good genes' and walked away feeling like a criminal mastermind",
 ]
 
 WEIRD = [
@@ -3750,6 +3844,15 @@ WEIRD = [
     "their rain gauge collects exactly one inch of water every full moon even when it doesn't rain — they've cleaned it, moved it, replaced it",
     "found footprints on the inside of their attic window — the attic has no floor access except a pull-down ladder and the dust around it hasn't been disturbed",
     "their dog refuses to walk through one specific doorway in the house and has been going around through the kitchen instead for three weeks — the vet says the dog is fine",
+    # Comedy writer entries — funny-weird
+    "a man in business casual has been power-walking past their house at exactly 4:47 AM every morning for two years — they set an alarm to check and he's never missed a day, weekends and holidays included, rain or shine, and he's always carrying a single banana in his left hand",
+    "their dryer has been producing socks that don't belong to anyone in the household — not losing socks, GAINING socks — and they now have a drawer of nineteen mystery socks in sizes and styles nobody in the house wears and one of them is a tube sock with a corporate logo for a company that went out of business in 2004",
+    "someone has been leaving a single washed potato on their car windshield every Monday morning for four months — different potato each time, always scrubbed clean, always centered perfectly on the driver's side, never a note, never a footprint, and their security camera shows nothing between 2am and 5am even though the potato appears",
+    "every time they sneeze in their house, the neighbor's dog barks exactly twice — they've tested it forty-one times, had friends come over to verify, tried fake sneezes which don't trigger it, and it works with a 100% hit rate on genuine sneezes regardless of volume or time of day",
+    "their bathroom scale gives a different weight depending on which direction they face — not slightly different, consistently twelve pounds different — and they've tested it over two hundred times, bought a new scale that does the same thing in the same spot, and a third scale they put in the kitchen works normally",
+    "found a handwritten grocery list in their jacket pocket that isn't their handwriting — they live alone, the jacket has been in their closet for months, and the list includes items they've never bought but three of them are things they've been meaning to pick up and hadn't told anyone about",
+    "their late mother's perfume appears in the house on the anniversary of her death — no one wears it, the bottle was thrown out years ago, but every March 14th the bedroom smells exactly like her and by the next morning it's gone, and this year their kid who never met the grandmother walked in and said 'who's the lady'",
+    "a stray cat appears on their porch exactly one day before something goes wrong in their life — it showed up before they got fired, before their car broke down, before their pipe burst, and before their mother fell — it was on the porch again this morning and they're afraid to leave the house",
 ]
 
 LOCATIONS_LOCAL = [
@@ -4260,6 +4363,54 @@ CALLER_STYLES = [
     "COMMUNICATION STYLE: Starts a sentence, gets distracted by their own tangent, starts another sentence, remembers the first one, tries to merge them. Asks 'where was I?' a lot. Not unintelligent — their brain just moves faster than their mouth. Lots of 'oh and another thing.' Energy level: medium-high but unfocused. When pushed back on, they agree enthusiastically and then immediately go off on another tangent. Conversational tendency: free association.",
 ]
 
+# Short identifiers for each CALLER_STYLES entry (parallel list, same order).
+# Used to look up STYLE_VOICE_PREFERENCES by index.
+CALLER_STYLE_KEYS = [
+    "quiet_nervous",     # 0
+    "storyteller",       # 1
+    "deadpan",           # 2
+    "high_energy",       # 3
+    "confrontational",   # 4
+    "oversharer",        # 5
+    "philosopher",       # 6
+    "bragger",           # 7
+    "first_time",        # 8
+    "emotional",         # 9
+    "world_weary",       # 10
+    "conspiracy",        # 11
+    "comedian",          # 12
+    "angry_venting",     # 13
+    "sweet_earnest",     # 14
+    "mysterious",        # 15
+    "know_it_all",       # 16
+    "rambling",          # 17
+]
+
+# Preferred voice dimensions for each communication style.
+# None = no preference (matcher can pick any value for that dimension).
+# Maps style key → dict of preferred VOICE_PROFILES dimensions.
+# Used by voice matching (Phase 2c) to score voices against caller personality.
+STYLE_VOICE_PREFERENCES = {
+    "quiet_nervous":     {"weight": "light",  "energy": "low",    "warmth": None,      "age_feel": None},
+    "storyteller":       {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": None},
+    "deadpan":           {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": None},
+    "high_energy":       {"weight": None,     "energy": "high",   "warmth": "warm",    "age_feel": "young"},
+    "confrontational":   {"weight": "heavy",  "energy": "high",   "warmth": "cool",    "age_feel": None},
+    "oversharer":        {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": None},
+    "philosopher":       {"weight": "heavy",  "energy": "low",    "warmth": "warm",    "age_feel": "mature"},
+    "bragger":           {"weight": "heavy",  "energy": "high",   "warmth": "neutral", "age_feel": "middle"},
+    "first_time":        {"weight": "light",  "energy": "low",    "warmth": "warm",    "age_feel": "young"},
+    "emotional":         {"weight": "medium", "energy": "low",    "warmth": "warm",    "age_feel": None},
+    "world_weary":       {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
+    "conspiracy":        {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "comedian":          {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": None},
+    "angry_venting":     {"weight": "heavy",  "energy": "high",   "warmth": "neutral", "age_feel": None},
+    "sweet_earnest":     {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": None},
+    "mysterious":        {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "middle"},
+    "know_it_all":       {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "middle"},
+    "rambling":          {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": None},
+}
+
 
 # --- Call Shapes ---
 # Each shape defines the dramatic arc of a call. Weights control frequency.
@@ -4279,9 +4430,56 @@ _CALL_SHAPE_NAMES = [s[0] for s in CALL_SHAPES]
 _CALL_SHAPE_WEIGHTS = [s[1] for s in CALL_SHAPES]
 
 
-def _pick_call_shape() -> str:
-    """Pick a call shape using weighted random selection."""
-    return random.choices(_CALL_SHAPE_NAMES, weights=_CALL_SHAPE_WEIGHTS, k=1)[0]
+# Shape-style affinities: multipliers for base shape weights per communication style
+SHAPE_STYLE_AFFINITIES = {
+    "quiet/nervous": {"the_hangup": 2.0, "escalating_reveal": 1.5, "bait_and_switch": 1.5, "confrontation": 0.3},
+    "long-winded storyteller": {"escalating_reveal": 2.0, "bait_and_switch": 1.5, "standard": 1.5, "quick_hit": 0.3},
+    "dry/deadpan": {"quick_hit": 1.5, "am_i_the_asshole": 1.5, "confrontation": 1.3},
+    "high-energy": {"confrontation": 1.5, "celebration": 1.5, "reactive": 1.5, "the_hangup": 0.5},
+    "confrontational": {"confrontation": 3.0, "reactive": 2.0, "am_i_the_asshole": 1.5, "celebration": 0.3},
+    "oversharer": {"am_i_the_asshole": 2.0, "escalating_reveal": 1.5, "standard": 1.5},
+    "working-class philosopher": {"standard": 1.5, "reactive": 1.5, "confrontation": 1.3},
+    "bragger": {"am_i_the_asshole": 2.0, "confrontation": 1.5, "celebration": 1.5, "the_hangup": 0.3},
+    "first-time caller": {"standard": 2.0, "the_hangup": 1.5, "quick_hit": 0.5},
+    "emotional/raw": {"escalating_reveal": 2.0, "the_hangup": 1.5, "bait_and_switch": 1.5, "quick_hit": 0.3},
+    "world-weary": {"standard": 1.5, "reactive": 1.5, "am_i_the_asshole": 1.3, "celebration": 0.3},
+    "conspiracy-adjacent": {"escalating_reveal": 2.0, "bait_and_switch": 1.5, "confrontation": 1.3},
+    "comedian": {"quick_hit": 2.0, "bait_and_switch": 1.5, "celebration": 1.3, "the_hangup": 0.3},
+    "angry/venting": {"confrontation": 2.5, "reactive": 2.0, "the_hangup": 1.5, "celebration": 0.2},
+    "sweet/earnest": {"celebration": 2.0, "standard": 1.5, "reactive": 1.3, "confrontation": 0.3},
+    "mysterious/evasive": {"the_hangup": 2.5, "escalating_reveal": 2.0, "bait_and_switch": 1.5, "quick_hit": 0.3},
+    "know-it-all": {"confrontation": 1.5, "am_i_the_asshole": 1.5, "reactive": 1.3},
+    "rambling/scattered": {"bait_and_switch": 1.5, "escalating_reveal": 1.5, "standard": 1.3, "quick_hit": 0.3},
+}
+
+
+def _pick_call_shape(style: str = "") -> str:
+    """Pick a call shape using weighted random selection.
+    If a communication style is provided, applies affinity multipliers.
+    Also avoids repeating the last used shape."""
+    weights = list(_CALL_SHAPE_WEIGHTS)
+
+    # Apply style affinities
+    if style:
+        style_key = style.split(":")[0].strip().lower() if ":" in style else style.lower()
+        affinities = SHAPE_STYLE_AFFINITIES.get(style_key, {})
+        for i, name in enumerate(_CALL_SHAPE_NAMES):
+            if name in affinities:
+                weights[i] *= affinities[name]
+
+    # Reduce weight of recently used shapes to avoid consecutive repeats
+    if hasattr(session, 'call_history') and session.call_history:
+        # Check if any recent call used this shape
+        recent_shapes = set()
+        for record in session.call_history[-2:]:
+            for k, v in session.caller_shapes.items():
+                if CALLER_BASES.get(k, {}).get("name") == record.caller_name:
+                    recent_shapes.add(v)
+        for i, name in enumerate(_CALL_SHAPE_NAMES):
+            if name in recent_shapes:
+                weights[i] *= 0.4  # Reduce but don't eliminate
+
+    return random.choices(_CALL_SHAPE_NAMES, weights=weights, k=1)[0]
 
 
 def pick_location() -> str:
@@ -4353,12 +4551,50 @@ def _generate_returning_caller_background(base: dict) -> str:
 
     trait_str = ", ".join(traits) if traits else "a regular caller"
 
+    # Use stored structured background for richer context
+    stored_bg = regular.get("structured_background")
+    if stored_bg and stored_bg.get("signature_detail"):
+        sig_detail = f"\nSIGNATURE DETAIL: {stored_bg['signature_detail']} — listeners remember this about you."
+    else:
+        sig_detail = ""
+
+    # Include key moments from call history
+    key_moments_str = ""
+    all_moments = []
+    for c in prev_calls[-3:]:
+        all_moments.extend(c.get("key_moments", []))
+    if all_moments:
+        key_moments_str = f"\nMEMORABLE MOMENTS: {', '.join(all_moments[:4])}"
+
+    # Arc status from most recent call
+    arc_note = ""
+    if prev_calls:
+        last_arc = prev_calls[-1].get("arc_status", "ongoing")
+        if last_arc == "resolved":
+            arc_note = "\nYour previous situation was resolved. You might be calling about something new, or a follow-up."
+        elif last_arc == "escalated":
+            arc_note = "\nYour situation has been getting worse. Things have escalated since your last call."
+
+    # Relationship context with other regulars in this session
+    relationships = regular.get("relationships", {})
+    rel_section = ""
+    if relationships:
+        active_names = {CALLER_BASES[k]["name"] for k in CALLER_BASES if "name" in CALLER_BASES[k]}
+        relevant = {name: rel for name, rel in relationships.items() if name in active_names}
+        if relevant:
+            rel_lines = [f"- {name}: {rel['context']}" for name, rel in relevant.items()]
+            rel_section = "\nPEOPLE YOU KNOW FROM THE SHOW:\n" + "\n".join(rel_lines)
+
     parts = [
         f"{age}, {job} {location}. Returning caller — {trait_str}.",
         f"\nRIGHT NOW: {time_ctx}",
         f"\nPEOPLE IN THEIR LIFE: {person1.capitalize()}. {person2.capitalize()}. Use their names when talking about them.",
         f"\nVERBAL HABITS: Tends to say \"{tic1}\" and \"{tic2}\" — use these naturally in conversation.",
         f"\nRELATIONSHIP TO THE SHOW: Has called before. Comfortable on air. Knows Luke by name.",
+        sig_detail,
+        key_moments_str,
+        arc_note,
+        rel_section,
         prev_section,
     ]
 
@@ -4547,17 +4783,22 @@ def _pick_caller_style(reason: str, pool_name: str) -> str:
 
 
 def _assign_call_shape(base: dict) -> str:
-    """Pick and store a call shape for a caller, logging the assignment."""
-    shape = _pick_call_shape()
+    """Pick and store a call shape for a caller, logging the assignment.
+    Uses style-based affinities when a communication style is assigned."""
+    caller_key = None
     for key, b in CALLER_BASES.items():
         if b is base or b.get("name") == base.get("name"):
-            session.caller_shapes[key] = shape
-            print(f"[Shape] {base.get('name', key)} assigned shape: {shape}")
+            caller_key = key
             break
+    style = session.caller_styles.get(caller_key, "") if caller_key else ""
+    shape = _pick_call_shape(style)
+    if caller_key:
+        session.caller_shapes[caller_key] = shape
+        print(f"[Shape] {base.get('name', caller_key)} assigned shape: {shape} (style: {style[:30]})")
     return shape
 
 
-def generate_caller_background(base: dict) -> str:
+def generate_caller_background(base: dict) -> CallerBackground | str:
     """Generate a template-based background as fallback. The preferred path is
     _generate_caller_background_llm() which produces more natural results."""
     if base.get("returning") and base.get("regular_id"):
@@ -4715,12 +4956,41 @@ def generate_caller_background(base: dict) -> str:
     if town_info:
         result += town_info
 
-    return result
+    # Determine energy level from style
+    _hi = {"high-energy", "confrontational", "angry/venting", "bragger", "comedian"}
+    _lo = {"quiet/nervous", "world-weary", "mysterious/evasive", "sweet/earnest", "emotional/raw"}
+    sl = style.split(":")[0].strip().lower() if ":" in style else style.lower()
+    if sl in _hi:
+        energy = random.choice(["high", "very_high"])
+    elif sl in _lo:
+        energy = random.choice(["low", "medium"])
+    else:
+        energy = random.choice(["medium", "high"])
+
+    return CallerBackground(
+        name=base["name"],
+        age=age,
+        gender=gender,
+        job=job,
+        location=location,
+        reason_for_calling=reason,
+        pool_name=pool_name,
+        communication_style=style,
+        energy_level=energy,
+        emotional_state="calm",
+        signature_detail=quirk1,
+        situation_summary=reason[:120],
+        natural_description=result,
+        seeds=[interest1, interest2, quirk1, opinion],
+        verbal_fluency="medium",
+        calling_from="",
+    )
 
 
-async def _generate_caller_background_llm(base: dict) -> str:
+async def _generate_caller_background_llm(base: dict) -> CallerBackground | str:
     """Use LLM to write a natural character description from seed parameters.
-    Produces much more varied, natural-feeling backgrounds than the template approach."""
+    Returns a CallerBackground with structured data + natural prose description.
+    Falls back to template on failure."""
     if base.get("returning") and base.get("regular_id"):
         return generate_caller_background(base)  # Returning callers use template + history
 
@@ -4747,6 +5017,17 @@ async def _generate_caller_background_llm(base: dict) -> str:
     if caller_key:
         session.caller_styles[caller_key] = style
     style_hint = style.split(":")[1].strip()[:120] if ":" in style else ""
+
+    # Determine energy level from style
+    _high_energy_styles = {"high-energy", "confrontational", "angry/venting", "bragger", "comedian"}
+    _low_energy_styles = {"quiet/nervous", "world-weary", "mysterious/evasive", "sweet/earnest", "emotional/raw"}
+    style_label = style.split(":")[0].strip().lower() if ":" in style else style.lower()
+    if style_label in _high_energy_styles:
+        energy_level = random.choice(["high", "very_high"])
+    elif style_label in _low_energy_styles:
+        energy_level = random.choice(["low", "medium"])
+    else:
+        energy_level = random.choice(["medium", "high"])
 
     # Assign call shape
     _assign_call_shape(base)
@@ -4800,7 +5081,7 @@ async def _generate_caller_background_llm(base: dict) -> str:
     }[fluency]
 
     location_line = f"\nLOCATION: {location}" if location else ""
-    prompt = f"""Write a brief character description for a caller on a late-night radio show set in the rural southwest (New Mexico/Arizona border region). Write it in third person as a character brief, not as dialog.
+    prompt = f"""Write a brief character description for a caller on a late-night radio show set in the rural southwest (New Mexico/Arizona border region).
 
 CALLER: {name}, {age}, {gender}
 JOB: {job}{location_line}
@@ -4811,42 +5092,61 @@ TIME: {time_ctx} {season_ctx}
 {f'SOME DETAILS ABOUT THEM: {seed_text}' if seed_text else ''}
 {f'CALLER ENERGY: {style_hint}' if style_hint else ''}
 
-Write 3-5 sentences describing this person. The "WHY THEY'RE CALLING" is the core of the character — build everything around it. Make it feel like a real person with a real situation, not a character sheet or therapy intake form.
+Respond with a JSON object containing these fields:
 
-WHAT MAKES A GOOD CALLER: The best radio callers have stories that are SPECIFIC, SURPRISING, and make you lean in. Think: absurd situations that escalated, moral dilemmas with no clean answer, petty feuds that got out of hand, workplace chaos, ridiculous coincidences, confessions that are funny and terrible at the same time, situations where the caller might be the villain and doesn't realize it. The kind of thing where the host says "wait, back up — say that again."
+- "natural_description": 3-5 sentences describing this person in third person as a character brief. The "WHY THEY'RE CALLING" is the core — build everything around it. Make it feel like a real person with a real situation. Jump straight into the situation. What happened? What's the mess? Include where they're calling from (NOT always truck/porch — kitchens, break rooms, laundromats, diners, motel rooms, the gym, a bar, walking down the road, etc).
+- "emotional_state": One word for how they're feeling right now (e.g. "nervous", "furious", "giddy", "defeated", "wired", "numb", "amused", "desperate", "smug").
+- "signature_detail": ONE specific memorable thing — a catchphrase, habit, running joke, strong opinion about something trivial, or unique life circumstance. The thing listeners would remember.
+- "situation_summary": ONE sentence summarizing their situation that another caller could react to (e.g. "caught her neighbor stealing her mail and retaliated by stealing his garden gnomes").
+- "calling_from": Where they physically are right now (e.g. "kitchen table", "break room at the plant", "laundromat on 4th street", "parked outside Denny's").
 
-DO NOT WRITE:
-- Generic revelation callers ("just found out [big secret]" — this format is BANNED)
-- Adoption/DNA/paternity surprise stories
-- Vague emotional processing ("carrying a weight," "sitting with this," "can't stop thinking about it")
-- Therapy-speak ("processing," "unpacking," "my truth," "boundaries")
-- The "sitting in their truck staring at nothing" opening
-- Any version of "everything they thought they knew was a lie"
+WHAT MAKES A GOOD CALLER: Stories that are SPECIFIC, SURPRISING, and make you lean in. Absurd situations, moral dilemmas, petty feuds, workplace chaos, ridiculous coincidences, funny+terrible confessions, callers who might be the villain and don't see it.
 
-DO WRITE: Jump straight into the situation. What happened? What's the mess? What's the funny/terrible/absurd detail that makes this story worth telling on the radio?
+DO NOT WRITE: Generic revelations, adoption/DNA/paternity surprises, vague emotional processing, therapy-speak, "sitting in truck staring at nothing," or "everything they thought they knew was a lie."
 
-Vary where they're calling from. NOT everyone is in their truck or on the porch. Kitchens, break rooms, laundromats, diners, motel rooms, the bathtub, the gym, work, a bar, a hospital waiting room, walking down the road.
-
-Include ONE signature detail — a specific, memorable thing about this person that makes them instantly recognizable if they ever called back. A catchphrase, a distinctive habit, a running joke, a strong opinion about something trivial, or a unique life circumstance. This is the thing listeners would remember.
-
-Output ONLY the character description, nothing else."""
+Output ONLY valid JSON, no markdown fences."""
 
     try:
         result = await llm_service.generate(
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=200,
+            max_tokens=300,
+            response_format={"type": "json_object"},
         )
         result = result.strip()
-        # Sanity check — must mention the name or location
-        location_mentioned = location and location.split(",")[0].lower() in result.lower()
-        if len(result) > 50 and (name.lower() in result.lower() or location_mentioned):
-            result += f" {time_ctx} {season_ctx}"
+        parsed = json.loads(result)
+        natural_desc = parsed.get("natural_description", "").strip()
+
+        # Sanity check
+        location_mentioned = location and location.split(",")[0].lower() in natural_desc.lower()
+        if len(natural_desc) > 50 and (name.lower() in natural_desc.lower() or location_mentioned):
+            natural_desc += f" {time_ctx} {season_ctx}"
             if town_info:
-                result += town_info
-            print(f"[Background] LLM-generated for {name}: {result[:80]}...")
-            return result
+                natural_desc += town_info
+
+            bg = CallerBackground(
+                name=name,
+                age=age,
+                gender=gender,
+                job=job,
+                location=location,
+                reason_for_calling=reason,
+                pool_name=pool_name,
+                communication_style=style,
+                energy_level=energy_level,
+                emotional_state=parsed.get("emotional_state", "calm"),
+                signature_detail=parsed.get("signature_detail", ""),
+                situation_summary=parsed.get("situation_summary", reason[:100]),
+                natural_description=natural_desc,
+                seeds=seeds,
+                verbal_fluency=fluency,
+                calling_from=parsed.get("calling_from", ""),
+            )
+            print(f"[Background] LLM-generated for {name}: {natural_desc[:80]}...")
+            return bg
         else:
             print(f"[Background] LLM output didn't pass sanity check for {name}, falling back to template")
+    except json.JSONDecodeError as e:
+        print(f"[Background] JSON parse failed for {name}: {e}, falling back to template")
     except Exception as e:
         print(f"[Background] LLM generation failed for {name}: {e}")
 
@@ -4870,6 +5170,263 @@ async def _pregenerate_backgrounds():
             session.caller_backgrounds[key] = result
 
     print(f"[Background] Pre-generated {len(session.caller_backgrounds)} caller backgrounds")
+
+    # Re-assign voices to match caller styles
+    _match_voices_to_styles()
+
+    # Sort caller presentation order for good show pacing
+    _sort_caller_queue()
+
+    # Build relationship context for regulars who know each other
+    _build_relationship_context()
+
+
+# Dramatic shapes that play better later in the show
+_LATE_SHOW_SHAPES = {"escalating_reveal", "bait_and_switch", "the_hangup"}
+
+
+def _sort_caller_queue():
+    """Sort caller presentation order for good show pacing.
+    Does NOT change which callers exist — only the order they're presented.
+    Prioritizes: energy alternation, topic variety, shape variety,
+    dramatic shapes later in the show."""
+    keys = list(session.caller_backgrounds.keys())
+    if not keys:
+        return
+
+    # Gather attributes for each caller
+    caller_attrs = {}
+    for key in keys:
+        bg = session.caller_backgrounds.get(key)
+        if isinstance(bg, CallerBackground):
+            energy = bg.energy_level
+            pool = bg.pool_name
+        else:
+            energy = "medium"
+            pool = ""
+        shape = session.caller_shapes.get(key, "standard")
+        caller_attrs[key] = {"energy": energy, "pool": pool, "shape": shape}
+
+    # Greedy placement: pick the best next caller at each position
+    remaining = list(keys)
+    ordered = []
+
+    for position in range(len(keys)):
+        best_key = None
+        best_score = -999
+
+        for key in remaining:
+            attrs = caller_attrs[key]
+            score = 0.0
+
+            # Energy alternation: penalize same energy as previous caller
+            if ordered:
+                prev_energy = caller_attrs[ordered[-1]]["energy"]
+                if attrs["energy"] == prev_energy:
+                    score -= 3.0
+                # Bonus for contrast
+                high = {"high", "very_high"}
+                low = {"low", "medium"}
+                if (attrs["energy"] in high and prev_energy in low) or \
+                   (attrs["energy"] in low and prev_energy in high):
+                    score += 2.0
+
+            # Topic variety: penalize same pool as previous caller
+            if ordered:
+                prev_pool = caller_attrs[ordered[-1]]["pool"]
+                if attrs["pool"] and attrs["pool"] == prev_pool:
+                    score -= 3.0
+                # Also check 2-back
+                if len(ordered) >= 2:
+                    prev2_pool = caller_attrs[ordered[-2]]["pool"]
+                    if attrs["pool"] and attrs["pool"] == prev2_pool:
+                        score -= 1.5
+
+            # Shape variety: penalize same shape as previous caller
+            if ordered:
+                prev_shape = caller_attrs[ordered[-1]]["shape"]
+                if attrs["shape"] == prev_shape:
+                    score -= 2.0
+
+            # Dramatic shapes: boost for later positions (7-10)
+            if attrs["shape"] in _LATE_SHOW_SHAPES:
+                if position >= 6:  # positions 7-10 (0-indexed 6-9)
+                    score += 3.0
+                elif position <= 2:  # too early
+                    score -= 2.0
+
+            if score > best_score:
+                best_score = score
+                best_key = key
+
+        ordered.append(best_key)
+        remaining.remove(best_key)
+
+    session.caller_queue = ordered
+    queue_summary = ", ".join(
+        f"{CALLER_BASES.get(k, {}).get('name', k)}({caller_attrs[k]['energy'][0]}/{caller_attrs[k]['pool'][:4] if caller_attrs[k]['pool'] else '?'}/{caller_attrs[k]['shape'][:4]})"
+        for k in ordered
+    )
+    print(f"[Pacing] Caller queue: {queue_summary}")
+
+
+def _build_relationship_context():
+    """Find regulars with existing relationships who are both in the current session.
+    Inject mutual awareness into both callers' prompts."""
+    regulars = regular_caller_service.get_regulars()
+    if not regulars:
+        return
+
+    # Map regular names to their caller keys in this session
+    name_to_key = {}
+    key_to_regular = {}
+    for key, base in CALLER_BASES.items():
+        if base.get("returning") and base.get("regular_id"):
+            for reg in regulars:
+                if reg["id"] == base["regular_id"]:
+                    name_to_key[reg["name"]] = key
+                    key_to_regular[key] = reg
+                    break
+
+    if len(name_to_key) < 2:
+        return  # Need at least 2 regulars to have relationships
+
+    # Check for mutual relationships
+    for key, regular in key_to_regular.items():
+        relationships = regular.get("relationships", {})
+        for other_name, rel_info in relationships.items():
+            if other_name in name_to_key:
+                other_key = name_to_key[other_name]
+                rel_type = rel_info.get("type", "knows")
+                context = rel_info.get("context", "")
+                # Inject awareness into this caller's prompt
+                line = f"\nSOMEONE YOU KNOW IS ON THE SHOW TONIGHT: {other_name} is also calling in. You know them — {rel_type}. {context} You might hear them on air. If Luke mentions them or you hear them, react naturally. Don't force it — if it comes up, it comes up."
+                existing = session.relationship_context.get(key, "")
+                session.relationship_context[key] = existing + line
+                print(f"[Relationships] {regular['name']} knows {other_name} ({rel_type})")
+
+
+# Style-based TTS speed modifiers — stacks with per-voice and per-utterance adjustments
+STYLE_SPEED_MODIFIERS = {
+    "quiet_nervous": -0.1,
+    "first_time": -0.08,
+    "emotional": -0.1,
+    "world_weary": -0.15,
+    "philosopher": -0.08,
+    "storyteller": -0.05,
+    "high_energy": +0.1,
+    "confrontational": +0.08,
+    "angry_venting": +0.08,
+    "rambling": +0.05,
+    "comedian": +0.05,
+}
+
+# Style-based phone filter quality
+STYLE_PHONE_QUALITY = {
+    "quiet_nervous": "bad",
+    "mysterious": "bad",
+    "world_weary": "bad",
+    "conspiracy": "bad",
+    "high_energy": "good",
+    "confrontational": "good",
+    "bragger": "good",
+    "comedian": "good",
+}
+
+
+def _normalize_style_key(style: str) -> str:
+    """Convert a full style string like 'Quiet/Nervous: Short sentences...' to a key like 'quiet_nervous'."""
+    label = style.split(":")[0].strip().lower() if ":" in style else style.lower()
+    key_map = {
+        "quiet/nervous": "quiet_nervous",
+        "long-winded storyteller": "storyteller",
+        "dry/deadpan": "deadpan",
+        "high-energy": "high_energy",
+        "confrontational": "confrontational",
+        "oversharer": "oversharer",
+        "working-class philosopher": "philosopher",
+        "bragger": "bragger",
+        "first-time caller": "first_time",
+        "emotional/raw": "emotional",
+        "world-weary": "world_weary",
+        "conspiracy-adjacent": "conspiracy",
+        "comedian": "comedian",
+        "angry/venting": "angry_venting",
+        "sweet/earnest": "sweet_earnest",
+        "mysterious/evasive": "mysterious",
+        "know-it-all": "know_it_all",
+        "rambling/scattered": "rambling",
+    }
+    return key_map.get(label, label)
+
+
+def _match_voices_to_styles():
+    """Re-assign voices to match caller communication styles after backgrounds are generated."""
+    from .services.tts import VOICE_PROFILES
+
+    for key, base in CALLER_BASES.items():
+        if base.get("returning"):
+            continue
+
+        style_raw = session.caller_styles.get(key, "")
+        if not style_raw:
+            continue
+
+        style_key = _normalize_style_key(style_raw)
+        prefs = STYLE_VOICE_PREFERENCES.get(style_key)
+        if not prefs:
+            continue
+
+        gender = base["gender"]
+        voice_pool = list(INWORLD_MALE_VOICES if gender == "male" else INWORLD_FEMALE_VOICES)
+
+        scored = []
+        for voice_name in voice_pool:
+            profile = VOICE_PROFILES.get(voice_name)
+            if not profile:
+                scored.append((voice_name, 0))
+                continue
+            score = 0
+            for dim in ["weight", "energy", "warmth", "age_feel"]:
+                pref_val = prefs.get(dim)
+                if pref_val and profile.get(dim) == pref_val:
+                    score += 1
+            scored.append((voice_name, score))
+
+        if scored:
+            names = [s[0] for s in scored]
+            weights = [max(1, s[1] * 3) for s in scored]
+            chosen = random.choices(names, weights=weights, k=1)[0]
+
+            used_voices = {CALLER_BASES[k]["voice"] for k in CALLER_BASES if k != key and "voice" in CALLER_BASES[k]}
+            if chosen in used_voices:
+                alternatives = [(n, w) for n, w in zip(names, weights) if n not in used_voices]
+                if alternatives:
+                    alt_names, alt_weights = zip(*alternatives)
+                    chosen = random.choices(alt_names, weights=alt_weights, k=1)[0]
+
+            old_voice = base.get("voice", "")
+            base["voice"] = chosen
+            if old_voice != chosen:
+                print(f"[VoiceMatch] {base.get('name', key)}: {old_voice} → {chosen} (style: {style_key})")
+
+
+def get_style_speed_modifier(caller_key: str) -> float:
+    """Get the TTS speed modifier for a caller based on their communication style."""
+    style_raw = session.caller_styles.get(caller_key, "")
+    if not style_raw:
+        return 0.0
+    style_key = _normalize_style_key(style_raw)
+    return STYLE_SPEED_MODIFIERS.get(style_key, 0.0)
+
+
+def get_style_phone_quality(caller_key: str) -> str | None:
+    """Get the phone filter quality override for a caller based on their style."""
+    style_raw = session.caller_styles.get(caller_key, "")
+    if not style_raw:
+        return None
+    style_key = _normalize_style_key(style_raw)
+    return STYLE_PHONE_QUALITY.get(style_key)
 
 
 # Known topics for smarter search queries — maps keywords in backgrounds to search terms
@@ -5023,8 +5580,11 @@ async def enrich_caller_background(background: str) -> str:
 
     return background
 
-def detect_host_mood(messages: list[dict]) -> str:
+def detect_host_mood(messages: list[dict], wrapping_up: bool = False) -> str:
     """Analyze recent host messages to detect mood signals for caller adaptation."""
+    if wrapping_up:
+        return "\nEMOTIONAL READ ON THE HOST:\n- The host is DONE with this call. Give a SHORT goodbye — one sentence max. Do not introduce new topics.\n"
+
     host_msgs = [m["content"] for m in messages if m.get("role") in ("user", "host")][-5:]
     if not host_msgs:
         return ""
@@ -5199,7 +5759,8 @@ Don't just comment on the previous caller like a pundit. Have skin in the game. 
 
 def get_caller_prompt(caller: dict, show_history: str = "",
                       news_context: str = "", research_context: str = "",
-                      emotional_read: str = "") -> str:
+                      emotional_read: str = "",
+                      relationship_context: str = "") -> str:
     """Generate a natural system prompt for a caller.
     Note: conversation history is passed as actual LLM messages, not duplicated here."""
 
@@ -5263,7 +5824,7 @@ You are {caller['name']}. You are the CALLER. You are NOT Luke. Luke is the HOST
 
 YOUR BACKGROUND:
 {caller['vibe']}
-{history}{world_context}{emotional_read}
+{relationship_context}{history}{world_context}{emotional_read}
 You're a real person calling a late-night radio show. You called because you've got something specific and you want to talk about it.
 
 {pacing_block}
@@ -5291,6 +5852,27 @@ BANNED PHRASES — never use these: "that hit differently," "hits different," "I
 NEVER mention minors in sexual context. Output spoken words only — no parenthetical actions like (laughs) or (sighs), no asterisk actions like *pauses*, no stage directions, no gestures. Just say what you'd actually say out loud on the phone. Use "United States" not "US" or "USA". Use full state names not abbreviations."""
 
 
+# --- Structured Caller Background ---
+@dataclass
+class CallerBackground:
+    name: str
+    age: int
+    gender: str
+    job: str
+    location: str | None
+    reason_for_calling: str
+    pool_name: str
+    communication_style: str
+    energy_level: str              # low / medium / high / very_high
+    emotional_state: str           # nervous, excited, angry, vulnerable, calm, etc.
+    signature_detail: str          # The memorable thing about them
+    situation_summary: str         # 1-sentence summary for other callers to reference
+    natural_description: str       # 3-5 sentence prose for the prompt
+    seeds: list[str] = field(default_factory=list)
+    verbal_fluency: str = "medium"
+    calling_from: str = ""
+
+
 # --- Session State ---
 @dataclass
 class CallRecord:
@@ -5300,6 +5882,14 @@ class CallRecord:
     transcript: list[dict] = field(default_factory=list)
     started_at: float = 0.0
     ended_at: float = 0.0
+    quality_signals: dict = field(default_factory=dict)  # Per-call quality heuristics
+    # Inter-caller awareness fields (populated from CallerBackground)
+    topic_category: str = ""           # Pool name: PROBLEMS, STORIES, etc.
+    situation_summary: str = ""        # 1-sentence summary for other callers
+    emotional_state: str = ""          # How the caller was feeling
+    energy_level: str = ""             # low/medium/high/very_high
+    communication_style: str = ""      # Style key
+    key_details: list[str] = field(default_factory=list)  # Specific memorable details
 
 
 def _serialize_call_record(record: CallRecord) -> dict:
@@ -5310,6 +5900,13 @@ def _serialize_call_record(record: CallRecord) -> dict:
         "transcript": record.transcript,
         "started_at": record.started_at,
         "ended_at": record.ended_at,
+        "quality_signals": record.quality_signals,
+        "topic_category": record.topic_category,
+        "situation_summary": record.situation_summary,
+        "emotional_state": record.emotional_state,
+        "energy_level": record.energy_level,
+        "communication_style": record.communication_style,
+        "key_details": record.key_details,
     }
 
 
@@ -5321,7 +5918,54 @@ def _deserialize_call_record(data: dict) -> CallRecord:
         transcript=data.get("transcript", []),
         started_at=data.get("started_at", 0.0),
         ended_at=data.get("ended_at", 0.0),
+        quality_signals=data.get("quality_signals", {}),
+        topic_category=data.get("topic_category", ""),
+        situation_summary=data.get("situation_summary", ""),
+        emotional_state=data.get("emotional_state", ""),
+        energy_level=data.get("energy_level", ""),
+        communication_style=data.get("communication_style", ""),
+        key_details=data.get("key_details", []),
     )
+
+
+def _assess_call_quality(
+    conversation: list[dict],
+    caller_hangup: bool = False,
+    shape: str = "",
+    style: str = "",
+    pool_name: str = "",
+) -> dict:
+    """Compute heuristic quality signals for a completed call. No LLM needed.
+    Returns a plain dict for storage in CallRecord.quality_signals and session.call_quality_signals."""
+    host_msgs = [m for m in conversation if m.get("role") in ("user", "host")]
+    caller_msgs = [m for m in conversation if m.get("role") == "assistant"]
+
+    exchange_count = len(conversation)
+
+    caller_char_counts = [len(m["content"]) for m in caller_msgs]
+    avg_response_length = (
+        round(sum(caller_char_counts) / len(caller_char_counts), 1)
+        if caller_char_counts else 0.0
+    )
+
+    host_engagement = sum(1 for m in host_msgs if "?" in m["content"])
+
+    # Caller depth: responses > 50 chars after the first exchange
+    caller_depth = sum(1 for m in caller_msgs[1:] if len(m["content"]) > 50)
+
+    # Natural ending: True if the call did NOT end with [HANGUP] sentinel
+    natural_ending = not caller_hangup
+
+    return {
+        "exchange_count": exchange_count,
+        "avg_response_length": avg_response_length,
+        "host_engagement": host_engagement,
+        "caller_depth": caller_depth,
+        "natural_ending": natural_ending,
+        "shape": shape,
+        "style": style,
+        "pool_name": pool_name,
+    }
 
 
 class Session:
@@ -5329,7 +5973,7 @@ class Session:
         self.id = str(uuid.uuid4())[:8]
         self.current_caller_key: str = None
         self.conversation: list[dict] = []
-        self.caller_backgrounds: dict[str, str] = {}  # Generated backgrounds for this session
+        self.caller_backgrounds: dict[str, CallerBackground | str] = {}  # Generated backgrounds
         self.call_history: list[CallRecord] = []
         self._call_started_at: float = 0.0
         self.active_real_caller: dict | None = None
@@ -5343,11 +5987,21 @@ class Session:
         self.caller_styles: dict[str, str] = {}
         self.caller_shapes: dict[str, str] = {}
         self.tone_streak: list[str] = []  # Track tone per call for variety balancing
+        self.call_quality_signals: list[dict] = []  # Per-call quality heuristics for tuning
+        self._caller_hangup: bool = False  # Set when [HANGUP] sentinel detected in current call
+        self._wrapping_up: bool = False  # Set via /api/wrap-up to gracefully wind down calls
+        self._wrapup_exchanges: int = 0  # Track how many exchanges since wrap-up started
+        self.caller_queue: list[str] = []  # Sorted presentation order of caller keys
+        self.relationship_context: dict[str, str] = {}  # caller_key → relationship prompt injection
+        self.intern_monitoring: bool = True  # Devon monitors conversations by default
 
     def start_call(self, caller_key: str):
         self.current_caller_key = caller_key
         self.conversation = []
         self._call_started_at = time.time()
+        self._caller_hangup = False
+        self._wrapping_up = False
+        self._wrapup_exchanges = 0
 
     def end_call(self):
         self.current_caller_key = None
@@ -5357,17 +6011,21 @@ class Session:
         self.conversation.append({"role": role, "content": content, "timestamp": time.time()})
 
     def get_caller_background(self, caller_key: str) -> str:
-        """Get or generate background for a caller in this session"""
+        """Get or generate background for a caller in this session.
+        Returns the natural_description string for prompt injection."""
         if caller_key not in self.caller_backgrounds:
             base = CALLER_BASES.get(caller_key)
             if base:
                 self.caller_backgrounds[caller_key] = generate_caller_background(base)
-                print(f"[Session {self.id}] Generated background for {base['name']}: {self.caller_backgrounds[caller_key][:100]}...")
-        return self.caller_backgrounds.get(caller_key, "")
+                bg = self.caller_backgrounds[caller_key]
+                desc = bg.natural_description if isinstance(bg, CallerBackground) else bg
+                print(f"[Session {self.id}] Generated background for {base['name']}: {desc[:100]}...")
+        bg = self.caller_backgrounds.get(caller_key, "")
+        return bg.natural_description if isinstance(bg, CallerBackground) else bg
 
     def get_show_history(self) -> str:
         """Get formatted show history for AI caller prompts.
-        Randomly picks one previous caller to have a strong reaction to."""
+        Uses thematic matching to pick relevant previous callers to react to."""
         if not self.call_history and not any(e.read_on_air for e in _listener_emails):
             return ""
         lines = ["EARLIER IN THE SHOW:"]
@@ -5382,18 +6040,118 @@ class Session:
             preview = em.body[:150] if len(em.body) > 150 else em.body
             lines.append(f"- A listener email from {sender_name} was read on air: \"{em.subject}\" — {preview}")
 
-        # 35% chance to have a reaction to a previous caller (with intensity levels)
-        if self.call_history and random.random() < 0.35:
-            target = random.choice(self.call_history)
-            reaction = random.choice(SHOW_HISTORY_REACTIONS)
-            # 30% driven_by (strong, shapes the call), 70% mention (passing reference)
-            if random.random() < 0.30:
-                lines.append(f"\nYOU HEARD {target.caller_name.upper()} EARLIER and you {reaction}. This is partly why you called — bring it up early and tie it into your story.")
+        # Thematic matching for inter-caller reactions
+        if self.call_history:
+            current_bg = self.caller_backgrounds.get(self.current_caller_key)
+            best_target, best_score = self._find_thematic_match(current_bg)
+
+            # Adaptive reaction frequency based on thematic match strength
+            if best_score >= 3:
+                reaction_chance = 0.60
+            elif best_score >= 1:
+                reaction_chance = 0.35
             else:
-                lines.append(f"\nYOU HEARD {target.caller_name.upper()} EARLIER and you {reaction}. Mention it if it comes up naturally, but your call is about YOUR thing.")
-        else:
-            lines.append("You're aware of these but you're calling about YOUR thing, not theirs. Don't bring them up unless the host does.")
+                reaction_chance = 0.15
+
+            if random.random() < reaction_chance and best_target:
+                reaction = self._build_specific_reaction(current_bg, best_target)
+                if random.random() < 0.30:
+                    lines.append(f"\nYOU HEARD {best_target.caller_name.upper()} EARLIER and you {reaction}. This is partly why you called — bring it up early and tie it into your story.")
+                else:
+                    lines.append(f"\nYOU HEARD {best_target.caller_name.upper()} EARLIER and you {reaction}. Mention it if it comes up naturally, but your call is about YOUR thing.")
+            else:
+                lines.append("You're aware of these but you're calling about YOUR thing, not theirs. Don't bring them up unless the host does.")
+
+        # Show energy tracking
+        energy_note = self._get_show_energy()
+        if energy_note:
+            lines.append(f"\n{energy_note}")
+
         return "\n".join(lines)
+
+    def _find_thematic_match(self, current_bg) -> tuple:
+        """Score previous callers against current caller for thematic relevance.
+        Returns (best_target CallRecord, score)."""
+        if not self.call_history:
+            return None, 0
+
+        best_target = None
+        best_score = 0
+
+        current_pool = current_bg.pool_name if isinstance(current_bg, CallerBackground) else ""
+        current_reason = current_bg.reason_for_calling if isinstance(current_bg, CallerBackground) else ""
+        current_summary = current_bg.situation_summary if isinstance(current_bg, CallerBackground) else ""
+        current_words = set((current_reason + " " + current_summary).lower().split())
+
+        for record in self.call_history:
+            score = 0
+            # Same topic pool = strong match
+            if current_pool and record.topic_category == current_pool:
+                score += 2
+            # Keyword overlap in situation summaries
+            if record.situation_summary:
+                record_words = set(record.situation_summary.lower().split())
+                overlap = current_words & record_words - {"the", "a", "an", "and", "or", "is", "was", "to", "in", "of", "for", "that", "it", "on", "with"}
+                if len(overlap) >= 2:
+                    score += 2
+                elif len(overlap) >= 1:
+                    score += 1
+            # Emotional contrast bonus (opposite energies are interesting)
+            if record.energy_level and isinstance(current_bg, CallerBackground):
+                if (record.energy_level in ("low", "medium") and current_bg.energy_level in ("high", "very_high")) or \
+                   (record.energy_level in ("high", "very_high") and current_bg.energy_level in ("low", "medium")):
+                    score += 1
+
+            if score > best_score:
+                best_score = score
+                best_target = record
+
+        # If no thematic match, pick a random target for generic reactions
+        if best_target is None:
+            best_target = random.choice(self.call_history)
+
+        return best_target, best_score
+
+    def _build_specific_reaction(self, current_bg, target: 'CallRecord') -> str:
+        """Build a reaction that references specific details from the target call."""
+        # If target has specific details, use them for a more specific reaction
+        if target.key_details:
+            detail = random.choice(target.key_details)
+            specific_reactions = [
+                f"heard them talk about {detail} and has strong opinions about it",
+                f"had something similar happen involving {detail}",
+                f"completely disagrees with their take on {detail}",
+                f"was thinking about what they said about {detail} and it reminded them of their own situation",
+                f"can't stop thinking about the {detail} part",
+            ]
+            return random.choice(specific_reactions)
+
+        # If target has a situation summary, use that
+        if target.situation_summary:
+            summary_reactions = [
+                f"heard about their situation and has been through something eerily similar",
+                f"thinks they were completely wrong about their situation",
+                f"felt personally called out by their story",
+                f"wants to give them advice the host didn't",
+            ]
+            return random.choice(summary_reactions)
+
+        # Fallback to generic reactions
+        return random.choice(SHOW_HISTORY_REACTIONS)
+
+    def _get_show_energy(self) -> str:
+        """Summarize the energy arc of the show for caller awareness."""
+        if len(self.call_history) < 3:
+            return ""
+        recent = self.call_history[-3:]
+        energies = [r.energy_level for r in recent if r.energy_level]
+        if not energies:
+            return ""
+        if all(e in ("high", "very_high") for e in energies):
+            return "SHOW ENERGY: The last few calls have been high-energy — the show could use a breather."
+        if all(e in ("low", "medium") for e in energies):
+            return "SHOW ENERGY: The last few calls have been mellow — some energy would shake things up."
+        return ""
 
     def get_conversation_summary(self) -> str:
         """Get a brief summary of conversation so far for context"""
@@ -5452,7 +6210,15 @@ class Session:
         self.caller_styles = {}
         self.caller_shapes = {}
         self.tone_streak = []
+        self.call_quality_signals = []
+        self._wrapping_up = False
+        self._wrapup_exchanges = 0
+        self.caller_queue = []
+        self.relationship_context = {}
         self.used_reasons = set()
+        self.intern_monitoring = True
+        intern_service.stop_monitoring()
+        intern_service.dismiss_suggestion()
         _randomize_callers()
         self.id = str(uuid.uuid4())[:8]
         names = [CALLER_BASES[k]["name"] for k in sorted(CALLER_BASES.keys())]
@@ -5582,7 +6348,7 @@ def _save_checkpoint():
         data = {
             "session_id": session.id,
             "call_history": [_serialize_call_record(r) for r in session.call_history],
-            "caller_backgrounds": session.caller_backgrounds,
+            "caller_backgrounds": {k: asdict(v) if isinstance(v, CallerBackground) else v for k, v in session.caller_backgrounds.items()},
             "used_reasons": list(session.used_reasons),
             "ai_respond_mode": session.ai_respond_mode,
             "auto_followup": session.auto_followup,
@@ -5593,6 +6359,10 @@ def _save_checkpoint():
             "caller_styles": session.caller_styles,
             "caller_shapes": session.caller_shapes,
             "tone_streak": session.tone_streak,
+            "call_quality_signals": session.call_quality_signals,
+            "caller_queue": session.caller_queue,
+            "relationship_context": session.relationship_context,
+            "intern_monitoring": session.intern_monitoring,
             "saved_at": time.time(),
         }
         with open(CHECKPOINT_FILE, "w") as f:
@@ -5614,7 +6384,13 @@ def _load_checkpoint() -> bool:
             return False
         session.id = data["session_id"]
         session.call_history = [_deserialize_call_record(r) for r in data.get("call_history", [])]
-        session.caller_backgrounds = data.get("caller_backgrounds", {})
+        raw_bgs = data.get("caller_backgrounds", {})
+        session.caller_backgrounds = {}
+        for k, v in raw_bgs.items():
+            if isinstance(v, dict) and "natural_description" in v:
+                session.caller_backgrounds[k] = CallerBackground(**v)
+            else:
+                session.caller_backgrounds[k] = v
         session.used_reasons = set(data.get("used_reasons", []))
         session.ai_respond_mode = data.get("ai_respond_mode", "manual")
         session.auto_followup = data.get("auto_followup", False)
@@ -5624,6 +6400,10 @@ def _load_checkpoint() -> bool:
         session.caller_styles = data.get("caller_styles", {})
         session.caller_shapes = data.get("caller_shapes", {})
         session.tone_streak = data.get("tone_streak", [])
+        session.call_quality_signals = data.get("call_quality_signals", [])
+        session.caller_queue = data.get("caller_queue", [])
+        session.relationship_context = data.get("relationship_context", {})
+        session.intern_monitoring = data.get("intern_monitoring", True)
         for key, snapshot in data.get("caller_bases", {}).items():
             if key in CALLER_BASES:
                 CALLER_BASES[key]["name"] = snapshot["name"]
@@ -6573,12 +7353,26 @@ async def stop_recording():
 
 @app.get("/api/callers")
 async def get_callers():
-    """Get list of available callers"""
+    """Get list of available callers with background info for UI display"""
+    callers = []
+    for k, v in CALLER_BASES.items():
+        caller_info = {
+            "key": k,
+            "name": v["name"],
+            "returning": v.get("returning", False),
+        }
+        bg = session.caller_backgrounds.get(k)
+        if isinstance(bg, CallerBackground):
+            caller_info["energy_level"] = bg.energy_level
+            caller_info["emotional_state"] = bg.emotional_state
+            caller_info["communication_style"] = _normalize_style_key(bg.communication_style)
+            caller_info["signature_detail"] = bg.signature_detail
+            caller_info["situation_summary"] = bg.situation_summary
+            caller_info["pool_name"] = bg.pool_name
+        caller_info["call_shape"] = session.caller_shapes.get(k, "standard")
+        callers.append(caller_info)
     return {
-        "callers": [
-            {"key": k, "name": v["name"], "returning": v.get("returning", False)}
-            for k, v in CALLER_BASES.items()
-        ],
+        "callers": callers,
         "current": session.current_caller_key,
         "session_id": session.id
     }
@@ -6646,7 +7440,10 @@ async def start_call(caller_key: str):
     if callback:
         existing_bg = session.caller_backgrounds.get(caller_key, "")
         callback_ctx = f"\n\nCALLBACK: You already called earlier tonight. {callback['callback_reason']}. Reference your earlier call naturally — you're a returning caller with an update."
-        session.caller_backgrounds[caller_key] = existing_bg + callback_ctx
+        if isinstance(existing_bg, CallerBackground):
+            existing_bg.natural_description += callback_ctx
+        else:
+            session.caller_backgrounds[caller_key] = existing_bg + callback_ctx
         print(f"[Callback] Injected callback context for {CALLER_BASES[caller_key].get('name', caller_key)}")
 
     caller = session.caller  # This generates the background if needed
@@ -6655,18 +7452,46 @@ async def start_call(caller_key: str):
     if caller_key in session.caller_backgrounds:
         asyncio.create_task(_enrich_background_async(caller_key))
 
+    # Extract CallerBackground structured data if available
+    bg = session.caller_backgrounds.get(caller_key)
+    caller_info = {}
+    if isinstance(bg, CallerBackground):
+        caller_info = {
+            "emotional_state": bg.emotional_state,
+            "energy_level": bg.energy_level,
+            "signature_detail": bg.signature_detail,
+            "situation_summary": bg.situation_summary,
+            "call_shape": caller.get("shape", "standard"),
+            "communication_style": bg.communication_style,
+        }
+
+    # Start intern monitoring if enabled
+    if session.intern_monitoring and not intern_service.monitoring:
+        async def _on_intern_suggestion(text, sources):
+            broadcast_event("intern_suggestion", {"text": text, "sources": sources})
+        intern_service.start_monitoring(
+            get_conversation=lambda: session.conversation,
+            on_suggestion=_on_intern_suggestion,
+        )
+
     return {
         "status": "connected",
         "caller": caller["name"],
-        "background": caller["vibe"]  # Send background so you can see who you're talking to
+        "background": caller["vibe"],
+        "caller_info": caller_info,
     }
 
 
 async def _enrich_background_async(caller_key: str):
     """Enrich caller background with news/weather without blocking the call"""
     try:
-        enriched = await enrich_caller_background(session.caller_backgrounds[caller_key])
-        session.caller_backgrounds[caller_key] = enriched
+        bg = session.caller_backgrounds[caller_key]
+        bg_text = bg.natural_description if isinstance(bg, CallerBackground) else bg
+        enriched = await enrich_caller_background(bg_text)
+        if isinstance(bg, CallerBackground):
+            bg.natural_description = enriched
+        else:
+            session.caller_backgrounds[caller_key] = enriched
     except Exception as e:
         print(f"[Research] Background enrichment failed: {e}")
 
@@ -6690,10 +7515,16 @@ async def hangup():
         session._research_task.cancel()
         session._research_task = None
 
+    # Stop intern monitoring between calls
+    intern_service.stop_monitoring()
+
     caller_name = session.caller["name"] if session.caller else None
     caller_key = session.current_caller_key
     conversation_snapshot = list(session.conversation)
     call_started = getattr(session, '_call_started_at', 0.0)
+    was_caller_hangup = session._caller_hangup
+    session._wrapping_up = False
+    session._wrapup_exchanges = 0
     session.end_call()
 
     # Play hangup sound in background so response returns immediately
@@ -6703,12 +7534,23 @@ async def hangup():
 
     # Generate summary for AI caller in background
     if caller_name and conversation_snapshot:
-        asyncio.create_task(_summarize_ai_call(caller_key, caller_name, conversation_snapshot, call_started))
+        asyncio.create_task(_summarize_ai_call(caller_key, caller_name, conversation_snapshot, call_started, was_caller_hangup))
 
     return {"status": "disconnected", "caller": caller_name}
 
 
-async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: list[dict], started_at: float):
+@app.post("/api/wrap-up")
+async def wrap_up():
+    """Signal the current caller to wrap up gracefully"""
+    if not session.caller:
+        raise HTTPException(400, "No active call")
+    session._wrapping_up = True
+    session._wrapup_exchanges = 0
+    print(f"[Wrap-up] Initiated for {session.caller['name']}")
+    return {"status": "wrapping_up"}
+
+
+async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: list[dict], started_at: float, caller_hangup: bool = False):
     """Background task: summarize AI caller conversation and store in history"""
     ended_at = time.time()
     summary = ""
@@ -6725,6 +7567,33 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
             print(f"[AI Summary] Failed to generate summary: {e}")
             summary = f"{caller_name} called in."
 
+    # Extract structured data from CallerBackground for inter-caller awareness
+    bg = session.caller_backgrounds.get(caller_key)
+    if isinstance(bg, CallerBackground):
+        topic_cat = bg.pool_name
+        sit_summary = bg.situation_summary
+        emo_state = bg.emotional_state
+        energy = bg.energy_level
+        comm_style = bg.communication_style
+        key_dets = [bg.signature_detail] if bg.signature_detail else []
+    else:
+        topic_cat = ""
+        sit_summary = ""
+        emo_state = ""
+        energy = ""
+        comm_style = session.caller_styles.get(caller_key, "")
+        key_dets = []
+
+    call_shape = session.caller_shapes.get(caller_key, "standard")
+    quality_signals = _assess_call_quality(
+        conversation,
+        caller_hangup=caller_hangup,
+        shape=call_shape,
+        style=comm_style,
+        pool_name=topic_cat,
+    )
+    session.call_quality_signals.append(quality_signals)
+
     session.call_history.append(CallRecord(
         caller_type="ai",
         caller_name=caller_name,
@@ -6732,8 +7601,16 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
         transcript=conversation,
         started_at=started_at,
         ended_at=ended_at,
+        quality_signals=quality_signals,
+        topic_category=topic_cat,
+        situation_summary=sit_summary,
+        emotional_state=emo_state,
+        energy_level=energy,
+        communication_style=comm_style,
+        key_details=key_dets,
     ))
     print(f"[AI Summary] {caller_name} call summarized: {summary[:80]}...")
+    print(f"[Quality] {caller_name}: exchanges={quality_signals['exchange_count']} avg_len={quality_signals['avg_response_length']:.0f}c host_engagement={quality_signals['host_engagement']} caller_depth={quality_signals['caller_depth']} natural_end={quality_signals['natural_ending']} shape={quality_signals['shape']} style={quality_signals['style']} pool={quality_signals['pool_name']}")
 
     # Returning caller promotion/update logic
     try:
@@ -6745,34 +7622,95 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
             elif len(conversation) >= 8 and random.random() < 0.10:
                 # 10% chance to promote first-timer with 8+ messages
                 bg = session.caller_backgrounds.get(caller_key, "")
-                traits = []
-                for label in ["QUIRK", "STRONG OPINION", "SECRET SIDE", "FOOD OPINION"]:
-                    for line in bg.split("\n"):
-                        if label in line:
-                            traits.append(line.split(":", 1)[-1].strip()[:80])
-                            break
-                # Extract job and location from first line of background
-                first_line = bg.split(".")[0] if bg else ""
-                parts = first_line.split(",", 1)
-                job_loc = parts[1].strip() if len(parts) > 1 else ""
-                job_parts = job_loc.rsplit(" in ", 1) if " in " in job_loc else (job_loc, "unknown")
-                # Capture stable identity seeds for returning consistency
                 caller_style = session.caller_styles.get(caller_key, "")
+
+                if isinstance(bg, CallerBackground):
+                    # Clean extraction from structured data
+                    traits = [bg.signature_detail] + bg.seeds[:3] if bg.signature_detail else bg.seeds[:4]
+                    promo_job = bg.job
+                    promo_location = bg.location or "unknown"
+                    promo_age = bg.age
+                    promo_gender = bg.gender
+                else:
+                    # Legacy fallback — fragile string parsing
+                    traits = []
+                    for label in ["QUIRK", "STRONG OPINION", "SECRET SIDE", "FOOD OPINION"]:
+                        for line in bg.split("\n"):
+                            if label in line:
+                                traits.append(line.split(":", 1)[-1].strip()[:80])
+                                break
+                    first_line = bg.split(".")[0] if bg else ""
+                    parts = first_line.split(",", 1)
+                    job_loc = parts[1].strip() if len(parts) > 1 else ""
+                    job_parts = job_loc.rsplit(" in ", 1) if " in " in job_loc else (job_loc, "unknown")
+                    promo_job = job_parts[0].strip() if isinstance(job_parts, tuple) else job_parts[0]
+                    promo_location = "in " + job_parts[1].strip() if isinstance(job_parts, tuple) and len(job_parts) > 1 else "unknown"
+                    promo_age = random.randint(*base.get("age_range", (30, 50)))
+                    promo_gender = base.get("gender", "male")
+
+                structured_bg = asdict(bg) if isinstance(bg, CallerBackground) else None
                 regular_caller_service.add_regular(
                     name=caller_name,
-                    gender=base.get("gender", "male"),
-                    age=random.randint(*base.get("age_range", (30, 50))),
-                    job=job_parts[0].strip() if isinstance(job_parts, tuple) else job_parts[0],
-                    location="in " + job_parts[1].strip() if isinstance(job_parts, tuple) and len(job_parts) > 1 else "unknown",
+                    gender=promo_gender,
+                    age=promo_age,
+                    job=promo_job,
+                    location=promo_location,
                     personality_traits=traits[:4],
                     first_call_summary=summary,
                     voice=base.get("voice"),
                     stable_seeds={"style": caller_style},
+                    structured_background=structured_bg,
                 )
     except Exception as e:
         print(f"[Regulars] Promotion logic error: {e}")
 
+    # Detect relationships: if this caller mentioned another regular by name
+    _detect_caller_relationships(caller_key, caller_name, conversation, summary)
+
     _save_checkpoint()
+
+
+def _detect_caller_relationships(caller_key: str, caller_name: str,
+                                  conversation: list[dict], summary: str):
+    """Scan conversation for mentions of other regular callers and store relationships."""
+    try:
+        base = CALLER_BASES.get(caller_key)
+        if not base or not base.get("regular_id"):
+            return  # Only track relationships for regulars
+
+        regulars = regular_caller_service.get_regulars()
+        regular_names = {r["name"]: r["id"] for r in regulars if r["name"] != caller_name}
+        if not regular_names:
+            return
+
+        # Build full text from caller's messages + summary
+        caller_text = summary + " " + " ".join(
+            m["content"] for m in conversation if m.get("role") == "assistant"
+        )
+        caller_text_lower = caller_text.lower()
+
+        for other_name in regular_names:
+            if other_name.lower() in caller_text_lower:
+                # Determine relationship type from context
+                rel_type = "mentioned"
+                # Simple sentiment check
+                name_idx = caller_text_lower.index(other_name.lower())
+                context_window = caller_text_lower[max(0, name_idx - 80):name_idx + 80]
+                negative = any(w in context_window for w in ["wrong", "disagree", "annoying", "hate", "idiot", "crazy", "ridiculous"])
+                positive = any(w in context_window for w in ["agree", "right", "love", "friend", "respect", "relate", "same"])
+                if negative:
+                    rel_type = "rival"
+                elif positive:
+                    rel_type = "ally"
+
+                context_snippet = caller_text[max(0, name_idx - 40):name_idx + 60].strip()
+                regular_caller_service.add_relationship(
+                    base["regular_id"], other_name, rel_type,
+                    f"Referenced during call: ...{context_snippet}..."
+                )
+                print(f"[Relationships] Detected: {caller_name} → {other_name} ({rel_type})")
+    except Exception as e:
+        print(f"[Relationships] Detection error: {e}")
 
 
 # --- Chat & TTS Endpoints ---
@@ -6780,13 +7718,16 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
 import re
 
 
-def _pick_response_budget(shape: str = "standard") -> tuple[int, int]:
+def _pick_response_budget(shape: str = "standard", wrapping_up: bool = False) -> tuple[int, int]:
     """Pick a random max_tokens and sentence cap for response variety.
     Returns (max_tokens, max_sentences).
     Keeps responses conversational but gives room for real answers.
     Token budget is intentionally generous to avoid mid-sentence cutoffs —
     the sentence cap controls actual length.
     Shape overrides the default distribution for certain call types."""
+
+    if wrapping_up:
+        return 200, 2
 
     # Shape-specific overrides
     if shape == "quick_hit":
@@ -7072,7 +8013,11 @@ def broadcast_event(event_type: str, data: dict = None):
 @app.get("/api/conversation/updates")
 async def get_conversation_updates(since: int = 0):
     """Get new chat/event messages since a given index"""
-    return {"messages": _chat_updates[since:]}
+    return {
+        "messages": _chat_updates[since:],
+        "wrapping_up": session._wrapping_up,
+        "intern_suggestion": intern_service.get_pending_suggestion(),
+    }
 
 
 def _dynamic_context_window() -> int:
@@ -7123,11 +8068,20 @@ async def chat(request: ChatRequest):
         audio_service.stop_caller_audio()
 
         show_history = session.get_show_history()
-        mood = detect_host_mood(session.conversation)
-        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
+        is_wrapping = session._wrapping_up
+        mood = detect_host_mood(session.conversation, wrapping_up=is_wrapping)
+
+        # Track wrap-up exchanges and force hangup after 2
+        if is_wrapping:
+            session._wrapup_exchanges += 1
+            if session._wrapup_exchanges > 2:
+                mood += "\nSay goodbye NOW and end with [HANGUP]\n"
+
+        rel_ctx = session.relationship_context.get(session.current_caller_key, "")
+        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
 
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
-        max_tokens, max_sentences = _pick_response_budget(call_shape)
+        max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         response = await llm_service.generate(
             messages=messages,
@@ -7152,6 +8106,7 @@ async def chat(request: ChatRequest):
     caller_hangup = "[HANGUP]" in response
     if caller_hangup:
         response = response.replace("[HANGUP]", "").strip()
+        session._caller_hangup = True
         print(f"[Chat] Caller hangup detected (shape={call_shape})")
 
     print(f"[Chat] Cleaned: {response[:100] if response else '(empty)'}...")
@@ -7954,11 +8909,17 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         broadcast_event("ai_status", {"text": f"{ai_name} is thinking..."})
 
         show_history = session.get_show_history()
-        mood = detect_host_mood(session.conversation)
-        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
+        is_wrapping = session._wrapping_up
+        mood = detect_host_mood(session.conversation, wrapping_up=is_wrapping)
+        if is_wrapping:
+            session._wrapup_exchanges += 1
+            if session._wrapup_exchanges > 2:
+                mood += "\nSay goodbye NOW and end with [HANGUP]\n"
+        rel_ctx = session.relationship_context.get(session.current_caller_key, "")
+        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
 
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
-        max_tokens, max_sentences = _pick_response_budget(call_shape)
+        max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         response = await llm_service.generate(
             messages=messages,
@@ -7981,6 +8942,7 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
     caller_hangup = "[HANGUP]" in response
     if caller_hangup:
         response = response.replace("[HANGUP]", "").strip()
+        session._caller_hangup = True
         print(f"[Auto-Respond] Caller hangup detected")
 
     if not response or not response.strip():
@@ -8046,11 +9008,17 @@ async def ai_respond():
         audio_service.stop_caller_audio()
 
         show_history = session.get_show_history()
-        mood = detect_host_mood(session.conversation)
-        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood)
+        is_wrapping = session._wrapping_up
+        mood = detect_host_mood(session.conversation, wrapping_up=is_wrapping)
+        if is_wrapping:
+            session._wrapup_exchanges += 1
+            if session._wrapup_exchanges > 2:
+                mood += "\nSay goodbye NOW and end with [HANGUP]\n"
+        rel_ctx = session.relationship_context.get(session.current_caller_key, "")
+        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
 
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
-        max_tokens, max_sentences = _pick_response_budget(call_shape)
+        max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         response = await llm_service.generate(
             messages=messages,
@@ -8070,6 +9038,7 @@ async def ai_respond():
     caller_hangup = "[HANGUP]" in response
     if caller_hangup:
         response = response.replace("[HANGUP]", "").strip()
+        session._caller_hangup = True
         print(f"[AI-Respond] Caller hangup detected")
 
     if not response or not response.strip():
@@ -8176,6 +9145,8 @@ async def _summarize_real_call(caller_phone: str, conversation: list, started_at
             system_prompt="You summarize radio show conversations concisely. Focus on what the caller talked about and any emotional moments.",
         )
 
+    quality_signals = _assess_call_quality(conversation)
+    session.call_quality_signals.append(quality_signals)
     session.call_history.append(CallRecord(
         caller_type="real",
         caller_name=caller_phone,
@@ -8183,8 +9154,10 @@ async def _summarize_real_call(caller_phone: str, conversation: list, started_at
         transcript=conversation,
         started_at=started_at,
         ended_at=ended_at,
+        quality_signals=quality_signals,
     ))
     print(f"[Real Caller] {caller_phone} call summarized: {summary[:80]}...")
+    print(f"[Quality] {caller_phone}: exchanges={quality_signals['exchange_count']} avg_len={quality_signals['avg_response_length']:.0f}c host_engagement={quality_signals['host_engagement']} caller_depth={quality_signals['caller_depth']} natural_end={quality_signals['natural_ending']}")
 
     _save_checkpoint()
 
@@ -8245,6 +9218,131 @@ async def set_auto_followup(data: dict):
     session.auto_followup = data.get("enabled", False)
     print(f"[Session] Auto follow-up: {session.auto_followup}")
     return {"enabled": session.auto_followup}
+
+
+# --- Intern (Devon) Endpoints ---
+
+@app.post("/api/intern/ask")
+async def intern_ask(data: dict):
+    """Host asks Devon to look something up"""
+    question = data.get("question", "").strip()
+    if not question:
+        raise HTTPException(400, "No question provided")
+
+    # Run research + response (non-blocking for the caller audio)
+    result = await intern_service.ask(
+        question=question,
+        conversation_context=session.conversation if session.conversation else None,
+    )
+
+    text = result.get("text", "")
+    if not text:
+        return {"text": None, "sources": []}
+
+    # Add to conversation log
+    session.add_message(f"intern:{intern_service.name}", text)
+    broadcast_event("intern_response", {"text": text, "intern": intern_service.name})
+
+    # TTS — play Devon's voice on air (no phone filter, in-studio)
+    asyncio.create_task(_play_intern_audio(text))
+
+    return {
+        "text": text,
+        "sources": result.get("sources", []),
+        "intern": intern_service.name,
+    }
+
+
+@app.post("/api/intern/interject")
+async def intern_interject():
+    """Manually trigger Devon to comment on current conversation"""
+    if not session.conversation:
+        raise HTTPException(400, "No active conversation")
+
+    result = await intern_service.interject(session.conversation)
+    if not result:
+        return {"text": None}
+
+    text = result["text"]
+    session.add_message(f"intern:{intern_service.name}", text)
+    broadcast_event("intern_response", {"text": text, "intern": intern_service.name})
+
+    asyncio.create_task(_play_intern_audio(text))
+
+    return {
+        "text": text,
+        "sources": result.get("sources", []),
+        "intern": intern_service.name,
+    }
+
+
+@app.post("/api/intern/monitor")
+async def intern_monitor(data: dict):
+    """Toggle Devon's auto-monitoring on/off"""
+    enabled = data.get("enabled", True)
+    session.intern_monitoring = enabled
+
+    if enabled:
+        async def _on_suggestion(text, sources):
+            broadcast_event("intern_suggestion", {"text": text, "sources": sources})
+
+        intern_service.start_monitoring(
+            get_conversation=lambda: session.conversation,
+            on_suggestion=_on_suggestion,
+        )
+    else:
+        intern_service.stop_monitoring()
+
+    print(f"[Intern] Monitoring: {enabled}")
+    return {"monitoring": enabled}
+
+
+@app.get("/api/intern/suggestion")
+async def intern_suggestion():
+    """Get Devon's pending suggestion (if any)"""
+    suggestion = intern_service.get_pending_suggestion()
+    return {"suggestion": suggestion}
+
+
+@app.post("/api/intern/suggestion/play")
+async def intern_play_suggestion():
+    """Approve and play Devon's pending suggestion on air"""
+    suggestion = intern_service.get_pending_suggestion()
+    if not suggestion:
+        raise HTTPException(400, "No pending suggestion")
+
+    text = suggestion["text"]
+    intern_service.dismiss_suggestion()
+
+    session.add_message(f"intern:{intern_service.name}", text)
+    broadcast_event("intern_response", {"text": text, "intern": intern_service.name})
+
+    asyncio.create_task(_play_intern_audio(text))
+
+    return {"text": text, "intern": intern_service.name}
+
+
+@app.post("/api/intern/suggestion/dismiss")
+async def intern_dismiss_suggestion():
+    """Dismiss Devon's pending suggestion"""
+    intern_service.dismiss_suggestion()
+    return {"dismissed": True}
+
+
+async def _play_intern_audio(text: str):
+    """Generate TTS for Devon and play on air (no phone filter)"""
+    try:
+        audio_bytes = await generate_speech(
+            text, intern_service.voice, apply_filter=False
+        )
+        thread = threading.Thread(
+            target=audio_service.play_caller_audio,
+            args=(audio_bytes, 24000),
+            daemon=True,
+        )
+        thread.start()
+    except Exception as e:
+        print(f"[Intern] TTS failed: {e}")
 
 
 # --- Transcript & Chapter Export ---

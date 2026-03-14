@@ -55,6 +55,33 @@ Required in `.env`:
 - `_pick_response_budget()` in main.py controls caller dialog token limits (150-450 tokens). MiniMax respects limits strictly — if responses seem short, check these values.
 - Default max_tokens in llm.py is 300 (for non-caller uses)
 - Grok (`x-ai/grok-4-fast`) works well for natural dialog; MiniMax tends toward terse responses
+- `generate_with_tools()` in llm.py supports OpenRouter function calling for the intern feature
+
+## Caller Generation System
+- **CallerBackground dataclass**: Structured output from LLM background generation (JSON mode). Fields: name, age, gender, job, location, reason_for_calling, pool_name, communication_style, energy_level, emotional_state, signature_detail, situation_summary, natural_description, seeds, verbal_fluency, calling_from.
+- **Voice-personality matching**: `_match_voices_to_styles()` runs after background generation. 68 voice profiles in `VOICE_PROFILES` (tts.py), 18 style-to-voice mappings in `STYLE_VOICE_PREFERENCES` (main.py). Soft matching — scores voices against style preferences.
+- **Adaptive call shapes**: `SHAPE_STYLE_AFFINITIES` maps communication styles to shape weight multipliers. Consecutive shape repeats are dampened.
+- **Inter-caller awareness**: Thematic matching in `get_show_history()` scores previous callers by keyword/category overlap. Adaptive reaction frequency (60%/35%/15%). Show energy tracking via `_get_show_energy()`.
+- **Caller memory**: Returning callers store structured backgrounds, key moments, arc status, and relationships with other regulars. `RegularCallerService` has `add_relationship()` and expanded `update_after_call()`.
+- **Show pacing**: `_sort_caller_queue()` sorts presentation order by energy alternation, topic variety, shape variety.
+- **Call quality signals**: `_assess_call_quality()` captures exchange count, response length, host engagement, shape target hit, natural ending.
+
+## Devon (Intern Character)
+- **Service**: `backend/services/intern.py` — persistent show character, not a caller
+- **Personality**: 23-year-old NMSU grad, eager, slightly incompetent, gets yelled at. Voice: "Nate" (Inworld), no phone filter.
+- **Tools**: web_search (SearXNG), get_headlines, fetch_webpage, wikipedia_lookup — via `generate_with_tools()` function calling
+- **Endpoints**: `POST /api/intern/ask`, `/interject`, `/monitor`, `GET /api/intern/suggestion`, `POST /api/intern/suggestion/play`, `/dismiss`
+- **Auto-monitoring**: Watches conversation every 15s during calls, buffers suggestions for host approval
+- **Persistence**: `data/intern.json` stores lookup history
+- **Frontend**: Ask Devon input (D key), Interject button, monitor toggle, suggestion indicator with Play/Dismiss
+
+## Frontend Control Panel
+- **Keyboard shortcuts**: 1-0 (callers), H (hangup), W (wrap up), M (music toggle), D (ask Devon), Escape (close modals)
+- **Wrap It Up**: Amber button that signals callers to wind down gracefully. Reduces response budget, injects wrap-up signals, forces goodbye after 2 exchanges.
+- **Caller info panel**: Shows call shape, energy level, emotional state, signature detail, situation summary during active calls
+- **Caller buttons**: Energy dots (colored by level) and shape badges on each button
+- **Pinned SFX**: Cheer/Applause/Boo always visible, rest collapsible
+- **Visual polish**: Thinking pulse, call glow, compact media row, smoother transitions
 
 ## Website
 - **Domain**: lukeattheroost.com (behind Cloudflare)
