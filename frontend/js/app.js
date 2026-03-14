@@ -17,6 +17,72 @@ let sounds = [];
 let isMusicPlaying = false;
 let soundboardExpanded = false;
 
+// --- Show Clock ---
+let showStartTime = null;      // when ON AIR was pressed
+let showContentTime = 0;       // seconds of "active" content (calls, music, etc.)
+let showContentTracking = false; // whether we're in active content right now
+let showClockInterval = null;
+
+function initClock() {
+    // Always show current time
+    if (!showClockInterval) {
+        showClockInterval = setInterval(updateShowClock, 1000);
+        updateShowClock();
+    }
+}
+
+function startShowClock() {
+    showStartTime = Date.now();
+    showContentTime = 0;
+    showContentTracking = false;
+    document.getElementById('show-timers')?.classList.remove('hidden');
+}
+
+function stopShowClock() {
+    document.getElementById('show-timers')?.classList.add('hidden');
+    showStartTime = null;
+}
+
+function updateShowClock() {
+    // Current time
+    const now = new Date();
+    const timeEl = document.getElementById('clock-time');
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+
+    if (!showStartTime) return;
+
+    // Track content time — count seconds when a call is active or music is playing
+    const isContent = !!(currentCaller || isMusicPlaying);
+    if (isContent && !showContentTracking) {
+        showContentTracking = true;
+    } else if (!isContent && showContentTracking) {
+        showContentTracking = false;
+    }
+    if (isContent) showContentTime++;
+
+    // Show runtime (wall clock since ON AIR)
+    const runtimeSec = Math.floor((Date.now() - showStartTime) / 1000);
+    const runtimeEl = document.getElementById('clock-runtime');
+    if (runtimeEl) runtimeEl.textContent = formatDuration(runtimeSec);
+
+    // Estimated final length after post-prod
+    // Post-prod removes 2-8 second gaps (TTS latency). Estimate:
+    // - Content time stays ~100% (it's all talking/music)
+    // - Dead air (runtime - content) gets ~70% removed (not all silence is cut)
+    const deadAir = Math.max(0, runtimeSec - showContentTime);
+    const estimatedFinal = showContentTime + (deadAir * 0.3);
+    const estEl = document.getElementById('clock-estimate');
+    if (estEl) estEl.textContent = formatDuration(Math.round(estimatedFinal));
+}
+
+function formatDuration(totalSec) {
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${m}:${String(s).padStart(2, '0')}`;
+}
+
 
 // --- Helpers ---
 function _isTyping() {
@@ -63,6 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadSounds();
         await loadSettings();
         initEventListeners();
+        initClock();
         loadVoicemails();
         setInterval(loadVoicemails, 30000);
         loadEmails();
@@ -136,6 +203,17 @@ function initEventListeners() {
     document.getElementById('auto-scroll')?.addEventListener('change', e => {
         autoScroll = e.target.checked;
     });
+
+    // Log toggle (collapsed by default)
+    const logToggleBtn = document.getElementById('log-toggle-btn');
+    if (logToggleBtn) {
+        logToggleBtn.addEventListener('click', () => {
+            const logBody = document.querySelector('.log-body');
+            if (!logBody) return;
+            const collapsed = logBody.classList.toggle('collapsed');
+            logToggleBtn.textContent = collapsed ? 'Show \u25BC' : 'Hide \u25B2';
+        });
+    }
 
     // Start log polling
     startLogPolling();
@@ -646,12 +724,17 @@ async function hangup() {
 async function wrapUp() {
     if (!currentCaller) return;
     try {
-        await fetch('/api/wrap-up', { method: 'POST' });
+        const res = await fetch('/api/wrap-up', { method: 'POST' });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            log(`Wrap-up failed: ${err.detail || res.status}`);
+            return;
+        }
         const wrapupBtn = document.getElementById('wrapup-btn');
         if (wrapupBtn) wrapupBtn.classList.add('active');
         log(`Wrapping up ${currentCaller.name}...`);
     } catch (err) {
-        console.error('wrapUp error:', err);
+        log(`Wrap-up error: ${err.message}`);
     }
 }
 
@@ -665,7 +748,7 @@ function toggleMusic() {
 
 // --- Server-Side Recording ---
 async function startRecording() {
-    if (!currentCaller || isProcessing) return;
+    if (isProcessing) return;
 
     try {
         const res = await fetch('/api/record/start', { method: 'POST' });
@@ -708,30 +791,39 @@ async function stopRecording() {
 
         addMessage('You', data.text);
 
-        // Chat
-        showStatus(`${currentCaller.name} is thinking...`);
+        if (!currentCaller) {
+            // No active call — route voice to Devon
+            showStatus('Devon is thinking...');
+            await askDevon(data.text, { skipHostMessage: true });
+        } else {
+            // Active call — talk to caller
+            showStatus(`${currentCaller.name} is thinking...`);
 
-        const chatData = await safeFetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: data.text })
-        });
-
-        addMessage(chatData.caller, chatData.text);
-
-        // TTS (plays on server) - only if we have text
-        if (chatData.text && chatData.text.trim()) {
-            showStatus(`${currentCaller.name} is speaking...`);
-
-            await safeFetch('/api/tts', {
+            const chatData = await safeFetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: chatData.text,
-                    voice_id: chatData.voice_id,
-                    phone_filter: phoneFilter
-                })
+                body: JSON.stringify({ text: data.text })
             });
+
+            // If routed to Devon, the SSE broadcast handles the message
+            if (chatData.routed_to !== 'devon') {
+                addMessage(chatData.caller, chatData.text);
+            }
+
+            // TTS (plays on server) - only if we have text and not routed to Devon
+            if (chatData.text && chatData.text.trim() && chatData.routed_to !== 'devon') {
+                showStatus(`${currentCaller.name} is speaking...`);
+
+                await safeFetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: chatData.text,
+                        voice_id: chatData.voice_id,
+                        phone_filter: phoneFilter
+                    })
+                });
+            }
         }
 
     } catch (err) {
@@ -763,10 +855,12 @@ async function sendTypedMessage() {
             body: JSON.stringify({ text })
         });
 
-        addMessage(chatData.caller, chatData.text);
+        if (chatData.routed_to !== 'devon') {
+            addMessage(chatData.caller, chatData.text);
+        }
 
-        // TTS (plays on server) - only if we have text
-        if (chatData.text && chatData.text.trim()) {
+        // TTS (plays on server) - only if we have text and not routed to Devon
+        if (chatData.text && chatData.text.trim() && chatData.routed_to !== 'devon') {
             showStatus(`${currentCaller.name} is speaking...`);
 
             await safeFetch('/api/tts', {
@@ -983,12 +1077,12 @@ async function loadSounds() {
         if (!board) return;
         board.innerHTML = '';
 
-        const pinnedNames = ['cheer', 'applause', 'boo'];
+        const pinnedNames = ['cheer', 'applause', 'boo', 'correct'];
         const pinned = [];
         const rest = [];
 
         sounds.forEach(sound => {
-            const lower = (sound.name || sound.file || '').toLowerCase();
+            const lower = ((sound.name || '') + ' ' + (sound.file || '')).toLowerCase();
             if (pinnedNames.some(p => lower.includes(p))) {
                 pinned.push(sound);
             } else {
@@ -1156,6 +1250,12 @@ function addMessage(sender, text) {
         className += ' host';
     } else if (sender === 'System') {
         className += ' system';
+        // System messages are compact — no avatar, small text
+        div.className = className;
+        div.innerHTML = `<div class="msg-content system-compact">${text}</div>`;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+        return;
     } else if (sender === 'DEVON') {
         className += ' devon';
     } else if (sender.includes('(caller)') || sender.includes('Caller #')) {
@@ -1165,7 +1265,21 @@ function addMessage(sender, text) {
     }
 
     div.className = className;
-    div.innerHTML = `<strong>${sender}:</strong> ${text}`;
+
+    // Build avatar — real face images from /api/avatar/{name}
+    let avatarHtml = '';
+    if (sender === 'You') {
+        avatarHtml = '<img class="msg-avatar" src="/images/host-avatar.png" alt="Luke">';
+    } else if (sender === 'DEVON') {
+        avatarHtml = '<img class="msg-avatar msg-avatar-devon" src="/api/avatar/Devon" alt="Devon">';
+    } else if (sender === 'System') {
+        avatarHtml = '<span class="msg-avatar msg-avatar-system">!</span>';
+    } else {
+        const name = sender.replace(/[^a-zA-Z]/g, '') || 'Caller';
+        avatarHtml = `<img class="msg-avatar msg-avatar-caller" src="/api/avatar/${encodeURIComponent(name)}" alt="${name}">`;
+    }
+
+    div.innerHTML = `${avatarHtml}<div class="msg-content"><strong>${sender}:</strong> ${text}</div>`;
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
 }
@@ -1185,6 +1299,8 @@ function updateOnAirBtn(btn, isOn) {
     btn.classList.toggle('on', isOn);
     btn.classList.toggle('off', !isOn);
     btn.textContent = isOn ? 'ON AIR' : 'OFF AIR';
+    if (isOn && !showStartTime) startShowClock();
+    else if (!isOn && showStartTime) stopShowClock();
 }
 
 
@@ -1712,8 +1828,8 @@ async function deleteEmail(id) {
 
 // --- Devon (Intern) ---
 
-async function askDevon(question) {
-    addMessage('You', `Devon, ${question}`);
+async function askDevon(question, { skipHostMessage = false } = {}) {
+    if (!skipHostMessage) addMessage('You', `Devon, ${question}`);
     log(`[Devon] Looking up: ${question}`);
     try {
         const res = await safeFetch('/api/intern/ask', {
@@ -1722,7 +1838,7 @@ async function askDevon(question) {
             body: JSON.stringify({ question }),
         });
         if (res.text) {
-            addMessage('DEVON', res.text);
+            // Don't addMessage here — the SSE broadcast_event("intern_response") handles it
             log(`[Devon] Responded (tools: ${(res.sources || []).join(', ') || 'none'})`);
         } else {
             log('[Devon] No response');
@@ -1737,7 +1853,7 @@ async function interjectDevon() {
     try {
         const res = await safeFetch('/api/intern/interject', { method: 'POST' });
         if (res.text) {
-            addMessage('DEVON', res.text);
+            // Don't addMessage here — SSE broadcast handles it
             log('[Devon] Interjected');
         } else {
             log('[Devon] Nothing to add');
@@ -1772,9 +1888,7 @@ function showDevonSuggestion(text) {
 async function playDevonSuggestion() {
     try {
         const res = await safeFetch('/api/intern/suggestion/play', { method: 'POST' });
-        if (res.text) {
-            addMessage('DEVON', res.text);
-        }
+        // Don't addMessage here — SSE broadcast handles it
         document.getElementById('devon-suggestion')?.classList.add('hidden');
         log('[Devon] Played suggestion');
     } catch (err) {

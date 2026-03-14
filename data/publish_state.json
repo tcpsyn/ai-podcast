@@ -76,5 +76,22 @@
       }
     },
     "started_at": "2026-03-13T11:19:41.765079+00:00"
+  },
+  "36": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-14T12:01:15.758700+00:00",
+        "episode_id": "39",
+        "slug": "episode-36-late-night-confessions-and-unexpected-moments"
+      },
+      "youtube": {
+        "completed_at": "2026-03-14T12:25:36.640461+00:00",
+        "video_id": "BabWoKFt0pk"
+      },
+      "social": {
+        "completed_at": "2026-03-14T12:25:44.192676+00:00"
+      }
+    },
+    "started_at": "2026-03-14T12:01:15.758670+00:00"
   }
 }
