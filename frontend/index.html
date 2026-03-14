@@ -17,6 +17,17 @@
                 <button id="export-session-btn">Export</button>
                 <button id="settings-btn">Settings</button>
             </div>
+            <div id="show-clock" class="show-clock">
+                <span class="clock-time" id="clock-time"></span>
+                <span id="show-timers" class="show-timers hidden">
+                    <span class="clock-divider">|</span>
+                    <span class="clock-label">On Air:</span>
+                    <span class="clock-value" id="clock-runtime">0:00:00</span>
+                    <span class="clock-divider">|</span>
+                    <span class="clock-label">Est. Final:</span>
+                    <span class="clock-value clock-estimate" id="clock-estimate">0:00</span>
+                </span>
+            </div>
         </header>
 
         <main>
@@ -71,7 +82,7 @@
 
             <!-- Call Queue -->
             <section class="queue-section">
-                <h2>Incoming Calls <span style="font-size:0.6em;font-weight:normal;color:var(--text-muted);">(208) 439-5853</span></h2>
+                <h2>Incoming Calls <span class="section-subtitle">(208) 439-5853</span></h2>
                 <div id="call-queue" class="call-queue">
                     <div class="queue-empty">No callers waiting</div>
                 </div>
@@ -88,7 +99,7 @@
             <!-- Listener Emails -->
             <section class="voicemail-section">
                 <h2>Emails <span id="email-badge" class="voicemail-badge hidden">0</span></h2>
-                <div id="email-list" class="voicemail-list" style="max-height:300px">
+                <div id="email-list" class="voicemail-list email-list">
                     <div class="queue-empty">No emails</div>
                 </div>
             </section>
@@ -160,6 +171,7 @@
                 <div class="log-header">
                     <h2>Server Log</h2>
                     <div class="server-controls">
+                        <button id="log-toggle-btn" class="log-toggle-btn">Show ▼</button>
                         <button id="restart-server-btn" class="server-btn restart">Restart</button>
                         <button id="stop-server-btn" class="server-btn stop">Stop</button>
                         <label class="auto-scroll-label">
@@ -167,7 +179,9 @@
                         </label>
                     </div>
                 </div>
-                <div id="server-log" class="server-log"></div>
+                <div class="log-body collapsed">
+                    <div id="server-log" class="server-log"></div>
+                </div>
             </section>
         </main>
 
@@ -278,6 +292,6 @@
         </div>
     </div>
 
-    <script src="/js/app.js?v=20"></script>
+    <script src="/js/app.js?v=22"></script>
 </body>
 </html>

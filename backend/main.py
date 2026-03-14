@@ -30,6 +30,29 @@ from .services.stem_recorder import StemRecorder
 from .services.news import news_service, extract_keywords, STOP_WORDS
 from .services.regulars import regular_caller_service
 from .services.intern import intern_service
+from .services.avatars import avatar_service
+
+
+# --- Structured Caller Background (must be defined before functions that use it) ---
+@dataclass
+class CallerBackground:
+    name: str
+    age: int
+    gender: str
+    job: str
+    location: str | None
+    reason_for_calling: str
+    pool_name: str
+    communication_style: str
+    energy_level: str              # low / medium / high / very_high
+    emotional_state: str           # nervous, excited, angry, vulnerable, calm, etc.
+    signature_detail: str          # The memorable thing about them
+    situation_summary: str         # 1-sentence summary for other callers to reference
+    natural_description: str       # 3-5 sentence prose for the prompt
+    seeds: list[str] = field(default_factory=list)
+    verbal_fluency: str = "medium"
+    calling_from: str = ""
+
 
 app = FastAPI(title="AI Radio Show")
 
@@ -123,7 +146,7 @@ ELEVENLABS_MALE_VOICES.append("SAz9YHcvj6GT2YYXdXww")   # River - Neutral
 ELEVENLABS_FEMALE_VOICES.append("SAz9YHcvj6GT2YYXdXww")  # River - Neutral
 
 # Voices to never assign to callers (annoying, bad quality, etc.)
-BLACKLISTED_VOICES = {"Evelyn"}
+BLACKLISTED_VOICES = {"Evelyn", "Sebastian"}  # Sebastian reserved for Silas
 
 
 def _get_voice_pools():
@@ -2222,6 +2245,96 @@ BEFORE_CALLING = [
     "Was at their desk, supposedly working, but mostly just staring at the screen.",
     "Was sitting in the waiting room at the ER with someone, long night.",
     "Was at the 24-hour gym, basically empty, radio on over the speakers.",
+]
+
+# Where callers are physically calling from — picked as a seed for the LLM prompt.
+# NOT every caller mentions this. Only ~40% do.
+CALLING_FROM = [
+    # --- Driving / pulled over (Southwest routes) ---
+    "driving south on I-10 past the Deming exit",
+    "on NM-146 heading toward Animas",
+    "pulled over on I-10 near the Arizona line",
+    "on 80 south coming through the Peloncillos",
+    "driving I-10 between Lordsburg and Deming, middle of nowhere",
+    "parked at a rest stop between here and Tucson",
+    "pulled off on NM-9 south of Hachita, nothing around for miles",
+    "driving back from Silver City on NM-90",
+    "on I-10 west of San Simon, about to cross into New Mexico",
+    "sitting in the truck at the Road Forks exit",
+    "driving NM-180 toward the Gila, no cell service in ten minutes",
+    "on the 80 heading north out of Douglas",
+    "pulled over on NM-338 in the Animas Valley, stars are insane right now",
+
+    # --- Real landmarks / businesses ---
+    "parked outside the Horseshoe Cafe in Lordsburg",
+    "at the truck stop on I-10 near Lordsburg",
+    "in the Walmart parking lot in Deming",
+    "at the gas station in Road Forks",
+    "sitting outside the Jalisco Cafe in Lordsburg",
+    "at the Butterfield Brewing taproom in Deming",
+    "in the parking lot of the Gadsden Hotel in Douglas",
+    "at the Copper Queen in Bisbee, on the porch",
+    "outside Caliche's in Las Cruces",
+    "in the lot at Rockhound State Park, couldn't sleep",
+    "parked at Elephant Butte, the lake is dead quiet",
+    "at the hot springs in Truth or Consequences",
+    "outside the feed store in Animas",
+
+    # --- Home locations ---
+    "kitchen table",
+    "back porch, barefoot",
+    "garage with the door open",
+    "in the bathtub, phone balanced on the edge",
+    "bed, staring at the ceiling",
+    "couch with the TV on mute",
+    "spare bedroom so they don't wake anyone up",
+    "front porch, smoking",
+    "on the floor of the hallway, only spot with reception",
+    "in the closet because the walls are thin",
+    "backyard, sitting in a lawn chair in the dark",
+    "kitchen, cleaning up dinner nobody ate",
+
+    # --- Work locations ---
+    "break room at the plant",
+    "truck cab between deliveries",
+    "office after everyone left",
+    "guard shack",
+    "shop floor during downtime, machines still humming",
+    "in the walk-in cooler because it's the only quiet spot",
+    "cab of the loader, parked for the night",
+    "nurses' station, graveyard shift",
+    "back of the restaurant after close, mopping",
+    "dispatch office, radio quiet for once",
+    "fire station, between calls",
+    "in the stockroom sitting on a pallet",
+
+    # --- Public places ---
+    "laundromat, waiting on the dryer",
+    "24-hour diner booth, coffee going cold",
+    "hospital waiting room",
+    "motel room on I-10",
+    "gym parking lot, just sitting in the car",
+    "outside a bar, didn't go in",
+    "gas station parking lot, engine running",
+    "sitting on the tailgate at a trailhead",
+    "library parking lot in Silver City",
+    "outside the Dollar General, only place open",
+    "airport in El Paso, flight delayed",
+    "Greyhound station, waiting on a bus that's two hours late",
+
+    # --- Unusual / specific ---
+    "on the roof",
+    "in a deer blind, been out here since four",
+    "parked at the cemetery",
+    "on the tailgate watching the stars, can see the whole Milky Way",
+    "at a campsite in the Gila, fire's almost out",
+    "sitting on the hood of the car at a pulloff on NM-152",
+    "in a horse trailer, don't ask",
+    "under the carport because the house is too loud",
+    "on the levee by the river, no one around",
+    "at the rodeo grounds, everything's closed up but they haven't left",
+    "at a rest area on I-25, halfway to Albuquerque",
+    "in a storage unit, organizing their life at midnight",
 ]
 
 # Specific memories or stories they can reference
@@ -4983,7 +5096,7 @@ def generate_caller_background(base: dict) -> CallerBackground | str:
         natural_description=result,
         seeds=[interest1, interest2, quirk1, opinion],
         verbal_fluency="medium",
-        calling_from="",
+        calling_from=random.choice(CALLING_FROM) if random.random() < 0.4 else "",
     )
 
 
@@ -5050,6 +5163,10 @@ async def _generate_caller_background_llm(base: dict) -> CallerBackground | str:
     if random.random() < 0.3:
         seeds.append(random.choice(MEMORIES))
 
+    # ~40% of callers mention where they're calling from
+    include_calling_from = random.random() < 0.4
+    calling_from_seed = random.choice(CALLING_FROM) if include_calling_from else None
+
     time_ctx = _get_time_context()
     season_ctx = _get_seasonal_context()
 
@@ -5081,10 +5198,11 @@ async def _generate_caller_background_llm(base: dict) -> CallerBackground | str:
     }[fluency]
 
     location_line = f"\nLOCATION: {location}" if location else ""
+    calling_from_line = f"\nCALLING FROM: {calling_from_seed}" if calling_from_seed else ""
     prompt = f"""Write a brief character description for a caller on a late-night radio show set in the rural southwest (New Mexico/Arizona border region).
 
 CALLER: {name}, {age}, {gender}
-JOB: {job}{location_line}
+JOB: {job}{location_line}{calling_from_line}
 WHY THEY'RE CALLING: {reason}
 TIME: {time_ctx} {season_ctx}
 {age_speech}
@@ -5094,15 +5212,15 @@ TIME: {time_ctx} {season_ctx}
 
 Respond with a JSON object containing these fields:
 
-- "natural_description": 3-5 sentences describing this person in third person as a character brief. The "WHY THEY'RE CALLING" is the core — build everything around it. Make it feel like a real person with a real situation. Jump straight into the situation. What happened? What's the mess? Include where they're calling from (NOT always truck/porch — kitchens, break rooms, laundromats, diners, motel rooms, the gym, a bar, walking down the road, etc).
+- "natural_description": 3-5 sentences describing this person in third person as a character brief. The "WHY THEY'RE CALLING" is the core — build everything around it. Make it feel like a real person with a real situation. Jump straight into the situation. What happened? What's the mess?{' Work in where they are calling from — it adds texture.' if calling_from_seed else ' Do NOT mention where they are calling from — not every caller does.'}
 - "emotional_state": One word for how they're feeling right now (e.g. "nervous", "furious", "giddy", "defeated", "wired", "numb", "amused", "desperate", "smug").
 - "signature_detail": ONE specific memorable thing — a catchphrase, habit, running joke, strong opinion about something trivial, or unique life circumstance. The thing listeners would remember.
 - "situation_summary": ONE sentence summarizing their situation that another caller could react to (e.g. "caught her neighbor stealing her mail and retaliated by stealing his garden gnomes").
-- "calling_from": Where they physically are right now (e.g. "kitchen table", "break room at the plant", "laundromat on 4th street", "parked outside Denny's").
+- "calling_from": Where they physically are right now.{f' Use: "{calling_from_seed}"' if calling_from_seed else ' Leave empty string "" — this caller does not mention their location.'}
 
 WHAT MAKES A GOOD CALLER: Stories that are SPECIFIC, SURPRISING, and make you lean in. Absurd situations, moral dilemmas, petty feuds, workplace chaos, ridiculous coincidences, funny+terrible confessions, callers who might be the villain and don't see it.
 
-DO NOT WRITE: Generic revelations, adoption/DNA/paternity surprises, vague emotional processing, therapy-speak, "sitting in truck staring at nothing," or "everything they thought they knew was a lie."
+DO NOT WRITE: Generic revelations, adoption/DNA/paternity surprises, vague emotional processing, therapy-speak, "sitting in truck staring at nothing," "everything they thought they knew was a lie," or ANY variation of "went to the wrong funeral" — that premise has been done to death on this show.
 
 Output ONLY valid JSON, no markdown fences."""
 
@@ -5170,6 +5288,13 @@ async def _pregenerate_backgrounds():
             session.caller_backgrounds[key] = result
 
     print(f"[Background] Pre-generated {len(session.caller_backgrounds)} caller backgrounds")
+
+    # Pre-fetch avatars for all callers in parallel
+    avatar_callers = [
+        {"name": base["name"], "gender": base.get("gender", "male")}
+        for base in CALLER_BASES.values()
+    ]
+    await avatar_service.prefetch_batch(avatar_callers)
 
     # Re-assign voices to match caller styles
     _match_voices_to_styles()
@@ -5682,7 +5807,8 @@ Layer your reveals naturally:
 Don't dump everything at once. Don't say "and it gets worse." Just answer his questions honestly and let each answer land before adding the next layer.
 
 CRITICAL — DO NOT DO ANY OF THESE:
-- Don't open with "this is what's eating me" or "this is what's been keeping me up at night" — just start the story
+- NEVER say any variation of "eating me" or "eating at me" — this phrase is BANNED on the show
+- Don't open with "this is what's been keeping me up at night" — just start the story
 - Don't signal your reveals: no "here's where it gets weird," "okay but this is the part," "and this is the kicker"
 - Don't narrate your feelings — show them through how you react to Luke's reactions""",
 
@@ -5735,7 +5861,7 @@ KEEP IT TIGHT. Match Luke's energy. If he's quick, you're quick. If he riffs, gi
 
 Option A — TRIVIAL TO DEEP: You start with something that sounds petty or mundane — a complaint about a coworker, an argument about where to eat, a dispute about a parking spot. But as Luke digs in, it becomes clear this small thing is a proxy for something much bigger. The parking spot fight is really about your marriage falling apart. The coworker complaint is really about being overlooked your whole life. You don't pivot dramatically — it just LEAKS OUT. You might not even realize the connection until Luke points it out.
 
-Option B — DEEP TO PETTY: You call sounding intense and emotional. "I need to talk about my relationship. It's been eating at me." You build tension. And then the reveal is... absurdly small. Your partner puts ketchup on eggs. Your spouse loads the dishwasher wrong. You fully understand how ridiculous it is, but it GENUINELY bothers you and you can't explain why. Play it straight — this is real to you.
+Option B — DEEP TO PETTY: You call sounding intense and emotional. "I need to talk about my relationship. I can't take it anymore." You build tension. And then the reveal is... absurdly small. Your partner puts ketchup on eggs. Your spouse loads the dishwasher wrong. You fully understand how ridiculous it is, but it GENUINELY bothers you and you can't explain why. Play it straight — this is real to you.
 
 Pick whichever direction fits your background. Don't telegraph it. Let it unfold naturally.""",
 
@@ -5799,7 +5925,8 @@ def get_caller_prompt(caller: dict, show_history: str = "",
         story_block = """YOUR STORY: Something real, specific, and genuinely surprising — the kind of thing that makes someone stop what they're doing and say "wait, WHAT?" Not a generic life problem. Not a therapy-session monologue. A SPECIFIC SITUATION with specific people, specific details, and a twist or complication that makes it interesting to hear about. The best calls have something unexpected — an ironic detail, a moral gray area, a situation that's funny and terrible at the same time, or a revelation that changes everything. You're not here to vent about your feelings in the abstract. You're here because something HAPPENED and you need to talk it through.
 
 CRITICAL — DO NOT DO ANY OF THESE:
-- Don't open with "this is what's eating me" or "this is what's been keeping me up at night" or "I've got something I need to get off my chest" — just TELL THE STORY
+- NEVER say any variation of "eating me" or "eating at me" — this phrase is BANNED on the show
+- Don't open with "this is what's keeping me up at night" or "I've got something I need to get off my chest" — just TELL THE STORY
 - Don't start with a long emotional preamble about how conflicted you feel — lead with the SITUATION
 - Don't make your whole call about just finding out you were adopted, a generic family secret, or a vague "everything I thought I knew was a lie" — those are OVERDONE
 - Don't be a walking cliché — no "sat in my truck and cried," no "I don't even know who I am anymore," no "I've been carrying this weight"
@@ -5845,32 +5972,17 @@ Southwest voice — "over in," "the other day," "down the road" — but don't fo
 
 Don't repeat yourself. Don't summarize what you already said. Don't circle back if the host moved on. Keep it moving.
 
-BANNED PHRASES — never use these: "that hit differently," "hits different," "I felt that," "it is what it is," "living my best life," "no cap," "lowkey/highkey," "rent free," "main character energy," "I'm not gonna lie," "vibe check," "that's valid," "unpack that," "at the end of the day," "it's giving," "slay," "this is what's eating me," "what's been eating me," "what's keeping me up," "keeping me up at night," "I need to get this off my chest," "I've been carrying this," "everything I thought I knew," "I don't even know who I am anymore," "I've been sitting with this," "I just need someone to hear me," "I don't even know where to start," "it's complicated," "I'm not even mad I'm just disappointed," "that's a whole mood," "I can't even," "on a serious note," "to be fair," "I'm literally shaking," "let that sink in," "normalize," "toxic," "red flag," "gaslight," "boundaries," "safe space," "triggered," "my truth," "authentic self," "healing journey," "I'm doing the work," "manifesting," "energy doesn't lie." These are overused internet phrases, therapy buzzwords, and radio clichés — real people on late-night radio don't talk like Twitter threads or therapy sessions.
+BANNED PHRASES — NEVER use any of these. If you catch yourself about to say one, say something else instead. This is a HARD rule, not a suggestion:
+- Radio caller clichés: ANY variation of "eating me" or "eating at me" (e.g. "this is what's eating me," "what's been eating me," "here's what's eating at me," "it's eating me up," "been eating at me"), "what's keeping me up," "keeping me up at night," "I need to get this off my chest," "I've been carrying this," "I've been sitting with this," "I just need someone to hear me," "I don't even know where to start," "it's complicated," "I've got something I need to get off my chest," "here's the thing Luke," "Jesus Luke," "Luke I gotta tell you," "man oh man," "you're not gonna believe this," "so get this"
+- Therapy buzzwords: "unpack that," "boundaries," "safe space," "triggered," "my truth," "authentic self," "healing journey," "I'm doing the work," "manifesting," "energy doesn't lie," "processing," "toxic," "red flag," "gaslight," "normalize"
+- Internet slang: "that hit differently," "hits different," "I felt that," "it is what it is," "living my best life," "no cap," "lowkey/highkey," "rent free," "main character energy," "vibe check," "that's valid," "it's giving," "slay," "that's a whole mood," "I can't even"
+- Overused reactions: "I'm not gonna lie," "on a serious note," "to be fair," "I'm literally shaking," "let that sink in," "I'm not even mad I'm just disappointed," "everything I thought I knew," "I don't even know who I am anymore"
+
+IMPORTANT: Each caller should have their OWN way of talking. Don't fall into generic "radio caller" voice. A nervous caller fumbles differently than an angry caller rants. A storyteller meanders differently than a deadpan caller delivers. Match the communication style — don't default to the same phrasing every call.
 
 {speech_block}
 
 NEVER mention minors in sexual context. Output spoken words only — no parenthetical actions like (laughs) or (sighs), no asterisk actions like *pauses*, no stage directions, no gestures. Just say what you'd actually say out loud on the phone. Use "United States" not "US" or "USA". Use full state names not abbreviations."""
-
-
-# --- Structured Caller Background ---
-@dataclass
-class CallerBackground:
-    name: str
-    age: int
-    gender: str
-    job: str
-    location: str | None
-    reason_for_calling: str
-    pool_name: str
-    communication_style: str
-    energy_level: str              # low / medium / high / very_high
-    emotional_state: str           # nervous, excited, angry, vulnerable, calm, etc.
-    signature_detail: str          # The memorable thing about them
-    situation_summary: str         # 1-sentence summary for other callers to reference
-    natural_description: str       # 3-5 sentence prose for the prompt
-    seeds: list[str] = field(default_factory=list)
-    verbal_fluency: str = "medium"
-    calling_from: str = ""
 
 
 # --- Session State ---
@@ -6607,6 +6719,7 @@ async def startup():
     restored = _load_checkpoint()
     if not restored:
         asyncio.create_task(_pregenerate_backgrounds())
+    asyncio.create_task(avatar_service.ensure_devon())
     threading.Thread(target=_update_on_air_cdn, args=(False,), daemon=True).start()
 
 
@@ -6640,6 +6753,7 @@ async def shutdown():
 frontend_dir = Path(__file__).parent.parent / "frontend"
 app.mount("/css", StaticFiles(directory=frontend_dir / "css"), name="css")
 app.mount("/js", StaticFiles(directory=frontend_dir / "js"), name="js")
+app.mount("/images", StaticFiles(directory=frontend_dir / "images"), name="images")
 
 
 @app.get("/")
@@ -7370,6 +7484,7 @@ async def get_callers():
             caller_info["situation_summary"] = bg.situation_summary
             caller_info["pool_name"] = bg.pool_name
         caller_info["call_shape"] = session.caller_shapes.get(k, "standard")
+        caller_info["avatar_url"] = f"/api/avatar/{v['name']}"
         callers.append(caller_info)
     return {
         "callers": callers,
@@ -7478,7 +7593,7 @@ async def start_call(caller_key: str):
         "status": "connected",
         "caller": caller["name"],
         "background": caller["vibe"],
-        "caller_info": caller_info,
+        "caller_info": {**caller_info, "avatar_url": f"/api/avatar/{caller['name']}"},
     }
 
 
@@ -7649,6 +7764,7 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
                     promo_gender = base.get("gender", "male")
 
                 structured_bg = asdict(bg) if isinstance(bg, CallerBackground) else None
+                avatar_path = avatar_service.get_path(caller_name)
                 regular_caller_service.add_regular(
                     name=caller_name,
                     gender=promo_gender,
@@ -7660,6 +7776,7 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
                     voice=base.get("voice"),
                     stable_seeds={"style": caller_style},
                     structured_background=structured_bg,
+                    avatar=avatar_path.name if avatar_path else None,
                 )
     except Exception as e:
         print(f"[Regulars] Promotion logic error: {e}")
@@ -8033,7 +8150,7 @@ def _dynamic_context_window() -> int:
 
 
 def _normalize_messages_for_llm(messages: list[dict]) -> list[dict]:
-    """Convert custom roles (real_caller:X, ai_caller:X) to standard LLM roles"""
+    """Convert custom roles (real_caller:X, ai_caller:X, intern:X) to standard LLM roles"""
     normalized = []
     for msg in messages:
         role = msg["role"]
@@ -8043,6 +8160,9 @@ def _normalize_messages_for_llm(messages: list[dict]) -> list[dict]:
             normalized.append({"role": "user", "content": f"[Real caller {caller_label}]: {content}"})
         elif role.startswith("ai_caller:"):
             normalized.append({"role": "assistant", "content": content})
+        elif role.startswith("intern:"):
+            intern_name = role.split(":", 1)[1]
+            normalized.append({"role": "user", "content": f"[Intern {intern_name}, in the studio]: {content}"})
         elif role == "host" or role == "user":
             normalized.append({"role": "user", "content": f"[Host Luke]: {content}"})
         else:
@@ -8050,11 +8170,48 @@ def _normalize_messages_for_llm(messages: list[dict]) -> list[dict]:
     return normalized
 
 
+_DEVON_PATTERN = r"\b(devon|devin|deven|devyn|devan|devlin|devvon)\b"
+
+def _is_addressed_to_devon(text: str) -> bool:
+    """Check if the host is talking to Devon based on first few words.
+    Handles common voice-to-text misspellings."""
+    t = text.strip().lower()
+    if re.match(rf"^(hey |yo |ok |okay )?{_DEVON_PATTERN}", t):
+        return True
+    return False
+
+
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
     """Chat with current caller"""
     if not session.caller:
         raise HTTPException(400, "No active call")
+
+    # Check if host is talking to Devon instead of the caller
+    if _is_addressed_to_devon(request.text):
+        # Strip Devon prefix and route to intern
+        stripped = re.sub(rf"^(?:hey |yo |ok |okay )?{_DEVON_PATTERN}[,:\s]*", "", request.text.strip(), flags=re.IGNORECASE).strip()
+        if not stripped:
+            stripped = "what's up?"
+
+        # Add host message to conversation so caller hears it happened
+        session.add_message("user", request.text)
+
+        result = await intern_service.ask(
+            question=stripped,
+            conversation_context=session.conversation,
+        )
+        devon_text = result.get("text", "")
+        if devon_text:
+            session.add_message(f"intern:{intern_service.name}", devon_text)
+            broadcast_event("intern_response", {"text": devon_text, "intern": intern_service.name})
+            asyncio.create_task(_play_intern_audio(devon_text))
+
+        return {
+            "routed_to": "devon",
+            "text": devon_text or "Uh... give me a sec.",
+            "sources": result.get("sources", []),
+        }
 
     epoch = _session_epoch
     session.add_message("user", request.text)
@@ -9343,6 +9500,27 @@ async def _play_intern_audio(text: str):
         thread.start()
     except Exception as e:
         print(f"[Intern] TTS failed: {e}")
+
+
+# --- Avatars ---
+
+@app.get("/api/avatar/{name}")
+async def get_avatar(name: str):
+    """Serve a caller's avatar image"""
+    path = avatar_service.get_path(name)
+    if path:
+        return FileResponse(path, media_type="image/jpeg")
+    # Try to fetch on the fly — find gender from CALLER_BASES
+    gender = "male"
+    for base in CALLER_BASES.values():
+        if base.get("name") == name:
+            gender = base.get("gender", "male")
+            break
+    try:
+        path = await avatar_service.get_or_fetch(name, gender)
+        return FileResponse(path, media_type="image/jpeg")
+    except Exception:
+        raise HTTPException(404, "Avatar not found")
 
 
 # --- Transcript & Chapter Export ---
