@@ -1,99 +1,6 @@
 {
   "regulars": [
     {
-      "id": "d3399e9d",
-      "name": "Lucille",
-      "gender": "female",
-      "age": 38,
-      "job": "where she's been sitting for the past hour staring at her neighbor's garage through the window, watching his light flick on and off like he's still awake and pissed",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Tessa",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Clearly holding back. Gives vague answers to direct questions. Says 'I can't really get into that' about key details. The mystery IS the hook \u2014 makes you want to know what they're not saying. Energy level: low, controlled. When pushed back on, they deflect smoothly or change the subject. Getting the real story requires the host to work for it. Conversational tendency: strategic omission."
-      },
-      "call_history": [
-        {
-          "summary": "Lucille called because her garage door opener has been opening her neighbor Dennis's garage instead of hers since a transformer blew, and she admitted she's been intentionally parking in his garage at 3 AM for three days because it's more convenient for her bail bonds work. Luke told her to stop trespassing immediately, fix her garage door opener, and stop acting like she needs covert operations just to come home from work.",
-          "timestamp": 1772864272.556864
-        }
-      ],
-      "last_call": 1772864272.556865,
-      "created_at": 1772864272.556865
-    },
-    {
-      "id": "c4l7l3ad",
-      "name": "Silas",
-      "gender": "male",
-      "age": 52,
-      "job": "founder and spiritual guide of The Wellspring, a commune of about forty souls living on 200 acres of scrubland outside Deming",
-      "location": "outside Deming, New Mexico",
-      "personality_traits": [
-        "unnervingly charming",
-        "casually drops cult references into normal conversation",
-        "genuinely good listener who gives surprisingly solid advice before pivoting to how The Wellspring has the answer",
-        "treats his commune like it's the most normal thing in the world",
-        "magnetic and warm in a way that makes you forget he's basically running a sex cult in the desert"
-      ],
-      "voice": "Sebastian",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Radiates warmth and calm authority. Speaks like a man who has all the time in the world and genuinely cares about every person he talks to. Uses phrases like 'brother' and 'friend' and 'let me share something with you.' Laughs easily \u2014 a real, warm laugh, not performative. Gives genuinely good, thoughtful advice about whatever the conversation is about \u2014 and then, naturally, seamlessly, steers it toward The Wellspring, his commune outside Deming. Never pushy about it. Just casually mentions 'well, at The Wellspring, we've found that...' or 'one of our members had the same exact problem and what we did was...' Everything about The Wellspring sounds just slightly too good to be true. He talks about communal living, 'shedding the false self,' radical honesty, 'body acceptance ceremonies,' 'the Unbinding' (a monthly ritual he describes vaguely but enthusiastically), and a philosophy he calls 'The Current' which seems to be a mix of Buddhism, Burning Man, and a swingers' convention. He's never defensive about the cult accusations \u2014 he laughs them off and says 'people fear what they don't understand, brother.' When pressed on anything weird, he has a perfectly reasonable-sounding explanation that somehow makes it sound weirder. He low-key tries to recruit the host and listeners every single call. He'll casually drop the website or say 'we're always welcoming new seekers.' He's the kind of guy you'd follow into the desert if you weren't careful. Energy level: medium, centered, grounded. When pushed back on, he smiles (you can hear it) and says something like 'I respect that, I really do' before gently continuing. Conversational tendency: making the insane sound reasonable."
-      },
-      "call_history": [
-        {
-          "summary": "Silas called in for the first time introducing himself as the founder of The Wellspring, a commune of about forty people outside Deming. He initially called to give advice to a previous caller about relationship problems, offering genuinely thoughtful perspective before casually mentioning that at The Wellspring, they practice 'radical transparency' in relationships which has eliminated jealousy entirely among members. When Luke pressed him on what that actually means, Silas cheerfully described 'body acceptance ceremonies' and 'shared intimacy nights' while insisting it's not a cult \u2014 'we don't even have a gate, brother, people can leave whenever they want.' He invited listeners to visit for a 'weekend of awakening' and left his website. Luke was equal parts charmed and disturbed.",
-          "timestamp": 1772430000.0
-        },
-        {
-          "summary": "Silas called back to update Luke on The Wellspring after their last conversation went viral in the Discord. He casually mentioned they'd gotten fourteen new 'seekers' since his last appearance and thanked Luke for the exposure. He called ostensibly to talk about a dispute between two members over a goat, but spent most of the call describing 'The Unbinding' \u2014 their monthly full-moon ritual involving nudity, chanting, and what he called 'consensual energy exchange' \u2014 while maintaining it's no different from yoga. When Luke asked if people sign waivers, Silas laughed and said 'brother, the only thing we sign is a commitment to love.' He also revealed The Wellspring has a surprisingly successful artisanal soap business that funds the commune. Left by inviting Luke to come visit personally \u2014 'bring your microphone, do a live show from The Wellspring, I promise you it'll be the best radio you've ever made.'",
-          "timestamp": 1772517000.0
-        },
-        {
-          "summary": "Silas, founder of a communal living group called The Wellspring, called in troubled that one of his \"Unbinding\" ceremonies may have encouraged a longtime member named Marcus to leave his wife Cara, who subsequently left the community. The host reassured him that everyone seems happier now, and Silas ended up agreeing while also using the opportunity to promote an upcoming retreat at his community.",
-          "timestamp": 1772522629.959956
-        },
-        {
-          "summary": "Silas called about Marcus and Cara returning to his intentional community \"The Wellspring,\" but Cara admitted she never believed in their lifestyle and only participates (including in twice-monthly \"shared intimacy nights\") to keep her husband Marcus happy. The host advised Silas to hold a \"Renewal\" ceremony where members can recommit or leave, warning that having unwilling participants could lead to claims of abuse and legal trouble.",
-          "timestamp": 1772865423.697613
-        },
-        {
-          "summary": "Silas called to share that after Marcus and Cara's Renewal ceremony, Cara left The Wellspring while Marcus chose to stay, but Marcus is now falling apart emotionally and told Silas at 2 AM that he stayed out of loyalty rather than belief. The conversation revealed Silas's deeper struggle with his own need for validation through people staying at The Wellspring, with an emotional moment when he admitted his first feeling was relief when Marcus expressed he didn't want to disappoint him, leading to uncomfortable questions about whether he truly supports people finding their authentic path if it leads them away from the community.",
-          "timestamp": 1773397364.642446
-        }
-      ],
-      "last_call": 1773397364.642447,
-      "created_at": 1772430000.0
-    },
-    {
-      "id": "d2af96eb",
-      "name": "Rocco",
-      "gender": "male",
-      "age": 53,
-      "job": "and tonight he's calling from the back office of the Pizza Hut during his break because three hours ago he got trapped",
-      "location": "unknown",
-      "personality_traits": [],
-      "voice": "Timothy",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Obviously nervous about being on the radio. Starts with 'Am I on? Can you hear me?' Apologizes for taking up time. Speaks carefully like they're being recorded (which they are). Gets more comfortable as the conversation goes on. Energy level: low, building to medium. When pushed back on, they panic slightly and over-explain. Conversational tendency: seeking validation that they're doing okay."
-      },
-      "call_history": [
-        {
-          "summary": "Rocco, a pizza delivery driver, called from work to talk about getting stuck in an elevator for 45 minutes with his ex-wife Linda and her boyfriend Dale, which unexpectedly stirred up old feelings despite being happily married to his current wife Sharon for 15 years. The host firmly advised him to forget about Linda and appreciate his comfortable current marriage, reminding him that the divorce was difficult for good reasons.",
-          "timestamp": 1772517521.710845
-        },
-        {
-          "summary": "Rocco calls back to update the host about his ex-wife Linda, who he was previously stuck in an elevator with, revealing that she broke up with her boyfriend Dale three weeks ago and admitting he still has her number in his phone. The host becomes frustrated with Rocco's indecisiveness between Linda and his current girlfriend Sharon, telling him to pick one person and stop wasting time.",
-          "timestamp": 1772700921.1273742
-        },
-        {
-          "summary": "Rocco, a Pizza Hut delivery driver on his break, calls to share that he just delivered pizza to his ex-wife Linda's house three hours earlier\u2014a surprising encounter after the host had previously told him to stop wasting time talking about her. The host is skeptical and impatient, threatening to hang up again unless Rocco has something meaningful to say.",
-          "timestamp": 1772959484.679859
-        }
-      ],
-      "last_call": 1772959484.6798599,
-      "created_at": 1772517521.7108748
-    },
-    {
       "id": "6037d92b",
       "name": "Otis",
       "gender": "male",
@@ -169,31 +76,6 @@
       "created_at": 1772786610.8858292
     },
     {
-      "id": "bbb20b67",
-      "name": "Angie",
-      "gender": "female",
-      "age": 28,
-      "job": "watching her coveralls tumble dry and trying to decide if she should drive the three hours to Tucson tomorrow for her mom's birthday or keep pretending her brother doesn't exist",
-      "location": "in unknown",
-      "personality_traits": [],
-      "voice": "Julia",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Bone dry. Says devastating things with zero inflection. Their humor sneaks up on you \u2014 you're not sure if they're joking until three seconds after they finish talking. Short, precise sentences. Never raises their voice. Energy level: low-medium. When pushed back on, they respond with one calm sentence that somehow makes the other person feel stupid. Conversational tendency: underreaction."
-      },
-      "call_history": [
-        {
-          "summary": "Angie's dying mother wants her to have birthday dinner with her estranged brother Derek tomorrow, whom she hasn't spoken to in two years after he told their mother her cancer was \"God's way of getting her attention\" for voting for Biden. Despite her fear that Derek will say something hurtful during dinner and her past trauma from staying silent around him, Angie agrees to go and share cake with her mother, deciding to buy the relighting candles her mom loved when they were kids.",
-          "timestamp": 1772862907.314721
-        },
-        {
-          "summary": "Angie called back after having the birthday cake dinner with her dying mom, which went well, but her brother Derek cornered her afterward accusing her of convincing their mom to stop cancer treatment and demanding they both attend the next doctor's appointment together. Luke advised her to talk directly to her mom about what she actually wants and encouraged Angie to have real conversations about her mom's end-of-life thoughts while she still can, which Angie agreed to do the next morning.",
-          "timestamp": 1773296210.170752
-        }
-      ],
-      "last_call": 1773296210.170753,
-      "created_at": 1772862907.314722
-    },
-    {
       "id": "3721ebf2",
       "name": "Maxine",
       "gender": "female",
@@ -213,6 +95,188 @@
       ],
       "last_call": 1773395481.8522189,
       "created_at": 1773395481.8522189
+    },
+    {
+      "id": "7ed14071",
+      "name": "Thelma",
+      "gender": "female",
+      "age": 30,
+      "job": "works the front desk at a hotel",
+      "location": "unknown",
+      "personality_traits": [
+        "weirdly cheerful for someone with this problem",
+        "does amateur radio astronomy, built their own antenna",
+        "into off-roading, knows every dirt road in the county",
+        "weirdly cheerful for someone with this problem"
+      ],
+      "voice": "Wendy",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Amped up. Talks fast, laughs loud, jumps between topics like they've had five espressos. Infectious enthusiasm \u2014 even bad news sounds exciting when they tell it. Uses exclamation energy without actually exclaiming. Energy level: very high. When pushed back on, they get even MORE animated and start talking with their hands (you can hear it). Conversational tendency: escalation."
+      },
+      "structured_background": {
+        "name": "Thelma",
+        "age": 30,
+        "gender": "female",
+        "job": "works the front desk at a hotel",
+        "location": null,
+        "reason_for_calling": "their kid graduated basic training today and they've never been more proud or more terrified",
+        "pool_name": "CELEBRATIONS",
+        "communication_style": "COMMUNICATION STYLE: Amped up. Talks fast, laughs loud, jumps between topics like they've had five espressos. Infectious enthusiasm \u2014 even bad news sounds exciting when they tell it. Uses exclamation energy without actually exclaiming. Energy level: very high. When pushed back on, they get even MORE animated and start talking with their hands (you can hear it). Conversational tendency: escalation.",
+        "energy_level": "medium",
+        "emotional_state": "calm",
+        "signature_detail": "weirdly cheerful for someone with this problem",
+        "situation_summary": "their kid graduated basic training today and they've never been more proud or more terrified",
+        "natural_description": "30, works the front desk at a hotel. Their kid graduated basic training today and they've never been more proud or more terrified. Her ex-husband danny, he's still in the picture because of the kids. Cheerful and joking at first. Using humor to avoid the real thing. Eventually drops the act.. Thinks dogs are better judges of character than people. Tends to say \"just another Tuesday.\" Having sipping on some mezcal a friend brought back from across the border.. Misses the old Denny's that used to be in Lordsburg, it wasn't good but it was there Dating around. Nothing serious. Prefers it that way, mostly.. Drives a Ram. Weirdly cheerful for someone with this problem. Her best friend lena, who moved away last year and the distance is hard. Was was up late painting \u2014 walls, not art \u2014 and had the radio on for company. before calling. Into does amateur radio astronomy, built their own antenna. Heard a caller earlier tonight and it hit close to home. Had to pick up the phone.. It's Saturday night, way too late \u2014 almost morning. it's the weekend. Early spring \u2014 wind season is starting. Dust storms possible.",
+        "seeds": [
+          "does amateur radio astronomy, built their own antenna",
+          "into off-roading, knows every dirt road in the county",
+          "weirdly cheerful for someone with this problem",
+          "Thinks dogs are better judges of character than people."
+        ],
+        "verbal_fluency": "medium",
+        "calling_from": "in the walk-in cooler because it's the only quiet spot"
+      },
+      "avatar": "Thelma.jpg",
+      "relationships": {},
+      "call_history": [
+        {
+          "summary": "Thelma called concerned that her 19-year-old daughter Jessie, who just graduated basic training, has been exchanging romantic messages on Instagram with her army recruiter (a man in his 30s-40s), which violates military regulations. She's conflicted because she discovered this through a secret burner account and admits she wants to tell Jessie's father partly to prove him wrong for pushing their daughter to enlist, though she ultimately agrees to make an anonymous report instead.",
+          "timestamp": 1773486573.146657,
+          "arc_status": "ongoing"
+        }
+      ],
+      "last_call": 1773486573.146658,
+      "created_at": 1773486573.146658
+    },
+    {
+      "id": "bbb20b67",
+      "name": "Angie",
+      "gender": "female",
+      "age": 28,
+      "job": "watching her coveralls tumble dry and trying to decide if she should drive the three hours to Tucson tomorrow for her mom's birthday or keep pretending her brother doesn't exist",
+      "location": "in unknown",
+      "personality_traits": [],
+      "voice": "Julia",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Bone dry. Says devastating things with zero inflection. Their humor sneaks up on you \u2014 you're not sure if they're joking until three seconds after they finish talking. Short, precise sentences. Never raises their voice. Energy level: low-medium. When pushed back on, they respond with one calm sentence that somehow makes the other person feel stupid. Conversational tendency: underreaction."
+      },
+      "call_history": [
+        {
+          "summary": "Angie's dying mother wants her to have birthday dinner with her estranged brother Derek tomorrow, whom she hasn't spoken to in two years after he told their mother her cancer was \"God's way of getting her attention\" for voting for Biden. Despite her fear that Derek will say something hurtful during dinner and her past trauma from staying silent around him, Angie agrees to go and share cake with her mother, deciding to buy the relighting candles her mom loved when they were kids.",
+          "timestamp": 1772862907.314721
+        },
+        {
+          "summary": "Angie called back after having the birthday cake dinner with her dying mom, which went well, but her brother Derek cornered her afterward accusing her of convincing their mom to stop cancer treatment and demanding they both attend the next doctor's appointment together. Luke advised her to talk directly to her mom about what she actually wants and encouraged Angie to have real conversations about her mom's end-of-life thoughts while she still can, which Angie agreed to do the next morning.",
+          "timestamp": 1773296210.170752
+        },
+        {
+          "summary": "Angie called to say her mother initially decided to stop cancer treatment, but after Angie's brother Derek intervened, their mother is now reconsidering and wants both siblings at the doctor's appointment. Luke firmly told Angie that despite her frustration with Derek's influence, she needs to respect whatever decision her mother ultimately makes, even if it changes, and stop trying to control the situation.",
+          "timestamp": 1773487383.9800918,
+          "arc_status": "ongoing"
+        }
+      ],
+      "last_call": 1773487383.980093,
+      "created_at": 1772862907.314722
+    },
+    {
+      "id": "c4l7l3ad",
+      "name": "Silas",
+      "gender": "male",
+      "age": 52,
+      "job": "founder and spiritual guide of The Wellspring, a commune of about forty souls living on 200 acres of scrubland outside Deming",
+      "location": "outside Deming, New Mexico",
+      "personality_traits": [
+        "unnervingly charming",
+        "casually drops cult references into normal conversation",
+        "genuinely good listener who gives surprisingly solid advice before pivoting to how The Wellspring has the answer",
+        "treats his commune like it's the most normal thing in the world",
+        "magnetic and warm in a way that makes you forget he's basically running a sex cult in the desert"
+      ],
+      "voice": "Sebastian",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Radiates warmth and calm authority. Speaks like a man who has all the time in the world and genuinely cares about every person he talks to. Uses phrases like 'brother' and 'friend' and 'let me share something with you.' Laughs easily \u2014 a real, warm laugh, not performative. Gives genuinely good, thoughtful advice about whatever the conversation is about \u2014 and then, naturally, seamlessly, steers it toward The Wellspring, his commune outside Deming. Never pushy about it. Just casually mentions 'well, at The Wellspring, we've found that...' or 'one of our members had the same exact problem and what we did was...' Everything about The Wellspring sounds just slightly too good to be true. He talks about communal living, 'shedding the false self,' radical honesty, 'body acceptance ceremonies,' 'the Unbinding' (a monthly ritual he describes vaguely but enthusiastically), and a philosophy he calls 'The Current' which seems to be a mix of Buddhism, Burning Man, and a swingers' convention. He's never defensive about the cult accusations \u2014 he laughs them off and says 'people fear what they don't understand, brother.' When pressed on anything weird, he has a perfectly reasonable-sounding explanation that somehow makes it sound weirder. He low-key tries to recruit the host and listeners every single call. He'll casually drop the website or say 'we're always welcoming new seekers.' He's the kind of guy you'd follow into the desert if you weren't careful. Energy level: medium, centered, grounded. When pushed back on, he smiles (you can hear it) and says something like 'I respect that, I really do' before gently continuing. Conversational tendency: making the insane sound reasonable."
+      },
+      "call_history": [
+        {
+          "summary": "Silas called in for the first time introducing himself as the founder of The Wellspring, a commune of about forty people outside Deming. He initially called to give advice to a previous caller about relationship problems, offering genuinely thoughtful perspective before casually mentioning that at The Wellspring, they practice 'radical transparency' in relationships which has eliminated jealousy entirely among members. When Luke pressed him on what that actually means, Silas cheerfully described 'body acceptance ceremonies' and 'shared intimacy nights' while insisting it's not a cult \u2014 'we don't even have a gate, brother, people can leave whenever they want.' He invited listeners to visit for a 'weekend of awakening' and left his website. Luke was equal parts charmed and disturbed.",
+          "timestamp": 1772430000.0
+        },
+        {
+          "summary": "Silas called back to update Luke on The Wellspring after their last conversation went viral in the Discord. He casually mentioned they'd gotten fourteen new 'seekers' since his last appearance and thanked Luke for the exposure. He called ostensibly to talk about a dispute between two members over a goat, but spent most of the call describing 'The Unbinding' \u2014 their monthly full-moon ritual involving nudity, chanting, and what he called 'consensual energy exchange' \u2014 while maintaining it's no different from yoga. When Luke asked if people sign waivers, Silas laughed and said 'brother, the only thing we sign is a commitment to love.' He also revealed The Wellspring has a surprisingly successful artisanal soap business that funds the commune. Left by inviting Luke to come visit personally \u2014 'bring your microphone, do a live show from The Wellspring, I promise you it'll be the best radio you've ever made.'",
+          "timestamp": 1772517000.0
+        },
+        {
+          "summary": "Silas, founder of a communal living group called The Wellspring, called in troubled that one of his \"Unbinding\" ceremonies may have encouraged a longtime member named Marcus to leave his wife Cara, who subsequently left the community. The host reassured him that everyone seems happier now, and Silas ended up agreeing while also using the opportunity to promote an upcoming retreat at his community.",
+          "timestamp": 1772522629.959956
+        },
+        {
+          "summary": "Silas called about Marcus and Cara returning to his intentional community \"The Wellspring,\" but Cara admitted she never believed in their lifestyle and only participates (including in twice-monthly \"shared intimacy nights\") to keep her husband Marcus happy. The host advised Silas to hold a \"Renewal\" ceremony where members can recommit or leave, warning that having unwilling participants could lead to claims of abuse and legal trouble.",
+          "timestamp": 1772865423.697613
+        },
+        {
+          "summary": "Silas called to share that after Marcus and Cara's Renewal ceremony, Cara left The Wellspring while Marcus chose to stay, but Marcus is now falling apart emotionally and told Silas at 2 AM that he stayed out of loyalty rather than belief. The conversation revealed Silas's deeper struggle with his own need for validation through people staying at The Wellspring, with an emotional moment when he admitted his first feeling was relief when Marcus expressed he didn't want to disappoint him, leading to uncomfortable questions about whether he truly supports people finding their authentic path if it leads them away from the community.",
+          "timestamp": 1773397364.642446
+        },
+        {
+          "summary": "Silas calls troubled because Marcus, a founding member of his community, left abruptly with an apologetic note about \"disappointing\" him, which leads Silas to a painful realization that he's been using coercive social pressure to make members participate in \"shared intimacy nights\" they didn't actually want. After confronting the truth that his leadership style has manipulated people into betraying their own values, Silas agrees to make the intimacy nights truly optional and apologize to his community, showing genuine emotional growth about his abuse of power.",
+          "timestamp": 1773563183.0144992,
+          "arc_status": "ongoing"
+        }
+      ],
+      "last_call": 1773563183.0145001,
+      "created_at": 1772430000.0
+    },
+    {
+      "id": "6460c37d",
+      "name": "Shonda",
+      "gender": "female",
+      "age": 52,
+      "job": "works the front desk at a hotel",
+      "location": "in Alamogordo",
+      "personality_traits": [
+        "laughs nervously when things get real",
+        "into horror movies, the psychological kind not slashers",
+        "coaches youth sports, takes it more seriously than the parents do",
+        "laughs nervously when things get real"
+      ],
+      "voice": "Miranda",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Everything circles back to them and how great they are. Name drops. Mentions their truck, their property, their salary, their bench press. Not overtly obnoxious \u2014 they genuinely think they're being conversational. Energy level: medium-high. When pushed back on, they get defensive fast and start listing accomplishments. Conversational tendency: one-upping."
+      },
+      "structured_background": {
+        "name": "Shonda",
+        "age": 52,
+        "gender": "female",
+        "job": "works the front desk at a hotel",
+        "location": "in Alamogordo",
+        "reason_for_calling": "discovered their kid's beloved little league coach did time for armed robbery in another state \u2014 he's been clean for fifteen years but nobody in town knows and the parents would lose their minds",
+        "pool_name": "GOSSIP",
+        "communication_style": "COMMUNICATION STYLE: Everything circles back to them and how great they are. Name drops. Mentions their truck, their property, their salary, their bench press. Not overtly obnoxious \u2014 they genuinely think they're being conversational. Energy level: medium-high. When pushed back on, they get defensive fast and start listing accomplishments. Conversational tendency: one-upping.",
+        "energy_level": "high",
+        "emotional_state": "calm",
+        "signature_detail": "laughs nervously when things get real",
+        "situation_summary": "discovered their kid's beloved little league coach did time for armed robbery in another state \u2014 he's been clean for fif",
+        "natural_description": "52, works the front desk at a hotel in Alamogordo. Discovered their kid's beloved little league coach did time for armed robbery in another state \u2014 he's been clean for fifteen years but nobody in town knows and the parents would lose their minds. Confident and opinionated. But underneath there's doubt. Might ask the host what they really think.. Her neighbor linda, who gossips about everyone on the block. Living together, not married. Her family has opinions about that.. Laughs nervously when things get real. Earlier today: Dropped the truck off at the mechanic in Lordsburg today Into into horror movies, the psychological kind not slashers. Remembers driving hours on dirt roads that are paved now, says it took the character out of them Thinks the Jalisco Cafe in Las Cruces has the best Mexican food in the state Was was reorganizing the junk drawer, which is what they do when they can't settle. before calling. It's Sunday night, the middle of the night. it's the weekend. Early spring \u2014 wind season is starting. Dust storms possible.\nABOUT WHERE THEY LIVE (Alamogordo): About 30,000 people. Holloman Air Force Base. White Sands National Park nearby. Sacramento Mountains and Cloudcroft up the hill. Tularosa Basin. The Space History museum. Only reference real places and facts about this area \u2014 don't invent businesses or landmarks that aren't mentioned here. Weather right now: 64\u00b0F, clear skies.",
+        "seeds": [
+          "into horror movies, the psychological kind not slashers",
+          "coaches youth sports, takes it more seriously than the parents do",
+          "laughs nervously when things get real",
+          "Thinks the speed limit on I-10 should be 85."
+        ],
+        "verbal_fluency": "medium",
+        "calling_from": "gas station parking lot, engine running"
+      },
+      "avatar": "Shonda.jpg",
+      "relationships": {},
+      "call_history": [
+        {
+          "summary": "Shonda called concerned about her kid's beloved little league coach who served 15 years for armed robbery in another state, wondering if she should tell anyone. Luke reassured her that since the coach passed required background checks and it wasn't a sexual offense, she shouldn't worry about it\u2014the coach has turned his life around and deserves a second chance.",
+          "timestamp": 1773563477.0657432,
+          "arc_status": "ongoing"
+        }
+      ],
+      "last_call": 1773563477.065744,
+      "created_at": 1773563477.065744
     }
   ]
 }

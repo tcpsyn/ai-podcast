@@ -24,6 +24,7 @@ from .config import settings
 from .services.caller_service import CallerService
 from .services.transcription import transcribe_audio
 from .services.llm import llm_service
+from .services.cost_tracker import cost_tracker
 from .services.tts import generate_speech
 from .services.audio import audio_service
 from .services.stem_recorder import StemRecorder
@@ -3966,6 +3967,110 @@ WEIRD = [
     "found a handwritten grocery list in their jacket pocket that isn't their handwriting — they live alone, the jacket has been in their closet for months, and the list includes items they've never bought but three of them are things they've been meaning to pick up and hadn't told anyone about",
     "their late mother's perfume appears in the house on the anniversary of her death — no one wears it, the bottle was thrown out years ago, but every March 14th the bedroom smells exactly like her and by the next morning it's gone, and this year their kid who never met the grandmother walked in and said 'who's the lady'",
     "a stray cat appears on their porch exactly one day before something goes wrong in their life — it showed up before they got fired, before their car broke down, before their pipe burst, and before their mother fell — it was on the porch again this morning and they're afraid to leave the house",
+    # --- bizarre neighbor situations ---
+    "their neighbor has been mowing their lawn at exactly 11 PM every Wednesday in complete darkness — no headlamp, no porch light — and when they asked about it the neighbor said 'the grass knows what time it is'",
+    "the neighbor across the street installed a doorbell camera that faces their house instead of the street — when they confronted them, the neighbor said 'I'm not watching you, I'm watching what's behind you'",
+    "their neighbor has been leaving handwritten Yelp-style reviews of their yard taped to their mailbox — three stars for the garden, one star for the fence, and a detailed paragraph about 'inconsistent mulch depth'",
+    "the neighbor's garage door opens and closes by itself in what appears to be morse code — they looked it up and it spells 'TUESDAY' over and over",
+    "their neighbor has been building something in their backyard under a tarp for eight months — it's now three stories tall, whatever it is — and they just smile and wave when asked about it",
+    "their new neighbor introduced themselves, said 'I'm sure we'll be great friends,' handed them a jar of unlabeled brown liquid, and hasn't spoken to them since — that was six months ago and the jar is still on their counter because they're afraid to open or throw it away",
+    "the neighbor's sprinkler system is synchronized with theirs to the second — they changed their timer three times and each time the neighbor's adjusted to match within a day, and the neighbor claims they don't even have a timer, theirs is manual",
+    "their neighbor puts a single lawn chair in the middle of their driveway every night and brings it back in every morning — they've watched on camera and the neighbor carries it out at exactly midnight, sits in it for forty-five seconds staring at the sky, then goes back inside",
+    "the neighbor's kid has been delivering a hand-drawn newspaper to their door every morning — it contains weirdly accurate predictions about what will happen in the neighborhood that day, including a trash can blowing over and a specific dog escaping",
+    "their neighbor has a rooster that only crows when the mail carrier arrives — not at dawn, not at any other time — just when the mail truck pulls up, and the mail carrier has started leaving treats for the rooster",
+    "found out their neighbor has been paying their water bill for the past seven months — they only discovered it because the utility sent a thank-you note to the wrong address and the neighbor won't explain why they're doing it",
+    "their neighbor returned a casserole dish they never lent them — the dish isn't theirs, the food inside isn't anything they've ever made, but it has a Post-it note that says 'thanks for the recipe' in handwriting they don't recognize",
+    "the neighbor's house numbers keep changing — it was 412 when they moved in, then 414, now it says 418 — and according to the postal service it's always been 412",
+    # --- objects with strange behavior ---
+    "their toaster only works if they talk to it — they discovered this by accident when they said 'come on' and it popped, and now they have to verbally encourage it every morning or it just sits there holding the bread hostage",
+    "bought a used recliner from a yard sale and it makes a sound like a contented sigh every time someone sits down — not a mechanical noise, a distinctly human sigh — and they've had two people refuse to come back to their house because of it",
+    "their Roomba has developed a route that spells out letters — they put tracking paper down and it clearly wrote 'HI' last Tuesday and what might be 'NO' on Thursday",
+    "a painting they bought at a thrift store for three dollars keeps ending up in different rooms — they hang it in the hallway, it ends up leaning against the bathroom wall, they put it in the garage, it shows up in the kitchen — they live alone and have started documenting it with timestamps",
+    "their washing machine produces exactly one marble per load — always clear glass, always the same size — they now have a mason jar of forty-seven marbles and they've checked every pocket, every lint trap, torn the machine apart twice",
+    "their car's GPS has developed a personality — it sighs when they miss a turn, it said 'finally' when they arrived at work last Tuesday, and yesterday it suggested a route that went past an ice cream shop with a detour note that said 'you deserve this'",
+    "their office chair slowly rotates to face the window throughout the day — they straighten it toward the desk every morning and by 3 PM it's turned ninety degrees, every single day, and the chair doesn't have a swivel lock problem because they checked",
+    "a specific pen keeps appearing in their house — they've thrown it away at least a dozen times, once in a dumpster three miles from home, and it's always back in the kitchen junk drawer within a week",
+    "their refrigerator hums a recognizable melody between 2 and 3 AM — it took them two weeks to place it but it's definitely the first few bars of 'Moon River' and their partner confirmed it independently without being told what to listen for",
+    "their car horn sounds different depending on who's in the passenger seat — deeper with their brother, higher with their wife, and completely silent when they're alone — the mechanic says it's impossible",
+    "bought a clock at an estate sale that runs backward — not broken backward, perfectly smooth counterclockwise backward — and it keeps perfect time if you read it in a mirror",
+    "their garage door opener works on their neighbor's garage too, but only on the third click — first click is theirs, second click does nothing, third click opens the neighbor's, and both remotes were bought separately from different stores",
+    "their vacuum cleaner has started avoiding a specific area rug — it goes right up to the edge, stops, backs up, and routes around it, and this rug has been in the same spot for three years with no issues until last month",
+    # --- animal stories ---
+    "a crow has been leaving them gifts on their porch railing — started with shiny buttons, progressed to coins, and last week it left a small gold earring that their wife lost in the yard two summers ago",
+    "their cat and the neighbor's cat sit on opposite sides of the fence at exactly the same time every afternoon, facing each other, completely still, for about twenty minutes — both owners have independently tried to figure out when it started and neither can",
+    "a wild turkey has claimed their truck as its territory — it sits on the hood every morning, attacks anyone who gets close, and has pecked a near-perfect circle into the paint on the driver's side door",
+    "their goldfish jumps out of the tank every time someone says a specific word — they've narrowed it down to 'Thursday' — they say Monday through Wednesday and the fish is fine, they say Thursday and it launches itself",
+    "a squirrel has been stashing acorns inside their truck engine — not unusual — except the acorns are arranged in neat rows of five and the squirrel only does it on days they have appointments, like it's trying to sabotage specific plans",
+    "their dog learned to open the fridge, which is a problem, but the bigger problem is that the dog only takes one specific brand of cheese and leaves everything else untouched, including other cheese",
+    "a frog has been living in their mailbox for three months — they relocate it, it comes back — and the mail carrier has started leaving the frog's 'mail' which is just a small leaf the carrier places in there each day",
+    "their parrot started speaking in a voice that isn't anyone in the household — full sentences in what sounds like a specific person with an accent nobody in the family has — and they bought the bird as a baby, it was never around anyone else",
+    "a raccoon broke into their garage and rearranged their tool wall — all the tools are still there but they're now organized by size instead of type, and the raccoon left muddy handprints that suggest it stood on the workbench to reach the top row",
+    "their cat brings them exactly one sock from the neighbor's laundry every day — always a left sock, always clean, always folded — and the neighbor is missing over thirty left socks and doesn't know it's the cat",
+    "a deer walks through their yard every morning at 7:15 and stops at the same spot to stare at their bedroom window — their partner thinks it's coincidence but the deer showed up on Christmas, on their birthday, and the morning after their surgery",
+    "their chicken laid an egg with what appears to be the number 7 naturally formed on the shell — they posted it online thinking it was funny and now three more chickens in the same coop are laying eggs with numbers, they're up to 7, 3, 14, and 1",
+    # --- absurdist everyday situations ---
+    "they've been getting someone else's DoorDash orders for two months — the other person clearly has excellent taste and they've been eating the food, but now they feel guilty because last week's order came with a birthday card",
+    "their coworker has been microwaving fish every day at noon for four years and they just found out the coworker doesn't eat fish — they watched them microwave it, stare at it, throw it away, and leave, and this happens every single day",
+    "got a fortune cookie that said 'check behind the dryer' and they found $340 in cash that they can't account for — they don't remember putting money there and they've lived in the apartment for six years",
+    "their HOA sent them a violation letter for a garden gnome — they don't own a garden gnome — but there's now a garden gnome in their yard that wasn't there before and nobody will claim it, and every time they remove it, a new one appears the next day in a slightly different pose",
+    "their kid's school picture came back and there's a kid in the background of the photo that no one at the school can identify — he's not a student, he's not a staff member's kid, and he appears in eleven different students' photos always in the background",
+    "accidentally left their car unlocked overnight and someone vacuumed the interior, left a pine air freshener, and folded a five-dollar bill into an origami crane on the dashboard — nothing was taken",
+    "their grocery store loyalty card shows purchases they never made — specifically, someone is buying forty pounds of bananas every week on their account and the store says the card was scanned in a city three states away",
+    "went to a restaurant they'd never been to and the waiter said 'the usual?' and brought out exactly what they would have ordered — they'd never met this waiter and the restaurant has no record of them ever visiting",
+    "their Uber rating dropped to 4.2 and all the bad reviews describe rides they never took to places they've never been — same name, same profile photo, but they haven't used Uber in eight months",
+    "they keep finding sticky notes in their own handwriting around the house with messages they don't remember writing — the latest one on the bathroom mirror says 'don't trust the yogurt' and they have no idea what it means but they haven't eaten yogurt since",
+    "showed up to a party at a friend's house and everyone was wearing the exact same shirt — not a themed party, not a prank, seven people independently chose to wear the same gray henley from the same brand and nobody can explain it",
+    "their library holds keep getting canceled by someone using their card — they changed their PIN three times and the librarian says the cancellations are coming from a library terminal in a branch that closed in 2019",
+    "bought a used couch and found a note wedged in the cushions that says 'you'll understand in April' — it's March and they're terrified",
+    "their printer prints a blank page at exactly 5 PM every day — they've unplugged it, it doesn't print — they plug it back in and the next day at 5 PM it prints a blank page, and once it wasn't entirely blank, there was a tiny dot in the lower right corner",
+    # --- inexplicable coincidences ---
+    "they and a stranger in another state posted the same photo to Instagram at the same time — not similar, the exact same composition of the exact same sunset from what appears to be the exact same angle, and they've never been to that state",
+    "their birthday, their spouse's birthday, their kid's birthday, and their dog's adoption day all have the same digits rearranged — 03/17, 07/13, 01/37 doesn't work but 01/73 does, and the dog's is 07/31 — and they only noticed because their kid pointed it out",
+    "every time they think about calling their sister, she calls them within three minutes — they tested it by thinking about calling at random times for two weeks and she called within three minutes every single time, and when they asked her why she called she always says 'I don't know, just felt like it'",
+    "bought a lottery ticket with random numbers and the numbers match their childhood phone number, their high school locker combination, and the last four digits of their social — they didn't win, but the coincidence keeps them up at night",
+    "they were telling a friend a story about a man in a red hat and a man in a red hat sat down next to them — they continued the story saying the man ordered coffee and the real man ordered coffee — they stopped talking because it was getting too weird",
+    "their daughter drew a picture of a house with a blue door and a yellow tree, and the next day on a road trip they drove past that exact house — blue door, yellow tree, same number of windows, same mailbox — in a town they'd never been to",
+    "they and their neighbor both bought the same car, same color, same year, on the same day, from different dealerships in different cities — neither knew the other was car shopping",
+    "got a wrong-number text that was someone giving exact directions to their house — not their address, actual turn-by-turn directions like 'pass the big oak tree, turn at the mailbox with the dent' — and the sender doesn't know who they are or why they sent it",
+    # --- hyper-specific shareable premises ---
+    "their kid asked Alexa what time it is every day for a year and one day Alexa responded 'time for you to stop asking' in a tone that wasn't Alexa's normal voice — they have it recorded and played it for Amazon support who said 'that shouldn't be possible'",
+    "they work at a hotel and room 216 keeps requesting extra towels through the phone system — room 216 has been out of service for renovation for three months and the phone line is disconnected, but the front desk gets the call every Tuesday night",
+    "their kid's imaginary friend has the same name as the previous owner of the house who died in 1994 — they never told the kid about the previous owner and the kid describes the friend as 'a nice old man who doesn't like the new paint'",
+    "they discovered that every house they've lived in was built the same year — four houses, four different cities, all built in 1971 — they never checked build dates before buying and only found out when they needed it for insurance",
+    "their truck plays a specific song every time they start it on their anniversary — not from a playlist, the radio lands on the station at the exact moment their wedding song starts, and it's happened four years in a row on different stations",
+    "they were at a thrift store and found their own childhood lunchbox — their name is carved into the bottom in their mother's handwriting, the same sticker they put on it is still there, and they donated it to Goodwill in 1996 in a different state",
+    "got pulled over for a broken taillight and the cop's nametag was the exact same first and last name as them — same spelling, same everything — and the cop said 'this happens more than you'd think' and drove away without giving a ticket",
+    "their pizza delivery driver has the same birthday, same first name, and went to the same college as them — different graduating years but the same dorm room, and they only found out because the driver recognized the address from a photo in the dorm's hallway",
+    "they found a message in a bottle while fishing that was written by them — they recognize their handwriting and the paper but have zero memory of writing it or putting it in a bottle, and it's dated three years in the future",
+    "their phone autocorrects a specific friend's name to 'danger' — only this one friend, every time, on two different phones — and last month that friend was arrested for something the caller doesn't want to say on air",
+    "they walked into a barbershop they'd never been to and there was already a photo of them on the wall in a collage of 'our customers' — they asked the barber who said they've been coming in for years, which they have not",
+    "their high school yearbook has a quote attributed to them that they never said — 'the bridge is closer than you think' — and twenty years later they moved to a house that is, in fact, unusually close to a bridge",
+    # --- mundane-but-unsettling ---
+    "someone has been adding a single grape to their lunch in the work fridge — they don't pack grapes, their coworkers deny it, and it's been happening every day for two months — always one grape, always green, always placed on top of whatever they brought",
+    "their mailbox flag goes up by itself every night — there's never mail in it, no one is seen doing it on camera, and the mail carrier confirmed they don't touch the flag because there's never outgoing mail",
+    "every pair of shoes they own has developed a slight squeak in the left shoe only — different brands, different ages, different materials — all squeaking on the left and none on the right, and a cobbler said there's nothing mechanically wrong with any of them",
+    "their car's trip odometer resets itself to 0.0 every time they park at the grocery store — only at the grocery store, nowhere else — and it's been doing it for five months since they had the oil changed",
+    "they get a call from their own phone number once a month — when they answer there's four seconds of what sounds like wind, then it hangs up — their carrier says the call doesn't appear in their records",
+    "their wedding ring turns their finger green every time their in-laws visit — only during the visit, never any other time — and the jeweler confirmed it's real gold and shouldn't react to anything",
+    "found that their digital photo frames cycle through photos normally until exactly midnight when they all display the same photo — a landscape of somewhere they've never been — then return to normal by morning",
+    "their dryer lint has been coming out in perfect geometric shapes — circles for a week, then triangles, now hexagons — and they've cleaned the whole system thinking it was a filter issue but the shapes keep coming",
+    # --- workplace weird ---
+    "the office microwave adds exactly nine seconds to whatever time you enter — you put in 30 seconds, it runs for 39 — multiple people have timed it, the display shows the entered time, but it runs nine seconds longer every single time",
+    "their coworker has a desk plant that leans toward whoever is about to get laid off — it's been right four times in a row and now everyone watches which direction it's pointing when they come in Monday morning",
+    "someone in their office has been leaving a single Cheerio on their keyboard every morning for three weeks — their desk is in a locked office and the cleaning crew doesn't come until evening",
+    "their work badge opens a door on the fourth floor that they don't have access to — only on Fridays, only after 5 PM — and the room behind it is an empty conference room with a whiteboard that always has a different inspirational quote when they check",
+    "the office elevator skips the third floor for them specifically — other people can get to it fine, but when they press 3 it goes to 4, and facilities says the third floor button 'works fine' while watching it skip for them in real time",
+    # --- food & kitchen weird ---
+    "they opened a box of cereal and found a handwritten note that says 'good choice' — the box was factory sealed and the note is on a piece of cardstock that matches no promotional insert the company has ever done",
+    "every banana they buy from the same grocery store has a small bruise in the exact same spot — same size, same location on the peel — and they've tried different bunches, different days, even had a friend buy them, always the same bruise",
+    "their slow cooker produces a meal that tastes different depending on what room it's in — they've tested it with the same recipe in the kitchen, living room, and garage, and three people independently confirmed the garage version tastes better",
+    "they found a perfectly peeled hard-boiled egg in their coat pocket — they haven't hard-boiled eggs in months, the coat was hanging in the closet, and the egg was still warm",
+    "their ice cube trays produce ice that melts in one specific glass faster than every other glass they own — same water, same temperature, same room — one glass gets liquid in ten minutes while the others take forty",
+    # --- more absurdist everyday ---
+    "their garage sale price stickers keep appearing on items in their house that aren't for sale — the TV says $15, the couch says $40, their wedding photo says $0.50 — they live alone and don't own a price sticker gun",
+    "someone has been correcting the grammar on their grocery lists — they write 'less eggs' and come back to find it crossed out and replaced with 'fewer eggs' in red pen, and this has been happening since they moved in",
+    "their smart home speaker wishes them good night in a voice that isn't the default — it's warmer, slightly southern, and once it added 'sleep tight, sweetheart' which is not a standard response and Alexa support has no explanation",
+    "they ordered a replacement part for their dishwasher and the package contained the part plus a Polaroid of the inside of their kitchen taken from an angle that would be inside the dishwasher looking out",
 ]
 
 LOCATIONS_LOCAL = [
@@ -4723,7 +4828,7 @@ def _generate_pool_weights() -> dict[str, float]:
         "ADVICE": (0.15, 0.28),
         "TOPIC_CALLIN": (0.08, 0.18),
         "CELEBRATIONS": (0.05, 0.12),
-        "WEIRD": (0.05, 0.10),
+        "WEIRD": (0.14, 0.25),
     }
     raw = {p: random.uniform(*r) for p, r in pool_ranges.items()}
     total = sum(raw.values())
@@ -5229,6 +5334,7 @@ Output ONLY valid JSON, no markdown fences."""
             messages=[{"role": "user", "content": prompt}],
             max_tokens=300,
             response_format={"type": "json_object"},
+            category="background_gen",
         )
         result = result.strip()
         parsed = json.loads(result)
@@ -5652,7 +5758,8 @@ async def enrich_caller_background(background: str) -> str:
                         raw_info += f"\nSnippet: {article.content[:200]}"
                     summary = await llm_service.generate(
                         messages=[{"role": "user", "content": raw_info}],
-                        system_prompt="Summarize this article in one casual sentence, as if someone is describing what they read. Start with 'Recently read about' or 'Saw an article about'. Keep it under 20 words. No quotes."
+                        system_prompt="Summarize this article in one casual sentence, as if someone is describing what they read. Start with 'Recently read about' or 'Saw an article about'. Keep it under 20 words. No quotes.",
+                        category="news_summary",
                     )
                     summary = summary.strip().rstrip('.')
                     if summary and len(summary) < 150:
@@ -5692,7 +5799,8 @@ async def enrich_caller_background(background: str) -> str:
                         raw_info += f"\nSnippet: {article.content[:200]}"
                     summary = await llm_service.generate(
                         messages=[{"role": "user", "content": raw_info}],
-                        system_prompt="Summarize this local news in one casual sentence, as if someone from this town is describing what's going on. Start with 'Been hearing about' or 'Saw that'. Keep it under 20 words. No quotes."
+                        system_prompt="Summarize this local news in one casual sentence, as if someone from this town is describing what's going on. Start with 'Been hearing about' or 'Saw that'. Keep it under 20 words. No quotes.",
+                        category="news_summary",
                     )
                     summary = summary.strip().rstrip('.')
                     if summary and len(summary) < 150:
@@ -6331,6 +6439,7 @@ class Session:
         self.intern_monitoring = True
         intern_service.stop_monitoring()
         intern_service.dismiss_suggestion()
+        cost_tracker.reset()
         _randomize_callers()
         self.id = str(uuid.uuid4())[:8]
         names = [CALLER_BASES[k]["name"] for k in sorted(CALLER_BASES.keys())]
@@ -6475,6 +6584,7 @@ def _save_checkpoint():
             "caller_queue": session.caller_queue,
             "relationship_context": session.relationship_context,
             "intern_monitoring": session.intern_monitoring,
+            "costs": cost_tracker.get_live_summary(),
             "saved_at": time.time(),
         }
         with open(CHECKPOINT_FILE, "w") as f:
@@ -6646,55 +6756,81 @@ def _build_news_context() -> tuple[str, str]:
 
 
 async def _sync_signalwire_voicemails():
-    """Pull any recordings from SignalWire that aren't already tracked locally"""
+    """Pull any recordings from SignalWire that aren't already tracked locally.
+    Checks both the top-level Recordings endpoint AND per-call recordings
+    (Record verb recordings don't always appear in the top-level list)."""
     if not settings.signalwire_project_id or not settings.signalwire_token:
         return
     try:
-        url = f"https://{settings.signalwire_space}/api/laml/2010-04-01/Accounts/{settings.signalwire_project_id}/Recordings.json"
+        from datetime import datetime as _dt
         auth = (settings.signalwire_project_id, settings.signalwire_token)
+        base = f"https://{settings.signalwire_space}/api/laml/2010-04-01/Accounts/{settings.signalwire_project_id}"
         existing_timestamps = {int(v.timestamp) for v in _voicemails} | _deleted_vm_timestamps
 
+        all_recordings = []
+
         async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-            resp = await client.get(url, auth=auth)
+            # 1. Top-level recordings
+            resp = await client.get(f"{base}/Recordings.json", auth=auth)
             resp.raise_for_status()
-            recordings = resp.json().get("recordings", [])
+            for rec in resp.json().get("recordings", []):
+                rec["_source"] = "top-level"
+                all_recordings.append(rec)
+
+            # 2. Check recent calls for per-call recordings (last 20 calls)
+            calls_resp = await client.get(f"{base}/Calls.json?PageSize=20", auth=auth)
+            if calls_resp.status_code == 200:
+                for call in calls_resp.json().get("calls", []):
+                    call_sid = call.get("sid", "")
+                    call_from = call.get("from", "Unknown")
+                    rec_resp = await client.get(f"{base}/Calls/{call_sid}/Recordings", auth=auth)
+                    if rec_resp.status_code == 200:
+                        for rec in rec_resp.json().get("recordings", []):
+                            rec["_caller_phone"] = call_from
+                            rec["_source"] = "per-call"
+                            all_recordings.append(rec)
+
+        # Deduplicate by recording SID
+        seen_sids = set()
+        unique_recordings = []
+        for rec in all_recordings:
+            sid = rec.get("sid", "")
+            if sid not in seen_sids:
+                seen_sids.add(sid)
+                unique_recordings.append(rec)
 
         synced = 0
-        for rec in recordings:
+        for rec in unique_recordings:
             call_sid = rec.get("call_sid", "")
             duration = int(rec.get("duration", 0))
             date_created = rec.get("date_created", "")
-            recording_sid = rec.get("sid", "")
 
             if duration < 2:
                 continue
 
-            # Parse timestamp from SignalWire's date format
-            from datetime import datetime
             try:
-                ts = int(datetime.strptime(date_created, "%a, %d %b %Y %H:%M:%S %z").timestamp())
+                ts = int(_dt.strptime(date_created, "%a, %d %b %Y %H:%M:%S %z").timestamp())
             except (ValueError, TypeError):
                 ts = int(time.time())
 
             if ts in existing_timestamps:
                 continue
 
-            # Get caller phone from the call details
-            caller_phone = "Unknown"
-            try:
-                call_url = f"https://{settings.signalwire_space}/api/laml/2010-04-01/Accounts/{settings.signalwire_project_id}/Calls/{call_sid}.json"
-                async with httpx.AsyncClient(timeout=15.0) as client:
-                    call_resp = await client.get(call_url, auth=auth)
-                    if call_resp.status_code == 200:
-                        caller_phone = call_resp.json().get("from", "Unknown")
-            except Exception:
-                pass
+            # Get caller phone — may already be embedded from per-call lookup
+            caller_phone = rec.get("_caller_phone", "Unknown")
+            if caller_phone == "Unknown" and call_sid:
+                try:
+                    async with httpx.AsyncClient(timeout=15.0) as client:
+                        call_resp = await client.get(f"{base}/Calls/{call_sid}.json", auth=auth)
+                        if call_resp.status_code == 200:
+                            caller_phone = call_resp.json().get("from", "Unknown")
+                except Exception:
+                    pass
 
-            # Download the recording
-            rec_url = f"https://{settings.signalwire_space}{rec.get('uri', '').replace('.json', '.wav')}"
+            rec_uri = rec.get("uri", "").replace(".json", ".wav")
+            rec_url = f"https://{settings.signalwire_space}{rec_uri}"
             await _download_voicemail(rec_url, caller_phone, duration)
 
-            # Fix the timestamp to match the original recording time
             if _voicemails and _voicemails[-1].phone == caller_phone:
                 _voicemails[-1].timestamp = ts
                 _save_voicemails()
@@ -6704,6 +6840,8 @@ async def _sync_signalwire_voicemails():
 
         if synced:
             print(f"[Voicemail] Synced {synced} recording(s) from SignalWire")
+        else:
+            print(f"[Voicemail] No new recordings found ({len(unique_recordings)} total checked)")
     except Exception as e:
         print(f"[Voicemail] SignalWire sync failed: {e}")
 
@@ -7587,6 +7725,7 @@ async def start_call(caller_key: str):
         intern_service.start_monitoring(
             get_conversation=lambda: session.conversation,
             on_suggestion=_on_intern_suggestion,
+            get_caller_active=lambda: session.caller is not None,
         )
 
     return {
@@ -7677,6 +7816,8 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
             summary = await llm_service.generate(
                 messages=[{"role": "user", "content": f"Summarize this radio show call in 1-2 sentences:\n{transcript_text}"}],
                 system_prompt="You summarize radio show conversations concisely. Focus on what the caller talked about and any emotional moments.",
+                category="call_summary",
+                caller_name=caller_name,
             )
         except Exception as e:
             print(f"[AI Summary] Failed to generate summary: {e}")
@@ -8200,6 +8341,7 @@ async def chat(request: ChatRequest):
         result = await intern_service.ask(
             question=stripped,
             conversation_context=session.conversation,
+            caller_active=True,
         )
         devon_text = result.get("text", "")
         if devon_text:
@@ -8243,7 +8385,9 @@ async def chat(request: ChatRequest):
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
+            category="caller_dialog",
+            caller_name=session.caller.get("name", "") if session.caller else "",
         )
 
     # Discard if call changed while we were generating
@@ -8611,6 +8755,20 @@ async def update_settings(data: dict):
     return llm_service.get_settings()
 
 
+# --- Cost Tracking Endpoints ---
+
+@app.get("/api/costs")
+async def get_costs():
+    """Get live cost summary"""
+    return cost_tracker.get_live_summary()
+
+
+@app.get("/api/costs/report")
+async def get_cost_report():
+    """Get full cost report with breakdowns and recommendations"""
+    return cost_tracker.generate_report()
+
+
 # --- Caller Screening ---
 
 SCREENING_PROMPT = """You are a friendly, brief phone screener for "Luke at the Roost" radio show.
@@ -8681,7 +8839,8 @@ async def _handle_screening_audio(caller_id: str, pcm_data: bytes, sample_rate: 
     try:
         response = await llm_service.generate(
             messages=messages,
-            system_prompt=SCREENING_PROMPT
+            system_prompt=SCREENING_PROMPT,
+            category="screener",
         )
     except Exception as e:
         print(f"[Screening] LLM failed: {e}")
@@ -8704,7 +8863,8 @@ Conversation:
 Respond with ONLY JSON: {{"name": "their first name or null", "topic": "brief topic or null"}}"""
             extract = await llm_service.generate(
                 messages=[{"role": "user", "content": extract_prompt}],
-                system_prompt="You extract structured data from conversations. Respond with only valid JSON."
+                system_prompt="You extract structured data from conversations. Respond with only valid JSON.",
+                category="screener",
             )
             json_match = re.search(r'\{[^}]+\}', extract)
             if json_match:
@@ -9081,7 +9241,9 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
+            category="caller_dialog",
+            caller_name=session.caller.get("name", "") if session.caller else "",
         )
 
     # Discard if call changed during generation
@@ -9180,7 +9342,9 @@ async def ai_respond():
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
+            category="caller_dialog",
+            caller_name=session.caller.get("name", "") if session.caller else "",
         )
 
     if _session_epoch != epoch:
@@ -9300,6 +9464,8 @@ async def _summarize_real_call(caller_phone: str, conversation: list, started_at
         summary = await llm_service.generate(
             messages=[{"role": "user", "content": f"Summarize this radio show call in 1-2 sentences:\n{transcript_text}"}],
             system_prompt="You summarize radio show conversations concisely. Focus on what the caller talked about and any emotional moments.",
+            category="call_summary",
+            caller_name=caller_phone,
         )
 
     quality_signals = _assess_call_quality(conversation)
@@ -9334,6 +9500,7 @@ async def _auto_followup(last_call_summary: str):
     pick = await llm_service.generate(
         messages=[{"role": "user", "content": f'A caller just talked about: "{last_call_summary}". Which AI caller should follow up? Available: {caller_list}. Reply with just the key number.'}],
         system_prompt="Pick the most interesting AI caller to follow up on this topic. Just reply with the number key.",
+        category="followup_pick",
     )
 
     # Extract key from response
@@ -9390,6 +9557,7 @@ async def intern_ask(data: dict):
     result = await intern_service.ask(
         question=question,
         conversation_context=session.conversation if session.conversation else None,
+        caller_active=session.caller is not None,
     )
 
     text = result.get("text", "")
@@ -9416,7 +9584,7 @@ async def intern_interject():
     if not session.conversation:
         raise HTTPException(400, "No active conversation")
 
-    result = await intern_service.interject(session.conversation)
+    result = await intern_service.interject(session.conversation, caller_active=session.caller is not None)
     if not result:
         return {"text": None}
 
@@ -9687,6 +9855,19 @@ async def toggle_stem_recording():
     paths = audio_service.stem_recorder.stop()
     audio_service.stem_recorder = None
     add_log(f"Stem recording stopped. Running post-production...")
+
+    # Save cost report for this session
+    session_id = stems_dir.name
+    cost_report_path = Path("data/cost_reports") / f"session-{session_id}.json"
+    cost_tracker.save(cost_report_path)
+    summary = cost_tracker.get_live_summary()
+    add_log(f"Session costs: ${summary['total_cost_usd']:.4f} "
+            f"(LLM: ${summary['llm_cost_usd']:.4f}, TTS: ${summary['tts_cost_usd']:.4f}, "
+            f"{summary['total_llm_calls']} calls, {summary['total_tokens']} tokens)")
+    by_cat = summary.get("by_category", {})
+    if by_cat:
+        breakdown = ", ".join(f"{k}: ${v['cost']:.4f}/{v['calls']}calls" for k, v in sorted(by_cat.items(), key=lambda x: x[1]["cost"], reverse=True))
+        add_log(f"Cost breakdown: {breakdown}")
 
     if _show_on_air:
         _show_on_air = False

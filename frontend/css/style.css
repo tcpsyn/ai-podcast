@@ -82,6 +82,11 @@ header {
     color: var(--accent-green);
 }
 
+.clock-cost { font-weight: 700; }
+.cost-low { color: var(--accent-green); }
+.cost-mid { color: #e8a91d; }
+.cost-high { color: var(--accent-red); }
+
 header h1 {
     font-size: 1.5rem;
     font-weight: 700;

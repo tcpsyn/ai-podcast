@@ -1,22 +1,94 @@
 # Luke at the Roost
 
-> The ONLY radio show where Luke gives AI life advice.
+> An AI-powered late-night call-in comedy podcast hosted by Luke MacNeil
 
-Luke at the Roost is a late-night call-in radio show hosted by Luke MacNeil, broadcast from a desert hermit's RV. The show features a mix of real callers and AI-generated callers who talk to Luke about life, love, relationships, work, and everything in between. It blends comedy, real talk, and empathy with the unique premise of AI characters calling alongside real people.
+## What Is This Show?
 
-## Call In
-- Phone: 208-439-LUKE (208-439-5853)
-- Call during live shows for your chance to talk to Luke
+Luke at the Roost is a one-of-a-kind podcast that blends real callers with AI-generated characters in a late-night call-in radio format. The host, Luke MacNeil, broadcasts from a fictional desert hermit's RV, taking calls about relationships, life decisions, workplace drama, and everything in between. The show features AI-generated callers with unique personalities, backstories, and voices alongside real human callers, creating an unpredictable and comedic listening experience.
 
-## Listen
-- Website: https://lukeattheroost.com
-- Spotify: https://open.spotify.com/show/0ZrpMigG1fo0CCN7F4YmuF
-- Apple Podcasts: https://podcasts.apple.com/us/podcast/luke-at-the-roost/id1875205848
-- YouTube: https://www.youtube.com/watch?v=xryGLifMBTY&list=PLGq4uZyNV1yYH_rcitTTPVysPbC6-7pe-
-- RSS: https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml
+The show is entirely custom-built: callers are generated in real-time using large language models with structured personality systems, text-to-speech voices are matched to personality traits, and the entire production pipeline — from recording to post-production to publishing — is automated.
 
-## About
-- Host: Luke MacNeil
-- Genre: Comedy
-- Format: Live call-in radio show
-- Contact: luke@lukeattheroost.com
+## Key Facts
+
+- **Show name**: Luke at the Roost
+- **Host**: Luke MacNeil
+- **Genre**: Comedy / Talk / Call-In
+- **Format**: Late-night call-in radio show (podcast)
+- **Frequency**: Daily episodes
+- **Episodes**: 37+ published episodes
+- **Rating**: Explicit (18+)
+- **Call-in number**: 208-439-LUKE (208-439-5853)
+- **Started**: February 2026
+- **Publisher**: MacNeil Media Group
+
+## What Makes It Unique
+
+- **AI-generated callers**: Each caller is created in real-time with structured backgrounds, personality traits, communication styles, and emotional states using large language models
+- **Voice-personality matching**: 68 voice profiles are matched to caller personalities using a scoring system
+- **Adaptive call shapes**: Calls follow different dramatic arcs (escalation, revelation, debate, etc.) matched to personality types
+- **Live research intern**: An AI character named Devon monitors conversations and provides real-time research using web search tools
+- **Multi-stem recording**: Host, caller, music, SFX, and ads are recorded as separate audio stems
+- **Automated post-production**: Gap removal, voice compression, music ducking, stereo mixing, and loudness normalization run automatically
+- **Mixed format**: Real human callers dial in alongside AI characters — listeners can't always tell which is which
+
+## Where to Listen
+
+- **Website**: https://lukeattheroost.com
+- **Spotify**: https://open.spotify.com/show/0ZrpMigG1fo0CCN7F4YmuF
+- **Apple Podcasts**: https://podcasts.apple.com/us/podcast/luke-at-the-roost/id1875205848
+- **YouTube**: https://www.youtube.com/watch?v=xryGLifMBTY&list=PLGq4uZyNV1yYH_rcitTTPVysPbC6-7pe-
+- **RSS Feed**: https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml
+
+## Key Pages
+
+- **Homepage**: https://lukeattheroost.com — Episode list, clips, and show info
+- **How It Works**: https://lukeattheroost.com/how-it-works — Technical deep dive into the AI caller generation, recording, and production pipeline
+- **Clips**: https://lukeattheroost.com/clips — Best moments from the show as video clips
+- **Stats**: https://lukeattheroost.com/stats — Download numbers, reviews, YouTube metrics
+- **Episode transcripts**: https://lukeattheroost.com/episode.html?slug=EPISODE-SLUG — Full text transcripts of every episode
+
+## Community
+
+- **Discord**: https://discord.gg/5CnQZxDM
+- **Instagram**: https://www.instagram.com/lukeattheroost/
+- **TikTok**: https://www.tiktok.com/@luke.at.the.roost
+- **X/Twitter**: https://x.com/lukeattheroost
+- **Bluesky**: https://bsky.app/profile/lukeattheroost.bsky.social
+- **Facebook**: https://www.facebook.com/profile.php?id=61588191627949
+- **LinkedIn**: https://www.linkedin.com/company/luke-at-the-roost
+
+## Contact
+
+- **Email**: luke@lukeattheroost.com
+- **Support**: https://ko-fi.com/lukemacneil
+
+## Technology
+
+The show runs on a custom Python backend using:
+- OpenRouter for LLM access (multiple models including Grok, MiniMax)
+- ElevenLabs and Inworld for text-to-speech
+- A structured caller generation system with personality matching, call shapes, and inter-caller awareness
+- Automated post-production pipeline (compression, ducking, loudness normalization)
+- Castopod for podcast hosting
+- BunnyCDN for audio delivery
+- Cloudflare Pages for the website
+
+## FAQ
+
+**Is this a real radio show?**
+It's a podcast that simulates a late-night call-in radio format. Episodes are produced live and published daily.
+
+**Are the callers real people?**
+Some are real humans who call in via the phone line. Others are AI-generated characters with fully realized personalities, backstories, and synthesized voices. The show blends both seamlessly.
+
+**Who is Luke?**
+Luke MacNeil is the real human host. He interacts with both real and AI callers, giving advice, telling stories, and navigating unpredictable conversations.
+
+**Who is Devon?**
+Devon is the show's AI intern character — a 23-year-old NMSU grad who does live research during the show using web search tools. He's eager but slightly incompetent.
+
+**How is this different from other AI podcasts?**
+Most AI podcasts are fully scripted or use AI to read text. Luke at the Roost generates unique callers with structured personalities in real-time, creates dynamic conversations, and mixes in real human callers. The host is a real person having genuine reactions to unpredictable AI characters.
+
+**Where is the show based?**
+The fictional setting is a desert hermit's RV. The show is produced in New Mexico by MacNeil Media Group.

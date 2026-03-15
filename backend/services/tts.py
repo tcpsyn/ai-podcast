@@ -8,6 +8,7 @@ import tempfile
 import torch
 
 from ..config import settings
+from .cost_tracker import cost_tracker
 
 # Patch torch.load for compatibility with PyTorch 2.6+
 _original_torch_load = torch.load
@@ -845,6 +846,7 @@ async def generate_speech(
             for attempt in range(TTS_MAX_RETRIES):
                 try:
                     audio, sample_rate = await gen_fn(text, voice_id)
+                    cost_tracker.record_tts_call(provider, voice_id, len(text))
                     if attempt > 0:
                         print(f"[TTS] Succeeded on retry {attempt}")
                     break

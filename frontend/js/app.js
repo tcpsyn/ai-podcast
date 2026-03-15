@@ -221,12 +221,15 @@ function initEventListeners() {
     // Start queue polling
     startQueuePolling();
 
+    // Start cost polling
+    startCostPolling();
+
     // Talk button - now triggers server-side recording
     const talkBtn = document.getElementById('talk-btn');
     if (talkBtn) {
         talkBtn.addEventListener('mousedown', startRecording);
-        talkBtn.addEventListener('mouseup', stopRecording);
-        talkBtn.addEventListener('mouseleave', () => { if (isRecording) stopRecording(); });
+        // Listen on document for mouseup so layout shifts don't orphan the release
+        document.addEventListener('mouseup', () => { if (isRecording) stopRecording(); });
         talkBtn.addEventListener('touchstart', e => { e.preventDefault(); startRecording(); });
         talkBtn.addEventListener('touchend', e => { e.preventDefault(); stopRecording(); });
     }
@@ -838,7 +841,7 @@ async function stopRecording() {
 async function sendTypedMessage() {
     const input = document.getElementById('type-input');
     const text = input.value.trim();
-    if (!text || !currentCaller || isProcessing) return;
+    if (!text || isProcessing) return;
 
     input.value = '';
     document.getElementById('type-modal').classList.add('hidden');
@@ -847,31 +850,37 @@ async function sendTypedMessage() {
     addMessage('You', text);
 
     try {
-        showStatus(`${currentCaller.name} is thinking...`);
+        if (!currentCaller) {
+            // No active call — route to Devon
+            showStatus('Devon is thinking...');
+            await askDevon(text, { skipHostMessage: true });
+        } else {
+            showStatus(`${currentCaller.name} is thinking...`);
 
-        const chatData = await safeFetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
-        });
-
-        if (chatData.routed_to !== 'devon') {
-            addMessage(chatData.caller, chatData.text);
-        }
-
-        // TTS (plays on server) - only if we have text and not routed to Devon
-        if (chatData.text && chatData.text.trim() && chatData.routed_to !== 'devon') {
-            showStatus(`${currentCaller.name} is speaking...`);
-
-            await safeFetch('/api/tts', {
+            const chatData = await safeFetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: chatData.text,
-                    voice_id: chatData.voice_id,
-                    phone_filter: phoneFilter
-                })
+                body: JSON.stringify({ text })
             });
+
+            if (chatData.routed_to !== 'devon') {
+                addMessage(chatData.caller, chatData.text);
+            }
+
+            // TTS (plays on server) - only if we have text and not routed to Devon
+            if (chatData.text && chatData.text.trim() && chatData.routed_to !== 'devon') {
+                showStatus(`${currentCaller.name} is speaking...`);
+
+                await safeFetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: chatData.text,
+                        voice_id: chatData.voice_id,
+                        phone_filter: phoneFilter
+                    })
+                });
+            }
         }
 
     } catch (err) {
@@ -1573,6 +1582,28 @@ async function triggerAiRespond() {
     }
 
     if (btn) { btn.disabled = false; btn.textContent = 'Let them respond'; }
+}
+
+
+// --- Cost Polling ---
+
+function startCostPolling() {
+    setInterval(fetchCosts, 5000);
+}
+
+async function fetchCosts() {
+    try {
+        const res = await fetch('/api/costs');
+        if (!res.ok) return;
+        const data = await res.json();
+        const el = document.getElementById('clock-cost');
+        if (!el) return;
+        el.textContent = '$' + data.total_cost_usd.toFixed(2);
+        el.classList.remove('cost-low', 'cost-mid', 'cost-high');
+        if (data.total_cost_usd < 0.50) el.classList.add('cost-low');
+        else if (data.total_cost_usd < 2.00) el.classList.add('cost-mid');
+        else el.classList.add('cost-high');
+    } catch (err) {}
 }
 
 

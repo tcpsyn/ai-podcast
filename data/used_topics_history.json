@@ -1,0 +1,964 @@
+{
+  "used": [
+    {
+      "reason": "read about the Donner Party and the actual survival decisions they faced \u2014 the story is more nuanced and horrifying than the simplified version most people know",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773478613.3288589,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "their friend confessed they're the one who anonymously reported the caller's other friend to CPS two years ago \u2014 the report was unfounded and nearly destroyed a family",
+      "pool": "ADVICE",
+      "timestamp": 1773478613.357416,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "found a light pollution map and drove two hours to a Bortle 2 zone and the sky looked fake \u2014 they could see the zodiacal light for the first time",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773478613.363403,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "their HOA says they have to get rid of their chickens and they're ready to go to war over it",
+      "pool": "PROBLEMS",
+      "timestamp": 1773478613.364265,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "called their teacher 'mom' in high school and somehow that became their nickname for the rest of the year \u2014 they graduated with it in the yearbook",
+      "pool": "STORIES",
+      "timestamp": 1773478613.365602,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "woke up to find someone had mowed a giant smiley face into their front lawn \u2014 nobody on the street will admit to it and the mowing is professional-grade",
+      "pool": "STORIES",
+      "timestamp": 1773478613.36756,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "found out their kid's soccer coach used to be in a punk band that opened for Green Day \u2014 there's a music video on YouTube with 2 million views",
+      "pool": "GOSSIP",
+      "timestamp": 1773478613.3718028,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "a stranger accidentally Venmo'd them $500 and the transaction can't be reversed because the account was closed \u2014 they could just keep it but they know it was a mistake",
+      "pool": "ADVICE",
+      "timestamp": 1773478613.374868,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "their parent keeps calling them their sibling's name \u2014 the sibling died two years ago and every time it happens it breaks the caller's heart",
+      "pool": "ADVICE",
+      "timestamp": 1773478613.378238,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "their grandmother's will specified that whoever takes care of her 23-year-old parrot inherits the house \u2014 the parrot is mean and bites everyone but they need the house",
+      "pool": "STORIES",
+      "timestamp": 1773478616.933123,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "a woman knocked on their door asking for someone by a name they've never heard \u2014 when they said wrong house, she said 'not yet' and walked away",
+      "pool": "WEIRD",
+      "timestamp": 1773478620.37826,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "made a casserole so bad even the dog wouldn't eat it \u2014 their kid said 'I'd rather have detention lunch' and their spouse quietly ordered pizza",
+      "pool": "STORIES",
+      "timestamp": 1773478620.547498,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "found their teenager's finsta (fake Instagram) and it has more followers than their real account \u2014 the content is actually really good and thoughtful and they don't know whether to be proud or concerned",
+      "pool": "GOSSIP",
+      "timestamp": 1773478620.695659,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "their spouse found a burner phone with hundreds of explicit texts to multiple people \u2014 none of them were physical affairs, all sexting, and they genuinely don't understand why their spouse is acting like it's the same thing",
+      "pool": "PROBLEMS",
+      "timestamp": 1773478620.788206,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "is convinced that jaywalking laws are absurd and pedestrians should have the right of way everywhere",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773478621.213448,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "accidentally RSVP'd to the wrong funeral \u2014 realized halfway through the service but couldn't leave because they were sitting in the front row",
+      "pool": "STORIES",
+      "timestamp": 1773478621.4047601,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "is convinced that the Olympics should go back to amateurs only because professional athletes ruined it",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773478621.413064,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "is convinced that nobody actually enjoys networking events and everyone is pretending",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773478622.352447,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "their parrot learned to mimic their phone's alarm sound and now they can't tell what's real \u2014 they've been late to work three times this month",
+      "pool": "PROBLEMS",
+      "timestamp": 1773478622.69716,
+      "session_id": "4b57c1cf"
+    },
+    {
+      "reason": "their therapist accidentally revealed something another client said \u2014 not by name but the details were so specific the caller knows exactly who it is, and it's someone they know",
+      "pool": "ADVICE",
+      "timestamp": 1773482160.322499,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "wants to talk about code-switching \u2014 how people unconsciously change how they talk depending on who they're with \u2014 and what that says about identity",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482160.352229,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "believes potlucks at work should be illegal because half the people can't cook and nobody wants to say it",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482160.353246,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "thinks the snooze button is humanity's greatest invention and anyone who gets up on the first alarm is a psychopath",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482160.353927,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "thinks Silo is the most underrated show on TV right now",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482160.3549309,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "is convinced that most meetings could be an email and most emails could be nothing",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482160.3554702,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "their neighbor who runs a 'home daycare' is actually just letting kids watch iPads in the garage for eight hours \u2014 a parent showed up early and saw",
+      "pool": "GOSSIP",
+      "timestamp": 1773482160.3566458,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "their mechanic accidentally told them their car is worth three times what they paid \u2014 they could flip it but the seller was a family friend who didn't know the value",
+      "pool": "ADVICE",
+      "timestamp": 1773482160.3593001,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "their town's beloved mailman has been reading postcards and everyone knows but nobody says anything because he's 78 and lonely",
+      "pool": "GOSSIP",
+      "timestamp": 1773482160.359989,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "wants to talk about petrified forests and how a tree can turn to stone over millions of years while preserving the cellular structure \u2014 you can see the individual cells under a microscope",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482160.3605812,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "their neighbor built a fence six inches onto their property and when they brought it up the guy pulled out a surveyor's report that might actually prove it's his land",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482160.3614998,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "accidentally received a double refund from a company and they need the money \u2014 it's a big corporation and nobody will notice but they were raised to be honest",
+      "pool": "ADVICE",
+      "timestamp": 1773482160.364136,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "the parent who leads the anti-phone crusade at the PTA was caught by their own kid doom-scrolling for four hours \u2014 the kid put it in a school essay about hypocrisy",
+      "pool": "GOSSIP",
+      "timestamp": 1773482160.364971,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "believes people who call themselves 'dog mom' or 'cat dad' need to understand that a pet is not a child",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482160.365529,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "is convinced that New Year's resolutions are a scam invented by gym memberships and diet companies",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482160.366053,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "lied about their education on a job application fifteen years ago and has been quietly terrified ever since \u2014 they've been promoted four times and are now in a role where someone might actually check",
+      "pool": "ADVICE",
+      "timestamp": 1773482160.36687,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "is convinced that credit scores are a made-up number designed to keep people anxious",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482160.3674722,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "is convinced that 90% of people who say they 'love to cook' actually love to eat and tolerate cooking \u2014 the ones who really love cooking are weird about knives and have opinions about salt that nobody asked for",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482160.368109,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "every time they sneeze in their house, the neighbor's dog barks exactly twice \u2014 they've tested it forty-one times, had friends come over to verify, tried fake sneezes which don't trigger it, and it works with a 100% hit rate on genuine sneezes regardless of volume or time of day",
+      "pool": "WEIRD",
+      "timestamp": 1773482166.661052,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "their teenager created an AI chatbot that talks like them and showed it to the family as a joke \u2014 but some of the things it says are things the caller has only thought, never said",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482166.741036,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "thinks organized playdates are weird and kids should just go outside and knock on doors like they used to",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482166.944554,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "thinks the whole charcuterie board trend is just a fancy name for a Lunchable and nobody wants to admit it",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482166.974886,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "believes pool ownership is a scam because you spend more time cleaning it than swimming in it",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482167.014205,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "the local real estate agent who sells 'family-friendly neighborhoods' is being sued by three neighbors for noise complaints from their own house parties",
+      "pool": "GOSSIP",
+      "timestamp": 1773482167.3471968,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "found out the couple everyone calls 'relationship goals' met because one of them catfished the other \u2014 they've been together five years and neither will admit how it started",
+      "pool": "GOSSIP",
+      "timestamp": 1773482167.4142542,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "accidentally discovered their company has been billing clients for work that was never done and they have the receipts on a USB drive in their glove box",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482167.4820511,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "found their kid's diary and read it \u2014 what they found isn't dangerous but it's personal and now they can't unknow it and don't know how to act normal",
+      "pool": "ADVICE",
+      "timestamp": 1773482167.526515,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "got their citizenship today after twelve years of paperwork",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773482167.636487,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "found their dad's old ham radio in the attic, got it working, and has been talking to strangers at 2am \u2014 one of them just said something that makes them think it's someone they know",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482167.743945,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "sneezed so hard they threw out their back and had to call an ambulance \u2014 the paramedic said it was the third sneeze-related call that week",
+      "pool": "STORIES",
+      "timestamp": 1773482168.348608,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "believes people who say 'I could never go vegan' have never actually tried and are just being stubborn",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482168.362889,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "wants to talk about why nobody reads anymore and whether that's actually true or just something people say",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482169.0318348,
+      "session_id": "1324296d"
+    },
+    {
+      "reason": "just found out about Earth's inner core \u2014 it's a solid iron ball the size of the moon, hotter than the surface of the sun, and it rotates slightly faster than the rest of the planet",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482172.0973198,
+      "session_id": "7041d47f"
+    },
+    {
+      "reason": "thinks brunch is just breakfast at a markup and the mimosas aren't even good",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482172.0987031,
+      "session_id": "7041d47f"
+    },
+    {
+      "reason": "had a full-blown panic attack at the grocery store today and had to leave their cart in the aisle",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482172.099814,
+      "session_id": "7041d47f"
+    },
+    {
+      "reason": "believes social media has made everyone a narcissist and we'd all be happier with flip phones",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482172.100823,
+      "session_id": "7041d47f"
+    },
+    {
+      "reason": "is convinced that small talk is a complete waste of time and people should just be honest about not wanting to chat",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482172.1017642,
+      "session_id": "7041d47f"
+    },
+    {
+      "reason": "got a notification that someone signed into their email from Brazil \u2014 turns out it was an old phone they sold on eBay and the new owner has been reading their newsletters without unsubscribing",
+      "pool": "STORIES",
+      "timestamp": 1773482172.1033301,
+      "session_id": "7041d47f"
+    },
+    {
+      "reason": "their sourdough starter that they've been nursing for a year finally made a loaf that doesn't taste like vinegar",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773482172.104615,
+      "session_id": "7041d47f"
+    },
+    {
+      "reason": "found out their friend's 'investment portfolio' is actually just $500 in a savings account \u2014 they accidentally showed a bank notification while showing something on their phone",
+      "pool": "GOSSIP",
+      "timestamp": 1773482172.105814,
+      "session_id": "7041d47f"
+    },
+    {
+      "reason": "discovered their neighbor who always acts busy and stressed actually sits in their backyard reading novels for most of the day \u2014 the caller can see over the fence from their second floor",
+      "pool": "GOSSIP",
+      "timestamp": 1773482172.1068,
+      "session_id": "7041d47f"
+    },
+    {
+      "reason": "their Alexa ordered $800 worth of cat food and they don't have a cat \u2014 Amazon says the voice command came from their device and won't refund it",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482173.095018,
+      "session_id": "7041d47f"
+    },
+    {
+      "reason": "thinks youth sports have become way too competitive and parents are ruining it for the kids",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482173.368487,
+      "session_id": "6e66d47e"
+    },
+    {
+      "reason": "is 30 and has no idea what they want to do with their life \u2014 tried college, tried trades, tried the military, nothing stuck and everyone else seems to have it figured out",
+      "pool": "ADVICE",
+      "timestamp": 1773482173.370264,
+      "session_id": "6e66d47e"
+    },
+    {
+      "reason": "farted so loud during a moment of silence at a funeral that the pastor stopped and looked directly at them \u2014 the deceased's wife started laughing which made the whole front row laugh and now the family says grandpa would have loved it but the caller has not recovered",
+      "pool": "STORIES",
+      "timestamp": 1773482173.371583,
+      "session_id": "6e66d47e"
+    },
+    {
+      "reason": "their fitness instructor who preaches 'clean eating' was spotted at 2 AM at a Waffle House housing a plate of smothered hash browns \u2014 the caller's friend was working the late shift",
+      "pool": "GOSSIP",
+      "timestamp": 1773482173.3726678,
+      "session_id": "6e66d47e"
+    },
+    {
+      "reason": "their neighbor runs a business out of their garage and the traffic and noise are destroying the street \u2014 the other neighbors are afraid to say anything",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482173.373756,
+      "session_id": "6e66d47e"
+    },
+    {
+      "reason": "their town's Facebook group has devolved into a full civil war over whether the new stoplight is helping or hurting traffic \u2014 someone made a PowerPoint",
+      "pool": "STORIES",
+      "timestamp": 1773482173.374847,
+      "session_id": "6e66d47e"
+    },
+    {
+      "reason": "got rear-ended at a stoplight and the other driver got out and said 'that's for what you did at the Safeway' \u2014 the caller has never been to that Safeway",
+      "pool": "STORIES",
+      "timestamp": 1773482173.37588,
+      "session_id": "6e66d47e"
+    },
+    {
+      "reason": "got recognized at the grocery store by someone who said their yard is the nicest on the street",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773482173.377035,
+      "session_id": "6e66d47e"
+    },
+    {
+      "reason": "hasn't been to a dentist in seven years because of a childhood trauma and the pain is getting bad enough that they can't ignore it anymore",
+      "pool": "ADVICE",
+      "timestamp": 1773482173.37791,
+      "session_id": "6e66d47e"
+    },
+    {
+      "reason": "has been on a sourdough journey for six months and their starter has a name and a feeding schedule and they know how that sounds",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482173.5781388,
+      "session_id": "6e66d47e"
+    },
+    {
+      "reason": "found out their partner lied on their resume about having a degree they don't have \u2014 the partner makes good money and does good work but could be fired if anyone checks",
+      "pool": "ADVICE",
+      "timestamp": 1773482173.713871,
+      "session_id": "6e66d47e"
+    },
+    {
+      "reason": "thinks ring doorbell culture has turned neighbors into surveillance agents and it's creepy",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482174.547214,
+      "session_id": "e257ea82"
+    },
+    {
+      "reason": "is high and wants to pitch a conspiracy theory they came up with in the shower \u2014 it involves pigeons and the government",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482174.553439,
+      "session_id": "e257ea82"
+    },
+    {
+      "reason": "won the county fair pie contest with a recipe they invented themselves",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773482174.554583,
+      "session_id": "e257ea82"
+    },
+    {
+      "reason": "was accidentally overpaid by $5,000 at work and nobody has noticed in three months \u2014 they need the money but they know eventually someone will catch it",
+      "pool": "ADVICE",
+      "timestamp": 1773482174.557415,
+      "session_id": "e257ea82"
+    },
+    {
+      "reason": "believes people who share every meal on Instagram are just eating for the camera and the food gets cold",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482174.5584981,
+      "session_id": "e257ea82"
+    },
+    {
+      "reason": "is adamant that carpet in bathrooms is a war crime against interior design",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482174.559455,
+      "session_id": "e257ea82"
+    },
+    {
+      "reason": "has been pretending to be a widower for sympathy at a grief support group but they actually just got divorced \u2014 and now they've made real friends there and don't know how to come clean",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482174.5641248,
+      "session_id": "e257ea82"
+    },
+    {
+      "reason": "their closest friend just got the job the caller applied for \u2014 the friend doesn't know the caller applied and keeps talking about how excited they are",
+      "pool": "ADVICE",
+      "timestamp": 1773482174.5656471,
+      "session_id": "e257ea82"
+    },
+    {
+      "reason": "thinks people who post their workouts on social media are just fishing for compliments",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482174.5667698,
+      "session_id": "e257ea82"
+    },
+    {
+      "reason": "is adamant that 'unlimited PTO' is a trick to make people take less vacation and feel guilty about it",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482175.3913789,
+      "session_id": "e257ea82"
+    },
+    {
+      "reason": "believes open-plan offices were invented by someone who hates productivity",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482175.851082,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "has been having the best sex of their life since they opened up about their {fetish_detail} interest \u2014 the problem is it's with someone who isn't their partner",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482175.854767,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "is convinced that couples who say they 'never fight' are either lying or so dead inside they've stopped having opinions \u2014 healthy people disagree, and if you haven't told your partner they're wrong about something you don't respect them enough to be honest",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482175.855834,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "found their super-private boss on TikTok where they do cooking videos with 80k followers and a persona completely different from work \u2014 they're bubbly and goofy and use a fake name",
+      "pool": "GOSSIP",
+      "timestamp": 1773482175.859416,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "found out their buddy who 'never watches TV' has an absolutely insane streaming setup with six subscriptions \u2014 their wife accidentally shared the family login",
+      "pool": "GOSSIP",
+      "timestamp": 1773482175.86236,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "the guy who runs the neighborhood Facebook group moderates everything to favor his friends \u2014 opposing comments get deleted and the poster gets banned for 'community guidelines violations'",
+      "pool": "GOSSIP",
+      "timestamp": 1773482175.863625,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "their adult kid moved back home after a divorce and it was supposed to be temporary \u2014 it's been eight months and there's no plan to leave",
+      "pool": "ADVICE",
+      "timestamp": 1773482175.866883,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "found out their sweet elderly neighbor was a groupie for a famous rock band in the 70s \u2014 there are photos and they are WILD",
+      "pool": "GOSSIP",
+      "timestamp": 1773482175.868225,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "discovered their coworker runs an anonymous gossip account about the company and the posts are 100% accurate \u2014 the caller recognized details only someone in their department would know",
+      "pool": "GOSSIP",
+      "timestamp": 1773482175.8696718,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "retired at 60 and is bored out of their mind after two months \u2014 they thought they'd love it but they have no hobbies and their spouse is annoyed they're always around",
+      "pool": "ADVICE",
+      "timestamp": 1773482177.961,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "their son who dropped out of high school just earned his diploma at 26 \u2014 he walked across the stage and the whole family was there",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773482178.315913,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "is adamant that the 'customer is always right' mentality created the worst generation of entitled shoppers in history",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482178.347635,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "their coworker asked them for a kidney \u2014 a real kidney \u2014 they're a match and the coworker has no other options and they have to make a decision they never imagined facing",
+      "pool": "ADVICE",
+      "timestamp": 1773482178.705647,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "thinks the Super Bowl halftime show hasn't been good since Prince and everyone's been lying since",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482178.833429,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "two years clean today and their sponsor took them out for pancakes to celebrate",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773482178.902486,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "found their lost wedding ring in the yard with a metal detector after giving up hope three months ago",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773482179.180636,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "thinks the news media is more addicted to outrage than their viewers are and it's rotting everyone's brains from both sides",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482179.2769768,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "found a framed photo at Goodwill of a family picnic and their house is clearly visible in the background \u2014 the photo is dated 1962 and their house wasn't built until 1985",
+      "pool": "WEIRD",
+      "timestamp": 1773482179.554966,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "the woman who organized the neighborhood garage sale kept a 10% cut from everyone's sales as an 'organizing fee' that nobody agreed to \u2014 the caller counted their sales versus their payout and the math doesn't work",
+      "pool": "GOSSIP",
+      "timestamp": 1773482180.219449,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "their small town is being split by a proposed mine that would bring jobs but destroy the aquifer \u2014 families who've been friends for decades are on opposite sides",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482180.2212522,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "their neighbor's 'vacation home' is actually a timeshare they can only use two weeks a year \u2014 a real estate agent friend looked up the property records",
+      "pool": "GOSSIP",
+      "timestamp": 1773482180.23236,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "thinks people who show up late to everything and say 'that's just how I am' are being selfish and they know it",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482180.370723,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "was offered early retirement at 52 with a decent package but they're not sure they can afford 30+ years without working \u2014 their spouse says take it",
+      "pool": "ADVICE",
+      "timestamp": 1773482180.372096,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "is adamant that tipping on takeout orders makes no sense because nobody carried a plate to your table",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482180.64287,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "believes thank-you cards are outdated and a text is perfectly acceptable",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482180.864955,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "is convinced that roundabouts are superior to four-way stops and Americans are just too stubborn to learn",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482181.0859,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "their relative who won $50k in a lawsuit told the family it was only $15k and kept the rest \u2014 the caller works at the courthouse and saw the actual settlement",
+      "pool": "GOSSIP",
+      "timestamp": 1773482181.269114,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "started an OnlyFans as a joke with their spouse and now they're making $4,000 a month and {partner_reaction} \u2014 the money is great but it's changing their relationship",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482181.2754428,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "drove through a car wash and their side mirror got ripped off \u2014 the car wash said their sign clearly states 'fold in mirrors' but the sign is in 6-point font behind a bush",
+      "pool": "STORIES",
+      "timestamp": 1773482181.2767491,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "their GPS has been routing them past the same house for three weeks on different drives and they're starting to think the universe is trying to tell them something",
+      "pool": "STORIES",
+      "timestamp": 1773482181.2974489,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "just became a grandparent for the first time and they already bought the kid a fishing rod",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773482181.326601,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "believes breakfast is the least important meal of the day and the whole 'most important meal' thing is cereal company propaganda",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482182.32586,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "was told they need to quit drinking for medical reasons and they're not sure they can \u2014 they don't think they're an alcoholic but two drinks a night for twenty years is apparently a problem",
+      "pool": "ADVICE",
+      "timestamp": 1773482182.3825889,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "their dead relative's phone number got reassigned and the new owner has been texting them pretending to be the dead person \u2014 they fell for it for two weeks before figuring it out",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482182.5978801,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "is adamant that the wave at stadiums is obnoxious and someone should have the guts to not stand up",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482182.885383,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "had a mentor who changed the entire trajectory of their life with one conversation and they just found out that person passed away \u2014 wants to talk about people who shape you without knowing it",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482182.887537,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "their uncle who always shows up to family events in a new car is drowning in lease payments \u2014 his ex-wife told the caller during a surprisingly honest conversation",
+      "pool": "GOSSIP",
+      "timestamp": 1773482183.46401,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "found out the guy who runs the local running club has been driving to the halfway point of their group runs and waiting for them \u2014 his watch data shows suspiciously fast splits and zero elevation gain",
+      "pool": "GOSSIP",
+      "timestamp": 1773482183.4661272,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "believes gas station coffee is better than Starbucks and is willing to die on that hill",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482184.413106,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "thinks most people's dogs are poorly trained nightmares and the owners know it but saying anything about someone's dog is now treated like criticizing their child \u2014 and half the time the child is also a nightmare but at least the kid might grow out of it",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482186.728033,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "found their parent's sex tape while cleaning out the attic \u2014 it was labeled with a date and a name, and the name isn't their other parent's, and the date is roughly nine months before they were born",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482187.561394,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "wants to discuss which show has the best pilot episode ever",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482189.378348,
+      "session_id": "037e5af5"
+    },
+    {
+      "reason": "their partner spent their vacation fund on crypto without telling them \u2014 the crypto is now worth a third of what was paid",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482563.404344,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "showed up to a costume party that wasn't a costume party \u2014 they were dressed as a giant banana and had to commit to it for four hours",
+      "pool": "STORIES",
+      "timestamp": 1773482563.405995,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "has a chance to take over the family business but the business is failing and their parents won't admit it \u2014 saying no means watching it die, saying yes means going down with the ship",
+      "pool": "ADVICE",
+      "timestamp": 1773482563.407126,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "their car odometer has been going backward \u2014 they've driven 200 miles this week and it shows 200 fewer",
+      "pool": "WEIRD",
+      "timestamp": 1773482563.408916,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "thinks the tech monopoly situation is worse than Standard Oil ever was and wants to know why nobody is doing anything about it",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482563.410304,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "started a tool lending library in their garage and half the block has borrowed something",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773482563.411677,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "their coworker has been microwaving fish every single day for a year and when confronted said 'I will die on this hill' with complete sincerity",
+      "pool": "STORIES",
+      "timestamp": 1773482563.413953,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "thinks avocado toast is fine but not worth twelve dollars and it's not a personality trait",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482563.415277,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "got blackout drunk at their kid's birthday party last weekend and nobody's said a word about it",
+      "pool": "PROBLEMS",
+      "timestamp": 1773482563.4167922,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "their kid graduated basic training today and they've never been more proud or more terrified",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773482569.235971,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "confidently answered a trivia question at a bar and was so wrong the entire bar went silent \u2014 they still go there and people bring it up",
+      "pool": "STORIES",
+      "timestamp": 1773482569.534742,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "bought a couch off Craigslist and when they got it home found $8,000 in cash sewn into the cushion \u2014 the seller won't return their calls",
+      "pool": "STORIES",
+      "timestamp": 1773482570.099593,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "was invited to join a business venture with their in-laws and their spouse thinks it's a great idea \u2014 every financial advisor says never mix family and money",
+      "pool": "ADVICE",
+      "timestamp": 1773482570.369768,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "is fed up with people who don't use turn signals and thinks it should be a mandatory re-test on your license",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482571.856142,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "entered a costume contest as a last-minute decision wearing a bedsheet ghost and won \u2014 beat someone who'd spent six months on a screen-accurate Iron Man suit and the Iron Man person has not spoken to them since",
+      "pool": "STORIES",
+      "timestamp": 1773482571.857717,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "thinks RSVP culture is broken and half the people who say 'yes' won't show up",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482571.859178,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "read about the double-slit experiment and it broke their brain",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773482571.860567,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "believes the 'kids eat free' deal at restaurants is the only honest marketing left in America",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773482576.389204,
+      "session_id": "d409b015"
+    },
+    {
+      "reason": "is fed up with people who say 'I don't eat fast food' like it makes them morally superior",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773558482.244677,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "started going to a sex addiction support group as a joke and realized halfway through the first meeting that they actually belong there \u2014 they haven't missed a meeting since and their partner has no idea",
+      "pool": "PROBLEMS",
+      "timestamp": 1773558482.250958,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "is a pharmacist who recognized a regular customer's prescription pattern as doctor shopping for opioids \u2014 the customer is also a friend and clearly in chronic pain, and reporting them means they lose access to any pain management",
+      "pool": "ADVICE",
+      "timestamp": 1773558482.252671,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "their chickens stopped laying for a week, then all laid on the same day \u2014 eight eggs, all double-yolk, all exactly the same size",
+      "pool": "WEIRD",
+      "timestamp": 1773558482.254178,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "was cleaning out their dead uncle's house and found a room full of journals describing a completely different life than anyone knew about",
+      "pool": "PROBLEMS",
+      "timestamp": 1773558482.255507,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "is convinced that 'let's grab coffee sometime' is the biggest lie in American culture",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773558482.257047,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "discovered that the 'family cabin' they've been going to for 30 years actually belongs to a stranger who never knew they were using it",
+      "pool": "PROBLEMS",
+      "timestamp": 1773558482.258704,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "got catfished for four months and sent the person $3,000 before figuring it out",
+      "pool": "PROBLEMS",
+      "timestamp": 1773558482.264756,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "accidentally replied-all to a company email with something they definitely should not have said",
+      "pool": "PROBLEMS",
+      "timestamp": 1773558482.270707,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "discovered their kid's beloved little league coach did time for armed robbery in another state \u2014 he's been clean for fifteen years but nobody in town knows and the parents would lose their minds",
+      "pool": "GOSSIP",
+      "timestamp": 1773558488.901591,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "their quiet librarian neighbor writes extremely explicit romance novels under a pen name \u2014 they found out because Amazon recommended one based on their address",
+      "pool": "GOSSIP",
+      "timestamp": 1773558489.312327,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "read fifty books this year after not finishing a single one in the last decade",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773558489.345542,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "thinks air fresheners just make a room smell like flowers and garbage at the same time",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773558489.424201,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "the couple who always wins the chili cookoff has been using the same canned base for years \u2014 the caller's kid worked at their house and saw the evidence in the recycling",
+      "pool": "GOSSIP",
+      "timestamp": 1773558489.582072,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "is convinced that vinyl sounds exactly the same as digital and people are lying to themselves",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773558489.701354,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "got a cease and desist letter from Disney because their kid's birthday party decorations went viral on TikTok",
+      "pool": "PROBLEMS",
+      "timestamp": 1773558489.9736488,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "won the office chili cookoff against a guy who's been undefeated for seven years and the whole floor erupted",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773558490.180077,
+      "session_id": "11f1bf06"
+    },
+    {
+      "reason": "found out their boss has been expensing personal vacations as 'business travel' for three years \u2014 the receipts are all restaurants and resorts with no meeting notes attached",
+      "pool": "GOSSIP",
+      "timestamp": 1773558490.76909,
+      "session_id": "11f1bf06"
+    }
+  ]
+}

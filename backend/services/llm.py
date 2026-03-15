@@ -1,9 +1,11 @@
 """LLM service with OpenRouter and Ollama support"""
 
 import json
+import time
 import httpx
 from typing import Optional, Callable, Awaitable
 from ..config import settings
+from .cost_tracker import cost_tracker
 
 
 # Available OpenRouter models
@@ -114,13 +116,15 @@ class LLMService:
         messages: list[dict],
         system_prompt: Optional[str] = None,
         max_tokens: Optional[int] = None,
-        response_format: Optional[dict] = None
+        response_format: Optional[dict] = None,
+        category: str = "unknown",
+        caller_name: str = "",
     ) -> str:
         if system_prompt:
             messages = [{"role": "system", "content": system_prompt}] + messages
 
         if self.provider == "openrouter":
-            return await self._call_openrouter_with_fallback(messages, max_tokens=max_tokens, response_format=response_format)
+            return await self._call_openrouter_with_fallback(messages, max_tokens=max_tokens, response_format=response_format, category=category, caller_name=caller_name)
         else:
             return await self._call_ollama(messages, max_tokens=max_tokens)
 
@@ -133,6 +137,8 @@ class LLMService:
         model: Optional[str] = None,
         max_tokens: int = 500,
         max_tool_rounds: int = 3,
+        category: str = "unknown",
+        caller_name: str = "",
     ) -> tuple[str, list[dict]]:
         """Generate a response with OpenRouter function calling.
 
@@ -166,6 +172,7 @@ class LLMService:
                 "tool_choice": "auto",
             }
 
+            start_time = time.time()
             try:
                 response = await self.client.post(
                     "https://openrouter.ai/api/v1/chat/completions",
@@ -184,6 +191,18 @@ class LLMService:
             except Exception as e:
                 print(f"[LLM-Tools] {model} error (round {round_num}): {e}")
                 break
+
+            latency_ms = (time.time() - start_time) * 1000
+            usage = data.get("usage", {})
+            if usage:
+                cost_tracker.record_llm_call(
+                    category=category,
+                    model=model,
+                    usage_data=usage,
+                    max_tokens=max_tokens,
+                    latency_ms=latency_ms,
+                    caller_name=caller_name,
+                )
 
             choice = data["choices"][0]
             msg = choice["message"]
@@ -230,6 +249,7 @@ class LLMService:
 
         # Exhausted tool rounds or hit an error — do one final call without tools
         print(f"[LLM-Tools] Finishing after {len(all_tool_calls)} tool calls")
+        start_time = time.time()
         try:
             final_payload = {
                 "model": model,
@@ -248,17 +268,28 @@ class LLMService:
             )
             response.raise_for_status()
             data = response.json()
+            latency_ms = (time.time() - start_time) * 1000
+            usage = data.get("usage", {})
+            if usage:
+                cost_tracker.record_llm_call(
+                    category=category,
+                    model=model,
+                    usage_data=usage,
+                    max_tokens=max_tokens,
+                    latency_ms=latency_ms,
+                    caller_name=caller_name,
+                )
             content = data["choices"][0]["message"].get("content", "")
             return content or "", all_tool_calls
         except Exception as e:
             print(f"[LLM-Tools] Final call failed: {e}")
             return "", all_tool_calls
 
-    async def _call_openrouter_with_fallback(self, messages: list[dict], max_tokens: Optional[int] = None, response_format: Optional[dict] = None) -> str:
+    async def _call_openrouter_with_fallback(self, messages: list[dict], max_tokens: Optional[int] = None, response_format: Optional[dict] = None, category: str = "unknown", caller_name: str = "") -> str:
         """Try primary model, then fallback models. Always returns a response."""
 
         # Try primary model first
-        result = await self._call_openrouter_once(messages, self.openrouter_model, max_tokens=max_tokens, response_format=response_format)
+        result = await self._call_openrouter_once(messages, self.openrouter_model, max_tokens=max_tokens, response_format=response_format, category=category, caller_name=caller_name)
         if result is not None:
             return result
 
@@ -267,7 +298,7 @@ class LLMService:
             if model == self.openrouter_model:
                 continue  # Already tried
             print(f"[LLM] Falling back to {model}...")
-            result = await self._call_openrouter_once(messages, model, timeout=8.0, max_tokens=max_tokens)
+            result = await self._call_openrouter_once(messages, model, timeout=8.0, max_tokens=max_tokens, category=category, caller_name=caller_name)
             if result is not None:
                 return result
 
@@ -275,8 +306,9 @@ class LLMService:
         print("[LLM] All models failed, using canned response")
         return "Sorry, I totally blanked out for a second. What were you saying?"
 
-    async def _call_openrouter_once(self, messages: list[dict], model: str, timeout: float = 10.0, max_tokens: Optional[int] = None, response_format: Optional[dict] = None) -> str | None:
+    async def _call_openrouter_once(self, messages: list[dict], model: str, timeout: float = 10.0, max_tokens: Optional[int] = None, response_format: Optional[dict] = None, category: str = "unknown", caller_name: str = "") -> str | None:
         """Single attempt to call OpenRouter. Returns None on failure (not a fallback string)."""
+        start_time = time.time()
         try:
             payload = {
                 "model": model,
@@ -300,6 +332,17 @@ class LLMService:
             )
             response.raise_for_status()
             data = response.json()
+            latency_ms = (time.time() - start_time) * 1000
+            usage = data.get("usage", {})
+            if usage:
+                cost_tracker.record_llm_call(
+                    category=category,
+                    model=model,
+                    usage_data=usage,
+                    max_tokens=max_tokens or 500,
+                    latency_ms=latency_ms,
+                    caller_name=caller_name,
+                )
             content = data["choices"][0]["message"]["content"]
             if content and content.strip():
                 return content

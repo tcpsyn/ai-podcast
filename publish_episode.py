@@ -309,6 +309,7 @@ Generate a JSON response with:
    - "Intro" at 0 seconds
    - A chapter for each caller/topic (use caller names if mentioned)
    - "Outro" near the end
+4. "thumbnail_text": The single most provocative, clickable, or outrageous caller topic from the episode as a SHORT phrase (3-5 words max). Think YouTube thumbnail energy — shocking, funny, or intriguing. Examples: "HE ATE THE EVIDENCE", "MY BOSS IS A GHOST", "DIVORCE OVER RANCH". ALL CAPS.
 
 Respond with ONLY valid JSON, no markdown or explanation."""
 
@@ -348,6 +349,8 @@ Respond with ONLY valid JSON, no markdown or explanation."""
 
     print(f"    Title: {metadata['title']}")
     print(f"    Chapters: {len(metadata['chapters'])}")
+    if metadata.get("thumbnail_text"):
+        print(f"    Thumbnail: {metadata['thumbnail_text']}")
 
     return metadata
 
@@ -959,6 +962,93 @@ def generate_social_image(episode_number: int, description: str, output_path: st
     return output_path
 
 
+def generate_youtube_thumbnail(episode_number: int, thumbnail_text: str, output_path: str) -> str:
+    """Generate a YouTube thumbnail (1280x720) with bold text on dark branded background."""
+    from PIL import Image, ImageDraw, ImageFont
+    import textwrap
+
+    W, H = 1280, 720
+    BG_COLOR = (18, 13, 7)
+    ACCENT = (232, 121, 29)
+    WHITE = (255, 255, 255)
+    MUTED = (175, 165, 150)
+
+    img = Image.new("RGB", (W, H), BG_COLOR)
+    draw = ImageDraw.Draw(img)
+
+    # Accent bar — top
+    draw.rectangle([0, 0, W, 8], fill=ACCENT)
+
+    # Cover art — bottom right, subtle
+    COVER_ART = Path(__file__).parent / "website" / "images" / "cover.png"
+    if COVER_ART.exists():
+        cover = Image.open(COVER_ART).convert("RGBA").resize((200, 200), Image.LANCZOS)
+        # Apply transparency
+        alpha = cover.split()[3].point(lambda p: int(p * 0.4))
+        cover.putalpha(alpha)
+        img.paste(cover, (W - 230, H - 230), cover)
+
+    # Fonts
+    try:
+        font_main = ImageFont.truetype("/Library/Fonts/Montserrat-ExtraBold.ttf", 96)
+        font_ep = ImageFont.truetype("/Library/Fonts/Montserrat-SemiBold.ttf", 32)
+        font_show = ImageFont.truetype("/Library/Fonts/Montserrat-Medium.ttf", 24)
+    except OSError:
+        try:
+            font_main = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Black.ttf", 96)
+            font_ep = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 32)
+            font_show = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", 24)
+        except OSError:
+            font_main = ImageFont.load_default()
+            font_ep = ImageFont.load_default()
+            font_show = ImageFont.load_default()
+
+    margin = 60
+
+    # Show name — top left, small
+    draw.text((margin, 30), "LUKE AT THE ROOST", font=font_show, fill=ACCENT)
+
+    # Episode number — top right corner
+    ep_text = f"EP {episode_number}"
+    ep_bbox = draw.textbbox((0, 0), ep_text, font=font_ep)
+    ep_w = ep_bbox[2] - ep_bbox[0]
+    draw.text((W - margin - ep_w, 26), ep_text, font=font_ep, fill=MUTED)
+
+    # Main text — big, bold, centered vertically
+    text = thumbnail_text.upper().strip()
+    # Word wrap for long text
+    wrapped = textwrap.fill(text, width=18)
+    lines = wrapped.split("\n")[:3]  # max 3 lines
+
+    # Measure total height
+    line_heights = []
+    line_widths = []
+    for line in lines:
+        bbox = draw.textbbox((0, 0), line, font=font_main)
+        line_heights.append(bbox[3] - bbox[1])
+        line_widths.append(bbox[2] - bbox[0])
+
+    line_gap = 15
+    total_text_h = sum(line_heights) + line_gap * (len(lines) - 1)
+    start_y = (H - total_text_h) // 2
+
+    # Draw each line centered
+    y = start_y
+    for i, line in enumerate(lines):
+        x = (W - line_widths[i]) // 2
+        # Shadow for readability
+        draw.text((x + 3, y + 3), line, font=font_main, fill=(0, 0, 0))
+        draw.text((x, y), line, font=font_main, fill=WHITE)
+        y += line_heights[i] + line_gap
+
+    # Accent bar — bottom
+    draw.rectangle([0, H - 8, W, H], fill=ACCENT)
+
+    img.save(output_path, "JPEG", quality=95)
+    print(f"    YouTube thumbnail saved: {output_path}")
+    return output_path
+
+
 def _get_postiz_token():
     """Generate a JWT token for Postiz API authentication."""
     import jwt
@@ -1516,6 +1606,22 @@ def main():
         )
         if yt_video_id:
             _mark_step_done(episode_number, "youtube", {"video_id": yt_video_id})
+            # Upload custom thumbnail
+            thumb_text = metadata.get("thumbnail_text", "")
+            if thumb_text and yt_video_id:
+                try:
+                    from googleapiclient.http import MediaFileUpload as ThumbUpload
+                    thumb_path = str(audio_path.with_suffix(".thumb.jpg"))
+                    generate_youtube_thumbnail(episode_number, thumb_text, thumb_path)
+                    youtube = get_youtube_service()
+                    if youtube:
+                        youtube.thumbnails().set(
+                            videoId=yt_video_id,
+                            media_body=ThumbUpload(thumb_path, mimetype="image/jpeg"),
+                        ).execute()
+                        print(f"    Custom thumbnail uploaded to YouTube")
+                except Exception as e:
+                    print(f"    Warning: Thumbnail upload failed: {e}")
 
     # Step 5.7: Generate social image and post
     if _is_step_done(episode_number, "social"):

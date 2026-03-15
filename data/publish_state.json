@@ -93,5 +93,22 @@
       }
     },
     "started_at": "2026-03-14T12:01:15.758670+00:00"
+  },
+  "37": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-15T09:07:26.659541+00:00",
+        "episode_id": "40",
+        "slug": "episode-37-secrets-lies-and-coffee-runs"
+      },
+      "youtube": {
+        "completed_at": "2026-03-15T09:33:48.299549+00:00",
+        "video_id": "XW7Q0WPzNqY"
+      },
+      "social": {
+        "completed_at": "2026-03-15T09:34:02.069440+00:00"
+      }
+    },
+    "started_at": "2026-03-15T09:07:26.659508+00:00"
   }
 }

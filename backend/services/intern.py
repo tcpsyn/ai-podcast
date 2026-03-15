@@ -328,7 +328,7 @@ class InternService:
 
     # --- Main interface ---
 
-    async def ask(self, question: str, conversation_context: list[dict] | None = None) -> dict:
+    async def ask(self, question: str, conversation_context: list[dict] | None = None, caller_active: bool = False) -> dict:
         """Host asks intern a direct question. Returns {text, sources, tool_calls}."""
         messages = []
 
@@ -341,6 +341,13 @@ class InternService:
             messages.append({
                 "role": "system",
                 "content": f"CURRENT ON-AIR CONVERSATION:\n{context_text}"
+            })
+
+        # When a caller is on the line, Devon should focus on facts not personal stories
+        if caller_active:
+            messages.append({
+                "role": "system",
+                "content": "A caller is on the line right now. Focus on delivering useful facts, context, and information. Skip personal stories and anecdotes — save those for when it's just you and Luke talking between calls."
             })
 
         # Include Devon's own recent conversation history
@@ -357,6 +364,7 @@ class InternService:
             model=self.model,
             max_tokens=300,
             max_tool_rounds=3,
+            category="devon_ask",
         )
 
         # Clean up for TTS
@@ -388,7 +396,7 @@ class InternService:
             "tool_calls": tool_calls,
         }
 
-    async def interject(self, conversation: list[dict]) -> dict | None:
+    async def interject(self, conversation: list[dict], caller_active: bool = False) -> dict | None:
         """Intern looks at conversation and decides if there's something worth adding.
         Returns {text, sources, tool_calls} or None if nothing to add."""
         if not conversation or len(conversation) < 2:
@@ -399,9 +407,16 @@ class InternService:
             for msg in conversation[-8:]
         )
 
-        messages = [{
-            "role": "user",
-            "content": (
+        if caller_active:
+            interjection_prompt = (
+                f"You're listening to this conversation on the show:\n\n{context_text}\n\n"
+                "A caller is on the line. Is there a useful fact, context, or piece of information "
+                "you can add to this conversation? Use your tools to look something up if needed. "
+                "Keep it focused — facts and context only, no personal stories or anecdotes right now. "
+                "If you truly have nothing useful to add, say exactly: NOTHING_TO_ADD"
+            )
+        else:
+            interjection_prompt = (
                 f"You're listening to this conversation on the show:\n\n{context_text}\n\n"
                 "You've been listening to this. Is there ANYTHING you want to jump in about? "
                 "Could be a fact you want to look up, a personal story this reminds you of, "
@@ -409,7 +424,11 @@ class InternService:
                 "or something you just have to say. You're Devon — you always have something. "
                 "Use your tools if you want to look something up, or just riff. "
                 "If you truly have absolutely nothing, say exactly: NOTHING_TO_ADD"
-            ),
+            )
+
+        messages = [{
+            "role": "user",
+            "content": interjection_prompt,
         }]
 
         text, tool_calls = await llm_service.generate_with_tools(
@@ -420,6 +439,7 @@ class InternService:
             model=self.model,
             max_tokens=300,
             max_tool_rounds=2,
+            category="devon_monitor",
         )
 
         text = self._clean_for_tts(text)
@@ -443,7 +463,7 @@ class InternService:
             "tool_calls": tool_calls,
         }
 
-    async def monitor_conversation(self, get_conversation: callable, on_suggestion: callable):
+    async def monitor_conversation(self, get_conversation: callable, on_suggestion: callable, get_caller_active: callable = None):
         """Background task that watches conversation and buffers suggestions.
         get_conversation() should return the current conversation list.
         on_suggestion(text, sources) is called when a suggestion is ready."""
@@ -465,7 +485,8 @@ class InternService:
             last_checked_len = len(conversation)
 
             try:
-                result = await self.interject(conversation)
+                caller_active = get_caller_active() if get_caller_active else False
+                result = await self.interject(conversation, caller_active=caller_active)
                 if result:
                     self.pending_interjection = result["text"]
                     self.pending_sources = result.get("tool_calls", [])
@@ -474,12 +495,12 @@ class InternService:
             except Exception as e:
                 print(f"[Intern] Monitor error: {e}")
 
-    def start_monitoring(self, get_conversation: callable, on_suggestion: callable):
+    def start_monitoring(self, get_conversation: callable, on_suggestion: callable, get_caller_active: callable = None):
         if self.monitoring:
             return
         self.monitoring = True
         self._monitor_task = asyncio.create_task(
-            self.monitor_conversation(get_conversation, on_suggestion)
+            self.monitor_conversation(get_conversation, on_suggestion, get_caller_active)
         )
         print("[Intern] Monitoring started")
 
