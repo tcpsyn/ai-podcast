@@ -15,7 +15,7 @@ from .news import news_service, SEARXNG_URL
 DATA_FILE = Path(__file__).parent.parent.parent / "data" / "intern.json"
 
 # Model for intern — good at tool use, same as primary
-INTERN_MODEL = "anthropic/claude-sonnet-4-5"
+INTERN_MODEL = None  # uses category-based routing from config
 
 INTERN_SYSTEM_PROMPT = """You are Devon, the 23-year-old intern on "Luke at the Roost," a late-night radio show. You are NOT Luke. Luke is the HOST — he talks to callers, runs the show, and is your boss. You work behind the scenes and occasionally get pulled into conversations.
 

@@ -195,7 +195,7 @@
 
                 <!-- Audio Devices -->
                 <div class="settings-group">
-                    <h3>Audio Routing</h3>
+                    <h3>Audio Devices</h3>
                     <div class="device-row">
                         <label>
                             Input Device
@@ -203,7 +203,7 @@
                         </label>
                         <label>
                             Ch
-                            <input type="number" id="input-channel" value="1" min="1" max="16" class="channel-input">
+                            <input type="number" id="input-channel" value="1" min="1" max="32" class="channel-input">
                         </label>
                     </div>
                     <div class="device-row">
@@ -212,44 +212,70 @@
                             <select id="output-device"></select>
                         </label>
                     </div>
-                    <div class="channel-row">
-                        <label>Caller Ch <input type="number" id="caller-channel" value="3" min="1" max="16" class="channel-input"></label>
-                        <label>Live Ch <input type="number" id="live-caller-channel" value="9" min="1" max="16" class="channel-input"></label>
-                        <label>Music Ch <input type="number" id="music-channel" value="5" min="1" max="16" class="channel-input"></label>
-                        <label>SFX Ch <input type="number" id="sfx-channel" value="7" min="1" max="16" class="channel-input"></label>
-                        <label>Ad Ch <input type="number" id="ad-channel" value="11" min="1" max="16" class="channel-input"></label>
-                        <label>Ident Ch <input type="number" id="ident-channel" value="15" min="1" max="16" class="channel-input"></label>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Output Routing</h3>
+                    <div class="routing-grid">
+                        <div class="routing-item">
+                            <span class="routing-label">AI Caller</span>
+                            <input type="number" id="caller-channel" value="3" min="1" max="32" class="channel-input">
+                        </div>
+                        <div class="routing-item">
+                            <span class="routing-label">Devon</span>
+                            <input type="number" id="devon-channel" value="17" min="1" max="32" class="channel-input">
+                        </div>
+                        <div class="routing-item">
+                            <span class="routing-label">Live Caller</span>
+                            <input type="number" id="live-caller-channel" value="9" min="1" max="32" class="channel-input">
+                        </div>
+                        <div class="routing-item">
+                            <span class="routing-label">Music</span>
+                            <input type="number" id="music-channel" value="5" min="1" max="32" class="channel-input">
+                        </div>
+                        <div class="routing-item">
+                            <span class="routing-label">SFX</span>
+                            <input type="number" id="sfx-channel" value="7" min="1" max="32" class="channel-input">
+                        </div>
+                        <div class="routing-item">
+                            <span class="routing-label">Ads</span>
+                            <input type="number" id="ad-channel" value="11" min="1" max="32" class="channel-input">
+                        </div>
+                        <div class="routing-item">
+                            <span class="routing-label">Idents</span>
+                            <input type="number" id="ident-channel" value="15" min="1" max="32" class="channel-input">
+                        </div>
                     </div>
                 </div>
 
                 <!-- LLM Settings -->
                 <div class="settings-group">
-                    <h3>LLM Provider</h3>
-                    <label>
-                        Provider
-                        <select id="provider">
-                            <option value="openrouter">OpenRouter</option>
-                            <option value="ollama">Ollama</option>
-                        </select>
-                    </label>
-
-                    <div id="openrouter-settings">
-                        <label>
-                            Model
-                            <select id="openrouter-model"></select>
-                        </label>
-                    </div>
-
-                    <div id="ollama-settings" class="hidden">
-                        <label>
-                            Model
-                            <select id="ollama-model"></select>
-                        </label>
-                        <label>
-                            Host
-                            <input type="text" id="ollama-host" value="http://localhost:11434">
-                        </label>
-                        <button type="button" id="refresh-ollama" class="refresh-btn">Refresh Models</button>
+                    <h3>LLM Model Routing</h3>
+                    <div class="model-routing-grid">
+                        <div class="model-routing-item">
+                            <span class="model-routing-label">Caller Dialog</span>
+                            <select id="model-caller_dialog" class="model-select"></select>
+                        </div>
+                        <div class="model-routing-item">
+                            <span class="model-routing-label">Devon Monitor</span>
+                            <select id="model-devon_monitor" class="model-select"></select>
+                        </div>
+                        <div class="model-routing-item">
+                            <span class="model-routing-label">Devon Ask</span>
+                            <select id="model-devon_ask" class="model-select"></select>
+                        </div>
+                        <div class="model-routing-item">
+                            <span class="model-routing-label">Backgrounds</span>
+                            <select id="model-background_gen" class="model-select"></select>
+                        </div>
+                        <div class="model-routing-item">
+                            <span class="model-routing-label">Call Summary</span>
+                            <select id="model-call_summary" class="model-select"></select>
+                        </div>
+                        <div class="model-routing-item">
+                            <span class="model-routing-label">News</span>
+                            <select id="model-news_summary" class="model-select"></select>
+                        </div>
                     </div>
                 </div>
 

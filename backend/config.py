@@ -29,9 +29,22 @@ class Settings(BaseSettings):
 
     # LLM Settings
     llm_provider: str = "openrouter"  # "openrouter" or "ollama"
-    openrouter_model: str = "anthropic/claude-sonnet-4-5"
+    openrouter_model: str = "anthropic/claude-sonnet-4-5"  # primary/default model
     ollama_model: str = "llama3.2"
     ollama_host: str = "http://localhost:11434"
+
+    # Per-category model routing — cheaper models for non-critical tasks
+    # Categories: caller_dialog, devon_monitor, devon_ask, background_gen,
+    #             call_summary, news_summary, topic_gen, unknown
+    category_models: dict = {
+        "caller_dialog": "anthropic/claude-sonnet-4-5",       # quality matters — this IS the show
+        "devon_ask": "google/gemini-2.5-flash",               # Devon direct questions
+        "devon_monitor": "google/gemini-2.5-flash",           # Devon polling — biggest cost saver
+        "background_gen": "google/gemini-2.5-flash",          # JSON caller backgrounds
+        "call_summary": "google/gemini-2.5-flash",            # post-call summaries
+        "news_summary": "google/gemini-2.5-flash",            # news digests
+        "topic_gen": "google/gemini-2.5-flash",               # topic generation
+    }
 
     # TTS Settings
     tts_provider: str = "inworld"  # "kokoro", "elevenlabs", "inworld", "vits", or "bark"

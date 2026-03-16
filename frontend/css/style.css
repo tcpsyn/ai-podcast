@@ -802,22 +802,63 @@ section h2 {
     flex: 1;
 }
 
-.channel-row {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
+.routing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
 }
 
-.channel-row label {
+.routing-item {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 4px;
-    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 5px 8px;
+}
+
+.routing-item label {
+    margin-bottom: 0 !important;
+}
+
+.routing-label {
+    font-size: 0.75rem;
+    color: var(--text-muted, #9a8b78);
+    white-space: nowrap;
 }
 
 .channel-input {
-    width: 50px !important;
+    width: 40px !important;
     text-align: center;
+    font-size: 0.8rem;
+    padding: 3px !important;
+}
+
+.model-routing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.model-routing-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.model-routing-item label {
+    margin-bottom: 0 !important;
+}
+
+.model-routing-label {
+    font-size: 0.75rem;
+    color: var(--text-muted, #9a8b78);
+}
+
+.model-select {
+    font-size: 0.8rem !important;
+    padding: 4px 6px !important;
 }
 
 .modal-content label {

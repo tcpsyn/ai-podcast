@@ -14,10 +14,10 @@ local MIN_VOICE_SEC    = 0.3   -- ignore non-silent bursts shorter than this (fi
 local KEEP_PAD_SEC     = 0.5   -- leave this much silence on each side of a cut
 local BLOCK_SEC        = 0.1   -- analysis block size (100ms)
 local SAMPLE_RATE      = 48000
-local CHECK_TRACKS     = {1, 2, 3} -- 1-indexed: Host, Live Caller, AI Caller
-local IDENTS_TRACK     = 5     -- 1-indexed: Idents track
-local ADS_TRACK        = 6     -- 1-indexed: Ads track
-local MUSIC_TRACK      = 7     -- 1-indexed: Music track
+local CHECK_TRACKS     = {1, 2, 3, 4} -- 1-indexed: Host, Devon, Live Caller, AI Caller
+local IDENTS_TRACK     = 6     -- 1-indexed: Idents track
+local ADS_TRACK        = 7     -- 1-indexed: Ads track
+local MUSIC_TRACK      = 8     -- 1-indexed: Music track
 local MUSIC_FADE_SEC   = 2.0   -- fade duration for music in/out around ads/idents
 local YIELD_INTERVAL   = 200   -- yield to REAPER every N blocks (~20s of audio)
 ---------------------------------------------------------------------------

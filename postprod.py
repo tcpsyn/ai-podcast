@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 
-STEM_NAMES = ["host", "caller", "music", "sfx", "ads", "idents"]
+STEM_NAMES = ["host", "caller", "devon", "music", "sfx", "ads", "idents"]
 
 
 def load_stems(stems_dir: Path) -> tuple[dict[str, np.ndarray], int]:
@@ -69,7 +69,7 @@ def remove_gaps(stems: dict[str, np.ndarray], sr: int,
 
     # Detect gaps in everything except music (which always plays).
     # This catches TTS latency gaps while protecting ad breaks and SFX transitions.
-    content = stems["host"] + stems["caller"] + stems["sfx"] + stems["ads"] + stems["idents"]
+    content = stems["host"] + stems["caller"] + stems["devon"] + stems["sfx"] + stems["ads"] + stems["idents"]
     rms = compute_rms(content, window_samples)
 
     # Threshold: percentile-based to sit above the mic noise floor

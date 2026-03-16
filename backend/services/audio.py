@@ -64,6 +64,7 @@ class AudioService:
 
         self.output_device: Optional[int] = 12  # Radio Voice Mic (loopback output)
         self.caller_channel: int = 3   # Channel for caller TTS
+        self.devon_channel: int = 17  # Channel for Devon (intern)
         self.live_caller_channel: int = 9  # Channel for live caller audio
         self.music_channel: int = 5    # Channel for music
         self.sfx_channel: int = 3      # Channel for SFX
@@ -164,6 +165,7 @@ class AudioService:
                 self.input_channel = data.get("input_channel", 1)
                 self.output_device = self._resolve_device(data, "output_device")
                 self.caller_channel = data.get("caller_channel", 1)
+                self.devon_channel = data.get("devon_channel", 17)
                 self.live_caller_channel = data.get("live_caller_channel", 4)
                 self.music_channel = data.get("music_channel", 2)
                 self.sfx_channel = data.get("sfx_channel", 3)
@@ -186,6 +188,7 @@ class AudioService:
                 "output_device": self.output_device,
                 "output_device_name": self._get_device_name(self.output_device),
                 "caller_channel": self.caller_channel,
+                "devon_channel": self.devon_channel,
                 "live_caller_channel": self.live_caller_channel,
                 "music_channel": self.music_channel,
                 "sfx_channel": self.sfx_channel,
@@ -222,6 +225,7 @@ class AudioService:
         input_channel: Optional[int] = None,
         output_device: Optional[int] = None,
         caller_channel: Optional[int] = None,
+        devon_channel: Optional[int] = None,
         live_caller_channel: Optional[int] = None,
         music_channel: Optional[int] = None,
         sfx_channel: Optional[int] = None,
@@ -240,6 +244,8 @@ class AudioService:
             self.output_device = output_device
         if caller_channel is not None:
             self.caller_channel = caller_channel
+        if devon_channel is not None:
+            self.devon_channel = devon_channel
         if live_caller_channel is not None:
             self.live_caller_channel = live_caller_channel
         if music_channel is not None:
@@ -267,6 +273,7 @@ class AudioService:
             "input_channel": self.input_channel,
             "output_device": self.output_device,
             "caller_channel": self.caller_channel,
+            "devon_channel": self.devon_channel,
             "live_caller_channel": self.live_caller_channel,
             "music_channel": self.music_channel,
             "sfx_channel": self.sfx_channel,
@@ -419,8 +426,8 @@ class AudioService:
 
         return audio
 
-    def play_caller_audio(self, audio_bytes: bytes, sample_rate: int = 24000):
-        """Play caller TTS audio to specific channel of output device (interruptible)"""
+    def play_caller_audio(self, audio_bytes: bytes, sample_rate: int = 24000, stem_name: str = "caller", channel_override: int | None = None):
+        """Play TTS audio to specific channel of output device (interruptible)"""
         import librosa
 
         # Stop any existing caller audio
@@ -442,7 +449,8 @@ class AudioService:
             device_info = sd.query_devices(self.output_device)
             num_channels = device_info['max_output_channels']
             device_sr = int(device_info['default_samplerate'])
-            channel_idx = min(self.caller_channel, num_channels) - 1
+            ch = channel_override if channel_override is not None else self.caller_channel
+            channel_idx = min(ch, num_channels) - 1
 
             # Resample if needed
             if sample_rate != device_sr:
@@ -455,7 +463,7 @@ class AudioService:
             multi_ch = np.zeros((len(audio), num_channels), dtype=np.float32)
             multi_ch[:, channel_idx] = audio
 
-            print(f"Playing caller audio to device {self.output_device} ch {self.caller_channel} @ {device_sr}Hz")
+            print(f"Playing {stem_name} audio to device {self.output_device} ch {ch} @ {device_sr}Hz")
 
             # Play in chunks so we can interrupt
             chunk_size = int(device_sr * 0.1)  # 100ms chunks
@@ -472,7 +480,7 @@ class AudioService:
                     stream.write(multi_ch[pos:end])
                     # Record each chunk as it plays so hangups cut the stem too
                     if self.stem_recorder:
-                        self.stem_recorder.write_sporadic("caller", audio[pos:end].copy(), device_sr)
+                        self.stem_recorder.write_sporadic(stem_name, audio[pos:end].copy(), device_sr)
                     pos = end
 
             if self._caller_stop_event.is_set():

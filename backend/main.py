@@ -7516,6 +7516,7 @@ class AudioDeviceSettings(BaseModel):
     input_channel: Optional[int] = None
     output_device: Optional[int] = None
     caller_channel: Optional[int] = None
+    devon_channel: Optional[int] = None
     live_caller_channel: Optional[int] = None
     music_channel: Optional[int] = None
     sfx_channel: Optional[int] = None
@@ -7556,6 +7557,7 @@ async def set_audio_settings(settings: AudioDeviceSettings):
         input_channel=settings.input_channel,
         output_device=settings.output_device,
         caller_channel=settings.caller_channel,
+        devon_channel=settings.devon_channel,
         live_caller_channel=settings.live_caller_channel,
         music_channel=settings.music_channel,
         sfx_channel=settings.sfx_channel,
@@ -8743,7 +8745,8 @@ async def update_settings(data: dict):
         openrouter_model=data.get("openrouter_model"),
         ollama_model=data.get("ollama_model"),
         ollama_host=data.get("ollama_host"),
-        tts_provider=data.get("tts_provider")
+        tts_provider=data.get("tts_provider"),
+        category_models=data.get("category_models")
     )
     # Re-randomize voices when TTS provider changes voice system
     new_tts = settings.tts_provider
@@ -9656,7 +9659,7 @@ async def intern_dismiss_suggestion():
 
 
 async def _play_intern_audio(text: str):
-    """Generate TTS for Devon and play on air (no phone filter)"""
+    """Generate TTS for Devon and play on air (no phone filter, own stem + channel)"""
     try:
         audio_bytes = await generate_speech(
             text, intern_service.voice, apply_filter=False
@@ -9664,6 +9667,7 @@ async def _play_intern_audio(text: str):
         thread = threading.Thread(
             target=audio_service.play_caller_audio,
             args=(audio_bytes, 24000),
+            kwargs={"stem_name": "devon", "channel_override": audio_service.devon_channel},
             daemon=True,
         )
         thread.start()

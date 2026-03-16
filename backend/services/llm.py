@@ -59,7 +59,8 @@ class LLMService:
         openrouter_model: Optional[str] = None,
         ollama_model: Optional[str] = None,
         ollama_host: Optional[str] = None,
-        tts_provider: Optional[str] = None
+        tts_provider: Optional[str] = None,
+        category_models: Optional[dict] = None
     ):
         """Update LLM settings"""
         if provider:
@@ -73,6 +74,8 @@ class LLMService:
         if tts_provider:
             self.tts_provider = tts_provider
             settings.tts_provider = tts_provider
+        if category_models:
+            settings.category_models.update(category_models)
 
     async def get_ollama_models(self) -> list[str]:
         """Fetch available models from Ollama"""
@@ -94,6 +97,7 @@ class LLMService:
             "ollama_model": self.ollama_model,
             "ollama_host": self.ollama_host,
             "tts_provider": self.tts_provider,
+            "category_models": settings.category_models,
             "available_openrouter_models": OPENROUTER_MODELS,
             "available_ollama_models": []
         }
@@ -107,6 +111,7 @@ class LLMService:
             "ollama_model": self.ollama_model,
             "ollama_host": self.ollama_host,
             "tts_provider": self.tts_provider,
+            "category_models": settings.category_models,
             "available_openrouter_models": OPENROUTER_MODELS,
             "available_ollama_models": ollama_models
         }
@@ -155,7 +160,7 @@ class LLMService:
             (final_text, tool_calls_made) where tool_calls_made is a list of
             {"name": str, "arguments": dict, "result": str} dicts
         """
-        model = model or self.openrouter_model
+        model = model or self._get_model_for_category(category)
         msgs = list(messages)
         if system_prompt:
             msgs = [{"role": "system", "content": system_prompt}] + msgs
@@ -285,11 +290,16 @@ class LLMService:
             print(f"[LLM-Tools] Final call failed: {e}")
             return "", all_tool_calls
 
-    async def _call_openrouter_with_fallback(self, messages: list[dict], max_tokens: Optional[int] = None, response_format: Optional[dict] = None, category: str = "unknown", caller_name: str = "") -> str:
-        """Try primary model, then fallback models. Always returns a response."""
+    def _get_model_for_category(self, category: str) -> str:
+        """Get the best model for a given category based on config routing."""
+        return settings.category_models.get(category, self.openrouter_model)
 
-        # Try primary model first
-        result = await self._call_openrouter_once(messages, self.openrouter_model, max_tokens=max_tokens, response_format=response_format, category=category, caller_name=caller_name)
+    async def _call_openrouter_with_fallback(self, messages: list[dict], max_tokens: Optional[int] = None, response_format: Optional[dict] = None, category: str = "unknown", caller_name: str = "") -> str:
+        """Try category-specific model, then fallback models. Always returns a response."""
+
+        # Use category-specific model if configured, otherwise primary
+        model = self._get_model_for_category(category)
+        result = await self._call_openrouter_once(messages, model, max_tokens=max_tokens, response_format=response_format, category=category, caller_name=caller_name)
         if result is not None:
             return result
 

@@ -493,6 +493,7 @@ async function loadAudioDevices() {
         // Channel settings
         const inputCh = document.getElementById('input-channel');
         const callerCh = document.getElementById('caller-channel');
+        const devonCh = document.getElementById('devon-channel');
         const liveCallerCh = document.getElementById('live-caller-channel');
         const musicCh = document.getElementById('music-channel');
         const sfxCh = document.getElementById('sfx-channel');
@@ -501,6 +502,7 @@ async function loadAudioDevices() {
 
         if (inputCh) inputCh.value = settings.input_channel || 1;
         if (callerCh) callerCh.value = settings.caller_channel || 1;
+        if (devonCh) devonCh.value = settings.devon_channel || 17;
         if (liveCallerCh) liveCallerCh.value = settings.live_caller_channel || 9;
         if (musicCh) musicCh.value = settings.music_channel || 2;
         if (sfxCh) sfxCh.value = settings.sfx_channel || 3;
@@ -526,6 +528,7 @@ async function saveAudioDevices() {
     const outputDevice = document.getElementById('output-device')?.value;
     const inputChannel = document.getElementById('input-channel')?.value;
     const callerChannel = document.getElementById('caller-channel')?.value;
+    const devonChannel = document.getElementById('devon-channel')?.value;
     const liveCallerChannel = document.getElementById('live-caller-channel')?.value;
     const musicChannel = document.getElementById('music-channel')?.value;
     const sfxChannel = document.getElementById('sfx-channel')?.value;
@@ -541,6 +544,7 @@ async function saveAudioDevices() {
             input_channel: inputChannel ? parseInt(inputChannel) : 1,
             output_device: outputDevice ? parseInt(outputDevice) : null,
             caller_channel: callerChannel ? parseInt(callerChannel) : 1,
+            devon_channel: devonChannel ? parseInt(devonChannel) : 17,
             live_caller_channel: liveCallerChannel ? parseInt(liveCallerChannel) : 9,
             music_channel: musicChannel ? parseInt(musicChannel) : 2,
             sfx_channel: sfxChannel ? parseInt(sfxChannel) : 3,
@@ -1208,6 +1212,23 @@ async function loadSettings() {
         const ttsProvider = document.getElementById('tts-provider');
         if (ttsProvider) ttsProvider.value = data.tts_provider || 'elevenlabs';
 
+        // Category model routing
+        const models = data.available_openrouter_models || [];
+        const categoryModels = data.category_models || {};
+        const categories = ['caller_dialog', 'devon_monitor', 'devon_ask', 'background_gen', 'call_summary', 'news_summary'];
+        for (const cat of categories) {
+            const sel = document.getElementById(`model-${cat}`);
+            if (!sel) continue;
+            sel.innerHTML = '';
+            for (const m of models) {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m.split('/').pop();
+                if (m === (categoryModels[cat] || data.openrouter_model)) opt.selected = true;
+                sel.appendChild(opt);
+            }
+        }
+
         updateProviderUI();
         console.log('Settings loaded:', data.provider, 'TTS:', data.tts_provider);
     } catch (err) {
@@ -1217,9 +1238,7 @@ async function loadSettings() {
 
 
 function updateProviderUI() {
-    const isOpenRouter = document.getElementById('provider')?.value === 'openrouter';
-    document.getElementById('openrouter-settings')?.classList.toggle('hidden', !isOpenRouter);
-    document.getElementById('ollama-settings')?.classList.toggle('hidden', isOpenRouter);
+    // Kept for compatibility — provider toggle removed from UI
 }
 
 
@@ -1227,16 +1246,23 @@ async function saveSettings() {
     // Save audio devices
     await saveAudioDevices();
 
-    // Save LLM and TTS settings
+    // Collect category model routing
+    const categoryModels = {};
+    const categories = ['caller_dialog', 'devon_monitor', 'devon_ask', 'background_gen', 'call_summary', 'news_summary'];
+    for (const cat of categories) {
+        const sel = document.getElementById(`model-${cat}`);
+        if (sel) categoryModels[cat] = sel.value;
+    }
+
+    // Save LLM, TTS, and model routing settings
     await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            provider: document.getElementById('provider')?.value,
-            openrouter_model: document.getElementById('openrouter-model')?.value,
-            ollama_model: document.getElementById('ollama-model')?.value,
-            ollama_host: document.getElementById('ollama-host')?.value,
-            tts_provider: document.getElementById('tts-provider')?.value
+            provider: 'openrouter',
+            openrouter_model: categoryModels.caller_dialog || document.getElementById('model-caller_dialog')?.value,
+            tts_provider: document.getElementById('tts-provider')?.value,
+            category_models: categoryModels
         })
     });
 
