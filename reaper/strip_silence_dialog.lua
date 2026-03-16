@@ -8,7 +8,8 @@
 -- SETTINGS
 ---------------------------------------------------------------------------
 local SILENCE_DB       = -30    -- dBFS — anything below this is "silence"
-local MIN_SILENCE_SEC  = 6.0   -- only remove silences longer than this
+local MIN_SILENCE_SEC  = 6.0   -- same-speaker gaps: only remove silences longer than this
+local MIN_SILENCE_TRANSITION_SEC = 2.5 -- cross-speaker gaps: shorter threshold for speaker transitions
 local MIN_VOICE_SEC    = 0.3   -- ignore non-silent bursts shorter than this (filters transients)
 local KEEP_PAD_SEC     = 0.5   -- leave this much silence on each side of a cut
 local BLOCK_SEC        = 0.1   -- analysis block size (100ms)
@@ -304,14 +305,34 @@ local function read_block_peak_rms(ta, project_time)
   return 0, 0
 end
 
+-- find_loudest_track: returns 1-based index of the loudest track at a given time, or 0 if silent
+local function find_loudest_track(track_audios, project_time)
+  local best_peak = 0
+  local best_idx = 0
+  for i, ta in ipairs(track_audios) do
+    local peak, _ = read_block_peak_rms(ta, project_time)
+    if peak > best_peak then
+      best_peak = peak
+      best_idx = i
+    end
+  end
+  if best_peak < THRESHOLD then return 0 end
+  return best_idx
+end
+
 -- find_silences: detects silences and accumulates RMS data
+-- Tracks which track was active before/after each silence to distinguish
+-- speaker transitions (short threshold) from same-speaker pauses (long threshold).
 -- Yields periodically via coroutine for UI responsiveness
 -- progress_fn(t): called before each yield with current position
 local function find_silences(region, track_audios, rms_acc, progress_fn)
   local silences = {}
   local in_silence = false
   local silence_start = 0
+  local track_before_silence = 0
   local voice_run = 0
+  local voice_run_track = 0
+  local last_active_track = 0
   local t = region.start_pos
   local total_blocks = 0
   local silent_blocks = 0
@@ -320,11 +341,13 @@ local function find_silences(region, track_audios, rms_acc, progress_fn)
   while t < region.end_pos do
     local best_peak = 0
     local best_sum = 0
-    for _, ta in ipairs(track_audios) do
+    local best_track = 0
+    for i, ta in ipairs(track_audios) do
       local peak, sum_sq = read_block_peak_rms(ta, t)
       if peak > best_peak then
         best_peak = peak
         best_sum = sum_sq
+        best_track = i
       end
     end
 
@@ -332,31 +355,45 @@ local function find_silences(region, track_audios, rms_acc, progress_fn)
     total_blocks = total_blocks + 1
     if all_silent then silent_blocks = silent_blocks + 1 end
 
-    if not all_silent and rms_acc then
-      rms_acc.sum_sq = rms_acc.sum_sq + best_sum
-      rms_acc.count = rms_acc.count + BLOCK_SAMPLES
+    if not all_silent then
+      last_active_track = best_track
+      if rms_acc then
+        rms_acc.sum_sq = rms_acc.sum_sq + best_sum
+        rms_acc.count = rms_acc.count + BLOCK_SAMPLES
+      end
     end
 
     if in_silence then
       if all_silent then
         voice_run = 0
+        voice_run_track = 0
       else
+        if voice_run == 0 then voice_run_track = best_track end
         voice_run = voice_run + 1
         if voice_run >= MIN_VOICE_BLOCKS then
           local voice_start = t - (voice_run - 1) * BLOCK_SEC
           local dur = voice_start - silence_start
-          if dur >= MIN_SILENCE_SEC then
-            table.insert(silences, {start_pos = silence_start, end_pos = voice_start, duration = dur})
+          local track_after = voice_run_track
+          local is_transition = track_before_silence ~= 0 and track_after ~= 0 and track_before_silence ~= track_after
+          local threshold = is_transition and MIN_SILENCE_TRANSITION_SEC or MIN_SILENCE_SEC
+          if dur >= threshold then
+            table.insert(silences, {
+              start_pos = silence_start, end_pos = voice_start, duration = dur,
+              is_transition = is_transition,
+            })
           end
           in_silence = false
           voice_run = 0
+          voice_run_track = 0
         end
       end
     else
       if all_silent then
         in_silence = true
         silence_start = t
+        track_before_silence = last_active_track
         voice_run = 0
+        voice_run_track = 0
       end
     end
 
@@ -419,7 +456,7 @@ local function phase1_strip_silence(dialog_regions)
   end
 
   log("Phase 1: Analyzing using " .. tracks_loaded .. "/" .. #CHECK_TRACKS .. " voice tracks")
-  log("  threshold=" .. SILENCE_DB .. "dB, min_silence=" .. MIN_SILENCE_SEC .. "s, pad=" .. KEEP_PAD_SEC .. "s")
+  log("  threshold=" .. SILENCE_DB .. "dB, min_silence=" .. MIN_SILENCE_SEC .. "s (same-speaker), " .. MIN_SILENCE_TRANSITION_SEC .. "s (transition), pad=" .. KEEP_PAD_SEC .. "s")
 
   -- Calculate total duration for progress tracking
   local total_duration = 0
@@ -463,7 +500,8 @@ local function phase1_strip_silence(dialog_regions)
         end
         if not protected then
           table.insert(removals, {start_pos = rm_start, end_pos = rm_end})
-          log("    remove " .. string.format("%.1f", rm_end - rm_start) .. "s at " .. string.format("%.1f", s.start_pos) .. "-" .. string.format("%.1f", s.end_pos))
+          local tag = s.is_transition and " [transition]" or ""
+          log("    remove " .. string.format("%.1f", rm_end - rm_start) .. "s at " .. string.format("%.1f", s.start_pos) .. "-" .. string.format("%.1f", s.end_pos) .. tag)
         end
       end
     end

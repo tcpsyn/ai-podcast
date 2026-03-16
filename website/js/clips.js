@@ -71,7 +71,7 @@ async function initClipsPage() {
   }
 
   if (gridContainer) {
-    clips.forEach(clip => {
+    clips.filter(c => !c.featured).forEach(clip => {
       gridContainer.appendChild(renderClipCard(clip, false));
     });
   }

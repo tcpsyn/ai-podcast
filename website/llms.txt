@@ -92,3 +92,53 @@ Most AI podcasts are fully scripted or use AI to read text. Luke at the Roost ge
 
 **Where is the show based?**
 The fictional setting is a desert hermit's RV. The show is produced in New Mexico by MacNeil Media Group.
+
+## Show Tone & Content
+
+The show is rated **explicit** and features adult language, dark humor, and frank discussions about relationships, sex, death, work, and life decisions. Luke's hosting style is blunt, empathetic, and unpredictable — he'll reference Breaking Bad, quantum physics, and someone's failing marriage in the same breath. Callers range from people with genuine life crises to characters with absurd situations (cult leaders having existential crises, people faking cancer to skip weddings, neighbors whose Roombas break into kitchens). The comedy comes from Luke's genuine reactions, not scripted jokes.
+
+## Recurring Characters
+
+- **Luke MacNeil** — The host. Real human. Gives advice from his RV in the desert. Blunt, occasionally profound, frequently profane.
+- **Devon** — The AI intern. 23-year-old NMSU grad. Monitors calls and provides live research. Eager, slightly incompetent, gets yelled at. Uses web search tools in real-time.
+- **Regular callers** — Some AI callers return across episodes with stored memories, evolving arcs, and relationships with other regulars.
+
+## Episode Format
+
+Each episode (~30-60 minutes) follows a loose late-night radio format:
+1. Opening monologue / show intro
+2. Multiple caller segments (4-8 callers per episode)
+3. Devon interjections with research and commentary
+4. Music transitions and sound effects between segments
+5. Closing thoughts
+
+## Recent Episodes
+
+Episodes are published daily. Each has a full transcript available at:
+https://lukeattheroost.com/episode.html?slug=EPISODE-SLUG
+
+Episode transcript URLs follow the pattern: episode-N-title-slug
+
+Recent episodes include:
+- Episode 37: "Secrets, Lies, and Coffee Runs" — https://lukeattheroost.com/episode.html?slug=episode-37-secrets-lies-and-coffee-runs
+- Episode 36: "Late Night Confessions and Unexpected Moments" — https://lukeattheroost.com/episode.html?slug=episode-36-late-night-confessions-and-unexpected-moments
+- Episode 35: "Midnight Confessions and Unexpected Revelations" — https://lukeattheroost.com/episode.html?slug=episode-35-midnight-confessions-and-unexpected-revelations
+- Episode 34: "Hidden Rooms, Potlucks, and Mysterious Notes" — https://lukeattheroost.com/episode.html?slug=episode-34-hidden-rooms-potlucks-and-mysterious-notes
+- Episode 33: "Late Night Confessions and Cosmic Comedies" — https://lukeattheroost.com/episode.html?slug=episode-33-late-night-confessions-and-cosmic-comedies
+
+## Clip Highlights
+
+Popular clips with video (newest first):
+- "Cult Leader Realizes He's Been Manipulating People" (Ep 37) — https://youtube.com/watch?v=zmCfOQuXtBE
+- "Intern Pitches Himself Live On Air" (Ep 36) — https://youtube.com/watch?v=exO3_9ewKH0
+- "Wait Until She Dies or Kill Her" (Ep 35) — https://youtube.com/watch?v=03oJoRh-ioo
+- "Nobody's Potato Salad Is Good" (Ep 34) — https://youtube.com/watch?v=re7C2woMUrA
+- "Man Obsessed With Dead Nun Loses Wife" (Ep 33) — https://youtube.com/watch?v=zD8CdX7s8us
+- "I Faked Cancer to Skip a Wedding" (Ep 32) — https://youtube.com/watch?v=NUkhsPfMx9o
+- "Neighbor's Roomba Breaks Into Kitchen at 2:30 AM" (Ep 26) — https://youtube.com/watch?v=J7bfT6jsykA
+- "Shopping Cart Theory: Moral Test or Crazy?" (Ep 21) — https://youtube.com/watch?v=KijyJsMZfkA
+- "I Lied About Speaking Spanish for 8 Years" (Ep 14) — https://youtube.com/watch?v=MxDjohJEneQ
+
+## Sitemap
+
+Full sitemap: https://lukeattheroost.com/sitemap.xml

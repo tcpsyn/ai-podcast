@@ -33,3 +33,7 @@ User-agent: Meta-ExternalAgent
 Allow: /
 
 Sitemap: https://lukeattheroost.com/sitemap.xml
+
+# LLM-optimized content
+# See https://llmstxt.org
+LLMs-txt: https://lukeattheroost.com/llms.txt
