@@ -439,7 +439,7 @@ def _create_episode_direct(audio_path: str, metadata: dict, episode_number: int,
 
     # Docker cp into Castopod container
     print("    Copying into Castopod container...")
-    media_path = f"/var/www/castopod/public/media/{file_key}"
+    media_path = f"/app/public/media/{file_key}"
     cp_cmd = f'{DOCKER_PATH} cp {nas_tmp} {CASTOPOD_CONTAINER}:{media_path}'
     success, output = run_ssh_command(cp_cmd, timeout=120)
     if not success:
@@ -673,7 +673,7 @@ def upload_transcript_to_castopod(episode_slug: str, episode_id: int, transcript
         print(f"    Warning: SCP transcript failed: {result.stderr}")
         return False
 
-    media_path = f"/var/www/castopod/public/media/{remote_path}"
+    media_path = f"/app/public/media/{remote_path}"
     run_ssh_command(f'{DOCKER_PATH} cp {nas_tmp} {CASTOPOD_CONTAINER}:{media_path}', timeout=60)
     run_ssh_command(f'{DOCKER_PATH} exec {CASTOPOD_CONTAINER} chown www-data:www-data {media_path}')
     run_ssh_command(f'rm -f {nas_tmp}')
@@ -690,7 +690,7 @@ def upload_transcript_to_castopod(episode_slug: str, episode_id: int, transcript
         subprocess.run(scp_json, capture_output=True, text=True, timeout=60)
         os.remove(json_tmp_local.name)
 
-        json_media_path = f"/var/www/castopod/public/media/{json_key}"
+        json_media_path = f"/app/public/media/{json_key}"
         run_ssh_command(f'{DOCKER_PATH} cp {nas_json_tmp} {CASTOPOD_CONTAINER}:{json_media_path}', timeout=60)
         run_ssh_command(f'{DOCKER_PATH} exec {CASTOPOD_CONTAINER} chown www-data:www-data {json_media_path}')
         run_ssh_command(f'rm -f {nas_json_tmp}')
@@ -750,7 +750,7 @@ def upload_chapters_to_castopod(episode_slug: str, episode_id: int, chapters_pat
     chapters_b64 = base64.b64encode(chapters_content.encode()).decode()
 
     # Upload file to container using base64 decode
-    upload_cmd = f'echo "{chapters_b64}" | base64 -d | {DOCKER_PATH} exec -i {CASTOPOD_CONTAINER} tee /var/www/castopod/public/media/{remote_path} > /dev/null'
+    upload_cmd = f'echo "{chapters_b64}" | base64 -d | {DOCKER_PATH} exec -i {CASTOPOD_CONTAINER} tee /app/public/media/{remote_path} > /dev/null'
     success, output = run_ssh_command(upload_cmd)
     if not success:
         print(f"    Warning: Failed to upload chapters file: {output}")
@@ -817,7 +817,7 @@ def download_from_castopod(file_key: str, local_path: str) -> bool:
     """Download a file from Castopod's container storage to local filesystem."""
     remote_filename = Path(file_key).name
     remote_tmp = f"/share/CACHEDEV1_DATA/tmp/castopod_{remote_filename}"
-    cp_cmd = f'{DOCKER_PATH} cp {CASTOPOD_CONTAINER}:/var/www/castopod/public/media/{file_key} {remote_tmp}'
+    cp_cmd = f'{DOCKER_PATH} cp {CASTOPOD_CONTAINER}:/app/public/media/{file_key} {remote_tmp}'
     success, _ = run_ssh_command(cp_cmd, timeout=120)
     if not success:
         return False

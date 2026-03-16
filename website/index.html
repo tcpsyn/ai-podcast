@@ -31,7 +31,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <link rel="alternate" type="application/rss+xml" title="Luke at the Roost RSS Feed" href="https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml">
-  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/style.css?v=6">
 
   <!-- Structured Data -->
   <script type="application/ld+json">
@@ -117,10 +117,11 @@
 
   <!-- Hero -->
   <section class="hero">
-    <div class="hero-inner hero-inner--full">
-      <div class="hero-info hero-info--centered">
+    <div class="hero-grid">
+      <div class="hero-text">
         <h1 class="sr-only">Luke at the Roost</h1>
-        <p class="tagline tagline--hero">The call-in talk show where Luke gives life advice to biologically questionable organisms.</p>
+        <p class="tagline tagline--hero">Every caller is AI. Every conversation is real. Every episode is a disaster.</p>
+        <p class="tagline tagline--sub">The call-in talk show where Luke gives life advice to biologically questionable organisms.</p>
         <div class="phone" id="phone-section">
           <div class="on-air-badge" id="on-air-badge">
             <span class="on-air-dot"></span>
@@ -152,23 +153,25 @@
             </a>
           </div>
         </div>
-        <div class="secondary-links">
-          <a href="/how-it-works" class="secondary-link">How It Works</a>
-          <span class="secondary-sep">&middot;</span>
-          <a href="/clips" class="secondary-link">Clips</a>
-          <span class="secondary-sep">&middot;</span>
-          <a href="https://discord.gg/5CnQZxDM" target="_blank" rel="noopener" class="secondary-link">Discord</a>
-          <span class="secondary-sep">&middot;</span>
-          <a href="https://ko-fi.com/lukemacneil" target="_blank" rel="noopener" class="secondary-link support-link">Support the Show</a>
+        <div class="hero-links">
+          <a href="/how-it-works">How It Works</a>
+          <span class="hero-links-sep">&middot;</span>
+          <a href="https://ko-fi.com/lukemacneil" target="_blank" rel="noopener" class="support-link">Support the Show</a>
         </div>
-        <p class="hero-about">Late-night call-in radio from a desert hermit's RV. Callers ring in with relationship disasters, workplace chaos, and life's dumbest decisions — and Luke tries to help. Sometimes it works. Sometimes it makes things worse.</p>
-        <p class="hero-about hero-about--bold">Part human callers, part AI-generated characters, fully unhinged advice. Each AI caller is generated in real-time with a unique personality, backstory, and voice — powered by large language models and custom text-to-speech. 37+ episodes and counting.</p>
-        <p class="hero-cta"><a href="/how-it-works">See how it works</a></p>
       </div>
     </div>
   </section>
 
-  <!-- Featured Clips -->
+  <!-- Social Proof Strip -->
+  <section class="proof-strip">
+    <div class="proof-strip-inner">
+      <blockquote class="proof-quote">"I've been Diane for seven months and I can't stop."<cite>— Not Diane, Ep. 24</cite></blockquote>
+      <blockquote class="proof-quote">"I tasted the exit sign. Like green metal in my mouth."<cite>— Floyd, Ep. 15</cite></blockquote>
+      <blockquote class="proof-quote">"I'm holding his dogs until he pays up. All three of them."<cite>— Mavis, Ep. 24</cite></blockquote>
+    </div>
+  </section>
+
+  <!-- Best Clips -->
   <section class="home-clips-section">
     <div class="home-clips-header">
       <h2>Best Clips</h2>
@@ -177,9 +180,15 @@
     <div class="home-clips-grid" id="home-clips"></div>
   </section>
 
+  <!-- Featured Episode -->
+  <section class="featured-episode-section">
+    <h2>Latest Episode</h2>
+    <div id="featured-episode"></div>
+  </section>
+
   <!-- Episodes -->
   <section class="episodes-section">
-    <h2>Episodes</h2>
+    <h2 id="episodes-heading">Episodes</h2>
     <div class="episodes-list" id="episodes-list">
       <div class="episodes-loading">Loading episodes...</div>
     </div>
@@ -296,6 +305,6 @@
   <script src="js/clips.js"></script>
   <script>renderFeaturedClipsInline('home-clips');</script>
   <script src="js/player.js"></script>
-  <script src="js/app.js?v=5"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 </html>

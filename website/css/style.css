@@ -139,49 +139,21 @@ a:hover {
   padding: 3rem 1.5rem 2.5rem;
   max-width: 900px;
   margin: 0 auto;
-  text-align: center;
 }
 
-.hero-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.hero-inner--full {
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-.hero-info {
+.hero-grid {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
 }
 
-.hero-info--centered {
+.hero-text {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: 0.5rem;
   text-align: center;
-}
-
-.hero-about {
-  font-size: 1.05rem;
-  color: var(--text-muted);
-  line-height: 1.7;
-  max-width: 600px;
-  margin: 0.75rem auto 0;
-}
-
-.hero-about--bold {
-  color: var(--text);
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.hero-cta {
-  margin-top: 0.5rem;
 }
 
 .hero h1 {
@@ -193,15 +165,185 @@ a:hover {
 .tagline {
   font-size: 1.2rem;
   color: var(--text-muted);
-  max-width: 500px;
   line-height: 1.5;
 }
 
 .tagline--hero {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   color: var(--text);
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.3;
   max-width: 600px;
+}
+
+.tagline--sub {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+/* Social Proof Strip */
+.proof-strip {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem;
+  border-top: 1px solid #2a2015;
+  border-bottom: 1px solid #2a2015;
+}
+
+.hero-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.hero-links a {
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.hero-links a:hover {
+  color: var(--accent);
+}
+
+.hero-links .support-link {
+  color: var(--accent);
+}
+
+.hero-links-sep {
+  color: var(--text-dim);
+}
+
+.proof-strip-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.proof-quote {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-style: italic;
+  line-height: 1.5;
+  text-align: center;
+  margin: 0;
+}
+
+.proof-quote cite {
+  display: block;
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 0.35rem;
+  font-weight: 600;
+}
+
+/* About Q&A */
+.about-qa {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.about-qa-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin: 0 auto;
+}
+
+.qa-item {
+  text-align: center;
+}
+
+.qa-q {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+
+.qa-a {
+  font-size: 1rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.qa-stat {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  margin-top: 1rem;
+  grid-column: 1 / -1;
+}
+
+/* Featured Episode */
+.featured-episode-section {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 2rem;
+}
+
+.featured-episode-section h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.featured-episode-card {
+  background: #252015;
+  border-radius: var(--radius);
+  border-left: 3px solid var(--accent);
+  padding: 1.5rem 1.5rem 1.5rem 2rem;
+}
+
+.featured-episode-meta {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+}
+
+.featured-episode-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.featured-episode-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.featured-episode-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.featured-play-btn {
+  width: 48px;
+  height: 48px;
+}
+
+.featured-play-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.featured-episode-actions .episode-transcript-link {
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+.featured-episode-actions .episode-share-btn {
+  margin-left: auto;
 }
 
 .phone {
@@ -341,39 +483,7 @@ a:hover {
 }
 
 /* Secondary links — How It Works, Discord, Support */
-.secondary-links {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.secondary-link {
-  font-size: 0.85rem;
-  color: var(--text-dim);
-  transition: color 0.2s;
-}
-
-.secondary-link:hover {
-  color: var(--accent);
-}
-
-.secondary-sep {
-  color: var(--text-dim);
-  font-size: 0.85rem;
-}
-
-.support-link {
-  color: var(--accent);
-  opacity: 1;
-  font-weight: 600;
-}
-
-.support-link:hover {
-  color: var(--accent-hover);
-}
+/* Secondary links removed — nav handles these now */
 
 /* Episodes */
 .episodes-section {
@@ -1795,10 +1905,6 @@ a:hover {
     max-width: 1000px;
   }
 
-  .hero-inner {
-    gap: 2rem;
-  }
-
   .hero h1 {
     font-size: 2.8rem;
   }
@@ -1808,6 +1914,18 @@ a:hover {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+  }
+
+  .proof-strip {
+    padding: 1.5rem 2rem;
+  }
+
+  .about-qa {
+    padding: 3rem 2rem;
+  }
+
+  .featured-episode-section {
+    padding: 0 2rem 2rem;
   }
 
   .episodes-section {
@@ -1899,6 +2017,19 @@ a:hover {
     font-size: 2rem;
   }
 
+  .tagline--hero {
+    font-size: 1.2rem;
+  }
+
+  .proof-strip-inner {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .about-qa-inner {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
 
   .page-header h1 {
     font-size: 2rem;

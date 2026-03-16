@@ -32,6 +32,12 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function stripHtml(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html || '';
+  return div.textContent || '';
+}
+
 // Strip HTML tags and truncate at word boundary (returns escaped text safe for innerHTML)
 function truncate(html, maxLen) {
   const div = document.createElement('div');
@@ -51,7 +57,7 @@ function truncate(html, maxLen) {
 // SVG icons
 const playSVG = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
 const pauseSVG = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
-const shareSVG = '<svg viewBox="0 0 24 24"><path d="M16 5l-1.42 1.42-1.59-1.59V16h-2V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2V10a2 2 0 012-2h3v2H6v11h12V10h-3V8h3a2 2 0 012 2z"/></svg>';
+const shareSVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5l-1.42 1.42-1.59-1.59V16h-2V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2V10a2 2 0 012-2h3v2H6v11h12V10h-3V8h3a2 2 0 012 2z"/></svg>';
 
 // Fetch with timeout
 function fetchWithTimeout(url, ms = 8000) {
@@ -78,6 +84,44 @@ async function shareContent(title, url, btn) {
   } catch (e) {
     prompt('Copy this link:', url);
   }
+}
+
+function createFeaturedCard(ep) {
+  const card = document.createElement('div');
+  card.className = 'featured-episode-card';
+
+  const epLabel = ep.episodeNum ? `Episode ${ep.episodeNum}` : '';
+  const dateStr = ep.pubDate ? formatDate(ep.pubDate) : '';
+  const durStr = parseDuration(ep.duration);
+  const metaParts = [epLabel, dateStr, durStr].filter(Boolean).join(' &middot; ');
+  const epSlug = ep.link ? ep.link.split('/episodes/').pop()?.replace(/\/$/, '') : '';
+  const fullDesc = escapeAttr(stripHtml(ep.description));
+
+  card.innerHTML = `
+    <div class="featured-episode-meta">
+      <span class="episode-new-badge">NEW</span> ${metaParts}
+    </div>
+    <div class="featured-episode-title">${escapeAttr(ep.title)}</div>
+    <div class="featured-episode-desc">${fullDesc}</div>
+    <div class="featured-episode-actions">
+      <button class="episode-play-btn featured-play-btn" aria-label="Play ${escapeAttr(ep.title)}">
+        ${playSVG}
+      </button>
+      ${epSlug ? `<a href="/episode.html?slug=${encodeURIComponent(epSlug)}" class="episode-transcript-link">Read Transcript</a>` : ''}
+      <button class="episode-share-btn" aria-label="Share episode">${shareSVG}</button>
+    </div>
+  `;
+
+  const playBtn = card.querySelector('.featured-play-btn');
+  playBtn.addEventListener('click', () => playEpisode(ep.audioUrl, ep.title, card, playBtn));
+
+  const shareBtn = card.querySelector('.episode-share-btn');
+  const shareUrl = epSlug
+    ? `${window.location.origin}/episode.html?slug=${encodeURIComponent(epSlug)}`
+    : window.location.origin;
+  shareBtn.addEventListener('click', () => shareContent(ep.title, shareUrl, shareBtn));
+
+  return card;
 }
 
 // Fetch and parse RSS feed
@@ -125,7 +169,20 @@ async function fetchEpisodes() {
 }
 
 function renderEpisodes(episodes) {
-  allEpisodes = episodes;
+  // Featured episode — render newest into dedicated container
+  const featuredContainer = document.getElementById('featured-episode');
+  if (featuredContainer && episodes.length > 0) {
+    featuredContainer.innerHTML = '';
+    featuredContainer.appendChild(createFeaturedCard(episodes[0]));
+    allEpisodes = episodes.slice(1);
+  } else {
+    allEpisodes = episodes;
+  }
+
+  // Update heading with total episode count
+  const heading = document.getElementById('episodes-heading');
+  if (heading) heading.textContent = `All Episodes (${episodes.length})`;
+
   displayedCount = 0;
   episodesList.innerHTML = '';
   showMoreEpisodes();
@@ -169,12 +226,8 @@ function createEpisodeCard(ep) {
 
 function showMoreEpisodes() {
   const batch = allEpisodes.slice(displayedCount, displayedCount + EPISODES_PER_PAGE);
-  batch.forEach((ep, i) => {
-    const card = createEpisodeCard(ep);
-    if (displayedCount === 0 && i === 0) {
-      card.querySelector('.episode-meta').insertAdjacentHTML('afterbegin', '<span class="episode-new-badge">NEW</span> ');
-    }
-    episodesList.appendChild(card);
+  batch.forEach((ep) => {
+    episodesList.appendChild(createEpisodeCard(ep));
   });
   displayedCount += batch.length;
 
