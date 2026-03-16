@@ -51,12 +51,33 @@ function truncate(html, maxLen) {
 // SVG icons
 const playSVG = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
 const pauseSVG = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+const shareSVG = '<svg viewBox="0 0 24 24"><path d="M16 5l-1.42 1.42-1.59-1.59V16h-2V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2V10a2 2 0 012-2h3v2H6v11h12V10h-3V8h3a2 2 0 012 2z"/></svg>';
 
 // Fetch with timeout
 function fetchWithTimeout(url, ms = 8000) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), ms);
   return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timeout));
+}
+
+async function shareContent(title, url, btn) {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, url });
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    const orig = btn.innerHTML;
+    btn.innerHTML = 'Copied!';
+    btn.classList.add('share-copied');
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('share-copied'); }, 2000);
+  } catch (e) {
+    prompt('Copy this link:', url);
+  }
 }
 
 // Fetch and parse RSS feed
@@ -130,19 +151,30 @@ function createEpisodeCard(ep) {
       <div class="episode-title">${escapeAttr(ep.title)}</div>
       <div class="episode-desc">${truncate(ep.description, 150)}</div>
       ${epSlug ? `<a href="/episode.html?slug=${encodeURIComponent(epSlug)}" class="episode-transcript-link">Read Transcript</a>` : ''}
+      <button class="episode-share-btn" aria-label="Share episode">${shareSVG}</button>
     </div>
   `;
 
   const btn = card.querySelector('.episode-play-btn');
   btn.addEventListener('click', () => playEpisode(ep.audioUrl, ep.title, card, btn));
 
+  const shareBtn = card.querySelector('.episode-share-btn');
+  const shareUrl = epSlug
+    ? `${window.location.origin}/episode.html?slug=${encodeURIComponent(epSlug)}`
+    : window.location.origin;
+  shareBtn.addEventListener('click', () => shareContent(ep.title, shareUrl, shareBtn));
+
   return card;
 }
 
 function showMoreEpisodes() {
   const batch = allEpisodes.slice(displayedCount, displayedCount + EPISODES_PER_PAGE);
-  batch.forEach((ep) => {
-    episodesList.appendChild(createEpisodeCard(ep));
+  batch.forEach((ep, i) => {
+    const card = createEpisodeCard(ep);
+    if (displayedCount === 0 && i === 0) {
+      card.querySelector('.episode-meta').insertAdjacentHTML('afterbegin', '<span class="episode-new-badge">NEW</span> ');
+    }
+    episodesList.appendChild(card);
   });
   displayedCount += batch.length;
 
@@ -185,6 +217,7 @@ function playEpisode(url, title, card, btn) {
 
   playerTitle.textContent = title;
   stickyPlayer.classList.add('active');
+  if (stickyCta) stickyCta.classList.add('player-active');
 }
 
 // Episode card icon sync (sticky player icons handled by player.js)
@@ -293,6 +326,18 @@ function checkOnAir() {
       if (phone) phone.classList.toggle('live', live);
     })
     .catch(() => {});
+}
+
+// Sticky CTA — show after scrolling past hero
+const stickyCta = document.getElementById('sticky-cta');
+const heroSection = document.querySelector('.hero');
+if (stickyCta && heroSection) {
+  const ctaObserver = new IntersectionObserver(([entry]) => {
+    const show = !entry.isIntersecting;
+    stickyCta.classList.toggle('visible', show);
+    stickyCta.setAttribute('aria-hidden', String(!show));
+  }, { threshold: 0 });
+  ctaObserver.observe(heroSection);
 }
 
 // Init

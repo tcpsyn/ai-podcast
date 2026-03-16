@@ -41,10 +41,42 @@ function initFooter() {
         <a href="https://youtube.com/lukemacneil" target="_blank" rel="noopener">YouTube</a>
       </div>
     </div>
+    <div class="footer-newsletter">
+      <p class="footer-newsletter-text">Also from Luke: <strong class="footer-newsletter-name">The Daily AI Briefing</strong> — curated insights on AI infrastructure, automation, and engineering.</p>
+      <form class="footer-newsletter-form" id="footer-newsletter-form">
+        <input type="email" class="footer-newsletter-input" placeholder="your@email.com" required aria-label="Email address">
+        <button type="submit" class="footer-newsletter-btn">Subscribe</button>
+      </form>
+      <p class="footer-newsletter-success" id="footer-newsletter-success" hidden>You're subscribed to the Daily AI Briefing.</p>
+    </div>
     <p class="footer-contact"><a href="https://ko-fi.com/lukemacneil" target="_blank" rel="noopener">Support the Show</a></p>
     <p class="footer-contact">Sales &amp; Collaboration: <a href="mailto:luke@lukeattheroost.com">luke@lukeattheroost.com</a></p>
     <p>&copy; 2026 Luke at the Roost &middot; <a href="/privacy">Privacy Policy</a> &middot; <a href="/terms">Terms of Service</a> &middot; <a href="https://monitoring.macneilmediagroup.com/status/lukeattheroost" target="_blank" rel="noopener">System Status</a></p>
   `;
+
+  const form = document.getElementById('footer-newsletter-form');
+  const success = document.getElementById('footer-newsletter-success');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector('.footer-newsletter-btn');
+      const email = form.querySelector('.footer-newsletter-input').value;
+      btn.disabled = true;
+      btn.textContent = 'Subscribing...';
+      try {
+        await fetch('https://mmg-form-handler.luke-3b5.workers.dev/api/lead-magnet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, source: 'lukeattheroost-footer' })
+        });
+        form.hidden = true;
+        success.hidden = false;
+      } catch {
+        btn.disabled = false;
+        btn.textContent = 'Subscribe';
+      }
+    });
+  }
 }
 
 initFooter();
