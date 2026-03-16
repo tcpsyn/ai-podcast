@@ -184,6 +184,13 @@ a:hover {
   line-height: 1.5;
 }
 
+.tagline--hero {
+  font-size: 1.4rem;
+  color: var(--text);
+  font-weight: 600;
+  max-width: 600px;
+}
+
 .phone {
   display: flex;
   align-items: center;

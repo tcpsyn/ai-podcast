@@ -25,14 +25,19 @@ class AvatarService:
 
     async def get_or_fetch(self, name: str, gender: str = "male") -> Path:
         """Get cached avatar or fetch from randomuser.me. Returns file path."""
+        g = "female" if gender.lower().startswith("f") else "male"
         path = AVATAR_DIR / f"{name}.jpg"
+        # Check for gender mismatch marker — re-fetch if gender changed
+        marker = AVATAR_DIR / f"{name}.gender"
         if path.exists():
-            return path
+            cached_gender = marker.read_text().strip() if marker.exists() else None
+            if cached_gender == g:
+                return path
+            # Gender mismatch or no marker — re-fetch
+            path.unlink(missing_ok=True)
 
         try:
-            # Seed includes gender so same name + different gender = different face
-            seed = f"{name.lower().replace(' ', '_')}_{gender.lower()}"
-            g = "female" if gender.lower().startswith("f") else "male"
+            seed = f"{name.lower().replace(' ', '_')}_{g}"
             resp = await self.client.get(
                 "https://randomuser.me/api/",
                 params={"gender": g, "seed": seed},
@@ -42,11 +47,11 @@ class AvatarService:
             data = resp.json()
             photo_url = data["results"][0]["picture"]["large"]
 
-            # Download the photo
             photo_resp = await self.client.get(photo_url, timeout=8.0)
             photo_resp.raise_for_status()
 
             path.write_bytes(photo_resp.content)
+            marker.write_text(g)
             print(f"[Avatar] Fetched avatar for {name} ({g})")
             return path
         except Exception as e:

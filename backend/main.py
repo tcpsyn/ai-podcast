@@ -147,7 +147,7 @@ ELEVENLABS_MALE_VOICES.append("SAz9YHcvj6GT2YYXdXww")   # River - Neutral
 ELEVENLABS_FEMALE_VOICES.append("SAz9YHcvj6GT2YYXdXww")  # River - Neutral
 
 # Voices to never assign to callers (annoying, bad quality, etc.)
-BLACKLISTED_VOICES = {"Evelyn", "Sebastian"}  # Sebastian reserved for Silas
+BLACKLISTED_VOICES = {"Evelyn", "Sebastian", "Celeste"}  # Sebastian reserved for Silas
 
 
 def _get_voice_pools():
