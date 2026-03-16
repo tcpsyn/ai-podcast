@@ -5609,7 +5609,8 @@ def _match_voices_to_styles():
             continue
 
         gender = base["gender"]
-        voice_pool = list(INWORLD_MALE_VOICES if gender == "male" else INWORLD_FEMALE_VOICES)
+        pool = INWORLD_MALE_VOICES if gender == "male" else INWORLD_FEMALE_VOICES
+        voice_pool = [v for v in pool if v not in BLACKLISTED_VOICES]
 
         scored = []
         for voice_name in voice_pool:

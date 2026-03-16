@@ -136,12 +136,9 @@ a:hover {
   gap: 1.5rem;
 }
 
-.cover-art {
-  width: 260px;
-  height: 260px;
-  border-radius: var(--radius);
-  box-shadow: 0 8px 32px rgba(232, 121, 29, 0.25);
-  object-fit: cover;
+.hero-inner--full {
+  max-width: 700px;
+  margin: 0 auto;
 }
 
 .hero-info {
@@ -149,6 +146,29 @@ a:hover {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+}
+
+.hero-info--centered {
+  align-items: center;
+  text-align: center;
+}
+
+.hero-about {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 600px;
+  margin: 0.75rem auto 0;
+}
+
+.hero-about--bold {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.hero-cta {
+  margin-top: 0.5rem;
 }
 
 .hero h1 {
@@ -1721,33 +1741,7 @@ a:hover {
   );
 }
 
-/* About Section */
-.about-section {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 1.5rem 1.5rem 2.5rem;
-  text-align: center;
-  border-top: 1px solid #2a2015;
-  border-bottom: 1px solid #2a2015;
-}
-
-.about-section p {
-  font-size: 1.05rem;
-  color: var(--text-muted);
-  line-height: 1.7;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.about-section p + p {
-  margin-top: 0.75rem;
-}
-
-p.about-teaser {
-  color: var(--text);
-  font-weight: 600;
-  font-size: 1.1rem;
-}
+/* About Section (legacy — now merged into hero) */
 
 /* Featured Clips (homepage) */
 .home-clips-section {
@@ -1782,39 +1776,18 @@ p.about-teaser {
   }
 
   .hero-inner {
-    flex-direction: row;
-    text-align: left;
-    gap: 2.5rem;
-    align-items: center;
-  }
-
-  .hero-info {
-    align-items: flex-start;
-  }
-
-  .cover-art {
-    width: 280px;
-    height: 280px;
-    flex-shrink: 0;
+    gap: 2rem;
   }
 
   .hero h1 {
     font-size: 2.8rem;
   }
 
-  .phone {
-    justify-content: flex-start;
-  }
-
   .subscribe-row {
     flex-direction: row;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 0.5rem;
-  }
-
-  .secondary-links {
-    justify-content: flex-start;
   }
 
   .episodes-section {
@@ -1854,9 +1827,6 @@ p.about-teaser {
     padding: 0 2rem 2.5rem;
   }
 
-  .about-section {
-    padding: 1.5rem 2rem 2.5rem;
-  }
 
   .site-nav {
     padding: 1rem 2rem;
@@ -1909,10 +1879,6 @@ p.about-teaser {
     font-size: 2rem;
   }
 
-  .cover-art {
-    width: 200px;
-    height: 200px;
-  }
 
   .page-header h1 {
     font-size: 2rem;
