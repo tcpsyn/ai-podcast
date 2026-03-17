@@ -959,6 +959,222 @@
       "pool": "GOSSIP",
       "timestamp": 1773558490.76909,
       "session_id": "11f1bf06"
+    },
+    {
+      "reason": "found a perfectly preserved butterfly inside a sealed mason jar in their attic \u2014 the jar has no lid and no visible opening, the butterfly is just inside solid glass",
+      "pool": "WEIRD",
+      "timestamp": 1773646177.124931,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "found a journal in a used car they bought and it's full of detailed entries about a life falling apart \u2014 they can't stop reading it",
+      "pool": "PROBLEMS",
+      "timestamp": 1773646177.1446521,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "the woman who runs the neighborhood Facebook group's 'crime watch' reports are almost entirely about her personal feuds disguised as safety concerns",
+      "pool": "GOSSIP",
+      "timestamp": 1773646177.146471,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "their kid's coach is clearly favoring their own child for playing time and it's affecting the team \u2014 other parents are grumbling but nobody wants to be the one to say something",
+      "pool": "ADVICE",
+      "timestamp": 1773646177.149646,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "is fed up with loyalty programs and points systems that are designed to be confusing on purpose",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773646177.151716,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "found out their father isn't their biological father through a DNA test \u2014 their mother confessed when confronted but their father doesn't know they know",
+      "pool": "ADVICE",
+      "timestamp": 1773646177.153644,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "is fed up with restaurants that dim the lights so low you need your phone flashlight to read the menu",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773646177.155104,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "found out their partner has been faking it for years and only admitted it because a conversation about {fetish_detail} finally made them honest about what they actually want",
+      "pool": "PROBLEMS",
+      "timestamp": 1773646177.1599412,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "is convinced that deep dish pizza isn't pizza \u2014 it's a casserole \u2014 and Chicago needs to accept that",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773646177.161846,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "thinks nuclear power is making a comeback and wants to argue that it's actually the greenest option we have",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773646184.286796,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "is high and has been googling deep sea creatures for three hours and is now afraid of the ocean \u2014 needs to talk about the goblin shark",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773646184.371757,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "their coworker confessed to stealing from the company and asked them to keep quiet \u2014 it's been eating at them for weeks",
+      "pool": "PROBLEMS",
+      "timestamp": 1773646185.7221801,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "thinks self-checkout machines are just stores making you do free labor and then getting mad when you mess up",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773646186.053767,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "found a jar of pennies buried in their backyard, all from the same year \u2014 1977 \u2014 and there are exactly 365 of them",
+      "pool": "WEIRD",
+      "timestamp": 1773646186.151602,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "has been pretending to know how to swim for their entire adult life and their spouse just booked a Caribbean cruise with a snorkeling excursion for their anniversary \u2014 they leave in three weeks and googled 'how to swim' last night and immediately closed the laptop when their wife walked in",
+      "pool": "PROBLEMS",
+      "timestamp": 1773646186.482605,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "caught their roommate {sex_situation} and now they can't make eye contact \u2014 the roommate acts like nothing happened but it was extremely {fetish_detail}-adjacent",
+      "pool": "PROBLEMS",
+      "timestamp": 1773646186.573503,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "their kid's coach has been playing favorites and their kid hasn't seen the field in five games \u2014 they don't want to be 'that parent' but the kid is losing confidence",
+      "pool": "PROBLEMS",
+      "timestamp": 1773646186.6736908,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "believes people who humble-brag about how busy they are just have bad time management",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773646190.210266,
+      "session_id": "6def7993"
+    },
+    {
+      "reason": "their car's trip odometer resets itself to 0.0 every time they park at the grocery store \u2014 only at the grocery store, nowhere else \u2014 and it's been doing it for five months since they had the oil changed",
+      "pool": "WEIRD",
+      "timestamp": 1773696320.855356,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "their town had a power outage and everyone went outside and hung out in the street for three hours \u2014 it was the best night they've had in years and they're weirdly hoping it happens again",
+      "pool": "STORIES",
+      "timestamp": 1773696320.87394,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "thinks couples who share a single social media account are hiding something and everyone knows it",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773696320.876276,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "their town's only restaurant changed the recipe for the green chile and there's a petition with 200 signatures demanding they change it back \u2014 the caller started the petition",
+      "pool": "STORIES",
+      "timestamp": 1773696320.87835,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "had a near-death experience during a flash flood in a wash and the way time slowed down changed something fundamental in how they see each day",
+      "pool": "TOPIC_CALLIN",
+      "timestamp": 1773696320.880057,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "found out their coworker who drives a new BMW and wears designer clothes is completely broke \u2014 the coworker accidentally left a bank statement on the printer showing a negative balance",
+      "pool": "GOSSIP",
+      "timestamp": 1773696320.8830059,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "has been having phone sex with a stranger they met on a late-night chat line for six months \u2014 they know the person's voice better than their spouse's and they've started comparing the two out loud by accident",
+      "pool": "PROBLEMS",
+      "timestamp": 1773696320.886786,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "their car radio turned itself on in the driveway at 2 AM playing a station that went off the air in 2003 \u2014 they checked, the station doesn't exist anymore",
+      "pool": "WEIRD",
+      "timestamp": 1773696320.888352,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "their church raised enough to pay off a family's medical debt anonymously",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773696320.890592,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "completed their first full night of sleep without nightmares since coming home from deployment",
+      "pool": "CELEBRATIONS",
+      "timestamp": 1773696327.421101,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "thinks bumper stickers are a cry for attention and nobody's ever changed their mind because of one",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773696327.965135,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "their tenant is three months behind on rent and has a newborn \u2014 the caller needs the rental income to pay their own mortgage but can't live with themselves for evicting a baby",
+      "pool": "ADVICE",
+      "timestamp": 1773696328.169761,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "best friend from high school died in a car wreck last month and they hadn't talked in three years because of a stupid argument",
+      "pool": "PROBLEMS",
+      "timestamp": 1773696328.1725929,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "accidentally waved back at someone who was waving at the person behind them \u2014 committed to it and had a five-minute conversation pretending they knew each other, exchanged numbers, and is now too deep to explain",
+      "pool": "STORIES",
+      "timestamp": 1773696328.9334688,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "thinks the obsession with sourdough bread is ridiculous and a loaf from the store tastes the same",
+      "pool": "HOT_TAKES",
+      "timestamp": 1773696329.296464,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "walked into the wrong house in their subdivision \u2014 same floor plan, door was unlocked \u2014 sat down on the couch before the actual homeowner came out of the bathroom",
+      "pool": "STORIES",
+      "timestamp": 1773696329.49014,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "slept with their best friend's spouse at that friend's funeral reception \u2014 they were both grief-drunk and now they see each other every week because they're both in the dead friend's will as co-executors",
+      "pool": "PROBLEMS",
+      "timestamp": 1773696329.650972,
+      "session_id": "0d4a0098"
+    },
+    {
+      "reason": "is being sued by their former business partner for $200k and just got served at their daughter's soccer game",
+      "pool": "PROBLEMS",
+      "timestamp": 1773696329.9411042,
+      "session_id": "0d4a0098"
     }
   ]
 }

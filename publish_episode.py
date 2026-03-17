@@ -1098,10 +1098,10 @@ def post_to_social(metadata: dict, episode_slug: str, image_path: str = None):
     base_content = f"{metadata['title']}\n\n{metadata['description']}\n\n{episode_url}"
 
     hashtags = "#podcast #LukeAtTheRoost #talkradio #callinshow #newepisode"
-    hashtag_platforms = {"instagram", "facebook", "bluesky", "mastodon", "nostr", "linkedin", "threads", "tiktok"}
+    hashtag_platforms = {"instagram", "facebook", "bluesky", "mastodon", "nostr", "linkedin", "threads", "tiktok", "x"}
 
     # Platform-specific content length limits
-    PLATFORM_MAX_LENGTH = {"bluesky": 300, "threads": 500, "tiktok": 2200}
+    PLATFORM_MAX_LENGTH = {"bluesky": 300, "x": 280, "threads": 500, "tiktok": 2200}
 
     # Post to each platform individually so one failure doesn't block others
     posted = 0

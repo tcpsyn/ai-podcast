@@ -1,27 +1,6 @@
 {
   "regulars": [
     {
-      "id": "6037d92b",
-      "name": "Otis",
-      "gender": "male",
-      "age": 50,
-      "job": "sitting on a stack of pallets with his legs dangling, watching the wind kick up dust devils",
-      "location": "unknown",
-      "personality_traits": [],
-      "voice": "Elliot",
-      "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Treats the call like a set. Has bits prepared. Delivers serious information with a punchline chaser. Self-deprecating as a defense mechanism \u2014 makes fun of themselves before anyone else can. Energy level: high. When pushed back on, they deflect with humor. Getting a straight answer from them requires the host to push. Conversational tendency: turning everything into a bit."
-      },
-      "call_history": [
-        {
-          "summary": "Otis called in, panicked, after faking prostate cancer to skip his sister\u2019s fourth wedding\u2014only for the lie to spiral into a town-wide support frenzy, complete with a GoFundMe, a cousin shaving his head, and his mom calling him every Sunday for the first time in years. The emotional gut-punch came when his sister postponed her wedding *again* (this time for his \"remission\"), leaving Otis torn between guilt over the deception and fear of the fallout if he confessed\u2014especially after his doctor confirmed he *doesn\u2019t* have cancer (though his prostate *is* enlarged). The call ended with dark humor and despair, as Otis admitted the town\u2019s sudden care for him was tied to his fake illness, not who he really is.",
-          "timestamp": 1773040564.845288
-        }
-      ],
-      "last_call": 1773040564.84529,
-      "created_at": 1773040564.84529
-    },
-    {
       "id": "0a0b3635",
       "name": "Charlene",
       "gender": "female",
@@ -70,9 +49,14 @@
         {
           "summary": "The caller, **Chip**, shared his emotional turmoil over discovering that his **adopted daughter\u2019s birth mother** may have resurfaced after receiving an unverified email with a photo that eerily matched his daughter\u2019s features. His girlfriend, **Teresa**, had known about the email for **three weeks** but kept it from him, leaving him feeling betrayed and overwhelmed. While Chip wants to **verify the claim legally before acting**, Teresa insists on **immediately flying to Guatemala with their daughter** to meet the woman, dismissing his fears as avoidance. The conversation escalated into a heated debate about **trust, safety, and extreme measures**\u2014with the host, Luke, urging Chip to **file a restraining order** if Teresa refuses to back down, warning of potential dangers in Guatemala. Chip, torn between **protecting his family and avoiding a nuclear confrontation**, vowed to try reasoning with Teresa one last time before she leaves for work. The call was charged with **fear, frustration, and the weight of a decision that could reshape their family forever**.",
           "timestamp": 1773226361.4859362
+        },
+        {
+          "summary": "Chip called to update Luke about his adoption situation: his lawyer verified that his daughter's Guatemalan adoption may have been part of a fraud scandal, and now his girlfriend Teresa has secretly bought plane tickets to take their daughter to Guatemala this Friday to meet the birth mother. Despite Luke's strong advice to get an emergency court order to prevent the trip for safety reasons, Chip is torn because Teresa threatened to leave him if he stops her, though he ultimately acknowledges the relationship is likely over either way.",
+          "timestamp": 1773648139.8094652,
+          "arc_status": "ongoing"
         }
       ],
-      "last_call": 1773226361.4859362,
+      "last_call": 1773648139.8094661,
       "created_at": 1772786610.8858292
     },
     {
@@ -277,6 +261,58 @@
       ],
       "last_call": 1773563477.065744,
       "created_at": 1773563477.065744
+    },
+    {
+      "id": "09d1eab4",
+      "name": "Aaliyah",
+      "gender": "female",
+      "age": 22,
+      "job": "works as a diesel mechanic, learned from her dad",
+      "location": "unknown",
+      "personality_traits": [
+        "asks the host questions back",
+        "into gardening, talks to plants",
+        "into wildlife photography, has patience for it",
+        "asks the host questions back"
+      ],
+      "voice": "Hana",
+      "stable_seeds": {
+        "style": "COMMUNICATION STYLE: Treats the call like a set. Has bits prepared. Delivers serious information with a punchline chaser. Self-deprecating as a defense mechanism \u2014 makes fun of themselves before anyone else can. Energy level: high. When pushed back on, they deflect with humor. Getting a straight answer from them requires the host to push. Conversational tendency: turning everything into a bit."
+      },
+      "structured_background": {
+        "name": "Aaliyah",
+        "age": 22,
+        "gender": "female",
+        "job": "works as a diesel mechanic, learned from her dad",
+        "location": null,
+        "reason_for_calling": "caught their roommate in a hotel room that was supposed to be a business trip and now they can't make eye contact \u2014 the roommate acts like nothing happened but it was extremely age play-adjacent",
+        "pool_name": "PROBLEMS",
+        "communication_style": "COMMUNICATION STYLE: Treats the call like a set. Has bits prepared. Delivers serious information with a punchline chaser. Self-deprecating as a defense mechanism \u2014 makes fun of themselves before anyone else can. Energy level: high. When pushed back on, they deflect with humor. Getting a straight answer from them requires the host to push. Conversational tendency: turning everything into a bit.",
+        "energy_level": "medium",
+        "emotional_state": "calm",
+        "signature_detail": "asks the host questions back",
+        "situation_summary": "caught their roommate in a hotel room that was supposed to be a business trip and now they can't make eye contact \u2014 the ",
+        "natural_description": "22 years old. Works as a diesel mechanic, learned from her dad. Caught their roommate in a hotel room that was supposed to be a business trip and now they can't make eye contact \u2014 the roommate acts like nothing happened but it was extremely age play-adjacent. Was was in the bathtub, phone on the edge of the sink, show on speaker. before calling. Coyotes are going crazy outside right now Tells everyone they quit drinking but keeps a bottle in the garage behind the paint cans. Her coworker and friend denise, who she vents to on breaks. Believes poker is the most honest game there is because everybody's lying. Single, been that way a while. Not sure if by choice anymore.. Really into into gardening, talks to plants. Also into wildlife photography, has patience for it. Her boss karen \u2014 yes, her name is actually karen \u2014 who is actually cool. It's Monday night, the middle of the night. it's a weeknight \u2014 work tomorrow for most people. Early spring \u2014 wind season is starting. Dust storms possible.",
+        "seeds": [
+          "into gardening, talks to plants",
+          "into wildlife photography, has patience for it",
+          "asks the host questions back",
+          "Believes poker is the most honest game there is because everybody's lying."
+        ],
+        "verbal_fluency": "medium",
+        "calling_from": "at a rest area on I-25, halfway to Albuquerque"
+      },
+      "avatar": "Aaliyah.jpg",
+      "relationships": {},
+      "call_history": [
+        {
+          "summary": "Alia called in to share her discomfort after unexpectedly discovering her roommate engaging in age play while supposedly on a business trip. She expressed frustration over their awkward living situation and his refusal to acknowledge the incident, leading her to feel gaslit; however, by the end of the conversation, she realized she could address the issue directly to ease the tension between them.",
+          "timestamp": 1773647350.908658,
+          "arc_status": "ongoing"
+        }
+      ],
+      "last_call": 1773647350.908658,
+      "created_at": 1773647350.908658
     }
   ]
 }

@@ -110,5 +110,22 @@
       }
     },
     "started_at": "2026-03-15T09:07:26.659508+00:00"
+  },
+  "38": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-16T10:08:51.467004+00:00",
+        "episode_id": 41,
+        "slug": "episode-38-secrets-lies-and-late-night-confessions"
+      },
+      "youtube": {
+        "completed_at": "2026-03-16T10:30:31.775891+00:00",
+        "video_id": "6qLsJxnCLs0"
+      },
+      "social": {
+        "completed_at": "2026-03-16T10:30:41.220832+00:00"
+      }
+    },
+    "started_at": "2026-03-16T10:08:51.466898+00:00"
   }
 }
