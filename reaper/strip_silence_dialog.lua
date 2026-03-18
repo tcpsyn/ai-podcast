@@ -9,12 +9,15 @@
 ---------------------------------------------------------------------------
 local SILENCE_DB       = -30    -- dBFS — anything below this is "silence"
 local MIN_SILENCE_SEC  = 6.0   -- same-speaker gaps: only remove silences longer than this
-local MIN_SILENCE_TRANSITION_SEC = 2.5 -- cross-speaker gaps: shorter threshold for speaker transitions
+local MAX_SILENCE_SEC  = 999   -- no practical limit (IDENT/AD regions protect real breaks)
+local MIN_SILENCE_TRANSITION_SEC = 5.0 -- cross-speaker gaps: threshold for caller TTS latency
+local MIN_SILENCE_DEVON_SEC = 3.0 -- Devon gaps: interjections are prerendered (~2-3s gaps), conversational TTS is 6s+
+local DEVON_TRACK = 2 -- 1-indexed: Devon track number
 local MIN_VOICE_SEC    = 0.3   -- ignore non-silent bursts shorter than this (filters transients)
 local KEEP_PAD_SEC     = 0.5   -- leave this much silence on each side of a cut
 local BLOCK_SEC        = 0.1   -- analysis block size (100ms)
 local SAMPLE_RATE      = 48000
-local CHECK_TRACKS     = {1, 2, 3, 4} -- 1-indexed: Host, Devon, Live Caller, AI Caller
+local CHECK_TRACKS     = {1, 2, 3, 4} -- 1-indexed: Host, Devon, AI Caller, Live Caller
 local IDENTS_TRACK     = 6     -- 1-indexed: Idents track
 local ADS_TRACK        = 7     -- 1-indexed: Ads track
 local MUSIC_TRACK      = 8     -- 1-indexed: Music track
@@ -25,7 +28,6 @@ local YIELD_INTERVAL   = 200   -- yield to REAPER every N blocks (~20s of audio)
 local BLOCK_SAMPLES = math.floor(SAMPLE_RATE * BLOCK_SEC)
 local THRESHOLD = 10 ^ (SILENCE_DB / 20)
 local MIN_VOICE_BLOCKS = math.ceil(MIN_VOICE_SEC / BLOCK_SEC)
-
 local function log(msg)
   reaper.ShowConsoleMsg("[PostProd] " .. msg .. "\n")
 end
@@ -306,13 +308,17 @@ local function read_block_peak_rms(ta, project_time)
 end
 
 -- find_loudest_track: returns 1-based index of the loudest track at a given time, or 0 if silent
+-- Uses RMS (not peak) for speaker identification — ambient mic noise has high peaks but low RMS
 local function find_loudest_track(track_audios, project_time)
   local best_peak = 0
+  local best_rms = 0
   local best_idx = 0
   for i, ta in ipairs(track_audios) do
-    local peak, _ = read_block_peak_rms(ta, project_time)
-    if peak > best_peak then
-      best_peak = peak
+    local peak, sum_sq = read_block_peak_rms(ta, project_time)
+    if peak > best_peak then best_peak = peak end
+    local rms = math.sqrt(sum_sq / BLOCK_SAMPLES)
+    if rms > best_rms then
+      best_rms = rms
       best_idx = i
     end
   end
@@ -340,12 +346,17 @@ local function find_silences(region, track_audios, rms_acc, progress_fn)
 
   while t < region.end_pos do
     local best_peak = 0
+    local best_rms = 0
     local best_sum = 0
     local best_track = 0
     for i, ta in ipairs(track_audios) do
       local peak, sum_sq = read_block_peak_rms(ta, t)
-      if peak > best_peak then
-        best_peak = peak
+      if peak > best_peak then best_peak = peak end
+      -- Use RMS for speaker identification (sustained energy, not transient peaks)
+      -- Host mic ambient noise has high peaks but low RMS; TTS speech has high RMS
+      local rms = math.sqrt(sum_sq / BLOCK_SAMPLES)
+      if rms > best_rms then
+        best_rms = rms
         best_sum = sum_sq
         best_track = i
       end
@@ -375,8 +386,11 @@ local function find_silences(region, track_audios, rms_acc, progress_fn)
           local dur = voice_start - silence_start
           local track_after = voice_run_track
           local is_transition = track_before_silence ~= 0 and track_after ~= 0 and track_before_silence ~= track_after
-          local threshold = is_transition and MIN_SILENCE_TRANSITION_SEC or MIN_SILENCE_SEC
-          if dur >= threshold then
+          local devon_involved = track_before_silence == DEVON_TRACK or track_after == DEVON_TRACK
+          local threshold = devon_involved and MIN_SILENCE_DEVON_SEC
+                         or (is_transition and MIN_SILENCE_TRANSITION_SEC or MIN_SILENCE_SEC)
+
+          if dur >= threshold and dur <= MAX_SILENCE_SEC then
             table.insert(silences, {
               start_pos = silence_start, end_pos = voice_start, duration = dur,
               is_transition = is_transition,
@@ -410,7 +424,7 @@ local function find_silences(region, track_audios, rms_acc, progress_fn)
 
   if in_silence then
     local dur = region.end_pos - silence_start
-    if dur >= MIN_SILENCE_SEC then
+    if dur >= MIN_SILENCE_SEC and dur <= MAX_SILENCE_SEC then
       table.insert(silences, {start_pos = silence_start, end_pos = region.end_pos, duration = dur})
     end
   end
@@ -547,6 +561,7 @@ local function phase1_strip_silence(dialog_regions)
       if (t + 1) == MUSIC_TRACK then goto next_track end
       local track = reaper.GetTrack(0, t)
 
+      -- Split and delete the silent portion from items that span r.start_pos
       local item = find_item_at(track, r.start_pos)
       if item then
         local right = reaper.SplitMediaItem(item, r.start_pos)
@@ -556,10 +571,36 @@ local function phase1_strip_silence(dialog_regions)
         end
       end
 
+      -- Handle sparse track items that START within the removal range
+      -- (not found by find_item_at since they don't contain r.start_pos)
+      for j = reaper.CountTrackMediaItems(track) - 1, 0, -1 do
+        local check = reaper.GetTrackMediaItem(track, j)
+        local cpos = reaper.GetMediaItemInfo_Value(check, "D_POSITION")
+        if cpos >= r.start_pos and cpos < r.end_pos then
+          local clen = reaper.GetMediaItemInfo_Value(check, "D_LENGTH")
+          local cend = cpos + clen
+          if cend <= r.end_pos then
+            -- Entirely within removal — delete
+            reaper.DeleteTrackMediaItem(track, check)
+          else
+            -- Starts in removal but extends past — trim start to r.end_pos
+            local trim = r.end_pos - cpos
+            local take = reaper.GetActiveTake(check)
+            if take then
+              local offset = reaper.GetMediaItemTakeInfo_Value(take, "D_STARTOFFS")
+              reaper.SetMediaItemTakeInfo_Value(take, "D_STARTOFFS", offset + trim)
+            end
+            reaper.SetMediaItemInfo_Value(check, "D_LENGTH", cend - r.end_pos)
+            reaper.SetMediaItemInfo_Value(check, "D_POSITION", r.end_pos)
+          end
+        end
+      end
+
+      -- Shift items AFTER the removal (use r.end_pos, not r.start_pos)
       for j = 0, reaper.CountTrackMediaItems(track) - 1 do
         local shift_item = reaper.GetTrackMediaItem(track, j)
         local pos = reaper.GetMediaItemInfo_Value(shift_item, "D_POSITION")
-        if pos >= r.start_pos then
+        if pos >= r.end_pos then
           reaper.SetMediaItemInfo_Value(shift_item, "D_POSITION", pos - remove_len)
         end
       end
@@ -765,6 +806,56 @@ local function phase3_trim_music()
 
   local music_track = reaper.GetTrack(0, MUSIC_TRACK - 1)
   if not music_track then return end
+
+  -- Ensure music starts before first voice item.
+  -- Silence removal shifts voice/idents/ads but not music. If voice now starts before
+  -- music, nudge all non-music tracks forward so music has a lead-in.
+  local first_voice_start = math.huge
+  for _, tidx in ipairs(CHECK_TRACKS) do
+    local tr = reaper.GetTrack(0, tidx - 1)
+    if tr and reaper.CountTrackMediaItems(tr) > 0 then
+      local item = reaper.GetTrackMediaItem(tr, 0)
+      local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+      if pos < first_voice_start then first_voice_start = pos end
+    end
+  end
+
+  local MUSIC_LEAD_SEC = 3.0  -- seconds of music before first voice
+  if first_voice_start < math.huge then
+    local first_music = reaper.GetTrackMediaItem(music_track, 0)
+    if first_music then
+      local music_start = reaper.GetMediaItemInfo_Value(first_music, "D_POSITION")
+      local desired_voice_start = music_start + MUSIC_LEAD_SEC
+      if first_voice_start < desired_voice_start then
+        local nudge = desired_voice_start - first_voice_start
+        -- Shift all non-music tracks forward
+        for t = 0, reaper.CountTracks(0) - 1 do
+          if (t + 1) == MUSIC_TRACK then goto skip_music end
+          local track = reaper.GetTrack(0, t)
+          for i = 0, reaper.CountTrackMediaItems(track) - 1 do
+            local item = reaper.GetTrackMediaItem(track, i)
+            local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+            reaper.SetMediaItemInfo_Value(item, "D_POSITION", pos + nudge)
+          end
+          ::skip_music::
+        end
+        -- Also shift all markers/regions forward
+        local _, num_markers, num_regions = reaper.CountProjectMarkers(0)
+        local total_m = num_markers + num_regions
+        for i = 0, total_m - 1 do
+          local retval, is_region, pos, rgnend, name, idx, color = reaper.EnumProjectMarkers3(0, i)
+          if retval then
+            if is_region then
+              reaper.SetProjectMarker3(0, idx, true, pos + nudge, rgnend + nudge, name, color)
+            else
+              reaper.SetProjectMarker3(0, idx, false, pos + nudge, 0, name, color)
+            end
+          end
+        end
+        log("Phase 3: Nudged non-music tracks forward " .. string.format("%.1f", nudge) .. "s for " .. MUSIC_LEAD_SEC .. "s music lead-in")
+      end
+    end
+  end
 
   local last_end = 0
   for _, tidx in ipairs(CHECK_TRACKS) do

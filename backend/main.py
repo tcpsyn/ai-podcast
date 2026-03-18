@@ -8507,6 +8507,9 @@ GENRE_KEYWORDS = {
     "valentine": "Ballad",
     "romantic": "Ballad",
     "ballad": "Ballad",
+    "irish": "Irish",
+    "ireland": "Irish",
+    "patricks": "Irish",
 }
 
 
