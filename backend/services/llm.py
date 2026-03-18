@@ -236,7 +236,7 @@ class LLMService:
                 try:
                     result = await tool_executor(tool_name, arguments)
                 except Exception as e:
-                    result = f"Error: {e}"
+                    result = f"Tool unavailable — could not complete {tool_name} right now."
                     print(f"[LLM-Tools] Tool {tool_name} failed: {e}")
 
                 all_tool_calls.append({

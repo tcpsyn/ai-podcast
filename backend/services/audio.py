@@ -380,8 +380,9 @@ class AudioService:
                     stream_ready.set()
                 if self._recording:
                     self._recorded_audio.append(indata[:, record_channel].copy())
-                if self.stem_recorder:
-                    self.stem_recorder.write("host", indata[:, record_channel].copy(), device_sr)
+                rec = self.stem_recorder
+                if rec:
+                    rec.write("host", indata[:, record_channel].copy(), device_sr)
 
             print(f"Recording: opening stream on device {self.input_device} ch {self.input_channel} @ {device_sr}Hz ({max_channels} ch)")
 
@@ -479,8 +480,9 @@ class AudioService:
                     end = min(pos + chunk_size, len(multi_ch))
                     stream.write(multi_ch[pos:end])
                     # Record each chunk as it plays so hangups cut the stem too
-                    if self.stem_recorder:
-                        self.stem_recorder.write_sporadic(stem_name, audio[pos:end].copy(), device_sr)
+                    rec = self.stem_recorder
+                    if rec:
+                        rec.write_sporadic(stem_name, audio[pos:end].copy(), device_sr)
                     pos = end
 
             if self._caller_stop_event.is_set():
@@ -598,8 +600,9 @@ class AudioService:
                 audio = audio[indices]
 
             # Stem recording: live caller
-            if self.stem_recorder:
-                self.stem_recorder.write_sporadic("caller", audio.copy(), device_sr)
+            rec = self.stem_recorder
+            if rec:
+                rec.write_sporadic("caller", audio.copy(), device_sr)
 
             if self._live_caller_write:
                 self._live_caller_write(audio)
@@ -648,8 +651,9 @@ class AudioService:
                     self._recorded_audio.append(indata[:, record_channel].copy())
 
                 # Stem recording: host mic
-                if self.stem_recorder:
-                    self.stem_recorder.write("host", indata[:, record_channel].copy(), device_sr)
+                rec = self.stem_recorder
+                if rec:
+                    rec.write("host", indata[:, record_channel].copy(), device_sr)
 
                 # Mic monitor: send to headphone device
                 if self._monitor_write:
@@ -930,8 +934,9 @@ class AudioService:
 
                 mono_out = (old_samples * fade_out + new_samples * fade_in) * self._music_volume
                 outdata[:, channel_idx] = mono_out
-                if self.stem_recorder:
-                    self.stem_recorder.write_sporadic("music", mono_out.copy(), device_sr)
+                rec = self.stem_recorder
+                if rec:
+                    rec.write_sporadic("music", mono_out.copy(), device_sr)
                 self._crossfade_progress = end_progress
 
                 if self._crossfade_progress >= 1.0:
@@ -941,8 +946,9 @@ class AudioService:
             else:
                 mono_out = new_samples * self._music_volume
                 outdata[:, channel_idx] = mono_out
-                if self.stem_recorder:
-                    self.stem_recorder.write_sporadic("music", mono_out.copy(), device_sr)
+                rec = self.stem_recorder
+                if rec:
+                    rec.write_sporadic("music", mono_out.copy(), device_sr)
 
         try:
             self._music_stream = self._open_output_stream(
@@ -1094,8 +1100,9 @@ class AudioService:
             if remaining >= frames:
                 chunk = self._ad_resampled[self._ad_position:self._ad_position + frames]
                 outdata[:, channel_idx] = chunk
-                if self.stem_recorder:
-                    self.stem_recorder.write_sporadic("ads", chunk.copy(), device_sr)
+                rec = self.stem_recorder
+                if rec:
+                    rec.write_sporadic("ads", chunk.copy(), device_sr)
                 self._ad_position += frames
             else:
                 if remaining > 0:
@@ -1198,9 +1205,10 @@ class AudioService:
                 _cb_count[0] += 1
                 if _cb_count[0] == 1:
                     print(f"Ident callback delivering audio: ch_l={ch_l}, ch_r={ch_r}, max={max(np.max(np.abs(chunk_l)), np.max(np.abs(chunk_r))):.4f}")
-                if self.stem_recorder:
+                rec = self.stem_recorder
+                if rec:
                     mono_mix = (chunk_l + chunk_r) * 0.5
-                    self.stem_recorder.write_sporadic("idents", mono_mix.copy(), device_sr)
+                    rec.write_sporadic("idents", mono_mix.copy(), device_sr)
                 self._ident_position += frames
             else:
                 if remaining > 0:
@@ -1274,8 +1282,9 @@ class AudioService:
                 audio = self._apply_fade(audio, device_sr)
 
                 # Stem recording: sfx
-                if self.stem_recorder:
-                    self.stem_recorder.write_sporadic("sfx", audio.copy(), device_sr)
+                rec = self.stem_recorder
+                if rec:
+                    rec.write_sporadic("sfx", audio.copy(), device_sr)
 
                 multi_ch = np.zeros((len(audio), num_channels), dtype=np.float32)
                 multi_ch[:, channel_idx] = audio
@@ -1317,8 +1326,9 @@ class AudioService:
         self._start_monitor(device_sr)
 
         def callback(indata, frames, time_info, status):
-            if self.stem_recorder:
-                self.stem_recorder.write("host", indata[:, record_channel].copy(), device_sr)
+            rec = self.stem_recorder
+            if rec:
+                rec.write("host", indata[:, record_channel].copy(), device_sr)
             if self._monitor_write:
                 self._monitor_write(indata[:, record_channel].copy())
 
