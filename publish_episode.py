@@ -1119,7 +1119,9 @@ def post_to_social(metadata: dict, episode_slug: str, image_path: str = None):
                 short += f"\n\n{hashtags}"
             content = short[:max_len]
 
-        settings = {"post_type": "post"}
+        settings = {"__type": platform, "post_type": "post"}
+        if platform == "x":
+            settings["who_can_reply_post"] = "everyone"
         if "channel" in intg_config:
             settings["channel"] = intg_config["channel"]
 
