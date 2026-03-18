@@ -337,6 +337,8 @@ function initEventListeners() {
                 askDevon(input.value.trim());
                 input.value = '';
             }
+        } else if (e.key === 'Escape') {
+            e.target.blur();
         }
     });
     document.getElementById('devon-interject-btn')?.addEventListener('click', interjectDevon);
@@ -351,6 +353,7 @@ function initEventListeners() {
     document.getElementById('clear-theme-btn')?.addEventListener('click', clearShowTheme);
     document.getElementById('show-theme-input')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') setShowTheme();
+        else if (e.key === 'Escape') e.target.blur();
     });
 
     // Settings
@@ -373,9 +376,13 @@ function initEventListeners() {
 
     // Real caller hangup
     document.getElementById('hangup-real-btn')?.addEventListener('click', async () => {
-        await fetch('/api/hangup/real', { method: 'POST' });
-        hideRealCaller();
-        log('Real caller disconnected');
+        try {
+            await fetch('/api/hangup/real', { method: 'POST' });
+            hideRealCaller();
+            log('Real caller disconnected');
+        } catch (err) {
+            log('Failed to hang up real caller: ' + err.message);
+        }
     });
 
     // AI caller hangup (small button in AI caller panel)
@@ -388,34 +395,46 @@ function initEventListeners() {
     startConversationPolling();
 
     // AI respond mode toggle
-    document.getElementById('mode-manual')?.addEventListener('click', () => {
+    document.getElementById('mode-manual')?.addEventListener('click', async () => {
         document.getElementById('mode-manual')?.classList.add('active');
         document.getElementById('mode-auto')?.classList.remove('active');
         document.getElementById('ai-respond-btn')?.classList.remove('hidden');
-        fetch('/api/session/ai-mode', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mode: 'manual' }),
-        });
+        try {
+            await fetch('/api/session/ai-mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: 'manual' }),
+            });
+        } catch (err) {
+            log('Failed to set manual mode');
+        }
     });
 
-    document.getElementById('mode-auto')?.addEventListener('click', () => {
+    document.getElementById('mode-auto')?.addEventListener('click', async () => {
         document.getElementById('mode-auto')?.classList.add('active');
         document.getElementById('mode-manual')?.classList.remove('active');
-        fetch('/api/session/ai-mode', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mode: 'auto' }),
-        });
+        try {
+            await fetch('/api/session/ai-mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: 'auto' }),
+            });
+        } catch (err) {
+            log('Failed to set auto mode');
+        }
     });
 
     // Auto follow-up toggle
-    document.getElementById('auto-followup')?.addEventListener('change', (e) => {
-        fetch('/api/session/auto-followup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ enabled: e.target.checked }),
-        });
+    document.getElementById('auto-followup')?.addEventListener('change', async (e) => {
+        try {
+            await fetch('/api/session/auto-followup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: e.target.checked }),
+            });
+        } catch (err) {
+            log('Failed to toggle auto follow-up');
+        }
     });
 }
 
@@ -627,8 +646,19 @@ async function loadCallers() {
 async function startCall(key, name) {
     if (isProcessing) return;
 
-    const res = await fetch(`/api/call/${key}`, { method: 'POST' });
-    const data = await res.json();
+    let data;
+    try {
+        const res = await fetch(`/api/call/${key}`, { method: 'POST' });
+        if (!res.ok) {
+            const err = await res.text().catch(() => '');
+            log(`Failed to start call with ${name}: ${err || res.status}`);
+            return;
+        }
+        data = await res.json();
+    } catch (err) {
+        log(`Failed to start call with ${name}: ${err.message}`);
+        return;
+    }
 
     currentCaller = { key, name };
     document.querySelector('.callers-section')?.classList.add('call-active');
@@ -969,28 +999,46 @@ async function playMusic() {
     const track = select?.value;
     if (!track) return;
 
-    await fetch('/api/music/play', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ track, action: 'play' })
-    });
-    isMusicPlaying = true;
+    try {
+        const res = await fetch('/api/music/play', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ track, action: 'play' })
+        });
+        if (!res.ok) throw new Error(res.status);
+        isMusicPlaying = true;
+    } catch (err) {
+        log('Music play failed: ' + err.message);
+    }
 }
 
 
 async function stopMusic() {
-    await fetch('/api/music/stop', { method: 'POST' });
-    isMusicPlaying = false;
+    try {
+        const res = await fetch('/api/music/stop', { method: 'POST' });
+        if (!res.ok) throw new Error(res.status);
+        isMusicPlaying = false;
+    } catch (err) {
+        log('Music stop failed: ' + err.message);
+    }
 }
 
 
-async function setMusicVolume(e) {
+let _volumeDebounce = null;
+function setMusicVolume(e) {
     const volume = e.target.value / 100;
-    await fetch('/api/music/volume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ track: '', action: 'volume', volume })
-    });
+    clearTimeout(_volumeDebounce);
+    _volumeDebounce = setTimeout(async () => {
+        try {
+            await fetch('/api/music/volume', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ track: '', action: 'volume', volume })
+            });
+        } catch (err) {
+            log('Volume change failed');
+        }
+    }, 150);
 }
 
 
@@ -1030,15 +1078,24 @@ async function playAd() {
     const track = select?.value;
     if (!track) return;
 
-    await fetch('/api/ads/play', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ track, action: 'play' })
-    });
+    try {
+        const res = await fetch('/api/ads/play', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ track, action: 'play' })
+        });
+        if (!res.ok) throw new Error(res.status);
+    } catch (err) {
+        log('Ad play failed: ' + err.message);
+    }
 }
 
 async function stopAd() {
-    await fetch('/api/ads/stop', { method: 'POST' });
+    try {
+        await fetch('/api/ads/stop', { method: 'POST' });
+    } catch (err) {
+        log('Ad stop failed: ' + err.message);
+    }
 }
 
 async function loadIdents() {
@@ -1076,15 +1133,24 @@ async function playIdent() {
     const track = select?.value;
     if (!track) return;
 
-    await fetch('/api/idents/play', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ track, action: 'play' })
-    });
+    try {
+        const res = await fetch('/api/idents/play', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ track, action: 'play' })
+        });
+        if (!res.ok) throw new Error(res.status);
+    } catch (err) {
+        log('Ident play failed: ' + err.message);
+    }
 }
 
 async function stopIdent() {
-    await fetch('/api/idents/stop', { method: 'POST' });
+    try {
+        await fetch('/api/idents/stop', { method: 'POST' });
+    } catch (err) {
+        log('Ident stop failed: ' + err.message);
+    }
 }
 
 
@@ -1160,11 +1226,16 @@ async function loadSounds() {
 
 
 async function playSFX(soundFile) {
-    await fetch('/api/sfx/play', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sound: soundFile })
-    });
+    try {
+        const res = await fetch('/api/sfx/play', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sound: soundFile })
+        });
+        if (!res.ok) throw new Error(res.status);
+    } catch (err) {
+        log('SFX play failed: ' + err.message);
+    }
 }
 
 
@@ -1315,31 +1386,36 @@ function updateProviderUI() {
 
 
 async function saveSettings() {
-    // Save audio devices
-    await saveAudioDevices();
+    try {
+        // Save audio devices
+        await saveAudioDevices();
 
-    // Collect category model routing
-    const categoryModels = {};
-    const categories = ['caller_dialog', 'devon_monitor', 'devon_ask', 'background_gen', 'call_summary', 'news_summary'];
-    for (const cat of categories) {
-        const sel = document.getElementById(`model-${cat}`);
-        if (sel) categoryModels[cat] = sel.value;
+        // Collect category model routing
+        const categoryModels = {};
+        const categories = ['caller_dialog', 'devon_monitor', 'devon_ask', 'background_gen', 'call_summary', 'news_summary'];
+        for (const cat of categories) {
+            const sel = document.getElementById(`model-${cat}`);
+            if (sel) categoryModels[cat] = sel.value;
+        }
+
+        // Save LLM, TTS, and model routing settings
+        const res = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                provider: 'openrouter',
+                openrouter_model: categoryModels.caller_dialog || document.getElementById('model-caller_dialog')?.value,
+                tts_provider: document.getElementById('tts-provider')?.value,
+                category_models: categoryModels
+            })
+        });
+        if (!res.ok) throw new Error(res.status);
+
+        document.getElementById('settings-modal')?.classList.add('hidden');
+        log('Settings saved');
+    } catch (err) {
+        log('Settings save failed: ' + err.message);
     }
-
-    // Save LLM, TTS, and model routing settings
-    await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            provider: 'openrouter',
-            openrouter_model: categoryModels.caller_dialog || document.getElementById('model-caller_dialog')?.value,
-            tts_provider: document.getElementById('tts-provider')?.value,
-            category_models: categoryModels
-        })
-    });
-
-    document.getElementById('settings-modal')?.classList.add('hidden');
-    log('Settings saved');
 }
 
 

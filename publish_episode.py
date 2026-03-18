@@ -19,7 +19,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, timezone
+import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import ssl
@@ -1081,9 +1082,79 @@ def upload_image_to_postiz(image_path: str) -> dict | None:
     return None
 
 
-def post_to_social(metadata: dict, episode_slug: str, image_path: str = None):
+def _build_platform_content(metadata: dict, episode_url: str, yt_url: str | None,
+                            platform: str) -> str:
+    """Generate platform-tailored social post content for episode announcements."""
+    title = metadata["title"]
+    desc = metadata["description"]
+
+    if platform == "x":
+        hook = desc.split(". ")[0] + "."
+        content = f"{hook}\n\n{episode_url}\n\n#LukeAtTheRoost #podcast"
+        if len(content) > 280:
+            content = f"{title}\n\n{episode_url}"[:280]
+
+    elif platform == "instagram":
+        hashtags = ("#podcast #LukeAtTheRoost #talkradio #callinshow #newepisode "
+                    "#podcastlife #podcastrecommendations #comedy #advice "
+                    "#latenightradio #aipodcast #talkshow")
+        content = f"New episode 🎙️\n\n{desc}\n\nLink in bio.\n\n{hashtags}"
+
+    elif platform == "threads":
+        content = (f"{title}\n\n{desc}\n\nlukeattheroost.com"
+                   f"\n\n#podcast #LukeAtTheRoost #newepisode #callinshow")
+
+    elif platform == "bluesky":
+        content = f"{desc}\n\n{episode_url}"
+        if len(content) > 300:
+            avail = 300 - len(episode_url) - 2
+            content = desc[:avail].rsplit(" ", 1)[0] + "\n\n" + episode_url
+
+    elif platform == "mastodon":
+        content = f"{title}\n\n{desc}\n\n{episode_url}"
+        if yt_url:
+            content += f"\n{yt_url}"
+
+    elif platform == "linkedin":
+        content = f"{title}\n\n{desc}"
+        content += f"\n\nListen: {episode_url}"
+        if yt_url:
+            content += f"\nWatch: {yt_url}"
+
+    elif platform == "facebook":
+        content = f"New episode just dropped 🎙️\n\n{desc}\n\nListen free: {episode_url}"
+        if yt_url:
+            content += f"\nWatch: {yt_url}"
+
+    elif platform == "tiktok":
+        hook = desc.split(". ")[0] + "."
+        content = (f"New episode: {hook}"
+                   f"\n\n#podcast #LukeAtTheRoost #callinshow #newepisode #fyp")
+
+    elif platform == "nostr":
+        content = f"{title}\n\n{desc}\n\n{episode_url}"
+        if yt_url:
+            content += f"\n{yt_url}"
+
+    else:
+        content = f"{title}\n\n{desc}\n\n{episode_url}"
+
+    return content
+
+
+# Platforms that post immediately vs scheduled (minutes offset from publish time)
+_IMMEDIATE_PLATFORMS = {"x", "bluesky"}
+_SCHEDULE_OFFSETS = {
+    "instagram": 30, "threads": 30,
+    "facebook": 60, "linkedin": 60,
+    "tiktok": 90, "mastodon": 120, "nostr": 120,
+}
+
+
+def post_to_social(metadata: dict, episode_slug: str, image_path: str = None,
+                   yt_video_id: str = None):
     """Post episode announcement to all connected social channels via Postiz."""
-    print("[5.5/5] Posting to social media...")
+    print("[5.7] Posting to social media...")
 
     token = _get_postiz_token()
 
@@ -1095,29 +1166,13 @@ def post_to_social(metadata: dict, episode_slug: str, image_path: str = None):
             image_ids = [{"id": media["id"], "path": media.get("path", "")}]
 
     episode_url = f"https://lukeattheroost.com/episode.html?slug={episode_slug}"
-    base_content = f"{metadata['title']}\n\n{metadata['description']}\n\n{episode_url}"
-
-    hashtags = "#podcast #LukeAtTheRoost #talkradio #callinshow #newepisode"
-    hashtag_platforms = {"instagram", "facebook", "bluesky", "mastodon", "nostr", "linkedin", "threads", "tiktok", "x"}
-
-    # Platform-specific content length limits
-    PLATFORM_MAX_LENGTH = {"bluesky": 300, "x": 280, "threads": 500, "tiktok": 2200}
+    yt_url = f"https://youtube.com/watch?v={yt_video_id}" if yt_video_id else None
+    now = datetime.now(timezone.utc)
 
     # Post to each platform individually so one failure doesn't block others
     posted = 0
     for platform, intg_config in POSTIZ_INTEGRATIONS.items():
-        content = base_content
-        if platform in hashtag_platforms:
-            content += f"\n\n{hashtags}"
-
-        # Truncate for platforms with short limits
-        max_len = PLATFORM_MAX_LENGTH.get(platform)
-        if max_len and len(content) > max_len:
-            # Keep title + URL, truncate description
-            short = f"{metadata['title']}\n\n{episode_url}"
-            if platform in hashtag_platforms:
-                short += f"\n\n{hashtags}"
-            content = short[:max_len]
+        content = _build_platform_content(metadata, episode_url, yt_url, platform)
 
         settings = {"__type": platform, "post_type": "post"}
         if platform == "x":
@@ -1131,30 +1186,46 @@ def post_to_social(metadata: dict, episode_slug: str, image_path: str = None):
             "settings": settings,
         }
 
+        # Stagger: immediate for fast-moving platforms, scheduled for rest
+        offset_min = _SCHEDULE_OFFSETS.get(platform, 0)
+        if platform in _IMMEDIATE_PLATFORMS or offset_min == 0:
+            post_type = "now"
+            post_date = now.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        else:
+            post_type = "schedule"
+            scheduled = now + timedelta(minutes=offset_min)
+            post_date = scheduled.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
         payload = {
-            "type": "now",
+            "type": post_type,
             "shortLink": False,
-            "date": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+            "date": post_date,
             "tags": [],
             "posts": [post],
         }
 
-        try:
-            resp = requests.post(
-                f"{POSTIZ_URL}/api/posts",
-                headers={"auth": token, "Content-Type": "application/json"},
-                json=payload,
-                timeout=60,
-            )
-            if resp.status_code in (200, 201):
-                posted += 1
-                print(f"    Posted to {platform}")
-            else:
-                print(f"    Warning: {platform} failed ({resp.status_code}): {resp.text[:150]}")
-        except Exception as e:
-            print(f"    Warning: {platform} failed: {e}")
+        # Retry once on failure (2 attempts, 5s backoff)
+        for attempt in range(2):
+            try:
+                resp = requests.post(
+                    f"{POSTIZ_URL}/api/posts",
+                    headers={"auth": token, "Content-Type": "application/json"},
+                    json=payload,
+                    timeout=60,
+                )
+                if resp.status_code in (200, 201):
+                    posted += 1
+                    label = f"scheduled +{offset_min}m" if post_type == "schedule" else "posted"
+                    print(f"    {platform}: {label}")
+                    break
+                else:
+                    print(f"    Warning: {platform} attempt {attempt + 1} failed ({resp.status_code}): {resp.text[:150]}")
+            except Exception as e:
+                print(f"    Warning: {platform} attempt {attempt + 1} failed: {e}")
+            if attempt < 1:
+                time.sleep(5)
 
-    print(f"    Posted to {posted}/{len(POSTIZ_INTEGRATIONS)} channels")
+    print(f"    Posted/scheduled {posted}/{len(POSTIZ_INTEGRATIONS)} channels")
 
 
 def get_youtube_service():
@@ -1199,6 +1270,21 @@ def _check_youtube_duplicate(youtube, title: str) -> str | None:
     except HttpError as e:
         print(f"    Warning: Could not check for YouTube duplicates: {e}")
     return None
+
+
+def _extract_youtube_tags(metadata: dict) -> list[str]:
+    """Extract dynamic tags from episode metadata for YouTube SEO."""
+    base_tags = ["podcast", "Luke at the Roost", "talk radio", "call-in show",
+                 "talk show", "comedy", "AI podcast", "late night radio", "advice"]
+    skip = {"intro", "outro", "opening", "closing", "wrap up", "wrap-up"}
+    dynamic = []
+    for ch in metadata.get("chapters", []):
+        title = ch.get("title", "").strip()
+        if title.lower() in skip or len(title) < 3:
+            continue
+        if len(title) <= 50:
+            dynamic.append(title)
+    return (base_tags + dynamic)[:25]
 
 
 def upload_to_youtube(audio_path: str, metadata: dict, chapters: list,
@@ -1259,8 +1345,7 @@ def upload_to_youtube(audio_path: str, metadata: dict, chapters: list,
         "snippet": {
             "title": metadata["title"][:100],
             "description": description,
-            "tags": ["podcast", "Luke at the Roost", "talk radio", "call-in show",
-                     "talk show", "comedy"],
+            "tags": _extract_youtube_tags(metadata),
             "categoryId": "22",
         },
         "status": {
@@ -1631,7 +1716,8 @@ def main():
     else:
         social_image_path = str(audio_path.with_suffix(".social.jpg"))
         generate_social_image(episode_number, metadata["description"], social_image_path)
-        post_to_social(metadata, episode["slug"], social_image_path)
+        post_to_social(metadata, episode["slug"], social_image_path,
+                       yt_video_id=yt_video_id)
         _mark_step_done(episode_number, "social")
 
     # Step 6: Summary
