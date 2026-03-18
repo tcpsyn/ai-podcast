@@ -17,6 +17,12 @@
                 <button id="export-session-btn">Export</button>
                 <button id="settings-btn">Settings</button>
             </div>
+            <div class="theme-bar">
+                <label for="show-theme-input" class="theme-label">Theme:</label>
+                <input type="text" id="show-theme-input" class="theme-input" placeholder="e.g. St. Patrick's Day" maxlength="100">
+                <button id="set-theme-btn" class="theme-btn set" title="Set show theme">Set</button>
+                <button id="clear-theme-btn" class="theme-btn clear hidden" title="Clear theme">&#x2715;</button>
+            </div>
             <div id="show-clock" class="show-clock">
                 <span class="clock-time" id="clock-time"></span>
                 <span id="show-timers" class="show-timers hidden">

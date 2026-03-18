@@ -5314,6 +5314,7 @@ TIME: {time_ctx} {season_ctx}
 {fluency_hint}
 {f'SOME DETAILS ABOUT THEM: {seed_text}' if seed_text else ''}
 {f'CALLER ENERGY: {style_hint}' if style_hint else ''}
+{f"SHOW THEME: Tonight's show theme is '{session.show_theme}'. This caller might have a story or angle related to this theme — or they might not. Not every caller has to be about the theme, but if their reason for calling can naturally connect to it, lean into that connection. The theme should feel like a through-line, not a mandate." if session.show_theme else ''}
 
 Respond with a JSON object containing these fields:
 
@@ -6014,6 +6015,10 @@ def get_caller_prompt(caller: dict, show_history: str = "",
             parts.append(research_context)
         world_context = "\n".join(parts) + "\n"
 
+    theme_context = ""
+    if session.show_theme:
+        theme_context = f"\nSHOW THEME: Tonight's show theme is \"{session.show_theme}\". You're aware of the theme — the host mentioned it at the top of the show. If your story or situation connects to it, you might bring it up naturally. But don't force it. Not every caller has to be about the theme. If the host steers you toward the theme, go with it.\n"
+
     now = datetime.now(_MST)
     date_str = now.strftime("%A, %B %d")
 
@@ -6060,7 +6065,7 @@ You are {caller['name']}. You are the CALLER. You are NOT Luke. Luke is the HOST
 
 YOUR BACKGROUND:
 {caller['vibe']}
-{relationship_context}{history}{world_context}{emotional_read}
+{relationship_context}{history}{world_context}{theme_context}{emotional_read}
 You're a real person calling a late-night radio show. You called because you've got something specific and you want to talk about it.
 
 {pacing_block}
@@ -6215,6 +6220,7 @@ class Session:
         self.caller_queue: list[str] = []  # Sorted presentation order of caller keys
         self.relationship_context: dict[str, str] = {}  # caller_key → relationship prompt injection
         self.intern_monitoring: bool = True  # Devon monitors conversations by default
+        self.show_theme: str = ""  # Current show theme (e.g. "St. Patrick's Day")
 
     def start_call(self, caller_key: str):
         self.current_caller_key = caller_key
@@ -8757,6 +8763,25 @@ async def update_settings(data: dict):
             _randomize_callers()
             print(f"[Settings] TTS changed {old_tts} → {new_tts}, re-randomized voices")
     return llm_service.get_settings()
+
+
+# --- Show Theme ---
+
+@app.get("/api/show-theme")
+async def get_show_theme():
+    return {"theme": session.show_theme}
+
+
+@app.post("/api/show-theme")
+async def set_show_theme(data: dict):
+    theme = data.get("theme", "").strip()[:100]
+    old_theme = session.show_theme
+    session.show_theme = theme
+    if theme:
+        print(f"[Theme] Show theme set: {theme}")
+    elif old_theme:
+        print(f"[Theme] Show theme cleared (was: {old_theme})")
+    return {"theme": session.show_theme}
 
 
 # --- Cost Tracking Endpoints ---

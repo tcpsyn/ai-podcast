@@ -130,6 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadSettings();
         initEventListeners();
         initClock();
+        loadShowTheme();
         loadVoicemails();
         setInterval(loadVoicemails, 30000);
         loadEmails();
@@ -344,6 +345,13 @@ function initEventListeners() {
     });
     document.getElementById('devon-play-btn')?.addEventListener('click', playDevonSuggestion);
     document.getElementById('devon-dismiss-btn')?.addEventListener('click', dismissDevonSuggestion);
+
+    // Show Theme
+    document.getElementById('set-theme-btn')?.addEventListener('click', setShowTheme);
+    document.getElementById('clear-theme-btn')?.addEventListener('click', clearShowTheme);
+    document.getElementById('show-theme-input')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') setShowTheme();
+    });
 
     // Settings
     document.getElementById('settings-btn')?.addEventListener('click', async () => {
@@ -692,6 +700,7 @@ async function newSession() {
 
     // Reload callers to get new session ID
     await loadCallers();
+    await loadShowTheme();
 
     log('New session started - all callers have fresh backgrounds');
 }
@@ -1156,6 +1165,69 @@ async function playSFX(soundFile) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sound: soundFile })
     });
+}
+
+
+// --- Show Theme ---
+async function loadShowTheme() {
+    try {
+        const res = await fetch('/api/show-theme');
+        const data = await res.json();
+        const input = document.getElementById('show-theme-input');
+        const setBtn = document.getElementById('set-theme-btn');
+        const clearBtn = document.getElementById('clear-theme-btn');
+        if (data.theme) {
+            input.value = data.theme;
+            input.classList.add('active');
+            setBtn.classList.add('hidden');
+            clearBtn.classList.remove('hidden');
+        } else {
+            input.value = '';
+            input.classList.remove('active');
+            setBtn.classList.remove('hidden');
+            clearBtn.classList.add('hidden');
+        }
+    } catch (e) {
+        console.error('Failed to load show theme:', e);
+    }
+}
+
+async function setShowTheme() {
+    const input = document.getElementById('show-theme-input');
+    const theme = input.value.trim();
+    if (!theme) return;
+    try {
+        const res = await fetch('/api/show-theme', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme })
+        });
+        const data = await res.json();
+        if (data.theme) {
+            input.classList.add('active');
+            document.getElementById('set-theme-btn').classList.add('hidden');
+            document.getElementById('clear-theme-btn').classList.remove('hidden');
+        }
+    } catch (e) {
+        console.error('Failed to set show theme:', e);
+    }
+}
+
+async function clearShowTheme() {
+    try {
+        await fetch('/api/show-theme', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme: '' })
+        });
+        const input = document.getElementById('show-theme-input');
+        input.value = '';
+        input.classList.remove('active');
+        document.getElementById('set-theme-btn').classList.remove('hidden');
+        document.getElementById('clear-theme-btn').classList.add('hidden');
+    } catch (e) {
+        console.error('Failed to clear show theme:', e);
+    }
 }
 
 
