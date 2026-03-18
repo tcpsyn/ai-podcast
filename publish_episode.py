@@ -303,7 +303,7 @@ TRANSCRIPT:
 {timestamped_text}
 
 Generate a JSON response with:
-1. "title": A catchy episode title (include "Episode {episode_number}:" prefix)
+1. "title": An episode title with "Episode {episode_number}:" prefix. The title MUST reference something SPECIFIC from this episode — a caller's name, their situation, a memorable quote, or a specific moment. Good titles sound like you're telling a friend what happened: "Episode 12: Gary's Goat Problem and the Worst Best Man Speech Ever", "Episode 8: The Lawnmower Feud, a Cursed Wedding Ring, and Darla Finally Calls Back". Bad titles are generic and could apply to any podcast episode: "Secrets and Confessions", "Late Night Tales", "Wild Stories and Hot Takes". Avoid the words: secrets, confessions, tales, chronicles, diaries, unfiltered, raw, real talk.
 2. "description": A 2-4 sentence description summarizing the episode's content. Mention callers by name and their topics. End with something engaging.
 3. "chapters": An array of chapter objects with "startTime" (in seconds) and "title". Include:
    - "Intro" at 0 seconds
