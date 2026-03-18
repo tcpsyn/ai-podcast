@@ -23,6 +23,7 @@ load_dotenv(Path(__file__).parent / ".env")
 
 POSTIZ_API_KEY = os.getenv("POSTIZ_API_KEY")
 POSTIZ_URL = os.getenv("POSTIZ_URL", "https://social.lukeattheroost.com")
+POSTIZ_INTEGRATIONS = json.loads(os.getenv("POSTIZ_INTEGRATIONS", "{}"))
 
 BSKY_HANDLE = os.getenv("BSKY_HANDLE", "lukeattheroost.bsky.social")
 BSKY_APP_PASSWORD = os.getenv("BSKY_APP_PASSWORD")
@@ -95,8 +96,22 @@ def fetch_integrations() -> list[dict]:
     return resp.json()
 
 
+BLOCKED_INTEGRATION_IDS = {
+    "REDACTED_PERSONAL_LINKEDIN_ID",  # Personal LinkedIn (CareerPulse) — never post podcast content here
+}
+
 def find_integration(integrations: list[dict], provider: str) -> dict | None:
+    # Prefer hardcoded integration ID from .env (avoids picking wrong account)
+    if provider in POSTIZ_INTEGRATIONS:
+        target_id = POSTIZ_INTEGRATIONS[provider].get("id")
+        if target_id:
+            for integ in integrations:
+                if integ.get("id") == target_id:
+                    return integ
+    # Fallback: first matching provider (skip blocked accounts)
     for integ in integrations:
+        if integ.get("id") in BLOCKED_INTEGRATION_IDS:
+            continue
         if integ.get("identifier", "").startswith(provider) and not integ.get("disabled"):
             return integ
     return None
