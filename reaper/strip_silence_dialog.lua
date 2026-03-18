@@ -769,27 +769,32 @@ local function phase2_normalize(dialog_regions, ad_regions, ident_regions, dialo
   end
 
   log("Phase 2: Dialog RMS = " .. string.format("%.1f", dialog_rms_db) .. " dBFS")
-  local dialog_db = dialog_rms_db
+
+  -- Ads/idents are pre-compressed dense audio, so they sound louder than dialog
+  -- at the same RMS. Target a few dB below dialog to match perceived loudness.
+  local AD_IDENT_OFFSET_DB = -4
+  local ad_ident_target = dialog_rms_db + AD_IDENT_OFFSET_DB
+  log("Phase 2: AD/IDENT target = " .. string.format("%.1f", ad_ident_target) .. " dBFS (" .. AD_IDENT_OFFSET_DB .. "dB offset from dialog)")
 
   if #ad_regions > 0 then
     progress_detail = "Ads"
     coroutine.yield()
     log("Phase 2: Normalizing " .. #ad_regions .. " AD region(s)...")
-    normalize_track_regions(ADS_TRACK, ad_regions, dialog_db)
+    normalize_track_regions(ADS_TRACK, ad_regions, ad_ident_target)
   end
   if #ident_regions > 0 then
     progress_detail = "Idents"
     progress_pct = 0.33
     coroutine.yield()
     log("Phase 2: Normalizing " .. #ident_regions .. " IDENT region(s)...")
-    normalize_track_regions(IDENTS_TRACK, ident_regions, dialog_db)
+    normalize_track_regions(IDENTS_TRACK, ident_regions, ad_ident_target)
   end
 
   progress_detail = "Music"
   progress_pct = 0.66
   coroutine.yield()
   log("Phase 2: Normalizing music track...")
-  normalize_music_track(dialog_regions, dialog_db)
+  normalize_music_track(dialog_regions, dialog_rms_db)
   progress_pct = 1.0
 end
 

@@ -24,7 +24,7 @@ from .config import settings
 from .services.caller_service import CallerService
 from .services.transcription import transcribe_audio
 from .services.llm import llm_service
-from .services.cost_tracker import cost_tracker
+from .services.cost_tracker import cost_tracker, LLMCallRecord, TTSCallRecord
 from .services.tts import generate_speech
 from .services.audio import audio_service
 from .services.stem_recorder import StemRecorder
@@ -5314,7 +5314,10 @@ TIME: {time_ctx} {season_ctx}
 {fluency_hint}
 {f'SOME DETAILS ABOUT THEM: {seed_text}' if seed_text else ''}
 {f'CALLER ENERGY: {style_hint}' if style_hint else ''}
-{f"SHOW THEME: Tonight's show theme is '{session.show_theme}'. This caller might have a story or angle related to this theme — or they might not. Not every caller has to be about the theme, but if their reason for calling can naturally connect to it, lean into that connection. The theme should feel like a through-line, not a mandate." if session.show_theme else ''}
+{f"""SHOW THEME: Tonight's show theme is '{session.show_theme}'.
+Most callers tonight are calling BECAUSE of the theme — they heard the host announce it and thought "oh man, I have a story for this." Their reason for calling should be genuinely, specifically connected to the theme. Not a surface-level mention — the theme should be woven into WHY they picked up the phone. Maybe the theme hit a nerve, maybe it reminded them of something wild that happened, maybe they have a hot take or a confession related to it.
+About 1 in 3 callers can be unrelated to the theme — they just have their own thing going on and called regardless. But the majority should feel like the theme drew them in.
+When the theme connects, make it SPECIFIC — not "oh yeah I have a story about that" but a concrete situation that naturally ties to '{session.show_theme}'.""" if session.show_theme else ''}
 
 Respond with a JSON object containing these fields:
 
@@ -6017,7 +6020,7 @@ def get_caller_prompt(caller: dict, show_history: str = "",
 
     theme_context = ""
     if session.show_theme:
-        theme_context = f"\nSHOW THEME: Tonight's show theme is \"{session.show_theme}\". You're aware of the theme — the host mentioned it at the top of the show. If your story or situation connects to it, you might bring it up naturally. But don't force it. Not every caller has to be about the theme. If the host steers you toward the theme, go with it.\n"
+        theme_context = f"""\nSHOW THEME: Tonight's theme is \"{session.show_theme}\". If your story connects to this theme, OWN IT — you called because you heard the theme and knew you had to share. Mention the theme connection early, be enthusiastic about it. You're not just aware of the theme, you're excited that it's YOUR night to call. If the host brings up the theme, engage with energy. If your story doesn't relate to the theme, that's fine — just be yourself and tell your story.\n"""
 
     now = datetime.now(_MST)
     date_str = now.strftime("%A, %B %d")
@@ -6592,6 +6595,10 @@ def _save_checkpoint():
             "relationship_context": session.relationship_context,
             "intern_monitoring": session.intern_monitoring,
             "costs": cost_tracker.get_live_summary(),
+            "cost_records": {
+                "llm": [asdict(r) for r in cost_tracker.llm_records],
+                "tts": [asdict(r) for r in cost_tracker.tts_records],
+            },
             "saved_at": time.time(),
         }
         with open(CHECKPOINT_FILE, "w") as f:
@@ -6639,6 +6646,28 @@ def _load_checkpoint() -> bool:
                 CALLER_BASES[key]["voice"] = snapshot["voice"]
                 CALLER_BASES[key]["returning"] = snapshot.get("returning", False)
                 CALLER_BASES[key]["regular_id"] = snapshot.get("regular_id")
+        # Restore cost tracker records
+        cost_records = data.get("cost_records", {})
+        if cost_records:
+            cost_tracker.reset()
+            for r in cost_records.get("llm", []):
+                cost_tracker.llm_records.append(LLMCallRecord(**r))
+            for r in cost_records.get("tts", []):
+                cost_tracker.tts_records.append(TTSCallRecord(**r))
+            # Rebuild running totals from restored records
+            for r in cost_tracker.llm_records:
+                cost_tracker._llm_cost += r.cost_usd
+                cost_tracker._llm_calls += 1
+                cost_tracker._prompt_tokens += r.prompt_tokens
+                cost_tracker._completion_tokens += r.completion_tokens
+                cost_tracker._total_tokens += r.total_tokens
+                cat = cost_tracker._by_category.setdefault(r.category, {"cost": 0.0, "calls": 0, "tokens": 0})
+                cat["cost"] += r.cost_usd
+                cat["calls"] += 1
+                cat["tokens"] += r.total_tokens
+            for r in cost_tracker.tts_records:
+                cost_tracker._tts_cost += r.cost_usd
+            print(f"[Checkpoint] Restored {len(cost_tracker.llm_records)} LLM + {len(cost_tracker.tts_records)} TTS cost records")
         mins = age / 60
         print(f"[Checkpoint] Restored session {session.id} ({len(session.call_history)} calls, {mins:.0f}m old)")
         return True
@@ -8026,8 +8055,9 @@ def _trim_to_sentences(text: str, max_sentences: int) -> str:
     """Hard-trim response to at most max_sentences sentences."""
     if not text:
         return text
-    # Split on sentence-ending punctuation, keeping the delimiter
-    parts = re.split(r'(?<=[.!?])\s+', text.strip())
+    # Split on sentence-ending punctuation, keeping the delimiter.
+    # Negative lookbehind avoids splitting on common abbreviations (Mr. Mrs. Ms. Dr. St. etc.)
+    parts = re.split(r'(?<!Mr)(?<!Mrs)(?<!Ms)(?<!Dr)(?<!St)(?<!Jr)(?<!Sr)(?<!vs)(?<![A-Z])(?<=[.!?])\s+', text.strip())
     if len(parts) <= max_sentences:
         return text
     trimmed = ' '.join(parts[:max_sentences])
