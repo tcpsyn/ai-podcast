@@ -37,10 +37,10 @@ class Settings(BaseSettings):
     # Categories: caller_dialog, devon_monitor, devon_ask, background_gen,
     #             call_summary, news_summary, topic_gen, unknown
     category_models: dict = {
-        "caller_dialog": "x-ai/grok-4-fast",                   # testing edgier dialog — revert to anthropic/claude-sonnet-4-5
-        "devon_ask": "google/gemini-2.5-flash",               # Devon direct questions
-        "devon_monitor": "google/gemini-2.5-flash",           # Devon polling — biggest cost saver
-        "background_gen": "google/gemini-2.5-flash",          # JSON caller backgrounds
+        "caller_dialog": "x-ai/grok-4",                         # full Grok 4 — edgier dialog, latency OK (gaps cut in post)
+        "devon_ask": "x-ai/grok-4",                             # Devon should match the show's edgy energy
+        "devon_monitor": "google/gemini-2.5-flash",           # Devon polling — just decisions, keep cheap
+        "background_gen": "x-ai/grok-4",                      # wilder, more specific caller backgrounds
         "call_summary": "google/gemini-2.5-flash",            # post-call summaries
         "news_summary": "google/gemini-2.5-flash",            # news digests
         "topic_gen": "google/gemini-2.5-flash",               # topic generation

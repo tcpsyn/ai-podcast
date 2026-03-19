@@ -35,6 +35,7 @@ OPENROUTER_PRICING = {
     "anthropic/claude-sonnet-4-5":      {"prompt": 3.00,  "completion": 15.00},
     "anthropic/claude-haiku-4.5":       {"prompt": 0.80,  "completion": 4.00},
     "anthropic/claude-3-haiku":         {"prompt": 0.25,  "completion": 1.25},
+    "x-ai/grok-4":                     {"prompt": 3.00,  "completion": 15.00},
     "x-ai/grok-4-fast":                {"prompt": 5.00,  "completion": 15.00},
     "minimax/minimax-m2-her":           {"prompt": 0.50,  "completion": 1.50},
     "mistralai/mistral-small-creative": {"prompt": 0.20,  "completion": 0.60},

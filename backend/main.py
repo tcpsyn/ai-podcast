@@ -5314,10 +5314,7 @@ TIME: {time_ctx} {season_ctx}
 {fluency_hint}
 {f'SOME DETAILS ABOUT THEM: {seed_text}' if seed_text else ''}
 {f'CALLER ENERGY: {style_hint}' if style_hint else ''}
-{f"""SHOW THEME: Tonight's show theme is '{session.show_theme}'.
-Most callers tonight are calling BECAUSE of the theme — they heard the host announce it and thought "oh man, I have a story for this." Their reason for calling should be genuinely, specifically connected to the theme. Not a surface-level mention — the theme should be woven into WHY they picked up the phone. Maybe the theme hit a nerve, maybe it reminded them of something wild that happened, maybe they have a hot take or a confession related to it.
-About 1 in 3 callers can be unrelated to the theme — they just have their own thing going on and called regardless. But the majority should feel like the theme drew them in.
-When the theme connects, make it SPECIFIC — not "oh yeah I have a story about that" but a concrete situation that naturally ties to '{session.show_theme}'.""" if session.show_theme else ''}
+{("SHOW THEME: Tonight's show theme is " + repr(session.show_theme) + ". Most callers tonight are calling BECAUSE of the theme — they heard the host announce it and thought oh man, I have a story for this. Their reason for calling should be genuinely, specifically connected to the theme. Not a surface-level mention — the theme should be woven into WHY they picked up the phone. Maybe the theme hit a nerve, maybe it reminded them of something wild that happened, maybe it's just a coincidence that their situation involves it. About 1 in 3 callers can be unrelated to the theme — they just have their own thing going on and called regardless. But the majority should feel like the theme drew them in. When the theme connects, make it SPECIFIC — not oh yeah I have a story about that but a concrete situation that naturally ties to " + repr(session.show_theme) + ".") if session.show_theme else ''}
 
 Respond with a JSON object containing these fields:
 
@@ -5329,7 +5326,7 @@ Respond with a JSON object containing these fields:
 
 WHAT MAKES A GOOD CALLER: Stories that are SPECIFIC, SURPRISING, and make you lean in. Absurd situations, moral dilemmas, petty feuds, workplace chaos, ridiculous coincidences, funny+terrible confessions, callers who might be the villain and don't see it.
 
-DO NOT WRITE: Generic revelations, adoption/DNA/paternity surprises, vague emotional processing, therapy-speak, "sitting in truck staring at nothing," "everything they thought they knew was a lie," or ANY variation of "went to the wrong funeral" — that premise has been done to death on this show.
+DO NOT WRITE: Generic revelations, adoption/DNA/paternity surprises, vague emotional processing, therapy-speak, "sitting in truck staring at nothing," "everything they thought they knew was a lie," or ANY variation of "went to the wrong funeral" — that premise has been done to death on this show. Don't write backgrounds involving active violence, weapons threats, or situations where someone is in physical danger RIGHT NOW — the caller should have a messy LIFE, not a dangerous NIGHT. Don't reference real public figures in the caller's personal story. Shock value alone isn't interesting — the best stories are shocking AND human. A caller who did something terrible is only interesting if they're conflicted about it.
 
 Output ONLY valid JSON, no markdown fences."""
 
@@ -6101,6 +6098,7 @@ BANNED PHRASES — NEVER use any of these. If you catch yourself about to say on
 - Therapy buzzwords: "unpack that," "boundaries," "safe space," "triggered," "my truth," "authentic self," "healing journey," "I'm doing the work," "manifesting," "energy doesn't lie," "processing," "toxic," "red flag," "gaslight," "normalize"
 - Internet slang: "that hit differently," "hits different," "I felt that," "it is what it is," "living my best life," "no cap," "lowkey/highkey," "rent free," "main character energy," "vibe check," "that's valid," "it's giving," "slay," "that's a whole mood," "I can't even," "situationship," "ick"
 - Overused reactions: "I'm not gonna lie," "on a serious note," "to be fair," "I'm literally shaking," "let that sink in," "I'm not even mad I'm just disappointed," "everything I thought I knew," "I don't even know who I am anymore"
+- Generic conversational filler: "I hear you," "I hear that," "fair enough," "not gonna sugarcoat it," "real talk," "that's wild," starting a sentence with "Look,"
 
 IMPORTANT: Each caller should have their OWN way of talking. Don't fall into generic "radio caller" voice. A nervous caller fumbles differently than an angry caller rants. A storyteller meanders differently than a deadpan caller delivers. Match the communication style — don't default to the same phrasing every call.
 
