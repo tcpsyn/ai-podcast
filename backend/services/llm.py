@@ -13,6 +13,7 @@ OPENROUTER_MODELS = [
     # Default
     "anthropic/claude-sonnet-4-5",
     # Best for natural dialog
+    "x-ai/grok-4",
     "x-ai/grok-4-fast",
     "minimax/minimax-m2-her",
     "mistralai/mistral-small-creative",
