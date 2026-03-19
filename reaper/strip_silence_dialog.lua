@@ -466,7 +466,10 @@ local function phase1_strip_silence(dialog_regions)
   for _, r in ipairs(get_regions_by_type("^IDENT%s+%d+$")) do table.insert(protected_regions, r) end
   table.sort(protected_regions, function(a, b) return a.start_pos < b.start_pos end)
   if #protected_regions > 0 then
-    log("  Protecting " .. #protected_regions .. " AD/IDENT region(s) from silence removal")
+    log("  Protecting " .. #protected_regions .. " AD/IDENT region(s) from silence removal:")
+    for _, pr in ipairs(protected_regions) do
+      log("    " .. pr.name .. " at " .. string.format("%.1f", pr.start_pos) .. "-" .. string.format("%.1f", pr.end_pos) .. "s")
+    end
   end
 
   log("Phase 1: Analyzing using " .. tracks_loaded .. "/" .. #CHECK_TRACKS .. " voice tracks")
@@ -511,6 +514,11 @@ local function phase1_strip_silence(dialog_regions)
             log("    SKIP " .. string.format("%.1f", rm_end - rm_start) .. "s at " .. string.format("%.1f", s.start_pos) .. "-" .. string.format("%.1f", s.end_pos) .. " (overlaps " .. pr.name .. ")")
             break
           end
+        end
+        -- Preserve the very first silence (music intro before host starts talking)
+        if not protected and ri == 1 and #removals == 0 and s.start_pos <= rgn.start_pos + 1.0 then
+          protected = true
+          log("    KEEP " .. string.format("%.1f", rm_end - rm_start) .. "s at " .. string.format("%.1f", s.start_pos) .. "-" .. string.format("%.1f", s.end_pos) .. " (music intro)")
         end
         if not protected then
           table.insert(removals, {start_pos = rm_start, end_pos = rm_end})
@@ -561,7 +569,6 @@ local function phase1_strip_silence(dialog_regions)
       if (t + 1) == MUSIC_TRACK then goto next_track end
       local track = reaper.GetTrack(0, t)
 
-      -- Split and delete the silent portion from items that span r.start_pos
       local item = find_item_at(track, r.start_pos)
       if item then
         local right = reaper.SplitMediaItem(item, r.start_pos)
@@ -571,36 +578,10 @@ local function phase1_strip_silence(dialog_regions)
         end
       end
 
-      -- Handle sparse track items that START within the removal range
-      -- (not found by find_item_at since they don't contain r.start_pos)
-      for j = reaper.CountTrackMediaItems(track) - 1, 0, -1 do
-        local check = reaper.GetTrackMediaItem(track, j)
-        local cpos = reaper.GetMediaItemInfo_Value(check, "D_POSITION")
-        if cpos >= r.start_pos and cpos < r.end_pos then
-          local clen = reaper.GetMediaItemInfo_Value(check, "D_LENGTH")
-          local cend = cpos + clen
-          if cend <= r.end_pos then
-            -- Entirely within removal — delete
-            reaper.DeleteTrackMediaItem(track, check)
-          else
-            -- Starts in removal but extends past — trim start to r.end_pos
-            local trim = r.end_pos - cpos
-            local take = reaper.GetActiveTake(check)
-            if take then
-              local offset = reaper.GetMediaItemTakeInfo_Value(take, "D_STARTOFFS")
-              reaper.SetMediaItemTakeInfo_Value(take, "D_STARTOFFS", offset + trim)
-            end
-            reaper.SetMediaItemInfo_Value(check, "D_LENGTH", cend - r.end_pos)
-            reaper.SetMediaItemInfo_Value(check, "D_POSITION", r.end_pos)
-          end
-        end
-      end
-
-      -- Shift items AFTER the removal (use r.end_pos, not r.start_pos)
       for j = 0, reaper.CountTrackMediaItems(track) - 1 do
         local shift_item = reaper.GetTrackMediaItem(track, j)
         local pos = reaper.GetMediaItemInfo_Value(shift_item, "D_POSITION")
-        if pos >= r.end_pos then
+        if pos >= r.start_pos then
           reaper.SetMediaItemInfo_Value(shift_item, "D_POSITION", pos - remove_len)
         end
       end
@@ -629,63 +610,58 @@ end
 -- Phase 2: Normalize AD/IDENT volume to match dialog
 ---------------------------------------------------------------------------
 
-local function normalize_track_regions(track_idx, regions, target_db)
+local function normalize_track_items(track_idx, target_db, label)
+  -- Normalize all items on a track that have audible content.
+  -- Uses direct WAV reading (not audio accessor) so it works after Phase 1 splits.
   local track = reaper.GetTrack(0, track_idx - 1)
   if not track or reaper.CountTrackMediaItems(track) == 0 then return end
 
-  for _, rgn in ipairs(regions) do
-    local item = find_item_at(track, rgn.start_pos)
-    if not item then goto next_region end
+  local ta = get_track_audio(track_idx)
+  if not ta then
+    log("  " .. label .. ": no audio found")
+    return
+  end
 
-    local item_start = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+  local adjusted = 0
+  for i = 0, reaper.CountTrackMediaItems(track) - 1 do
+    local item = reaper.GetTrackMediaItem(track, i)
+    local item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+    local item_len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+    local item_end = item_pos + item_len
 
-    local segment = item
-    if item_start < rgn.start_pos - 0.01 then
-      segment = reaper.SplitMediaItem(item, rgn.start_pos)
-      if not segment then goto next_region end
-    end
-    local seg_end = reaper.GetMediaItemInfo_Value(segment, "D_POSITION")
-                  + reaper.GetMediaItemInfo_Value(segment, "D_LENGTH")
-    if rgn.end_pos < seg_end - 0.01 then
-      reaper.SplitMediaItem(segment, rgn.end_pos)
-    end
-
-    local take = reaper.GetActiveTake(segment)
-    if not take then goto next_region end
-
-    local seg_pos = reaper.GetMediaItemInfo_Value(segment, "D_POSITION")
-    local seg_len = reaper.GetMediaItemInfo_Value(segment, "D_LENGTH")
-    local seg_offset = reaper.GetMediaItemTakeInfo_Value(take, "D_STARTOFFS")
-    local accessor = reaper.CreateTakeAudioAccessor(take)
-
+    -- Measure RMS of audible content in this item
     local sum_sq = 0
     local count = 0
-    local t = seg_pos
-    while t < seg_pos + seg_len do
-      local source_time = t - seg_pos + seg_offset
-      local buf = reaper.new_array(BLOCK_SAMPLES)
-      reaper.GetAudioAccessorSamples(accessor, SAMPLE_RATE, 1, source_time, BLOCK_SAMPLES, buf)
-      for i = 1, BLOCK_SAMPLES do
-        sum_sq = sum_sq + buf[i] * buf[i]
+    local t = item_pos
+    while t < item_end do
+      local peak, s_sq = read_block_peak_rms(ta, t)
+      if peak >= THRESHOLD then
+        sum_sq = sum_sq + s_sq
+        count = count + BLOCK_SAMPLES
       end
-      count = count + BLOCK_SAMPLES
       t = t + BLOCK_SEC
     end
-    reaper.DestroyAudioAccessor(accessor)
 
     if count > 0 then
       local item_rms = math.sqrt(sum_sq / count)
       if item_rms > 0 then
         local item_db = 20 * math.log(item_rms, 10)
         local gain_db = target_db - item_db
-        local gain_linear = 10 ^ (gain_db / 20)
-        local current_vol = reaper.GetMediaItemInfo_Value(segment, "D_VOL")
-        reaper.SetMediaItemInfo_Value(segment, "D_VOL", current_vol * gain_linear)
-        log("  " .. rgn.name .. ": " .. string.format("%+.1f", gain_db) .. "dB adjustment")
+        -- Only adjust if the difference is significant (> 1dB)
+        if math.abs(gain_db) > 1.0 then
+          local gain_linear = 10 ^ (gain_db / 20)
+          local current_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL")
+          reaper.SetMediaItemInfo_Value(item, "D_VOL", current_vol * gain_linear)
+          log("  " .. label .. " item at " .. string.format("%.0f", item_pos) .. "s: " .. string.format("%+.1f", gain_db) .. "dB")
+          adjusted = adjusted + 1
+        end
       end
     end
+  end
 
-    ::next_region::
+  destroy_track_audio(ta)
+  if adjusted == 0 then
+    log("  " .. label .. ": no adjustments needed")
   end
 end
 
@@ -776,19 +752,16 @@ local function phase2_normalize(dialog_regions, ad_regions, ident_regions, dialo
   local ad_ident_target = dialog_rms_db + AD_IDENT_OFFSET_DB
   log("Phase 2: AD/IDENT target = " .. string.format("%.1f", ad_ident_target) .. " dBFS (" .. AD_IDENT_OFFSET_DB .. "dB offset from dialog)")
 
-  if #ad_regions > 0 then
-    progress_detail = "Ads"
-    coroutine.yield()
-    log("Phase 2: Normalizing " .. #ad_regions .. " AD region(s)...")
-    normalize_track_regions(ADS_TRACK, ad_regions, ad_ident_target)
-  end
-  if #ident_regions > 0 then
-    progress_detail = "Idents"
-    progress_pct = 0.33
-    coroutine.yield()
-    log("Phase 2: Normalizing " .. #ident_regions .. " IDENT region(s)...")
-    normalize_track_regions(IDENTS_TRACK, ident_regions, ad_ident_target)
-  end
+  progress_detail = "Ads"
+  coroutine.yield()
+  log("Phase 2: Normalizing ads track...")
+  normalize_track_items(ADS_TRACK, ad_ident_target, "Ads")
+
+  progress_detail = "Idents"
+  progress_pct = 0.33
+  coroutine.yield()
+  log("Phase 2: Normalizing idents track...")
+  normalize_track_items(IDENTS_TRACK, ad_ident_target, "Idents")
 
   progress_detail = "Music"
   progress_pct = 0.66
@@ -812,54 +785,73 @@ local function phase3_trim_music()
   local music_track = reaper.GetTrack(0, MUSIC_TRACK - 1)
   if not music_track then return end
 
-  -- Ensure music starts before first voice item.
-  -- Silence removal shifts voice/idents/ads but not music. If voice now starts before
-  -- music, nudge all non-music tracks forward so music has a lead-in.
-  local first_voice_start = math.huge
-  for _, tidx in ipairs(CHECK_TRACKS) do
-    local tr = reaper.GetTrack(0, tidx - 1)
-    if tr and reaper.CountTrackMediaItems(tr) > 0 then
-      local item = reaper.GetTrackMediaItem(tr, 0)
-      local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-      if pos < first_voice_start then first_voice_start = pos end
+  -- Music lead-in: ensure audible music plays before first voice.
+  -- Strategy: skip the silent intro in the music WAV (adjust take offset),
+  -- then nudge all non-music tracks forward by MUSIC_LEAD_SEC so music plays first.
+  local MUSIC_LEAD_SEC = 3.0
+
+  -- Find where music becomes audible in the source WAV
+  local music_audible_offset = nil
+  local music_ta = get_track_audio(MUSIC_TRACK)
+  if music_ta then
+    local t = music_ta.item_pos
+    while t < music_ta.item_end do
+      local peak, _ = read_block_peak_rms(music_ta, t)
+      if peak >= THRESHOLD then
+        music_audible_offset = t - music_ta.item_pos  -- offset into the WAV
+        break
+      end
+      t = t + BLOCK_SEC
     end
+    destroy_track_audio(music_ta)
   end
 
-  local MUSIC_LEAD_SEC = 3.0  -- seconds of music before first voice
-  if first_voice_start < math.huge then
+  if false then  -- Music lead-in disabled — intro silence is preserved instead
+    -- Skip the silent intro: set take offset so audible music starts at position 0
     local first_music = reaper.GetTrackMediaItem(music_track, 0)
     if first_music then
-      local music_start = reaper.GetMediaItemInfo_Value(first_music, "D_POSITION")
-      local desired_voice_start = music_start + MUSIC_LEAD_SEC
-      if first_voice_start < desired_voice_start then
-        local nudge = desired_voice_start - first_voice_start
-        -- Shift all non-music tracks forward
-        for t = 0, reaper.CountTracks(0) - 1 do
-          if (t + 1) == MUSIC_TRACK then goto skip_music end
-          local track = reaper.GetTrack(0, t)
-          for i = 0, reaper.CountTrackMediaItems(track) - 1 do
-            local item = reaper.GetTrackMediaItem(track, i)
-            local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-            reaper.SetMediaItemInfo_Value(item, "D_POSITION", pos + nudge)
-          end
-          ::skip_music::
-        end
-        -- Also shift all markers/regions forward
-        local _, num_markers, num_regions = reaper.CountProjectMarkers(0)
-        local total_m = num_markers + num_regions
-        for i = 0, total_m - 1 do
-          local retval, is_region, pos, rgnend, name, idx, color = reaper.EnumProjectMarkers3(0, i)
-          if retval then
-            if is_region then
-              reaper.SetProjectMarker3(0, idx, true, pos + nudge, rgnend + nudge, name, color)
-            else
-              reaper.SetProjectMarker3(0, idx, false, pos + nudge, 0, name, color)
-            end
-          end
-        end
-        log("Phase 3: Nudged non-music tracks forward " .. string.format("%.1f", nudge) .. "s for " .. MUSIC_LEAD_SEC .. "s music lead-in")
+      local take = reaper.GetActiveTake(first_music)
+      if take then
+        local current_offset = reaper.GetMediaItemTakeInfo_Value(take, "D_STARTOFFS")
+        reaper.SetMediaItemTakeInfo_Value(take, "D_STARTOFFS", current_offset + music_audible_offset)
+        -- Trim item length to account for skipped intro
+        local item_len = reaper.GetMediaItemInfo_Value(first_music, "D_LENGTH")
+        reaper.SetMediaItemInfo_Value(first_music, "D_LENGTH", item_len - music_audible_offset)
+        log("Phase 3: Skipped " .. string.format("%.1f", music_audible_offset) .. "s of silent music intro")
       end
     end
+
+    -- Nudge all non-music tracks forward by MUSIC_LEAD_SEC
+    log("Phase 3: Nudging non-music tracks forward by " .. MUSIC_LEAD_SEC .. "s for music lead-in")
+    for t = 0, reaper.CountTracks(0) - 1 do
+      if (t + 1) == MUSIC_TRACK then goto skip_music end
+      local track = reaper.GetTrack(0, t)
+      for i = 0, reaper.CountTrackMediaItems(track) - 1 do
+        local item = reaper.GetTrackMediaItem(track, i)
+        local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        reaper.SetMediaItemInfo_Value(item, "D_POSITION", pos + MUSIC_LEAD_SEC)
+      end
+      ::skip_music::
+    end
+
+    -- Shift markers/regions forward too
+    local markers_to_update = {}
+    local _, num_markers, num_regions = reaper.CountProjectMarkers(0)
+    for i = 0, num_markers + num_regions - 1 do
+      local retval, is_region, pos, rgnend, name, idx, color = reaper.EnumProjectMarkers3(0, i)
+      if retval then
+        table.insert(markers_to_update, {is_region=is_region, pos=pos, rgnend=rgnend, name=name, idx=idx, color=color})
+      end
+    end
+    for _, m in ipairs(markers_to_update) do
+      if m.is_region then
+        reaper.SetProjectMarker3(0, m.idx, true, m.pos + MUSIC_LEAD_SEC, m.rgnend + MUSIC_LEAD_SEC, m.name, m.color)
+      else
+        reaper.SetProjectMarker3(0, m.idx, false, m.pos + MUSIC_LEAD_SEC, 0, m.name, m.color)
+      end
+    end
+  else
+    log("Phase 3: No silent music intro detected — skipping lead-in adjustment")
   end
 
   local last_end = 0
@@ -1006,6 +998,39 @@ local function do_work()
     phase4_music_fades(ad_ident_regions)
   else
     log("Phase 4: No AD/IDENT regions found — skipping")
+  end
+
+  -- Set loop/time selection: start 0.5s before audible music, end at last item
+  local loop_start = 0
+  local music_ta = get_track_audio(MUSIC_TRACK)
+  if music_ta then
+    local t = music_ta.item_pos
+    while t < music_ta.item_end do
+      local peak, _ = read_block_peak_rms(music_ta, t)
+      if peak >= THRESHOLD then
+        loop_start = math.max(0, t - 0.5)
+        break
+      end
+      t = t + BLOCK_SEC
+    end
+    destroy_track_audio(music_ta)
+  end
+
+  local project_end = 0
+  for t = 0, reaper.CountTracks(0) - 1 do
+    local track = reaper.GetTrack(0, t)
+    local n = reaper.CountTrackMediaItems(track)
+    if n > 0 then
+      local last_item = reaper.GetTrackMediaItem(track, n - 1)
+      local item_end = reaper.GetMediaItemInfo_Value(last_item, "D_POSITION")
+                     + reaper.GetMediaItemInfo_Value(last_item, "D_LENGTH")
+      if item_end > project_end then project_end = item_end end
+    end
+  end
+  if project_end > 0 then
+    reaper.GetSet_LoopTimeRange(true, true, loop_start, project_end, false)
+    reaper.GetSet_LoopTimeRange(true, false, loop_start, project_end, false)
+    log("Loop range set: " .. string.format("%.1f", loop_start) .. " to " .. string.format("%.1f", project_end) .. "s (" .. string.format("%.1f", (project_end - loop_start) / 60) .. " min)")
   end
 
   reaper.PreventUIRefresh(-1)
