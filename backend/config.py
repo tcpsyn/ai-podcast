@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     # Categories: caller_dialog, devon_monitor, devon_ask, background_gen,
     #             call_summary, news_summary, topic_gen, unknown
     category_models: dict = {
-        "caller_dialog": "anthropic/claude-sonnet-4-5",       # quality matters — this IS the show
+        "caller_dialog": "x-ai/grok-4-fast",                   # testing edgier dialog — revert to anthropic/claude-sonnet-4-5
         "devon_ask": "google/gemini-2.5-flash",               # Devon direct questions
         "devon_monitor": "google/gemini-2.5-flash",           # Devon polling — biggest cost saver
         "background_gen": "google/gemini-2.5-flash",          # JSON caller backgrounds
