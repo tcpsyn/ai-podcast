@@ -23,6 +23,8 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import time
+
 import requests
 from dotenv import load_dotenv
 
@@ -44,6 +46,50 @@ FONT_SEMIBOLD = "/Library/Fonts/Montserrat-SemiBold.ttf"
 # Video dimensions (9:16 vertical)
 WIDTH = 1080
 HEIGHT = 1920
+
+
+def _llm_request(prompt: str, max_tokens: int = 2048, temperature: float = 0.3,
+                  timeout: int = 60) -> str | None:
+    """Make an LLM API call with timeout and retry. Returns content or None on failure."""
+    for attempt in range(2):
+        try:
+            response = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "anthropic/claude-sonnet-4-5",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                },
+                timeout=timeout,
+            )
+            if response.status_code != 200:
+                print(f"    LLM error (HTTP {response.status_code}): {response.text[:200]}")
+                if attempt == 0:
+                    print(f"    Retrying in 5s...")
+                    time.sleep(5)
+                    continue
+                return None
+            return response.json()["choices"][0]["message"]["content"].strip()
+        except requests.Timeout:
+            print(f"    LLM request timed out ({timeout}s)")
+            if attempt == 0:
+                print(f"    Retrying in 5s...")
+                time.sleep(5)
+                continue
+            return None
+        except Exception as e:
+            print(f"    LLM request failed: {e}")
+            if attempt == 0:
+                print(f"    Retrying in 5s...")
+                time.sleep(5)
+                continue
+            return None
+    return None
 
 
 def _build_whisper_prompt(labeled_transcript: str) -> str:
@@ -186,7 +232,12 @@ def refine_clip_timestamps(audio_path: str, clips: list[dict],
                 "ffmpeg", "-y", "-ss", str(seg_start), "-t", str(seg_end - seg_start),
                 "-i", audio_path, "-ar", "16000", "-ac", "1", seg_path,
             ]
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            except subprocess.TimeoutExpired:
+                print(f"      Clip {i+1}: ffmpeg timed out (120s), skipping")
+                refined[i] = []
+                continue
             if result.returncode != 0:
                 print(f"      Clip {i+1}: Failed to extract segment")
                 refined[i] = []
@@ -279,25 +330,11 @@ IMPORTANT:
 Respond with ONLY a JSON array, no markdown or explanation:
 [{{"title": "...", "start_time": 0.0, "end_time": 0.0, "caption_text": "..."}}]"""
 
-    response = requests.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "model": "anthropic/claude-sonnet-4-5",
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 2048,
-            "temperature": 0.3,
-        },
-    )
+    content = _llm_request(prompt, max_tokens=2048, temperature=0.3, timeout=60)
+    if content is None:
+        print("    Failed to get clip selections from LLM — aborting")
+        return []
 
-    if response.status_code != 200:
-        print(f"Error from OpenRouter: {response.text}")
-        sys.exit(1)
-
-    content = response.json()["choices"][0]["message"]["content"].strip()
     if content.startswith("```"):
         content = re.sub(r"^```(?:json)?\n?", "", content)
         content = re.sub(r"\n?```$", "", content)
@@ -307,7 +344,7 @@ Respond with ONLY a JSON array, no markdown or explanation:
     except json.JSONDecodeError as e:
         print(f"Error parsing LLM response: {e}")
         print(f"Response was: {content[:500]}")
-        sys.exit(1)
+        return []
 
     # Validate and clamp durations
     validated = []
@@ -349,25 +386,11 @@ For each clip, generate:
 Respond with ONLY a JSON array matching the clip order:
 [{{"description": "...", "hashtags": ["#tag1", "#tag2", ...]}}]"""
 
-    response = requests.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "model": "anthropic/claude-sonnet-4-5",
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 2048,
-            "temperature": 0.7,
-        },
-    )
-
-    if response.status_code != 200:
-        print(f"Error from OpenRouter: {response.text}")
+    content = _llm_request(prompt, max_tokens=2048, temperature=0.7, timeout=60)
+    if content is None:
+        print("    Failed to generate social metadata — skipping")
         return clips
 
-    content = response.json()["choices"][0]["message"]["content"].strip()
     if content.startswith("```"):
         content = re.sub(r"^```(?:json)?\n?", "", content)
         content = re.sub(r"\n?```$", "", content)
@@ -777,43 +800,25 @@ RULES:
 RAW TEXT ({len(words)} words):
 {raw_text}"""
 
-    try:
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": "anthropic/claude-sonnet-4-5",
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 2048,
-                "temperature": 0,
-            },
-            timeout=30,
-        )
-        if response.status_code != 200:
-            print(f"      Polish failed ({response.status_code}), using raw text")
-            return words
+    polished = _llm_request(prompt, max_tokens=2048, temperature=0, timeout=30)
+    if polished is None:
+        print(f"      Polish failed, using raw text")
+        return words
 
-        polished = response.json()["choices"][0]["message"]["content"].strip()
-        polished_words = polished.split()
+    polished_words = polished.split()
 
-        if len(polished_words) != len(words):
-            print(f"      Polish word count mismatch ({len(polished_words)} vs {len(words)}), using raw text")
-            return words
+    if len(polished_words) != len(words):
+        print(f"      Polish word count mismatch ({len(polished_words)} vs {len(words)}), using raw text")
+        return words
 
-        changes = 0
-        for i, pw in enumerate(polished_words):
-            if pw != words[i]["word"]:
-                changes += 1
-                words[i]["word"] = pw
+    changes = 0
+    for i, pw in enumerate(polished_words):
+        if pw != words[i]["word"]:
+            changes += 1
+            words[i]["word"] = pw
 
-        if changes:
-            print(f"      Polished {changes} words")
-
-    except Exception as e:
-        print(f"      Polish error: {e}")
+    if changes:
+        print(f"      Polished {changes} words")
 
     return words
 
@@ -898,8 +903,12 @@ def extract_clip_audio(audio_path: str, start: float, end: float,
         output_path,
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    return result.returncode == 0
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        return result.returncode == 0
+    except subprocess.TimeoutExpired:
+        print(f"    ffmpeg audio extraction timed out (120s)")
+        return False
 
 
 def generate_background_image(episode_number: int, clip_title: str,
@@ -1153,7 +1162,11 @@ def generate_clip_video(audio_path: str, background_path: str,
             output_path,
         ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        print(f"    ffmpeg video generation timed out (300s)")
+        return False
     if result.returncode != 0:
         print(f"    ffmpeg error: {result.stderr[-300:]}")
         return False
@@ -1235,7 +1248,12 @@ def generate_clip_video_remotion(
         output_path,
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(REMOTION_DIR))
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(REMOTION_DIR), timeout=180)
+    except subprocess.TimeoutExpired:
+        props_path.unlink(missing_ok=True)
+        print(f"    Remotion render timed out (180s)")
+        return False
     props_path.unlink(missing_ok=True)
 
     if result.returncode != 0:
@@ -1488,6 +1506,9 @@ def main():
     print(f"\n[3/{step_total}] Selecting {args.count} best moments with LLM...")
     clips = select_clips_with_llm(transcript_text, labeled_transcript,
                                    chapters_json, args.count)
+    if not clips:
+        print("\nNo clips selected — aborting.")
+        return
 
     # Snap to sentence boundaries so clips don't start/end mid-sentence
     clips = snap_to_sentences(clips, segments)
@@ -1524,14 +1545,18 @@ def main():
     extract_step = 6 if two_pass else 5
     print(f"\n[{extract_step}/{step_total}] Extracting audio clips...")
     for i, clip in enumerate(clips):
+        print(f"    [{i+1}/{len(clips)}] \"{clip['title']}\"...")
         slug = slugify(clip["title"])
         mp3_path = output_dir / f"clip-{i+1}-{slug}.mp3"
 
-        if extract_clip_audio(str(audio_path), clip["start_time"], clip["end_time"],
-                              str(mp3_path)):
-            print(f"    Clip {i+1} audio: {mp3_path.name}")
-        else:
-            print(f"    Error extracting clip {i+1} audio")
+        try:
+            if extract_clip_audio(str(audio_path), clip["start_time"], clip["end_time"],
+                                  str(mp3_path)):
+                print(f"    Clip {i+1} audio: {mp3_path.name}")
+            else:
+                print(f"    Error extracting clip {i+1} audio — skipping")
+        except Exception as e:
+            print(f"    Clip {i+1} audio failed: {e} — skipping")
 
     video_step = 7 if two_pass else 6
     if args.audio_only:
@@ -1553,49 +1578,52 @@ def main():
             mp4_path = output_dir / f"clip-{i+1}-{slug}.mp4"
             duration = clip["end_time"] - clip["start_time"]
 
-            print(f"    Clip {i+1}: Generating video...")
+            print(f"    [{i+1}/{len(clips)}] \"{clip['title']}\" ({duration:.0f}s)...")
 
-            # Get word timestamps — use refined segments if available
-            word_source = refined[i] if (two_pass and i in refined and refined[i]) else segments
-            clip_words = get_words_in_range(word_source, clip["start_time"], clip["end_time"])
+            try:
+                # Get word timestamps — use refined segments if available
+                word_source = refined[i] if (two_pass and i in refined and refined[i]) else segments
+                clip_words = get_words_in_range(word_source, clip["start_time"], clip["end_time"])
 
-            # Add speaker labels
-            clip_words = add_speaker_labels(clip_words, labeled_transcript,
-                                            clip["start_time"], clip["end_time"],
-                                            word_source)
+                # Add speaker labels
+                clip_words = add_speaker_labels(clip_words, labeled_transcript,
+                                                clip["start_time"], clip["end_time"],
+                                                word_source)
 
-            # Polish text with LLM (fix punctuation, capitalization, mishearings)
-            clip_words = polish_clip_words(clip_words, labeled_transcript)
+                # Polish text with LLM (fix punctuation, capitalization, mishearings)
+                clip_words = polish_clip_words(clip_words, labeled_transcript)
 
-            # Group words into timed caption lines
-            caption_lines = group_words_into_lines(
-                clip_words, clip["start_time"], duration
-            )
+                # Group words into timed caption lines
+                caption_lines = group_words_into_lines(
+                    clip_words, clip["start_time"], duration
+                )
 
-            if use_remotion:
-                if generate_clip_video_remotion(
-                    str(mp3_path), caption_lines, clip["start_time"],
-                    clip["title"], episode_number, str(mp4_path), duration
-                ):
-                    file_size = mp4_path.stat().st_size / (1024 * 1024)
-                    print(f"    Clip {i+1} video: {mp4_path.name} ({file_size:.1f} MB)")
+                if use_remotion:
+                    if generate_clip_video_remotion(
+                        str(mp3_path), caption_lines, clip["start_time"],
+                        clip["title"], episode_number, str(mp4_path), duration
+                    ):
+                        file_size = mp4_path.stat().st_size / (1024 * 1024)
+                        print(f"    Clip {i+1} video: {mp4_path.name} ({file_size:.1f} MB)")
+                    else:
+                        print(f"    Clip {i+1} video failed (Remotion) — skipping")
                 else:
-                    print(f"    Error generating clip {i+1} video (Remotion)")
-            else:
-                # Legacy PIL+ffmpeg renderer
-                bg_path = str(tmp_dir / f"bg_{i}.png")
-                generate_background_image(episode_number, clip["title"], bg_path)
+                    # Legacy PIL+ffmpeg renderer
+                    bg_path = str(tmp_dir / f"bg_{i}.png")
+                    generate_background_image(episode_number, clip["title"], bg_path)
 
-                clip_tmp = tmp_dir / f"clip_{i}"
-                clip_tmp.mkdir(exist_ok=True)
+                    clip_tmp = tmp_dir / f"clip_{i}"
+                    clip_tmp.mkdir(exist_ok=True)
 
-                if generate_clip_video(str(mp3_path), bg_path, caption_lines,
-                                       clip["start_time"], str(mp4_path),
-                                       duration, clip_tmp):
-                    file_size = mp4_path.stat().st_size / (1024 * 1024)
-                    print(f"    Clip {i+1} video: {mp4_path.name} ({file_size:.1f} MB)")
-                else:
-                    print(f"    Error generating clip {i+1} video")
+                    if generate_clip_video(str(mp3_path), bg_path, caption_lines,
+                                           clip["start_time"], str(mp4_path),
+                                           duration, clip_tmp):
+                        file_size = mp4_path.stat().st_size / (1024 * 1024)
+                        print(f"    Clip {i+1} video: {mp4_path.name} ({file_size:.1f} MB)")
+                    else:
+                        print(f"    Clip {i+1} video failed (ffmpeg) — skipping")
+            except Exception as e:
+                print(f"    Clip {i+1} video failed: {e} — skipping")
 
     # Save clips metadata for social upload
     metadata_path = output_dir / "clips-metadata.json"
