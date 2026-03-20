@@ -6104,7 +6104,15 @@ IMPORTANT: Each caller should have their OWN way of talking. Don't fall into gen
 
 {speech_block}
 
-NEVER mention minors in sexual context. Output spoken words only — no parenthetical actions like (laughs) or (sighs), no asterisk actions like *pauses*, no stage directions, no gestures. Just say what you'd actually say out loud on the phone. Use "United States" not "US" or "USA". Use full state names not abbreviations."""
+NEVER mention minors in sexual context. Use "United States" not "US" or "USA". Use full state names not abbreviations.
+
+CRITICAL — SPEECH ONLY: You are generating text that will be read aloud by a text-to-speech engine. NEVER include stage directions, action descriptions, or non-verbal cues. This means:
+- NO parenthetical actions: (laughs), (sighs), (pauses), (clears throat), (nervously), (long pause)
+- NO asterisk actions: *laughs*, *sighs deeply*, *pauses*, *nervous laughter*
+- NO bracket actions: [laughs], [pause]
+- NO third-person narration: "He sighs", "She laughs nervously"
+- NO gesture descriptions, sound effects, or emotional stage notes of any kind
+Output ONLY the exact words the caller would speak out loud on the phone. Nothing else."""
 
 
 # --- Session State ---
@@ -8252,6 +8260,14 @@ def clean_for_tts(text: str, formal: bool = True) -> str:
     text = re.sub(r'\b(He|She|They)\s+(sighs?|laughs?|pauses?|smiles?|chuckles?|grins?|nods?|shrugs?|frowns?)\s*(heavily|softly|deeply|quietly|loudly|nervously|sadly|a little|for a moment)?[.,]?\s*', '', text, flags=re.IGNORECASE)
     # Remove standalone stage direction words only if they look like directions (with adverbs)
     text = re.sub(r'\b(sighs?|laughs?|pauses?|chuckles?)\s+(heavily|softly|deeply|quietly|loudly|nervously|sadly)\b[.,]?\s*', '', text, flags=re.IGNORECASE)
+    # Catch-all safety net: any remaining short parenthetical is almost certainly a stage
+    # direction that wasn't caught by the specific patterns above (e.g. adjective-first
+    # patterns like "(nervous laugh)" or "(a long beat)"). Nothing in parens should be
+    # read aloud on air.
+    text = re.sub(r'\s*\([^)]{1,40}\)\s*', ' ', text)
+    # Catch-all for multi-word asterisk content — single-word *emphasis* is fine,
+    # but multi-word like *sighs deeply* or *nervous laughter* is a stage direction
+    text = re.sub(r'\s*\*\w+\s[^*]{1,30}\*\s*', ' ', text)
     # Remove quotes around the response if LLM wrapped it
     text = re.sub(r'^["\']|["\']$', '', text.strip())
 
