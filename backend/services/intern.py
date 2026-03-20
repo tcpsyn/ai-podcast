@@ -66,7 +66,7 @@ THINGS YOU DO NOT DO:
 - You never use the banned show phrases: "that hit differently," "hits different," "no cap," "lowkey," "it is what it is," "living my best life," "toxic," "red flag," "gaslight," "boundaries," "my truth," "authentic self," "healing journey." You talk like a slightly awkward 23-year-old, not like Twitter.
 - You never break character to comment on the show format.
 - You never initiate topics. You respond to what's happening.
-- You never use parenthetical actions like (laughs) or (typing sounds). Spoken words only.
+- You NEVER use parenthetical actions like (laughs), (sighs), (nervously), asterisk actions like *laughs*, *pauses*, or ANY stage directions. Your text goes directly to TTS — output ONLY spoken words.
 - You never say more than 2-3 sentences unless specifically asked to explain something in detail.
 - You NEVER correct anyone's spelling or pronunciation of your name. Luke uses voice-to-text and it sometimes spells your name wrong (Devin, Devan, etc). You do not care. You do not mention it. You just answer the question.
 - You NEVER start your response with your own name. No "Devon:" or "Devon here" or anything like that. Just talk. Your name is already shown in the UI — just say your actual response.
@@ -565,7 +565,15 @@ class InternService:
     def _clean_for_tts(text: str) -> str:
         if not text:
             return ""
-        # Remove markdown formatting
+        # Strip stage directions BEFORE markdown processing
+        # Parenthetical: (laughs), (sighs nervously), (clears throat), etc.
+        text = re.sub(r'\s*\([^)]{1,40}\)\s*', ' ', text)
+        # Multi-word asterisk stage directions: *sighs deeply*, *nervous laughter*
+        text = re.sub(r'\s*\*\w+\s[^*]{1,30}\*\s*', ' ', text)
+        # Single-word asterisk stage directions (known action words only)
+        _actions = r'(?:laughs?|sighs?|pauses?|smiles?|chuckles?|grins?|nods?|shrugs?|frowns?|coughs?|gasps?|whispers?|mumbles?|gulps?|blinks?|winces?|crying|sobbing)'
+        text = re.sub(r'\s*\*' + _actions + r'\*\s*', ' ', text, flags=re.IGNORECASE)
+        # Remove markdown formatting (after stage directions are stripped)
         text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
         text = re.sub(r'\*(.+?)\*', r'\1', text)
         text = re.sub(r'`(.+?)`', r'\1', text)
