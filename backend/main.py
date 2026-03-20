@@ -7633,6 +7633,104 @@ async def start_recording():
     return {"status": "recording"}
 
 
+def _get_all_caller_names() -> list[str]:
+    """Get all current caller names (from backgrounds or base assignments)."""
+    names = []
+    for key in CALLER_BASES:
+        bg = session.caller_backgrounds.get(key)
+        if bg and hasattr(bg, "name"):
+            names.append(bg.name)
+        elif isinstance(bg, str):
+            pass  # raw string background, no structured name
+        elif "name" in CALLER_BASES[key]:
+            names.append(CALLER_BASES[key]["name"])
+    # Always include Devon (the intern)
+    names.append("Devon")
+    return names
+
+
+def _fix_caller_names(text: str, names: list[str]) -> str:
+    """Fix Whisper misspellings of caller names using fuzzy matching.
+    Compares each word against known names — if within edit distance 2
+    and the word isn't a common English word, replace it."""
+    if not names or not text:
+        return text
+
+    # Build lookup: lowercase name -> original name
+    name_map = {n.lower(): n for n in names if n}
+    if not name_map:
+        return text
+
+    # Common short words that happen to be close to names — never replace these
+    _common_words = {
+        "the", "and", "but", "for", "not", "you", "all", "can", "had", "her",
+        "was", "one", "our", "out", "are", "has", "his", "how", "its", "may",
+        "new", "now", "old", "see", "way", "who", "did", "get", "got", "him",
+        "let", "say", "she", "too", "use", "been", "call", "come", "each",
+        "from", "have", "just", "know", "like", "long", "look", "make", "many",
+        "much", "over", "said", "some", "take", "tell", "than", "that", "them",
+        "then", "they", "this", "time", "very", "want", "well", "went", "were",
+        "what", "when", "will", "with", "your", "been", "yeah", "okay", "sure",
+        "right", "about", "think", "really", "gonna", "gotta", "would", "could",
+        "should", "never", "still", "here", "there", "where", "being", "doing",
+        "going", "having", "saying", "man", "hey", "yes", "no",
+    }
+
+    def _edit_distance(a: str, b: str) -> int:
+        """Levenshtein distance between two strings."""
+        if len(a) < len(b):
+            return _edit_distance(b, a)
+        if len(b) == 0:
+            return len(a)
+        prev = list(range(len(b) + 1))
+        for i, ca in enumerate(a):
+            curr = [i + 1]
+            for j, cb in enumerate(b):
+                cost = 0 if ca == cb else 1
+                curr.append(min(curr[j] + 1, prev[j + 1] + 1, prev[j] + cost))
+            prev = curr
+        return prev[len(b)]
+
+    words = text.split()
+    changed = False
+    for i, word in enumerate(words):
+        # Strip punctuation for matching but preserve it
+        stripped = word.strip(".,!?;:\"'—-")
+        if not stripped or len(stripped) < 3:
+            continue
+        low = stripped.lower()
+        if low in _common_words:
+            continue
+
+        # Exact match (already correct)
+        if low in name_map:
+            # Fix capitalization if needed
+            correct = name_map[low]
+            if stripped != correct:
+                words[i] = word.replace(stripped, correct)
+                changed = True
+            continue
+
+        # Fuzzy match against all names
+        for name_low, name_orig in name_map.items():
+            if abs(len(low) - len(name_low)) > 2:
+                continue
+            dist = _edit_distance(low, name_low)
+            # Allow distance 1 for short names (3-4 chars), distance 2 for longer
+            max_dist = 1 if len(name_low) <= 4 else 2
+            if dist <= max_dist and dist > 0:
+                words[i] = word.replace(stripped, name_orig)
+                changed = True
+                break
+
+    if changed:
+        result = " ".join(words)
+        if result != text:
+            print(f"[NameFix] '{text}' -> '{result}'")
+        return result
+    return text
+
+
 @app.post("/api/record/stop")
 async def stop_recording():
     """Stop recording and transcribe"""
@@ -7641,14 +7739,23 @@ async def stop_recording():
     if len(audio_bytes) < 100:
         return {"text": "", "status": "no_audio"}
 
-    # Build context hint from current caller for better transcription accuracy
+    # Build context hint with ALL caller names for Whisper's initial_prompt
+    caller_names = _get_all_caller_names()
     context_hint = ""
+    if caller_names:
+        names_str = ", ".join(caller_names)
+        context_hint = f"Callers on today's show: {names_str}."
     if session.caller:
         caller_name = session.caller.get("name", "")
-        context_hint = f"Host Luke is talking to a caller named {caller_name}."
+        context_hint += f" Host Luke is currently talking to {caller_name}."
 
     # Transcribe the recorded audio (16kHz raw PCM from audio service)
     text = await transcribe_audio(audio_bytes, source_sample_rate=16000, context_hint=context_hint)
+
+    # Post-transcription: fix Whisper misspellings of caller names
+    if text and caller_names:
+        text = _fix_caller_names(text, caller_names)
+
     return {"text": text, "status": "transcribed"}
 
 
