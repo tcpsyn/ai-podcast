@@ -142,13 +142,13 @@
 
             <!-- Music / Ads / Idents -->
             <div class="media-row">
-                <section class="music-section">
-                    <h2>Music</h2>
-                    <select id="track-select"></select>
-                    <div class="music-controls">
-                        <button id="play-btn">Play <span class="shortcut-label">M</span></button>
-                        <button id="stop-btn">Stop</button>
-                        <input type="range" id="volume" min="0" max="100" value="30">
+                <section class="music-section genre-section">
+                    <h2>Music <span class="shortcut-label">M</span></h2>
+                    <div id="genre-buttons" class="genre-grid"></div>
+                    <div id="now-playing" class="now-playing hidden">
+                        <span id="now-playing-text" class="now-playing-text"></span>
+                        <button id="stop-btn" class="now-playing-stop">Stop</button>
+                        <input type="range" id="volume" min="0" max="100" value="30" class="now-playing-volume">
                     </div>
                 </section>
 
@@ -359,6 +359,6 @@
         </div>
     </div>
 
-    <script src="/js/app.js?v=22"></script>
+    <script src="/js/app.js?v=23"></script>
 </body>
 </html>
