@@ -44,7 +44,7 @@ class RegularCallerService:
         import random
         if not self._regulars:
             return []
-        available = [r for r in self._regulars if len(r.get("call_history", [])) > 1]
+        available = [r for r in self._regulars if len(r.get("call_history", [])) > 0]
         if not available:
             return []
         return random.sample(available, min(count, len(available)))
