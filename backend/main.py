@@ -6238,7 +6238,7 @@ class Session:
         self.intern_monitoring: bool = True  # Devon monitors conversations by default
         self.show_theme: str = ""  # Current show theme (e.g. "St. Patrick's Day")
         # Caller model routing
-        self.caller_model_strategy: str = "single"  # "single" | "cycle" | "style_matched"
+        self.caller_model_strategy: str = "style_matched"  # "single" | "cycle" | "style_matched"
         self.caller_model_pool: list[str] = [
             "x-ai/grok-4",
             "anthropic/claude-sonnet-4-5",
@@ -6721,7 +6721,7 @@ def _load_checkpoint() -> bool:
         session.caller_queue = data.get("caller_queue", [])
         session.relationship_context = data.get("relationship_context", {})
         session.intern_monitoring = data.get("intern_monitoring", True)
-        session.caller_model_strategy = data.get("caller_model_strategy", "single")
+        session.caller_model_strategy = data.get("caller_model_strategy", "style_matched")
         session.caller_model_pool = data.get("caller_model_pool", ["anthropic/claude-sonnet-4-5"])
         session.caller_model_map = data.get("caller_model_map", {})
         session.caller_model_fallback = data.get("caller_model_fallback", "anthropic/claude-sonnet-4-5")
