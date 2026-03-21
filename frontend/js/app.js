@@ -1363,7 +1363,7 @@ async function loadCallerModels() {
             strategy: data.strategy || 'single',
             pool: data.pool || [],
             fallback: data.fallback || '',
-            style_map: data.style_map || {},
+            style_map: data.map || data.style_map || {},
         };
         callerModelAssignments = data.assignments || {};
         updateCallerModelUI();
@@ -1502,7 +1502,7 @@ async function saveCallerModels() {
         const res = await fetch('/api/caller-models', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ strategy, pool, fallback, style_map })
+            body: JSON.stringify({ strategy, pool, fallback, map: style_map })
         });
         if (!res.ok) throw new Error(res.status);
         callerModelSettings = { strategy, pool, fallback, style_map };
