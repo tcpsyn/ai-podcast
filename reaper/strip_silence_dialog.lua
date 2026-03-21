@@ -18,6 +18,7 @@ local KEEP_PAD_SEC     = 0.5   -- leave this much silence on each side of a cut
 local BLOCK_SEC        = 0.1   -- analysis block size (100ms)
 local SAMPLE_RATE      = 48000
 local CHECK_TRACKS     = {1, 2, 3, 4} -- 1-indexed: Host, Devon, AI Caller, Live Caller
+local SFX_TRACK        = 5     -- 1-indexed: SFX track
 local IDENTS_TRACK     = 6     -- 1-indexed: Idents track
 local ADS_TRACK        = 7     -- 1-indexed: Ads track
 local MUSIC_TRACK      = 8     -- 1-indexed: Music track
@@ -614,16 +615,26 @@ local function normalize_track_items(track_idx, target_db, label)
   -- Normalize all items on a track that have audible content.
   -- Uses direct WAV reading (not audio accessor) so it works after Phase 1 splits.
   local track = reaper.GetTrack(0, track_idx - 1)
-  if not track or reaper.CountTrackMediaItems(track) == 0 then return end
-
-  local ta = get_track_audio(track_idx)
-  if not ta then
-    log("  " .. label .. ": no audio found")
+  if not track then
+    log("  " .. label .. ": track " .. track_idx .. " does not exist")
     return
   end
 
+  local item_count = reaper.CountTrackMediaItems(track)
+  log("  " .. label .. ": " .. item_count .. " item(s) on track " .. track_idx)
+  if item_count == 0 then return end
+
+  local ta = get_track_audio(track_idx)
+  if not ta then
+    log("  " .. label .. ": get_track_audio() returned nil — no readable WAV sources")
+    return
+  end
+  log("  " .. label .. ": " .. #ta.segments .. " WAV segment(s), span " .. string.format("%.1f", ta.item_pos) .. "-" .. string.format("%.1f", ta.item_end) .. "s")
+
   local adjusted = 0
-  for i = 0, reaper.CountTrackMediaItems(track) - 1 do
+  local skipped_silent = 0
+  local skipped_small = 0
+  for i = 0, item_count - 1 do
     local item = reaper.GetTrackMediaItem(track, i)
     local item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
     local item_len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
@@ -632,9 +643,11 @@ local function normalize_track_items(track_idx, target_db, label)
     -- Measure RMS of audible content in this item
     local sum_sq = 0
     local count = 0
+    local total_blocks = 0
     local t = item_pos
     while t < item_end do
       local peak, s_sq = read_block_peak_rms(ta, t)
+      total_blocks = total_blocks + 1
       if peak >= THRESHOLD then
         sum_sq = sum_sq + s_sq
         count = count + BLOCK_SAMPLES
@@ -642,27 +655,44 @@ local function normalize_track_items(track_idx, target_db, label)
       t = t + BLOCK_SEC
     end
 
+    local audible_blocks = math.floor(count / BLOCK_SAMPLES)
     if count > 0 then
       local item_rms = math.sqrt(sum_sq / count)
       if item_rms > 0 then
         local item_db = 20 * math.log(item_rms, 10)
         local gain_db = target_db - item_db
+        local current_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL")
+        log("  " .. label .. " item " .. (i+1) .. "/" .. item_count
+          .. " pos=" .. string.format("%.1f", item_pos) .. "s"
+          .. " len=" .. string.format("%.1f", item_len) .. "s"
+          .. " blocks=" .. total_blocks .. "/" .. audible_blocks .. " audible"
+          .. " RMS=" .. string.format("%.1f", item_db) .. "dB"
+          .. " target=" .. string.format("%.1f", target_db) .. "dB"
+          .. " gain=" .. string.format("%+.1f", gain_db) .. "dB"
+          .. " vol=" .. string.format("%.3f", current_vol))
         -- Only adjust if the difference is significant (> 1dB)
         if math.abs(gain_db) > 1.0 then
           local gain_linear = 10 ^ (gain_db / 20)
-          local current_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL")
           reaper.SetMediaItemInfo_Value(item, "D_VOL", current_vol * gain_linear)
-          log("  " .. label .. " item at " .. string.format("%.0f", item_pos) .. "s: " .. string.format("%+.1f", gain_db) .. "dB")
+          log("    -> APPLIED: vol " .. string.format("%.3f", current_vol) .. " -> " .. string.format("%.3f", current_vol * gain_linear))
           adjusted = adjusted + 1
+        else
+          log("    -> SKIPPED: gain within 1dB threshold")
+          skipped_small = skipped_small + 1
         end
       end
+    else
+      log("  " .. label .. " item " .. (i+1) .. "/" .. item_count
+        .. " pos=" .. string.format("%.1f", item_pos) .. "s"
+        .. " len=" .. string.format("%.1f", item_len) .. "s"
+        .. " blocks=" .. total_blocks
+        .. " — NO AUDIBLE BLOCKS (all below " .. SILENCE_DB .. "dB)")
+      skipped_silent = skipped_silent + 1
     end
   end
 
   destroy_track_audio(ta)
-  if adjusted == 0 then
-    log("  " .. label .. ": no adjustments needed")
-  end
+  log("  " .. label .. " RESULT: " .. adjusted .. " adjusted, " .. skipped_small .. " within 1dB, " .. skipped_silent .. " silent")
 end
 
 local function normalize_music_track(dialog_regions, target_db)
@@ -758,13 +788,19 @@ local function phase2_normalize(dialog_regions, ad_regions, ident_regions, dialo
   normalize_track_items(ADS_TRACK, ad_ident_target, "Ads")
 
   progress_detail = "Idents"
-  progress_pct = 0.33
+  progress_pct = 0.25
   coroutine.yield()
   log("Phase 2: Normalizing idents track...")
   normalize_track_items(IDENTS_TRACK, ad_ident_target, "Idents")
 
+  progress_detail = "SFX"
+  progress_pct = 0.50
+  coroutine.yield()
+  log("Phase 2: Normalizing SFX track...")
+  normalize_track_items(SFX_TRACK, ad_ident_target, "SFX")
+
   progress_detail = "Music"
-  progress_pct = 0.66
+  progress_pct = 0.75
   coroutine.yield()
   log("Phase 2: Normalizing music track...")
   normalize_music_track(dialog_regions, dialog_rms_db)
