@@ -1397,7 +1397,8 @@ function updateCallerModelUI() {
             const sel = document.createElement('select');
             sel.className = 'cm-style-select';
             sel.dataset.style = style;
-            for (const m of callerModelSettings.pool) {
+            const models = window._openrouterModels || callerModelSettings.pool;
+            for (const m of models) {
                 const opt = document.createElement('option');
                 opt.value = m;
                 opt.textContent = m.split('/').pop();
