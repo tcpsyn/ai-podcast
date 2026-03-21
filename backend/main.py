@@ -6237,6 +6237,39 @@ class Session:
         self.relationship_context: dict[str, str] = {}  # caller_key → relationship prompt injection
         self.intern_monitoring: bool = True  # Devon monitors conversations by default
         self.show_theme: str = ""  # Current show theme (e.g. "St. Patrick's Day")
+        # Caller model routing
+        self.caller_model_strategy: str = "single"  # "single" | "cycle" | "style_matched"
+        self.caller_model_pool: list[str] = [
+            "x-ai/grok-4",
+            "anthropic/claude-sonnet-4-5",
+            "mistralai/mistral-medium-3",
+            "qwen/qwen3-235b-a22b",
+            "deepseek/deepseek-chat-v3-0324",
+            "google/gemini-2.5-pro",
+            "meta-llama/llama-4-maverick",
+        ]
+        self.caller_model_map: dict[str, str] = {
+            "high_energy": "x-ai/grok-4",
+            "confrontational": "x-ai/grok-4",
+            "angry_venting": "x-ai/grok-4",
+            "bragger": "x-ai/grok-4",
+            "comedian": "x-ai/grok-4",
+            "quiet_nervous": "anthropic/claude-sonnet-4-5",
+            "sweet_earnest": "anthropic/claude-sonnet-4-5",
+            "emotional": "anthropic/claude-sonnet-4-5",
+            "deadpan": "mistralai/mistral-medium-3",
+            "mysterious": "mistralai/mistral-medium-3",
+            "world_weary": "mistralai/mistral-medium-3",
+            "storyteller": "qwen/qwen3-235b-a22b",
+            "rambling": "qwen/qwen3-235b-a22b",
+            "oversharer": "deepseek/deepseek-chat-v3-0324",
+            "conspiracy": "deepseek/deepseek-chat-v3-0324",
+            "know_it_all": "google/gemini-2.5-pro",
+            "first_time": "meta-llama/llama-4-maverick",
+        }
+        self.caller_model_fallback: str = "anthropic/claude-sonnet-4-5"
+        self.caller_models: dict[str, str] = {}  # caller_key → assigned model
+        self._caller_model_cycle_idx: int = 0
 
     def start_call(self, caller_key: str):
         self.current_caller_key = caller_key
@@ -6252,6 +6285,35 @@ class Session:
 
     def add_message(self, role: str, content: str):
         self.conversation.append({"role": role, "content": content, "timestamp": time.time()})
+
+    def get_caller_model(self, caller_key: str) -> str | None:
+        """Get the assigned model for a caller, or assign one based on strategy.
+        Returns None to use default category routing."""
+        if self.caller_model_strategy == "single":
+            return None  # use default category_models["caller_dialog"]
+
+        # Already assigned — keep consistent for the whole call
+        if caller_key in self.caller_models:
+            return self.caller_models[caller_key]
+
+        model = None
+        if self.caller_model_strategy == "cycle":
+            if self.caller_model_pool:
+                model = self.caller_model_pool[self._caller_model_cycle_idx % len(self.caller_model_pool)]
+                self._caller_model_cycle_idx += 1
+        elif self.caller_model_strategy == "style_matched":
+            raw_style = self.caller_styles.get(caller_key, "")
+            style_key = _normalize_style_key(raw_style) if raw_style else ""
+            model = self.caller_model_map.get(style_key)
+            if not model and self.caller_model_pool:
+                model = self.caller_model_pool[0]
+
+        if model:
+            self.caller_models[caller_key] = model
+            caller_name = CALLER_BASES.get(caller_key, {}).get("name", caller_key)
+            print(f"[CallerModel] Assigned {model} to {caller_name} (strategy={self.caller_model_strategy})")
+
+        return model
 
     def get_caller_background(self, caller_key: str) -> str:
         """Get or generate background for a caller in this session.
@@ -6607,6 +6669,12 @@ def _save_checkpoint():
             "caller_queue": session.caller_queue,
             "relationship_context": session.relationship_context,
             "intern_monitoring": session.intern_monitoring,
+            "caller_model_strategy": session.caller_model_strategy,
+            "caller_model_pool": session.caller_model_pool,
+            "caller_model_map": session.caller_model_map,
+            "caller_model_fallback": session.caller_model_fallback,
+            "caller_models": session.caller_models,
+            "caller_model_cycle_idx": session._caller_model_cycle_idx,
             "costs": cost_tracker.get_live_summary(),
             "cost_records": {
                 "llm": [asdict(r) for r in cost_tracker.llm_records],
@@ -6653,6 +6721,12 @@ def _load_checkpoint() -> bool:
         session.caller_queue = data.get("caller_queue", [])
         session.relationship_context = data.get("relationship_context", {})
         session.intern_monitoring = data.get("intern_monitoring", True)
+        session.caller_model_strategy = data.get("caller_model_strategy", "single")
+        session.caller_model_pool = data.get("caller_model_pool", ["anthropic/claude-sonnet-4-5"])
+        session.caller_model_map = data.get("caller_model_map", {})
+        session.caller_model_fallback = data.get("caller_model_fallback", "anthropic/claude-sonnet-4-5")
+        session.caller_models = data.get("caller_models", {})
+        session._caller_model_cycle_idx = data.get("caller_model_cycle_idx", 0)
         for key, snapshot in data.get("caller_bases", {}).items():
             if key in CALLER_BASES:
                 CALLER_BASES[key]["name"] = snapshot["name"]
@@ -8563,6 +8637,7 @@ async def chat(request: ChatRequest):
             max_tokens=max_tokens,
             category="caller_dialog",
             caller_name=session.caller.get("name", "") if session.caller else "",
+            model_override=session.get_caller_model(session.current_caller_key) if session.current_caller_key else None,
         )
 
     # Discard if call changed while we were generating
@@ -8951,6 +9026,74 @@ async def set_show_theme(data: dict):
     elif old_theme:
         print(f"[Theme] Show theme cleared (was: {old_theme})")
     return {"theme": session.show_theme}
+
+
+# --- Caller Model Routing ---
+
+@app.get("/api/caller-models")
+async def get_caller_models():
+    """Get current caller model routing config and per-caller assignments."""
+    assignments = {}
+    for key in CALLER_BASES:
+        name = CALLER_BASES[key].get("name", key)
+        model = session.caller_models.get(key)
+        assignments[key] = {"name": name, "model": model or "(default)"}
+    return {
+        "strategy": session.caller_model_strategy,
+        "pool": session.caller_model_pool,
+        "map": session.caller_model_map,
+        "fallback": session.caller_model_fallback,
+        "assignments": assignments,
+    }
+
+
+@app.post("/api/caller-models")
+async def set_caller_models(data: dict):
+    """Update caller model routing strategy, pool, map, or fallback."""
+    if "strategy" in data:
+        strategy = data["strategy"]
+        if strategy not in ("single", "cycle", "style_matched"):
+            raise HTTPException(400, f"Invalid strategy: {strategy}")
+        session.caller_model_strategy = strategy
+        print(f"[CallerModel] Strategy set to: {strategy}")
+    if "pool" in data:
+        pool = data["pool"]
+        if not isinstance(pool, list) or not pool:
+            raise HTTPException(400, "pool must be a non-empty list of model IDs")
+        session.caller_model_pool = pool
+        print(f"[CallerModel] Pool set to: {pool}")
+    if "map" in data:
+        session.caller_model_map = data["map"]
+        print(f"[CallerModel] Style map set: {len(data['map'])} entries")
+    if "fallback" in data:
+        session.caller_model_fallback = data["fallback"]
+        print(f"[CallerModel] Fallback set to: {data['fallback']}")
+    # Clear existing assignments so new strategy takes effect
+    if "strategy" in data or "pool" in data or "map" in data:
+        session.caller_models.clear()
+        session._caller_model_cycle_idx = 0
+        print(f"[CallerModel] Cleared caller assignments (new config)")
+    _save_checkpoint()
+    return await get_caller_models()
+
+
+@app.post("/api/caller-models/{caller_key}")
+async def set_caller_model_override(caller_key: str, data: dict):
+    """Override the model for a specific caller mid-show."""
+    if caller_key not in CALLER_BASES:
+        raise HTTPException(404, f"Unknown caller key: {caller_key}")
+    model = data.get("model", "").strip()
+    if not model:
+        # Clear override
+        session.caller_models.pop(caller_key, None)
+        name = CALLER_BASES[caller_key].get("name", caller_key)
+        print(f"[CallerModel] Cleared override for {name}")
+    else:
+        session.caller_models[caller_key] = model
+        name = CALLER_BASES[caller_key].get("name", caller_key)
+        print(f"[CallerModel] Override {name} → {model}")
+    _save_checkpoint()
+    return {"caller_key": caller_key, "model": session.caller_models.get(caller_key, "(default)")}
 
 
 # --- Cost Tracking Endpoints ---
@@ -9442,6 +9585,7 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
             max_tokens=max_tokens,
             category="caller_dialog",
             caller_name=session.caller.get("name", "") if session.caller else "",
+            model_override=session.get_caller_model(session.current_caller_key) if session.current_caller_key else None,
         )
 
     # Discard if call changed during generation
@@ -9543,6 +9687,7 @@ async def ai_respond():
             max_tokens=max_tokens,
             category="caller_dialog",
             caller_name=session.caller.get("name", "") if session.caller else "",
+            model_override=session.get_caller_model(session.current_caller_key) if session.current_caller_key else None,
         )
 
     if _session_epoch != epoch:

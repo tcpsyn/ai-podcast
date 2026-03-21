@@ -23,6 +23,13 @@ OPENROUTER_MODELS = [
     "google/gemini-2.5-flash",
     "openai/gpt-4o-mini",
     "openai/gpt-4o",
+    # New dialog models
+    "deepseek/deepseek-chat-v3-0324",
+    "moonshotai/kimi-k2",
+    "mistralai/mistral-medium-3",
+    "meta-llama/llama-4-maverick",
+    "qwen/qwen3-235b-a22b",
+    "google/gemini-2.5-pro",
     # Legacy
     "anthropic/claude-3-haiku",
     "google/gemini-flash-1.5",
@@ -125,12 +132,13 @@ class LLMService:
         response_format: Optional[dict] = None,
         category: str = "unknown",
         caller_name: str = "",
+        model_override: Optional[str] = None,
     ) -> str:
         if system_prompt:
             messages = [{"role": "system", "content": system_prompt}] + messages
 
         if self.provider == "openrouter":
-            return await self._call_openrouter_with_fallback(messages, max_tokens=max_tokens, response_format=response_format, category=category, caller_name=caller_name)
+            return await self._call_openrouter_with_fallback(messages, max_tokens=max_tokens, response_format=response_format, category=category, caller_name=caller_name, model_override=model_override)
         else:
             return await self._call_ollama(messages, max_tokens=max_tokens)
 
@@ -295,11 +303,11 @@ class LLMService:
         """Get the best model for a given category based on config routing."""
         return settings.category_models.get(category, self.openrouter_model)
 
-    async def _call_openrouter_with_fallback(self, messages: list[dict], max_tokens: Optional[int] = None, response_format: Optional[dict] = None, category: str = "unknown", caller_name: str = "") -> str:
+    async def _call_openrouter_with_fallback(self, messages: list[dict], max_tokens: Optional[int] = None, response_format: Optional[dict] = None, category: str = "unknown", caller_name: str = "", model_override: Optional[str] = None) -> str:
         """Try category-specific model, then fallback models. Always returns a response."""
 
-        # Use category-specific model if configured, otherwise primary
-        model = self._get_model_for_category(category)
+        # Use explicit override if provided, else category routing, else primary
+        model = model_override or self._get_model_for_category(category)
         result = await self._call_openrouter_once(messages, model, max_tokens=max_tokens, response_format=response_format, category=category, caller_name=caller_name)
         if result is not None:
             return result
