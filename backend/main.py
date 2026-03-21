@@ -6722,8 +6722,12 @@ def _load_checkpoint() -> bool:
         session.relationship_context = data.get("relationship_context", {})
         session.intern_monitoring = data.get("intern_monitoring", True)
         session.caller_model_strategy = data.get("caller_model_strategy", "style_matched")
-        session.caller_model_pool = data.get("caller_model_pool", ["anthropic/claude-sonnet-4-5"])
-        session.caller_model_map = data.get("caller_model_map", {})
+        # Use fresh defaults if checkpoint has stale/empty model config
+        fresh = Session()
+        saved_pool = data.get("caller_model_pool", [])
+        saved_map = data.get("caller_model_map", {})
+        session.caller_model_pool = saved_pool if len(saved_pool) > 1 else fresh.caller_model_pool
+        session.caller_model_map = saved_map if len(saved_map) > 1 else fresh.caller_model_map
         session.caller_model_fallback = data.get("caller_model_fallback", "anthropic/claude-sonnet-4-5")
         session.caller_models = data.get("caller_models", {})
         session._caller_model_cycle_idx = data.get("caller_model_cycle_idx", 0)
