@@ -65,7 +65,15 @@ class AvatarService:
         for caller in callers:
             name = caller.get("name", "")
             gender = caller.get("gender", "male")
-            if name and not (AVATAR_DIR / f"{name}.jpg").exists():
+            if not name:
+                continue
+            g = "female" if gender.lower().startswith("f") else "male"
+            path = AVATAR_DIR / f"{name}.jpg"
+            marker = AVATAR_DIR / f"{name}.gender"
+            # Always call get_or_fetch if: no file, no gender marker, or gender mismatch
+            if not path.exists() or not marker.exists() or marker.read_text().strip() != g:
+                if path.exists():
+                    print(f"[Avatar] Gender mismatch for {name}: cached={marker.read_text().strip() if marker.exists() else '?'}, want={g} — re-fetching")
                 tasks.append(self.get_or_fetch(name, gender))
 
         if not tasks:

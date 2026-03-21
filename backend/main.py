@@ -6361,7 +6361,7 @@ class Session:
             if random.random() < reaction_chance and best_target:
                 reaction = self._build_specific_reaction(current_bg, best_target)
                 if random.random() < 0.30:
-                    lines.append(f"\nYOU HEARD {best_target.caller_name.upper()} EARLIER and you {reaction}. This is partly why you called — bring it up early and tie it into your story.")
+                    lines.append(f"\nYOU HEARD {best_target.caller_name.upper()} EARLIER ON THE SHOW TONIGHT and you {reaction}. It reminded you of your own situation — bring it up early and tie it into your story. NOTE: You are NOT {best_target.caller_name} — you are a different caller who was listening.")
                 else:
                     lines.append(f"\nYOU HEARD {best_target.caller_name.upper()} EARLIER and you {reaction}. Mention it if it comes up naturally, but your call is about YOUR thing.")
             else:
@@ -7928,16 +7928,19 @@ async def start_call(caller_key: str):
     audio_service.stop_caller_audio()
     session.start_call(caller_key)
 
-    # Check for callback opportunity — inject callback context into background
-    callback = _maybe_generate_callback()
-    if callback:
-        existing_bg = session.caller_backgrounds.get(caller_key, "")
-        callback_ctx = f"\n\nCALLBACK: You already called earlier tonight. {callback['callback_reason']}. Reference your earlier call naturally — you're a returning caller with an update."
-        if isinstance(existing_bg, CallerBackground):
-            existing_bg.natural_description += callback_ctx
-        else:
-            session.caller_backgrounds[caller_key] = existing_bg + callback_ctx
-        print(f"[Callback] Injected callback context for {CALLER_BASES[caller_key].get('name', caller_key)}")
+    # Check for callback opportunity — only for non-returning callers
+    # Returning callers already have their own PREVIOUS CALLS context
+    base = CALLER_BASES[caller_key]
+    if not base.get("returning"):
+        callback = _maybe_generate_callback()
+        if callback:
+            existing_bg = session.caller_backgrounds.get(caller_key, "")
+            callback_ctx = f"\n\nPREVIOUS CALLS:\n- (earlier tonight) {callback['original_summary']}\nYou're calling back with an update — {callback['callback_reason']}. Reference your earlier call naturally."
+            if isinstance(existing_bg, CallerBackground):
+                existing_bg.natural_description += callback_ctx
+            else:
+                session.caller_backgrounds[caller_key] = existing_bg + callback_ctx
+            print(f"[Callback] Injected callback context for {base.get('name', caller_key)}")
 
     caller = session.caller  # This generates the background if needed
 
@@ -8115,8 +8118,8 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
             if base.get("returning") and base.get("regular_id"):
                 # Update existing regular's call history
                 regular_caller_service.update_after_call(base["regular_id"], summary)
-            elif len(conversation) >= 8 and random.random() < 0.10:
-                # 10% chance to promote first-timer with 8+ messages
+            elif len(conversation) >= 8 and random.random() < 0.05:
+                # 5% chance to promote first-timer with 8+ messages
                 bg = session.caller_backgrounds.get(caller_key, "")
                 caller_style = session.caller_styles.get(caller_key, "")
 
