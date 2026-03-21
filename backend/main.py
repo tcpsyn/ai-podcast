@@ -6732,13 +6732,15 @@ def _load_checkpoint() -> bool:
         fresh = Session()
         saved_pool = data.get("caller_model_pool", [])
         saved_map = data.get("caller_model_map", {})
-        # Detect stale config: if all map values are the same model, use fresh defaults
+        # Detect stale config: check if saved models are in the current OPENROUTER_MODELS list
+        from backend.services.llm import OPENROUTER_MODELS
+        valid_models = set(OPENROUTER_MODELS)
         saved_map_models = set(saved_map.values()) if saved_map else set()
-        map_is_stale = len(saved_map_models) <= 1  # all same model or empty
-        pool_is_stale = len(saved_pool) <= 1
-        session.caller_model_pool = saved_pool if not pool_is_stale else fresh.caller_model_pool
-        session.caller_model_map = saved_map if not map_is_stale else fresh.caller_model_map
-        session.caller_model_fallback = data.get("caller_model_fallback", fresh.caller_model_fallback)
+        pool_has_invalid = saved_pool and not all(m in valid_models for m in saved_pool)
+        map_has_invalid = saved_map_models and not all(m in valid_models for m in saved_map_models)
+        session.caller_model_pool = saved_pool if saved_pool and not pool_has_invalid else fresh.caller_model_pool
+        session.caller_model_map = saved_map if saved_map and not map_has_invalid else fresh.caller_model_map
+        session.caller_model_fallback = fresh.caller_model_fallback if data.get("caller_model_fallback", "") not in valid_models else data["caller_model_fallback"]
         session.caller_models = data.get("caller_models", {})
         session._caller_model_cycle_idx = data.get("caller_model_cycle_idx", 0)
         for key, snapshot in data.get("caller_bases", {}).items():
