@@ -187,7 +187,10 @@ def _randomize_callers():
     # Get returning callers first so we can exclude their names from random pool
     returning = []
     try:
-        returning = regular_caller_service.get_returning_callers(2)
+        # Only inject returning callers if pool is large enough for variety
+        eligible = regular_caller_service.get_returning_callers(10)  # get all eligible
+        inject_count = min(2, max(0, len(eligible) - 1))  # need 3+ eligible to inject 2, 2+ for 1
+        returning = eligible[:inject_count]
     except Exception as e:
         print(f"[Regulars] Failed to get returning callers: {e}")
 
