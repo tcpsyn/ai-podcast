@@ -45,6 +45,12 @@ OPENROUTER_PRICING = {
     "openai/gpt-4o-mini":              {"prompt": 0.15,  "completion": 0.60},
     "openai/gpt-4o":                   {"prompt": 2.50,  "completion": 10.00},
     "meta-llama/llama-3.1-8b-instruct": {"prompt": 0.06, "completion": 0.06},
+    "deepseek/deepseek-chat-v3-0324":  {"prompt": 0.27,  "completion": 1.10},
+    "moonshotai/kimi-k2":              {"prompt": 0.60,  "completion": 2.00},
+    "mistralai/mistral-medium-3":      {"prompt": 0.40,  "completion": 2.00},
+    "meta-llama/llama-4-maverick":     {"prompt": 0.20,  "completion": 0.60},
+    "qwen/qwen3-235b-a22b":           {"prompt": 0.20,  "completion": 0.60},
+    "google/gemini-2.5-pro":           {"prompt": 1.25,  "completion": 10.00},
 }
 
 # TTS pricing per character

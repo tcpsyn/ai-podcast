@@ -131,6 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         initEventListeners();
         initClock();
         loadShowTheme();
+        loadCallerModels();
         loadVoicemails();
         setInterval(loadVoicemails, 30000);
         loadEmails();
@@ -354,6 +355,27 @@ function initEventListeners() {
     document.getElementById('show-theme-input')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') setShowTheme();
         else if (e.key === 'Escape') e.target.blur();
+    });
+
+    // Caller Models
+    document.getElementById('cm-strategy')?.addEventListener('change', () => {
+        callerModelSettings.strategy = document.getElementById('cm-strategy').value;
+        updateCallerModelUI();
+    });
+    document.getElementById('caller-model-badge')?.addEventListener('click', () => {
+        const sel = document.getElementById('caller-model-override');
+        if (!sel || !currentCaller) return;
+        sel.classList.toggle('hidden');
+        if (!sel.classList.contains('hidden')) {
+            const current = callerModelAssignments[currentCaller.key];
+            if (current) sel.value = current;
+        }
+    });
+    document.getElementById('caller-model-override')?.addEventListener('change', (e) => {
+        if (currentCaller && e.target.value) {
+            overrideCallerModel(currentCaller.key, e.target.value);
+            e.target.classList.add('hidden');
+        }
     });
 
     // Settings
@@ -637,6 +659,7 @@ async function loadCallers() {
         }
 
         console.log('Loaded', data.callers.length, 'callers, session:', data.session_id);
+        updateCallerModelBadges();
     } catch (err) {
         console.error('loadCallers error:', err);
     }
@@ -701,6 +724,8 @@ async function startCall(key, name) {
         if (situation) situation.textContent = ci.situation_summary || '';
         infoPanel.classList.remove('hidden');
     }
+    showCallerModelBadge(callerModelAssignments[key] || data.model);
+    document.getElementById('caller-model-override')?.classList.add('hidden');
     const bgEl = document.getElementById('caller-background');
     if (bgEl && data.background) bgEl.textContent = data.background;
 
@@ -731,6 +756,7 @@ async function newSession() {
     // Reload callers to get new session ID
     await loadCallers();
     await loadShowTheme();
+    await loadCallerModels();
 
     log('New session started - all callers have fresh backgrounds');
 }
@@ -760,6 +786,8 @@ async function hangup() {
     document.getElementById('caller-info-panel')?.classList.add('hidden');
     const bgDetails2 = document.getElementById('caller-background-details');
     if (bgDetails2) bgDetails2.classList.add('hidden');
+    showCallerModelBadge(null);
+    document.getElementById('caller-model-override')?.classList.add('hidden');
 
     // Hide AI caller indicator
     document.getElementById('ai-caller-info')?.classList.add('hidden');
@@ -1302,6 +1330,187 @@ async function clearShowTheme() {
 }
 
 
+// --- Caller Model Routing ---
+const MODEL_ABBREVS = {
+    'claude-sonnet-4-5': 'Son', 'claude-haiku-4.5': 'Hai', 'claude-3-haiku': 'H3',
+    'grok-4': 'Grk', 'grok-4-fast': 'GrF',
+    'minimax-m2-her': 'MnM', 'mistral-small-creative': 'Mis',
+    'deepseek-v3.2': 'DSk', 'gemini-2.5-flash': 'Gem', 'gemini-flash-1.5': 'Gm1',
+    'gpt-4o-mini': '4oM', 'gpt-4o': '4o', 'llama-3.1-8b-instruct': 'Lla',
+};
+
+const CALLER_STYLES = [
+    'quiet_nervous', 'storyteller', 'deadpan', 'high_energy', 'confrontational',
+    'oversharer', 'philosopher', 'bragger', 'first_time', 'emotional',
+    'world_weary', 'conspiracy', 'comedian', 'angry_venting', 'sweet_earnest',
+    'mysterious', 'know_it_all', 'rambling',
+];
+
+let callerModelSettings = { strategy: 'single', pool: [], fallback: '', style_map: {} };
+let callerModelAssignments = {}; // key -> model_id
+
+function modelAbbrev(modelId) {
+    const name = (modelId || '').split('/').pop();
+    return MODEL_ABBREVS[name] || name.substring(0, 3).toUpperCase();
+}
+
+async function loadCallerModels() {
+    try {
+        const res = await fetch('/api/caller-models');
+        if (!res.ok) return;
+        const data = await res.json();
+        callerModelSettings = {
+            strategy: data.strategy || 'single',
+            pool: data.pool || [],
+            fallback: data.fallback || '',
+            style_map: data.style_map || {},
+        };
+        callerModelAssignments = data.assignments || {};
+        updateCallerModelUI();
+        updateCallerModelBadges();
+    } catch (e) {
+        console.error('Failed to load caller models:', e);
+    }
+}
+
+function updateCallerModelUI() {
+    const strategyEl = document.getElementById('cm-strategy');
+    if (strategyEl) strategyEl.value = callerModelSettings.strategy;
+
+    const poolSection = document.getElementById('cm-pool-section');
+    const styleMap = document.getElementById('cm-style-map');
+    if (poolSection) poolSection.classList.toggle('hidden', callerModelSettings.strategy === 'single');
+    if (styleMap) styleMap.classList.toggle('hidden', callerModelSettings.strategy !== 'style_matched');
+
+    const poolInput = document.getElementById('cm-pool');
+    if (poolInput) poolInput.value = callerModelSettings.pool.join(', ');
+
+    // Populate style map grid
+    const grid = document.getElementById('cm-style-grid');
+    if (grid && callerModelSettings.strategy === 'style_matched') {
+        grid.innerHTML = '';
+        for (const style of CALLER_STYLES) {
+            const item = document.createElement('div');
+            item.className = 'cm-style-item';
+            const label = style.replace(/_/g, ' ');
+            item.innerHTML = `<span class="cm-style-name">${label}</span>`;
+            const sel = document.createElement('select');
+            sel.className = 'cm-style-select';
+            sel.dataset.style = style;
+            for (const m of callerModelSettings.pool) {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m.split('/').pop();
+                if (m === callerModelSettings.style_map[style]) opt.selected = true;
+                sel.appendChild(opt);
+            }
+            item.appendChild(sel);
+            grid.appendChild(item);
+        }
+    }
+
+    // Fallback dropdown
+    const fallbackEl = document.getElementById('cm-fallback');
+    if (fallbackEl) {
+        const currentVal = fallbackEl.value;
+        fallbackEl.innerHTML = '';
+        const models = callerModelSettings.pool.length > 0
+            ? callerModelSettings.pool
+            : (window._openrouterModels || []);
+        for (const m of models) {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = m.split('/').pop();
+            if (m === callerModelSettings.fallback) opt.selected = true;
+            fallbackEl.appendChild(opt);
+        }
+        if (!fallbackEl.value && currentVal) fallbackEl.value = currentVal;
+    }
+}
+
+function updateCallerModelBadges() {
+    document.querySelectorAll('.caller-btn').forEach(btn => {
+        const key = btn.dataset.key;
+        const model = callerModelAssignments[key];
+        let tag = btn.querySelector('.model-tag');
+        if (model) {
+            if (!tag) {
+                tag = document.createElement('span');
+                tag.className = 'model-tag';
+                btn.appendChild(tag);
+            }
+            tag.textContent = modelAbbrev(model);
+            tag.title = model;
+        } else if (tag) {
+            tag.remove();
+        }
+    });
+}
+
+function showCallerModelBadge(model) {
+    const badge = document.getElementById('caller-model-badge');
+    if (badge) {
+        badge.textContent = model ? `via ${modelAbbrev(model)}` : '';
+        badge.title = model || '';
+        badge.classList.toggle('hidden', !model);
+    }
+}
+
+function populateCallerModelOverride() {
+    const sel = document.getElementById('caller-model-override');
+    if (!sel) return;
+    sel.innerHTML = '';
+    const models = window._openrouterModels || [];
+    for (const m of models) {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m.split('/').pop();
+        sel.appendChild(opt);
+    }
+}
+
+async function overrideCallerModel(callerKey, modelId) {
+    try {
+        const res = await fetch(`/api/caller-models/${callerKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: modelId })
+        });
+        if (!res.ok) throw new Error(res.status);
+        callerModelAssignments[callerKey] = modelId;
+        showCallerModelBadge(modelId);
+        updateCallerModelBadges();
+        log(`Model override: ${currentCaller?.name || callerKey} → ${modelAbbrev(modelId)}`);
+    } catch (err) {
+        log('Model override failed: ' + err.message);
+    }
+}
+
+async function saveCallerModels() {
+    const strategy = document.getElementById('cm-strategy')?.value || 'single';
+    const poolRaw = document.getElementById('cm-pool')?.value || '';
+    const pool = poolRaw.split(',').map(s => s.trim()).filter(Boolean);
+    const fallback = document.getElementById('cm-fallback')?.value || '';
+
+    const style_map = {};
+    document.querySelectorAll('.cm-style-select').forEach(sel => {
+        if (sel.value) style_map[sel.dataset.style] = sel.value;
+    });
+
+    try {
+        const res = await fetch('/api/caller-models', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ strategy, pool, fallback, style_map })
+        });
+        if (!res.ok) throw new Error(res.status);
+        callerModelSettings = { strategy, pool, fallback, style_map };
+    } catch (err) {
+        log('Caller model save failed: ' + err.message);
+    }
+}
+
+
 // --- Settings ---
 async function loadSettings() {
     try {
@@ -1357,6 +1566,8 @@ async function loadSettings() {
 
         // Category model routing
         const models = data.available_openrouter_models || [];
+        window._openrouterModels = models;
+        populateCallerModelOverride();
         const categoryModels = data.category_models || {};
         const categories = ['caller_dialog', 'devon_monitor', 'devon_ask', 'background_gen', 'call_summary', 'news_summary'];
         for (const cat of categories) {
@@ -1389,6 +1600,9 @@ async function saveSettings() {
     try {
         // Save audio devices
         await saveAudioDevices();
+
+        // Save caller model routing
+        await saveCallerModels();
 
         // Collect category model routing
         const categoryModels = {};

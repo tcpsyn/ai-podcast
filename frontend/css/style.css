@@ -463,6 +463,84 @@ section h2 {
     line-height: 1.3;
 }
 
+/* Caller model indicator */
+.info-badge.model {
+    background: rgba(100, 140, 220, 0.2);
+    color: #7ab0e8;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+.caller-model-override {
+    font-size: 0.7rem;
+    padding: 2px 4px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid rgba(100, 140, 220, 0.3);
+    border-radius: 4px;
+    max-width: 140px;
+}
+
+/* Caller button model badge */
+.model-tag {
+    font-size: 0.55rem;
+    color: #7ab0e8;
+    background: rgba(100, 140, 220, 0.15);
+    padding: 0 3px;
+    border-radius: 2px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+}
+
+/* Caller Models settings section */
+.caller-model-row {
+    margin-bottom: 8px;
+}
+
+.caller-model-row label {
+    margin-bottom: 0;
+}
+
+.cm-pool-input {
+    font-size: 0.8rem;
+}
+
+.cm-style-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-bottom: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.cm-style-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    padding: 3px 6px;
+}
+
+.cm-style-name {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.cm-style-select {
+    font-size: 0.7rem;
+    padding: 2px 3px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid rgba(232, 121, 29, 0.15);
+    border-radius: 4px;
+    max-width: 110px;
+}
+
 .caller-background-full {
     margin-top: 8px;
     font-size: 0.75rem;

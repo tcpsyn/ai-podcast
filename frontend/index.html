@@ -75,6 +75,8 @@
                         <span id="caller-shape-badge" class="info-badge shape"></span>
                         <span id="caller-energy-badge" class="info-badge energy"></span>
                         <span id="caller-emotion" class="info-badge emotion"></span>
+                        <span id="caller-model-badge" class="info-badge model"></span>
+                        <select id="caller-model-override" class="caller-model-override hidden"></select>
                     </div>
                     <div id="caller-signature" class="caller-signature"></div>
                     <div id="caller-situation" class="caller-situation"></div>
@@ -282,6 +284,36 @@
                             <span class="model-routing-label">News</span>
                             <select id="model-news_summary" class="model-select"></select>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Caller Model Routing -->
+                <div class="settings-group">
+                    <h3>Caller Models</h3>
+                    <div class="caller-model-row">
+                        <label>
+                            Strategy
+                            <select id="cm-strategy">
+                                <option value="single">Single Model</option>
+                                <option value="cycle">Cycle Models</option>
+                                <option value="style_matched">Style-Matched</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="cm-pool-section" class="hidden">
+                        <label>
+                            Model Pool
+                            <input type="text" id="cm-pool" class="cm-pool-input" placeholder="x-ai/grok-4, deepseek/deepseek-v3.2, ...">
+                        </label>
+                    </div>
+                    <div id="cm-style-map" class="hidden">
+                        <div class="cm-style-grid" id="cm-style-grid"></div>
+                    </div>
+                    <div class="caller-model-row">
+                        <label>
+                            Fallback Model
+                            <select id="cm-fallback" class="model-select"></select>
+                        </label>
                     </div>
                 </div>
 
