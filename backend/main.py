@@ -6732,9 +6732,13 @@ def _load_checkpoint() -> bool:
         fresh = Session()
         saved_pool = data.get("caller_model_pool", [])
         saved_map = data.get("caller_model_map", {})
-        session.caller_model_pool = saved_pool if len(saved_pool) > 1 else fresh.caller_model_pool
-        session.caller_model_map = saved_map if len(saved_map) > 1 else fresh.caller_model_map
-        session.caller_model_fallback = data.get("caller_model_fallback", "anthropic/claude-sonnet-4-5")
+        # Detect stale config: if all map values are the same model, use fresh defaults
+        saved_map_models = set(saved_map.values()) if saved_map else set()
+        map_is_stale = len(saved_map_models) <= 1  # all same model or empty
+        pool_is_stale = len(saved_pool) <= 1
+        session.caller_model_pool = saved_pool if not pool_is_stale else fresh.caller_model_pool
+        session.caller_model_map = saved_map if not map_is_stale else fresh.caller_model_map
+        session.caller_model_fallback = data.get("caller_model_fallback", fresh.caller_model_fallback)
         session.caller_models = data.get("caller_models", {})
         session._caller_model_cycle_idx = data.get("caller_model_cycle_idx", 0)
         for key, snapshot in data.get("caller_bases", {}).items():
