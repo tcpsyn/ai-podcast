@@ -39,7 +39,7 @@ class Settings(BaseSettings):
         "caller_dialog": "x-ai/grok-4.1-fast",               # fallback if style_matched disabled ($0.20/$0.50)
         "devon_ask": "x-ai/grok-4.1-fast",                   # Devon matches show energy, cheap ($0.20/$0.50)
         "devon_monitor": "google/gemini-2.5-flash",          # just yes/no decisions, keep cheap ($0.15/$0.60)
-        "background_gen": "x-ai/grok-4.1-fast",              # wilder caller backgrounds ($0.20/$0.50)
+        "background_gen": "anthropic/claude-sonnet-4.6",       # backgrounds drive the whole call — worth the quality ($3/$15, ~$0.30/show)
         "call_summary": "google/gemini-2.5-flash",           # post-call, no personality needed ($0.15/$0.60)
         "news_summary": "google/gemini-2.5-flash",           # just digesting headlines ($0.15/$0.60)
         "topic_gen": "google/gemini-2.5-flash",              # structured output ($0.15/$0.60)

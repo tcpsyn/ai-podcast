@@ -5327,9 +5327,9 @@ Respond with a JSON object containing these fields:
 - "situation_summary": ONE sentence summarizing their situation that another caller could react to (e.g. "caught her neighbor stealing her mail and retaliated by stealing his garden gnomes").
 - "calling_from": Where they physically are right now.{f' Use: "{calling_from_seed}"' if calling_from_seed else ' Leave empty string "" — this caller does not mention their location.'}
 
-WHAT MAKES A GOOD CALLER: Stories that are SPECIFIC, SURPRISING, and make you lean in. Absurd situations, moral dilemmas, petty feuds, workplace chaos, ridiculous coincidences, funny+terrible confessions, callers who might be the villain and don't see it.
+WHAT MAKES A GOOD CALLER: The listener should want to pull the car over. Stories need a HOOK — the specific detail that makes someone say "hold on, WHAT?" Not vague drama. Not "my life is a mess." A SPECIFIC, CONCRETE, UNUSUAL situation with names, places, and a twist. Think: "My neighbor has been secretly feeding my dog for six months and now the dog likes him better." "I accidentally RSVP'd yes to my ex-wife's wedding and now I'm the best man." "My boss has been sending me anonymous love poems and I found the drafts in the printer." Every caller needs that ONE detail that's so specific it can't be generic. If you can swap the caller's name out and the story still works for anyone, it's too generic — make it WEIRDER, more SPECIFIC, more THEM.
 
-DO NOT WRITE: Generic revelations, adoption/DNA/paternity surprises, vague emotional processing, therapy-speak, "sitting in truck staring at nothing," "everything they thought they knew was a lie," or ANY variation of "went to the wrong funeral" — that premise has been done to death on this show. Don't write backgrounds involving active violence, weapons threats, or situations where someone is in physical danger RIGHT NOW — the caller should have a messy LIFE, not a dangerous NIGHT. Don't reference real public figures in the caller's personal story. Shock value alone isn't interesting — the best stories are shocking AND human. A caller who did something terrible is only interesting if they're conflicted about it.
+DO NOT WRITE: Generic revelations, adoption/DNA/paternity surprises, vague emotional processing, therapy-speak, "sitting in truck staring at nothing," "everything they thought they knew was a lie," or ANY variation of "went to the wrong funeral" — that premise has been done to death on this show. Don't reference real public figures in the caller's personal story. Don't write backgrounds that are just "person is sad about relationship" or "person has a secret" — those aren't stories, they're premises. The story is WHAT HAPPENED, not how they feel about it.
 
 Output ONLY valid JSON, no markdown fences."""
 
@@ -6047,6 +6047,8 @@ def get_caller_prompt(caller: dict, show_history: str = "",
     else:
         story_block = """YOUR STORY: Something real, specific, and genuinely surprising — the kind of thing that makes someone stop what they're doing and say "wait, WHAT?" Not a generic life problem. Not a therapy-session monologue. A SPECIFIC SITUATION with specific people, specific details, and a twist or complication that makes it interesting to hear about. The best calls have something unexpected — an ironic detail, a moral gray area, a situation that's funny and terrible at the same time, or a revelation that changes everything. You're not here to vent about your feelings in the abstract. You're here because something HAPPENED and you need to talk it through.
 
+GIVE REAL ANSWERS WITH REAL DETAIL. When Luke asks you a question, don't give a one-sentence nothing answer. You called a radio show at night because you have a STORY — so tell it. Include the specific details: names, places, what someone actually said, what you were doing when it happened, how you found out. When you respond, give Luke something to work with — a detail he can follow up on, a line he can react to, a moment that paints a picture. One-word answers and vague summaries are the death of good radio. If your communication style is terse (deadpan, world-weary), you can be brief in HOW you say it, but still deliver actual content and detail.
+
 CRITICAL — DO NOT DO ANY OF THESE:
 - NEVER say any variation of "eating me" or "eating at me" — this phrase is BANNED on the show
 - Don't open with "this is what's keeping me up at night" or "I've got something I need to get off my chest" — just TELL THE STORY
@@ -6102,6 +6104,7 @@ BANNED PHRASES — NEVER use any of these. If you catch yourself about to say on
 - Internet slang: "that hit differently," "hits different," "I felt that," "it is what it is," "living my best life," "no cap," "lowkey/highkey," "rent free," "main character energy," "vibe check," "that's valid," "it's giving," "slay," "that's a whole mood," "I can't even," "situationship," "ick"
 - Overused reactions: "I'm not gonna lie," "on a serious note," "to be fair," "I'm literally shaking," "let that sink in," "I'm not even mad I'm just disappointed," "everything I thought I knew," "I don't even know who I am anymore"
 - Generic conversational filler: "I hear you," "I hear that," "fair enough," "not gonna sugarcoat it," "real talk," "that's wild," starting a sentence with "Look,"
+- Stalling/resetting phrases: "where was I," "as I was saying," "anyway, like I was saying," "anyway, as I was saying," "like I said," "but anyway," "but yeah anyway"
 
 IMPORTANT: Each caller should have their OWN way of talking. Don't fall into generic "radio caller" voice. A nervous caller fumbles differently than an angry caller rants. A storyteller meanders differently than a deadpan caller delivers. Match the communication style — don't default to the same phrasing every call.
 
@@ -7842,15 +7845,11 @@ async def stop_recording():
     if len(audio_bytes) < 100:
         return {"text": "", "status": "no_audio"}
 
-    # Build context hint with ALL caller names for Whisper's initial_prompt
+    # Context hint for Whisper — basic show context only, NO caller names.
+    # Names were over-biasing Whisper (e.g. "bother" → "Luthor").
+    # Post-transcription fuzzy matching (_fix_caller_names) handles name correction.
+    context_hint = "Luke at the Roost, a late-night radio call-in show."
     caller_names = _get_all_caller_names()
-    context_hint = ""
-    if caller_names:
-        names_str = ", ".join(caller_names)
-        context_hint = f"Callers on today's show: {names_str}."
-    if session.caller:
-        caller_name = session.caller.get("name", "")
-        context_hint += f" Host Luke is currently talking to {caller_name}."
 
     # Transcribe the recorded audio (16kHz raw PCM from audio service)
     text = await transcribe_audio(audio_bytes, source_sample_rate=16000, context_hint=context_hint)
@@ -8285,6 +8284,34 @@ def _pick_response_budget(shape: str = "standard", wrapping_up: bool = False) ->
         return 700, 6   # 25% — telling a story or riffing
 
 
+MIN_RESPONSE_WORDS = 20  # Retry if response is shorter than this
+
+
+async def _retry_if_too_short(response: str, llm_service, messages: list, system_prompt: str,
+                               max_tokens: int, caller_name: str, model_override=None,
+                               wrapping_up: bool = False) -> str:
+    """Retry once if caller response is too short (some models produce terse output)."""
+    if wrapping_up or not response or "[HANGUP]" in response:
+        return response
+    word_count = len(response.split())
+    if word_count >= MIN_RESPONSE_WORDS:
+        return response
+    print(f"[Chat] Response too short ({word_count} words), retrying...")
+    retry = await llm_service.generate(
+        messages=messages,
+        system_prompt=system_prompt,
+        max_tokens=max_tokens,
+        category="caller_dialog",
+        caller_name=caller_name,
+        model_override=model_override,
+    )
+    if retry and len(retry.split()) > word_count:
+        print(f"[Chat] Retry produced {len(retry.split())} words (was {word_count})")
+        return retry
+    print(f"[Chat] Retry no better, keeping original")
+    return response
+
+
 def _trim_to_sentences(text: str, max_sentences: int) -> str:
     """Hard-trim response to at most max_sentences sentences."""
     if not text:
@@ -8663,14 +8690,19 @@ async def chat(request: ChatRequest):
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
         max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
+        _caller_name = session.caller.get("name", "") if session.caller else ""
+        _model_override = session.get_caller_model(session.current_caller_key) if session.current_caller_key else None
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
             max_tokens=max_tokens,
             category="caller_dialog",
-            caller_name=session.caller.get("name", "") if session.caller else "",
-            model_override=session.get_caller_model(session.current_caller_key) if session.current_caller_key else None,
+            caller_name=_caller_name,
+            model_override=_model_override,
         )
+        response = await _retry_if_too_short(
+            response, llm_service, messages, system_prompt, max_tokens,
+            _caller_name, _model_override, wrapping_up=is_wrapping)
 
     # Discard if call changed while we were generating
     if _session_epoch != epoch:
@@ -9620,14 +9652,19 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
         max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
+        _caller_name = session.caller.get("name", "") if session.caller else ""
+        _model_override = session.get_caller_model(session.current_caller_key) if session.current_caller_key else None
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
             max_tokens=max_tokens,
             category="caller_dialog",
-            caller_name=session.caller.get("name", "") if session.caller else "",
-            model_override=session.get_caller_model(session.current_caller_key) if session.current_caller_key else None,
+            caller_name=_caller_name,
+            model_override=_model_override,
         )
+        response = await _retry_if_too_short(
+            response, llm_service, messages, system_prompt, max_tokens,
+            _caller_name, _model_override, wrapping_up=is_wrapping)
 
     # Discard if call changed during generation
     if _session_epoch != epoch:
@@ -9722,14 +9759,19 @@ async def ai_respond():
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
         max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
+        _caller_name = session.caller.get("name", "") if session.caller else ""
+        _model_override = session.get_caller_model(session.current_caller_key) if session.current_caller_key else None
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
             max_tokens=max_tokens,
             category="caller_dialog",
-            caller_name=session.caller.get("name", "") if session.caller else "",
-            model_override=session.get_caller_model(session.current_caller_key) if session.current_caller_key else None,
+            caller_name=_caller_name,
+            model_override=_model_override,
         )
+        response = await _retry_if_too_short(
+            response, llm_service, messages, system_prompt, max_tokens,
+            _caller_name, _model_override, wrapping_up=is_wrapping)
 
     if _session_epoch != epoch:
         raise HTTPException(409, "Call changed during response")
