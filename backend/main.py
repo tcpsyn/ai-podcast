@@ -6240,34 +6240,40 @@ class Session:
         # Caller model routing
         self.caller_model_strategy: str = "style_matched"  # "single" | "cycle" | "style_matched"
         self.caller_model_pool: list[str] = [
-            "x-ai/grok-4",
-            "anthropic/claude-sonnet-4-5",
-            "mistralai/mistral-medium-3",
-            "qwen/qwen3-235b-a22b",
-            "deepseek/deepseek-chat-v3-0324",
-            "google/gemini-2.5-pro",
-            "meta-llama/llama-4-maverick",
+            "x-ai/grok-4.1-fast",               # edgy, casual, great value ($0.20/$0.50)
+            "anthropic/claude-sonnet-4.6",        # empathetic, nuanced ($3/$15)
+            "mistralai/mistral-large-2512",       # dry wit, precise ($0.50/$1.50)
+            "deepseek/deepseek-r1-distill-llama-70b",  # raw reasoning ($0.70/$0.80)
+            "meta-llama/llama-3.3-70b-instruct",  # casual, natural ($0.10/$0.32)
+            "google/gemini-2.5-flash",            # analytical ($0.30/$2.50)
         ]
         self.caller_model_map: dict[str, str] = {
-            "high_energy": "x-ai/grok-4",
-            "confrontational": "x-ai/grok-4",
-            "angry_venting": "x-ai/grok-4",
-            "bragger": "x-ai/grok-4",
-            "comedian": "x-ai/grok-4",
-            "quiet_nervous": "anthropic/claude-sonnet-4-5",
-            "sweet_earnest": "anthropic/claude-sonnet-4-5",
-            "emotional": "anthropic/claude-sonnet-4-5",
-            "deadpan": "mistralai/mistral-medium-3",
-            "mysterious": "mistralai/mistral-medium-3",
-            "world_weary": "mistralai/mistral-medium-3",
-            "storyteller": "qwen/qwen3-235b-a22b",
-            "rambling": "qwen/qwen3-235b-a22b",
-            "oversharer": "deepseek/deepseek-chat-v3-0324",
-            "conspiracy": "deepseek/deepseek-chat-v3-0324",
-            "know_it_all": "google/gemini-2.5-pro",
-            "first_time": "meta-llama/llama-4-maverick",
+            # Grok 4.1 Fast — edgy, provocative, unfiltered humor
+            "high_energy":       "x-ai/grok-4.1-fast",
+            "confrontational":   "x-ai/grok-4.1-fast",
+            "angry_venting":     "x-ai/grok-4.1-fast",
+            "bragger":           "x-ai/grok-4.1-fast",
+            "comedian":          "x-ai/grok-4.1-fast",
+            # Claude Sonnet 4.6 — empathetic, genuine emotional depth
+            "quiet_nervous":     "anthropic/claude-sonnet-4.6",
+            "sweet_earnest":     "anthropic/claude-sonnet-4.6",
+            "emotional":         "anthropic/claude-sonnet-4.6",
+            # Mistral Large — dry, witty, precise delivery
+            "deadpan":           "mistralai/mistral-large-2512",
+            "mysterious":        "mistralai/mistral-large-2512",
+            "world_weary":       "mistralai/mistral-large-2512",
+            # DeepSeek R1 Distill — raw, unfiltered, commits to the bit
+            "storyteller":       "deepseek/deepseek-r1-distill-llama-70b",
+            "oversharer":        "deepseek/deepseek-r1-distill-llama-70b",
+            "conspiracy":        "deepseek/deepseek-r1-distill-llama-70b",
+            "rambling":          "deepseek/deepseek-r1-distill-llama-70b",
+            # Gemini 2.5 Flash — articulate, analytical, cites facts
+            "know_it_all":       "google/gemini-2.5-flash",
+            # Llama 3.3 70B — casual, natural hesitation, first-timer energy
+            "first_time":        "meta-llama/llama-3.3-70b-instruct",
+            "reluctant_caller":  "meta-llama/llama-3.3-70b-instruct",
         }
-        self.caller_model_fallback: str = "anthropic/claude-sonnet-4-5"
+        self.caller_model_fallback: str = "anthropic/claude-sonnet-4.6"
         self.caller_models: dict[str, str] = {}  # caller_key → assigned model
         self._caller_model_cycle_idx: int = 0
 
