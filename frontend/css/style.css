@@ -727,19 +727,6 @@ section h2 {
     margin-bottom: 10px;
 }
 
-.music-section select optgroup {
-    color: var(--accent);
-    font-weight: bold;
-    font-style: normal;
-    padding: 4px 0;
-}
-
-.music-section select option {
-    color: var(--text);
-    font-weight: normal;
-    padding: 2px 8px;
-}
-
 .music-controls {
     display: flex;
     gap: 8px;
@@ -763,6 +750,83 @@ section h2 {
 
 .music-controls input[type="range"] {
     flex: 1;
+    accent-color: var(--accent);
+}
+
+/* Genre Quick-Select */
+.genre-section {
+    grid-column: span 3;
+}
+
+.genre-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.genre-btn {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid rgba(232, 121, 29, 0.12);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.genre-btn:hover {
+    border-color: var(--accent);
+    background: #2a1e10;
+    color: #fff;
+}
+
+.genre-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+}
+
+.now-playing {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.now-playing-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.now-playing-stop {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid rgba(232, 121, 29, 0.15);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+
+.now-playing-stop:hover {
+    border-color: var(--accent);
+    background: #2a1e10;
+}
+
+.now-playing-volume {
+    width: 80px;
+    flex-shrink: 0;
     accent-color: var(--accent);
 }
 
@@ -1664,6 +1728,16 @@ section h2 {
 .media-row .music-controls button {
     padding: 6px 10px;
     font-size: 0.8rem;
+}
+
+.media-row .genre-section {
+    grid-column: span 3;
+}
+
+@media (max-width: 700px) {
+    .media-row .genre-section {
+        grid-column: span 1;
+    }
 }
 
 /* Devon (Intern) */

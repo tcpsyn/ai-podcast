@@ -310,7 +310,6 @@ function initEventListeners() {
     });
 
     // Music - now server-side
-    document.getElementById('play-btn')?.addEventListener('click', playMusic);
     document.getElementById('stop-btn')?.addEventListener('click', stopMusic);
     document.getElementById('volume')?.addEventListener('input', setMusicVolume);
 
@@ -964,80 +963,89 @@ async function sendTypedMessage() {
 
 
 // --- Music (Server-Side) ---
+let genreMap = {};       // { genre: [track, ...] }
+let activeGenre = null;
+let currentTrackName = '';
+
 async function loadMusic() {
     try {
         const res = await fetch('/api/music');
         const data = await res.json();
         tracks = data.tracks || [];
 
-        const select = document.getElementById('track-select');
-        if (!select) return;
-
-        const previousValue = select.value;
-        select.innerHTML = '';
-
         // Group tracks by genre
-        const genres = {};
+        genreMap = {};
         tracks.forEach(track => {
             const genre = track.genre || 'Other';
-            if (!genres[genre]) genres[genre] = [];
-            genres[genre].push(track);
+            if (!genreMap[genre]) genreMap[genre] = [];
+            genreMap[genre].push(track);
         });
 
-        // Sort genre names, but put "Other" last
-        const genreOrder = Object.keys(genres).sort((a, b) => {
+        // Sort genre names, "Other" last
+        const genreOrder = Object.keys(genreMap).sort((a, b) => {
             if (a === 'Other') return 1;
             if (b === 'Other') return -1;
             return a.localeCompare(b);
         });
 
+        // Build genre buttons
+        const container = document.getElementById('genre-buttons');
+        if (!container) return;
+        container.innerHTML = '';
+
         genreOrder.forEach(genre => {
-            const group = document.createElement('optgroup');
-            group.label = genre;
-            // Shuffle within each genre group
-            const genreTracks = genres[genre];
-            for (let i = genreTracks.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [genreTracks[i], genreTracks[j]] = [genreTracks[j], genreTracks[i]];
-            }
-            genreTracks.forEach(track => {
-                const option = document.createElement('option');
-                option.value = track.file;
-                option.textContent = track.name;
-                group.appendChild(option);
-            });
-            select.appendChild(group);
+            const btn = document.createElement('button');
+            btn.className = 'genre-btn';
+            btn.textContent = genre;
+            btn.dataset.genre = genre;
+            btn.addEventListener('click', () => playGenre(genre));
+            container.appendChild(btn);
         });
 
-        // Restore previous selection if it still exists
-        if (previousValue && [...select.options].some(o => o.value === previousValue)) {
-            select.value = previousValue;
-        }
-
-        console.log('Loaded', tracks.length, 'tracks');
+        console.log('Loaded', tracks.length, 'tracks in', genreOrder.length, 'genres');
     } catch (err) {
         console.error('loadMusic error:', err);
     }
 }
 
 
-async function playMusic() {
-    await loadMusic();
-    const select = document.getElementById('track-select');
-    const track = select?.value;
-    if (!track) return;
+async function playGenre(genre) {
+    const genreTracks = genreMap[genre];
+    if (!genreTracks || genreTracks.length === 0) return;
+
+    // Pick a random track from the genre
+    const track = genreTracks[Math.floor(Math.random() * genreTracks.length)];
 
     try {
         const res = await fetch('/api/music/play', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ track, action: 'play' })
+            body: JSON.stringify({ track: track.file, action: 'play' })
         });
         if (!res.ok) throw new Error(res.status);
         isMusicPlaying = true;
+        activeGenre = genre;
+        currentTrackName = track.name;
+        updateMusicUI();
     } catch (err) {
         log('Music play failed: ' + err.message);
     }
+}
+
+
+async function playMusic() {
+    // M key toggle — if nothing playing, pick random genre
+    if (!activeGenre) {
+        const genres = Object.keys(genreMap);
+        if (genres.length === 0) {
+            await loadMusic();
+            const g = Object.keys(genreMap);
+            if (g.length === 0) return;
+            return playGenre(g[Math.floor(Math.random() * g.length)]);
+        }
+        return playGenre(genres[Math.floor(Math.random() * genres.length)]);
+    }
+    return playGenre(activeGenre);
 }
 
 
@@ -1046,8 +1054,31 @@ async function stopMusic() {
         const res = await fetch('/api/music/stop', { method: 'POST' });
         if (!res.ok) throw new Error(res.status);
         isMusicPlaying = false;
+        activeGenre = null;
+        currentTrackName = '';
+        updateMusicUI();
     } catch (err) {
         log('Music stop failed: ' + err.message);
+    }
+}
+
+
+function updateMusicUI() {
+    // Highlight active genre button
+    document.querySelectorAll('.genre-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.genre === activeGenre);
+    });
+
+    // Show/hide now playing bar
+    const nowPlaying = document.getElementById('now-playing');
+    const nowText = document.getElementById('now-playing-text');
+    if (nowPlaying && nowText) {
+        if (isMusicPlaying && currentTrackName) {
+            nowText.textContent = currentTrackName;
+            nowPlaying.classList.remove('hidden');
+        } else {
+            nowPlaying.classList.add('hidden');
+        }
     }
 }
 
