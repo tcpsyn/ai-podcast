@@ -6240,38 +6240,48 @@ class Session:
         # Caller model routing
         self.caller_model_strategy: str = "style_matched"  # "single" | "cycle" | "style_matched"
         self.caller_model_pool: list[str] = [
-            "x-ai/grok-4.1-fast",               # edgy, casual, great value ($0.20/$0.50)
-            "anthropic/claude-sonnet-4.6",        # empathetic, nuanced ($3/$15)
-            "mistralai/mistral-large-2512",       # dry wit, precise ($0.50/$1.50)
-            "deepseek/deepseek-r1-distill-llama-70b",  # raw reasoning ($0.70/$0.80)
-            "meta-llama/llama-3.3-70b-instruct",  # casual, natural ($0.10/$0.32)
-            "google/gemini-2.5-flash",            # analytical ($0.30/$2.50)
+            "x-ai/grok-4.1-fast",                     # edgy, casual ($0.20/$0.50)
+            "x-ai/grok-4",                             # deep edgy reasoning ($3/$15)
+            "anthropic/claude-sonnet-4.6",              # empathetic, nuanced ($3/$15)
+            "moonshotai/kimi-k2",                       # creative, warm, expressive ($0.60/$2)
+            "mistralai/mistral-large-2512",             # dry wit, precise ($0.50/$1.50)
+            "deepseek/deepseek-r1-distill-llama-70b",  # raw, commits to the bit ($0.70/$0.80)
+            "deepseek/deepseek-chat-v3-0324",           # direct, unfiltered ($0.27/$1.10)
+            "qwen/qwen3-235b-a22b",                     # meandering storyteller ($0.20/$0.60)
+            "google/gemini-2.5-pro",                    # articulate, analytical ($1.25/$10)
+            "meta-llama/llama-3.3-70b-instruct",        # casual, natural hesitation ($0.10/$0.32)
         ]
         self.caller_model_map: dict[str, str] = {
-            # Grok 4.1 Fast — edgy, provocative, unfiltered humor
+            # Grok 4.1 Fast — high-energy swagger, edgy humor, fast
             "high_energy":       "x-ai/grok-4.1-fast",
-            "confrontational":   "x-ai/grok-4.1-fast",
-            "angry_venting":     "x-ai/grok-4.1-fast",
             "bragger":           "x-ai/grok-4.1-fast",
             "comedian":          "x-ai/grok-4.1-fast",
-            # Claude Sonnet 4.6 — empathetic, genuine emotional depth
+            # Grok 4 Full — deep reasoning for confrontation and arguments
+            "confrontational":   "x-ai/grok-4",
+            # DeepSeek Chat — raw, direct, no filter. Pure unprocessed anger.
+            "angry_venting":     "deepseek/deepseek-chat-v3-0324",
+            # Claude Sonnet 4.6 — genuine vulnerability, emotional depth
             "quiet_nervous":     "anthropic/claude-sonnet-4.6",
-            "sweet_earnest":     "anthropic/claude-sonnet-4.6",
             "emotional":         "anthropic/claude-sonnet-4.6",
-            # Mistral Large — dry, witty, precise delivery
+            # Kimi K2 — warm, creative, expressive. Different emotional texture than Claude.
+            "sweet_earnest":     "moonshotai/kimi-k2",
+            # Mistral Large — dry, precise, strategic omission
             "deadpan":           "mistralai/mistral-large-2512",
             "mysterious":        "mistralai/mistral-large-2512",
-            "world_weary":       "mistralai/mistral-large-2512",
-            # DeepSeek R1 Distill — raw, unfiltered, commits to the bit
-            "storyteller":       "deepseek/deepseek-r1-distill-llama-70b",
+            # Llama 3.3 — casual resignation, natural world-weariness
+            "world_weary":       "meta-llama/llama-3.3-70b-instruct",
+            "reluctant_caller":  "meta-llama/llama-3.3-70b-instruct",
+            "first_time":        "meta-llama/llama-3.3-70b-instruct",
+            # Qwen — loves tangents, detail-rich, born rambler
+            "storyteller":       "qwen/qwen3-235b-a22b",
+            "rambling":          "qwen/qwen3-235b-a22b",
+            # DeepSeek R1 Distill — commits fully, connects dots, no hedging
             "oversharer":        "deepseek/deepseek-r1-distill-llama-70b",
             "conspiracy":        "deepseek/deepseek-r1-distill-llama-70b",
-            "rambling":          "deepseek/deepseek-r1-distill-llama-70b",
-            # Gemini 2.5 Flash — articulate, analytical, cites facts
-            "know_it_all":       "google/gemini-2.5-flash",
-            # Llama 3.3 70B — casual, natural hesitation, first-timer energy
-            "first_time":        "meta-llama/llama-3.3-70b-instruct",
-            "reluctant_caller":  "meta-llama/llama-3.3-70b-instruct",
+            # Grok 4.1 Fast — gossipy energy, casual, can't wait to spill
+            "small_town_gossip": "x-ai/grok-4.1-fast",
+            # Gemini 2.5 Pro — pedantic, articulate, cites sources
+            "know_it_all":       "google/gemini-2.5-pro",
         }
         self.caller_model_fallback: str = "anthropic/claude-sonnet-4.6"
         self.caller_models: dict[str, str] = {}  # caller_key → assigned model
