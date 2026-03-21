@@ -114,6 +114,7 @@ class AudioService:
 
         # Caller playback state
         self._caller_stop_event = threading.Event()
+        self._devon_stop_event = threading.Event()
         self._caller_thread: Optional[threading.Thread] = None
 
         # Host mic streaming state
@@ -431,9 +432,16 @@ class AudioService:
         """Play TTS audio to specific channel of output device (interruptible)"""
         import librosa
 
-        # Stop any existing caller audio
-        self.stop_caller_audio()
-        self._caller_stop_event.clear()
+        # Devon uses its own stop event so hangup doesn't cut Devon's audio
+        is_devon = stem_name == "devon"
+        stop_event = self._devon_stop_event if is_devon else self._caller_stop_event
+
+        # Stop any existing audio on the same channel type
+        if is_devon:
+            self.stop_devon_audio()
+        else:
+            self.stop_caller_audio()
+        stop_event.clear()
 
         # Convert bytes to numpy
         audio = np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32) / 32768.0
@@ -476,7 +484,7 @@ class AudioService:
                 channels=num_channels,
                 dtype=np.float32
             ) as stream:
-                while pos < len(multi_ch) and not self._caller_stop_event.is_set():
+                while pos < len(multi_ch) and not stop_event.is_set():
                     end = min(pos + chunk_size, len(multi_ch))
                     stream.write(multi_ch[pos:end])
                     # Record each chunk as it plays so hangups cut the stem too
@@ -485,8 +493,8 @@ class AudioService:
                         rec.write_sporadic(stem_name, audio[pos:end].copy(), device_sr)
                     pos = end
 
-            if self._caller_stop_event.is_set():
-                print("Caller audio stopped early")
+            if stop_event.is_set():
+                print(f"{stem_name.title()} audio stopped early")
             else:
                 print(f"Played caller audio: {len(audio)/device_sr:.2f}s")
 
@@ -496,6 +504,10 @@ class AudioService:
     def stop_caller_audio(self):
         """Stop any playing caller audio"""
         self._caller_stop_event.set()
+
+    def stop_devon_audio(self):
+        """Stop any playing Devon audio (independent of caller audio)"""
+        self._devon_stop_event.set()
 
     def _start_live_caller_stream(self):
         """Start persistent output stream with ring buffer jitter absorption"""
