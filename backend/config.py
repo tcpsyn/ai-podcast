@@ -29,21 +29,20 @@ class Settings(BaseSettings):
 
     # LLM Settings
     llm_provider: str = "openrouter"  # "openrouter" or "ollama"
-    openrouter_model: str = "anthropic/claude-sonnet-4-5"  # primary/default model
+    openrouter_model: str = "anthropic/claude-sonnet-4.6"  # primary/default model
     ollama_model: str = "llama3.2"
     ollama_host: str = "http://localhost:11434"
 
-    # Per-category model routing — cheaper models for non-critical tasks
-    # Categories: caller_dialog, devon_monitor, devon_ask, background_gen,
-    #             call_summary, news_summary, topic_gen, unknown
+    # Per-category model routing
+    # caller_dialog is overridden by style_matched routing (see Session.caller_model_map)
     category_models: dict = {
-        "caller_dialog": "x-ai/grok-4",                         # full Grok 4 — edgier dialog, latency OK (gaps cut in post)
-        "devon_ask": "x-ai/grok-4",                             # Devon should match the show's edgy energy
-        "devon_monitor": "google/gemini-2.5-flash",           # Devon polling — just decisions, keep cheap
-        "background_gen": "x-ai/grok-4",                      # wilder, more specific caller backgrounds
-        "call_summary": "google/gemini-2.5-flash",            # post-call summaries
-        "news_summary": "google/gemini-2.5-flash",            # news digests
-        "topic_gen": "google/gemini-2.5-flash",               # topic generation
+        "caller_dialog": "x-ai/grok-4.1-fast",               # fallback if style_matched disabled ($0.20/$0.50)
+        "devon_ask": "x-ai/grok-4.1-fast",                   # Devon matches show energy, cheap ($0.20/$0.50)
+        "devon_monitor": "google/gemini-2.5-flash",          # just yes/no decisions, keep cheap ($0.15/$0.60)
+        "background_gen": "x-ai/grok-4.1-fast",              # wilder caller backgrounds ($0.20/$0.50)
+        "call_summary": "google/gemini-2.5-flash",           # post-call, no personality needed ($0.15/$0.60)
+        "news_summary": "google/gemini-2.5-flash",           # just digesting headlines ($0.15/$0.60)
+        "topic_gen": "google/gemini-2.5-flash",              # structured output ($0.15/$0.60)
     }
 
     # TTS Settings

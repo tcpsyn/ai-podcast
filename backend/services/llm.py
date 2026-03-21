@@ -10,26 +10,26 @@ from .cost_tracker import cost_tracker
 
 # Available OpenRouter models
 OPENROUTER_MODELS = [
-    # Default
-    "anthropic/claude-sonnet-4-5",
-    # Best for natural dialog
+    # Primary
+    "anthropic/claude-sonnet-4.6",
+    "x-ai/grok-4.1-fast",
     "x-ai/grok-4",
-    "x-ai/grok-4-fast",
-    "minimax/minimax-m2-her",
-    "mistralai/mistral-small-creative",
-    "deepseek/deepseek-v3.2",
-    # Other
-    "anthropic/claude-haiku-4.5",
+    # Style-matched pool
+    "mistralai/mistral-large-2512",
+    "deepseek/deepseek-r1-distill-llama-70b",
+    "meta-llama/llama-3.3-70b-instruct",
     "google/gemini-2.5-flash",
-    "openai/gpt-4o-mini",
-    "openai/gpt-4o",
-    # New dialog models
+    # Other good options
+    "anthropic/claude-sonnet-4-5",
+    "anthropic/claude-haiku-4.5",
     "deepseek/deepseek-chat-v3-0324",
-    "moonshotai/kimi-k2",
-    "mistralai/mistral-medium-3",
-    "meta-llama/llama-4-maverick",
-    "qwen/qwen3-235b-a22b",
+    "mistralai/mistral-small-2603",
     "google/gemini-2.5-pro",
+    "google/gemini-3-flash-preview",
+    "x-ai/grok-4-fast",
+    "moonshotai/kimi-k2",
+    "qwen/qwen3-235b-a22b",
+    "meta-llama/llama-4-maverick",
     # Legacy
     "anthropic/claude-3-haiku",
     "google/gemini-flash-1.5",

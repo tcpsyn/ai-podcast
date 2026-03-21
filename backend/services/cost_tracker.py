@@ -32,25 +32,38 @@ class TTSCallRecord:
 
 # OpenRouter pricing per 1M tokens (as of March 2026)
 OPENROUTER_PRICING = {
+    # Claude
+    "anthropic/claude-sonnet-4.6":      {"prompt": 3.00,  "completion": 15.00},
     "anthropic/claude-sonnet-4-5":      {"prompt": 3.00,  "completion": 15.00},
     "anthropic/claude-haiku-4.5":       {"prompt": 0.80,  "completion": 4.00},
     "anthropic/claude-3-haiku":         {"prompt": 0.25,  "completion": 1.25},
+    # Grok
+    "x-ai/grok-4.1-fast":             {"prompt": 0.20,  "completion": 0.50},
     "x-ai/grok-4":                     {"prompt": 3.00,  "completion": 15.00},
     "x-ai/grok-4-fast":                {"prompt": 5.00,  "completion": 15.00},
-    "minimax/minimax-m2-her":           {"prompt": 0.50,  "completion": 1.50},
-    "mistralai/mistral-small-creative": {"prompt": 0.20,  "completion": 0.60},
+    # Mistral
+    "mistralai/mistral-large-2512":    {"prompt": 0.50,  "completion": 1.50},
+    "mistralai/mistral-small-2603":    {"prompt": 0.15,  "completion": 0.60},
+    "mistralai/mistral-medium-3":      {"prompt": 0.40,  "completion": 2.00},
+    "mistralai/mistral-small-creative": {"prompt": 0.10, "completion": 0.30},
+    # DeepSeek
+    "deepseek/deepseek-r1-distill-llama-70b": {"prompt": 0.70, "completion": 0.80},
+    "deepseek/deepseek-chat-v3-0324":  {"prompt": 0.27,  "completion": 1.10},
     "deepseek/deepseek-v3.2":          {"prompt": 0.14,  "completion": 0.28},
-    "google/gemini-2.5-flash":          {"prompt": 0.15,  "completion": 0.60},
+    # Google
+    "google/gemini-2.5-flash":          {"prompt": 0.30,  "completion": 2.50},
+    "google/gemini-2.5-pro":           {"prompt": 1.25,  "completion": 10.00},
+    "google/gemini-3-flash-preview":   {"prompt": 0.50,  "completion": 3.00},
     "google/gemini-flash-1.5":          {"prompt": 0.075, "completion": 0.30},
+    # Meta
+    "meta-llama/llama-3.3-70b-instruct": {"prompt": 0.10, "completion": 0.32},
+    "meta-llama/llama-4-maverick":     {"prompt": 0.20,  "completion": 0.60},
+    # Other
+    "moonshotai/kimi-k2":              {"prompt": 0.60,  "completion": 2.00},
+    "qwen/qwen3-235b-a22b":           {"prompt": 0.20,  "completion": 0.60},
+    "minimax/minimax-m2-her":           {"prompt": 0.50,  "completion": 1.50},
     "openai/gpt-4o-mini":              {"prompt": 0.15,  "completion": 0.60},
     "openai/gpt-4o":                   {"prompt": 2.50,  "completion": 10.00},
-    "meta-llama/llama-3.1-8b-instruct": {"prompt": 0.06, "completion": 0.06},
-    "deepseek/deepseek-chat-v3-0324":  {"prompt": 0.27,  "completion": 1.10},
-    "moonshotai/kimi-k2":              {"prompt": 0.60,  "completion": 2.00},
-    "mistralai/mistral-medium-3":      {"prompt": 0.40,  "completion": 2.00},
-    "meta-llama/llama-4-maverick":     {"prompt": 0.20,  "completion": 0.60},
-    "qwen/qwen3-235b-a22b":           {"prompt": 0.20,  "completion": 0.60},
-    "google/gemini-2.5-pro":           {"prompt": 1.25,  "completion": 10.00},
 }
 
 # TTS pricing per character
