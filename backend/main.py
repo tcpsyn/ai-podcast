@@ -8780,6 +8780,15 @@ GENRE_KEYWORDS = {
     "irish": "Irish",
     "ireland": "Irish",
     "patricks": "Irish",
+    "ambient": "Ambient",
+    "chill": "Chill",
+    "acoustic": "Acoustic",
+    "classical": "Classical",
+    "piano": "Classical",
+    "country": "Country",
+    "western": "Country",
+    "electronic": "Electronic",
+    "synth": "Electronic",
 }
 
 
