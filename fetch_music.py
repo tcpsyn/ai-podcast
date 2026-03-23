@@ -58,11 +58,41 @@ def sanitize_filename(name: str) -> str:
     return re.sub(r'[<>:"/\\|?*]', '', name).strip()
 
 
+def _has_vocals(track: dict) -> bool:
+    """Check musicinfo for vocal indicators — catches tracks Jamendo mis-tagged as instrumental."""
+    mi = track.get("musicinfo", {})
+    # Check the vocalinstrumental field in musicinfo (separate from the API filter)
+    vi = mi.get("vocalinstrumental")
+    if vi and vi.lower() == "vocal":
+        return True
+    # Check tags for vocal/singing indicators
+    tags = mi.get("tags", {})
+    # tags can be {"genres": [...], "instruments": [...], "vartags": [...]}
+    all_tags = []
+    if isinstance(tags, dict):
+        for v in tags.values():
+            if isinstance(v, list):
+                all_tags.extend(t.lower() for t in v)
+    elif isinstance(tags, list):
+        all_tags = [t.lower() for t in tags]
+    vocal_tags = {"vocals", "vocal", "singing", "singer", "voice", "lyrics",
+                  "rap", "hiphop", "hip-hop", "spoken", "spoken word"}
+    if vocal_tags & set(all_tags):
+        return True
+    # Check track name for vocal giveaways
+    name_lower = track.get("name", "").lower()
+    if any(w in name_lower for w in ["feat.", "ft.", "vocal", "remix vocal", "(voice"]):
+        return True
+    return False
+
+
 def search_tracks(client: httpx.Client, client_id: str, genre: str, limit: int = 20) -> list[dict]:
+    # Request more than needed so we can filter out vocal false positives
+    fetch_limit = min(limit * 3, 200)
     params = {
         "client_id": client_id,
         "format": "json",
-        "limit": min(limit, 200),
+        "limit": fetch_limit,
         "vocalinstrumental": "instrumental",
         "fuzzytags": genre,
         "durationbetween": "60_300",
@@ -78,7 +108,21 @@ def search_tracks(client: httpx.Client, client_id: str, genre: str, limit: int =
         print(f"  API error: {data['headers'].get('error_message', 'unknown')}")
         return []
 
-    return data.get("results", [])
+    results = data.get("results", [])
+    # Post-filter: reject tracks with vocal indicators despite the API filter
+    filtered = []
+    for t in results:
+        if _has_vocals(t):
+            print(f"    SKIP (vocals detected): {t.get('artist_name', '?')} - {t.get('name', '?')}")
+            continue
+        filtered.append(t)
+        if len(filtered) >= limit:
+            break
+
+    skipped = len(results) - len(filtered)
+    if skipped:
+        print(f"  (filtered out {skipped} tracks with vocal indicators)")
+    return filtered
 
 
 def make_filename(track: dict, genre_tag: str) -> str:
