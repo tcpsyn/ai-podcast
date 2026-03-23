@@ -7817,14 +7817,18 @@ def _fix_caller_names(text: str, names: list[str]) -> str:
                 changed = True
             continue
 
-        # Fuzzy match against all names
+        # Fuzzy match against all names — conservative to avoid mangling real words
         for name_low, name_orig in name_map.items():
-            if abs(len(low) - len(name_low)) > 2:
+            # No fuzzy matching for very short names (3 chars) — too many false positives
+            # e.g. "dog" → "Dot", "cat" → "Cal"
+            if len(name_low) <= 3:
+                continue
+            if abs(len(low) - len(name_low)) > 1:
                 continue
             dist = _edit_distance(low, name_low)
-            # Allow distance 1 for short names (3-4 chars), distance 2 for longer
-            max_dist = 1 if len(name_low) <= 4 else 2
-            if dist <= max_dist and dist > 0:
+            # Distance 1 only, and require first letter match to avoid wild substitutions
+            if dist == 1 and low[0] == name_low[0]:
+                print(f"[NameFix] Fuzzy: '{stripped}' -> '{name_orig}' (dist={dist})")
                 words[i] = word.replace(stripped, name_orig)
                 changed = True
                 break
