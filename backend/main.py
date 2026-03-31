@@ -53,6 +53,9 @@ class CallerBackground:
     seeds: list[str] = field(default_factory=list)
     verbal_fluency: str = "medium"
     calling_from: str = ""
+    hidden_layers: list[str] = field(default_factory=list)  # 3 details they haven't mentioned yet
+    burning_opinion: str = ""  # Something they're dying to say — will bring up even without being asked
+    stakes: str = ""  # What's at risk for them — why this matters, what happens if nothing changes
 
 
 app = FastAPI(title="AI Radio Show")
@@ -146,8 +149,18 @@ ELEVENLABS_FEMALE_VOICES = [
 ELEVENLABS_MALE_VOICES.append("SAz9YHcvj6GT2YYXdXww")   # River - Neutral
 ELEVENLABS_FEMALE_VOICES.append("SAz9YHcvj6GT2YYXdXww")  # River - Neutral
 
-# Voices to never assign to callers (annoying, bad quality, etc.)
-BLACKLISTED_VOICES = {"Evelyn", "Sebastian", "Celeste"}  # Sebastian reserved for Silas
+# Voices to never assign to callers (bad quality, reserved for named characters, etc.)
+BLACKLISTED_VOICES = {
+    "Evelyn", "Celeste", "Lauren",       # unnatural prosody
+    "Hades",                              # fantasy-style voice, too theatrical for callers
+    "Sebastian",                          # reserved for Silas & Chip (regulars)
+    "Nate",                               # reserved for Devon (intern)
+    "Miranda",                            # reserved for Shonda (regular)
+    "Hana",                               # reserved for Aaliyah (regular)
+    "Mortimer",                           # reserved for Ernie (regular)
+    "Ashley",                             # reserved for Monique (regular)
+    "Deborah",                            # reserved for Rosalie (regular)
+}
 
 
 def _get_voice_pools():
@@ -314,15 +327,15 @@ PROBLEMS = [
     # Family drama
     "hasn't talked to their father in years and just got a voicemail from a number they didn't recognize — turns out it was their dad's new wife asking them to come say goodbye before the surgery",
     "got a bill in the mail for $14,000 from a hospital in a city they've never been to — for a surgery under their name and social security number that happened three weeks ago",
-    "is being pressured to take care of an aging parent who was never there for them",
+    "their father who walked out when they were six just had a stroke and the sister who raised them is demanding they fly to Phoenix and take care of him — the sister said 'he's still your father' and the caller said 'he was never my father' and now the whole family is choosing sides",
     "found their dad's second driver's license with a different name while cleaning out his truck after he died — and the address on it is a house forty minutes away with a family in it",
     "caught their brother selling tools from their dead father's workshop on Facebook Marketplace and when they confronted him he said 'dad would've wanted me to have the money'",
     "saw their estranged daughter's wedding photos on Facebook — outdoor ceremony, beautiful dress, the whole thing — and realized nobody told them it happened",
-    "came home to find their landlord had entered their apartment and rearranged the furniture — not stolen anything, just moved everything six inches to the left, and now denies it happened",
-    "is watching their parents' marriage fall apart after 40 years",
-    "their kid just got arrested and they don't know what to do",
-    "found out their teenager has been lying about where they go at night",
-    "their in-laws are trying to take over their life and their spouse won't say anything",
+    "their DoorDash driver recognized them from high school and spent ten minutes in the doorway trying to catch up while the caller's food got cold — the driver has now requested their address three times this week and keeps leaving notes in the bag and the caller doesn't know if it's sweet or a safety issue",
+    "came home early and caught their parents screaming at each other in the driveway after 40 years of what everyone thought was a solid marriage — their mom had a suitcase and their dad was holding the car keys above his head like a child and the neighbors were watching",
+    "got a call at 2am from the county jail — their 17-year-old was picked up for stealing a car that turned out to belong to the kid's girlfriend's father — the kid says the dad said he could borrow it and the dad says absolutely not and now there's a felony charge and the caller's savings won't cover a lawyer",
+    "put a tracker on their 16-year-old's car after they lied about going to a friend's house — the car has been going to a rural property thirty miles out of town that the caller just found out belongs to a 24-year-old they've never heard of",
+    "their mother-in-law enrolled their kid in a private school without asking, paid the deposit, bought the uniform, and told the kid on Sunday — the caller and their spouse hadn't even discussed private school and now their kid is begging to go and the mother-in-law is acting like she did them a favor",
 
     # Career and purpose
     "walked out of their job today after 15 years with no plan and is sitting in their truck in a parking lot",
@@ -404,10 +417,10 @@ PROBLEMS = [
     "their best friend started dating their ex-wife and just asked them to be cool about it",
 
     # Neighbor and community drama
-    "is in a feud with their neighbor that's gotten way out of hand",
-    "found out something sketchy is going on next door and doesn't know if they should say something",
-    "got into it with someone at their kid's school and now it's a whole thing",
-    "someone at church said something that made them question their entire faith",
+    "their neighbor installed a camera pointed directly at their backyard and when they asked about it the neighbor said 'you should be glad someone's watching' and now the caller is sleeping with a baseball bat and considering a restraining order",
+    "saw their neighbor's kid selling something out of a backpack at the bus stop and when they mentioned it to the neighbor the neighbor showed up at their door at 10pm and said 'you didn't see anything' and the caller has been too scared to leave it alone or bring it up again",
+    "confronted a parent at their kid's school who's been spreading rumors that the caller's kid is a bully — the parent posted about it in the school Facebook group with their kid's name and now thirty parents have piled on and the principal won't take it down because it's 'not a school platform'",
+    "their pastor said from the pulpit that people who get divorced are 'choosing sin over covenant' and looked directly at the caller who just filed — and half the congregation turned to look at them too and the caller walked out and sat in the parking lot and hasn't gone back in three weeks",
 
     # Big life decisions
     "packed a bag tonight and it's sitting by the front door — they're one argument away from driving to their sister's in Tucson and not coming back",
@@ -982,7 +995,7 @@ PROBLEMS = [
     "trusted their accountant with their taxes for ten years and just found out the accountant never filed the last three years",
     "their childhood best friend wrote a memoir that includes private conversations they had in confidence — some of it is embellished",
     "gave their sibling a key to their house for emergencies and found out the sibling has been coming in when they're at work to eat their food for months",
-    "their partner promised to stop talking to their ex and the caller just found a second phone with six months of messages",
+    "their Uber driver is their kid's school principal and neither of them said a word for the entire fifteen-minute ride but the principal gave them one star and the caller gave the principal one star and now there's a parent-teacher conference next week",
 
     # --- Moral gray zones (expanded) ---
     "saw a hit and run from their porch — they have the plate number — but the driver is a kid, maybe 16, and they remember what it was like to be terrified at that age",
@@ -1003,7 +1016,6 @@ PROBLEMS = [
     "has been calling in sick to work once a week for six months to sit in a park alone because it's the only time they feel like a person",
     "learned their neighbor's WiFi password and has been using it for a year — the neighbor just upgraded to gigabit and the caller is getting better speeds than the plan they're paying for",
     "started leaving anonymous compliments in people's mailboxes to cheer people up and now there's a Nextdoor thread calling them a stalker",
-    "has been pretending to know how to swim for their entire adult life and their family just planned a beach vacation with snorkeling",
     "told their date they were allergic to shellfish to avoid splitting the lobster and now every date avoids seafood places — they love seafood",
     "started going to a random church every Sunday because they like the free coffee and now they've been elected to the welcoming committee",
     "has been secretly watering their neighbor's dying plant through the fence because they can't stand watching it die",
@@ -1058,6 +1070,101 @@ PROBLEMS = [
     "made a fake LinkedIn profile to catfish their ex and accidentally built a real professional network with it — the fake persona now has 3,000 connections and a recruiter just reached out with a six-figure offer for a person who doesn't exist and the caller is seriously considering showing up to the interview in a wig",
     "lied on their dating profile about being 6'1\" and they're 5'8\" — it worked until the woman showed up in heels and he was eye level with her chin, and when she said 'you're not six one' he said 'I am in boots' and she said 'you're wearing sneakers' and he said 'yeah'",
     "told everyone at work they ran a marathon and now there's a company team signing up for one in their name — they have never run more than the length of a driveway and the race is in six weeks and their boss already ordered shirts with their name on them",
+    # === NEW ENTRIES: Professional expertise callers ===
+    "works as an EMT and last week they picked up the same guy three times in one shift — different locations, different complaints, but by the third call he knew their name and asked if they wanted to grab lunch sometime and now the caller can't tell if this guy is having a genuine medical crisis or trying to date them through the 911 system",
+    "long-haul trucker who keeps seeing the same hitchhiker on the same stretch of I-10 between El Paso and Tucson — always at mile marker 87, always at night, always a woman in a white dress waving — they've reported it three times and the highway patrol says nobody's out there but the trucker has dashcam footage they're afraid to watch",
+    "works at a funeral home and one of the bodies they're prepping has a tattoo with the caller's phone number on it — they've never seen this person before in their life and nobody in the family can explain the tattoo and the funeral is in two days",
+    "night auditor at a hotel who discovered that room 214 has been booked every Friday night for six years by the same man who checks in, goes to the room, never orders anything, and checks out at exactly 4:17 AM — last week the man didn't show up and the caller found a sealed envelope addressed to them personally under the mattress with a handwritten note that said 'you noticed'",
+    "works as a veterinarian and a woman has brought in the same cat four times this year claiming it's a different cat each time — the cat has a very distinctive marking and the vet is 100% sure it's the same animal but the woman gets hostile when questioned and last time she brought a 'different' cat she was wearing a disguise herself",
+    "school janitor who found a journal hidden inside a ceiling tile during summer maintenance — it's written by a former teacher and contains detailed descriptions of every administrator's personal secrets going back fifteen years, and the caller just got to the chapter about the current principal",
+    "pawn shop owner who keeps getting the same wedding ring pawned and redeemed — different people each time but it's definitely the same ring based on the inscription, and now someone just came in trying to pawn it who is clearly wearing a wire and the caller thinks this ring might be evidence in something bigger",
+    "home inspector who found a room in a house that isn't on any of the blueprints — hidden behind drywall in the basement, fully furnished with a cot, a mini fridge that was still running, and dated newspapers from two months ago, and the homeowner who hired them swears they've lived there twenty years and never knew about it",
+    "works as a 911 dispatcher and last night got a call from a number that matched their own home landline — they live alone, the call came in while they were at work, and the person on the line asked for help but used the caller's childhood nickname that nobody at work knows",
+    "dental hygienist who found a micro SD card embedded in a patient's filling — the patient has no idea how it got there, claims the filling was done at a different clinic that burned down three years ago, and the hygienist pocketed the card and hasn't told anyone and doesn't know if they should look at what's on it",
+    "works at an animal shelter and one of the dogs they've been caring for is definitely smarter than any dog should be — it opens its own kennel, lets specific other dogs out, rearranges its bedding into geometric patterns, and last week it sat staring at the security camera and slowly shook its head no when the caller was about to call animal control about the dog's behavior",
+    "locksmith who got called to open a safe in an estate sale house and found $80,000 in cash, a passport for someone who died in 1987, and a sealed letter addressed 'To whoever opens this: I'm sorry about the river' — the estate lawyer says the family doesn't want any of it and told the caller to 'dispose of the contents' and the caller is now sitting on the cash trying to figure out what the ethical move is",
+    "park ranger who's been tracking a set of footprints that appear in the same meadow every morning — barefoot, adult-sized, walking in a perfect circle about thirty feet in diameter, and the grass inside the circle is dead while everything outside is green — this has been going on for two months and their supervisor told them to stop filing reports about it",
+    "bartender at a dive bar who's pretty sure one of their regulars is a retired hitman — the guy pays cash, never uses his real name, once casually described the best way to dispose of a vehicle in conversation, and last week a man in a suit came in with a photo of the regular and asked the bartender if they'd seen him and the bartender said no without thinking and now doesn't know if they just lied to a fed or protected a friend",
+    "home health aide who takes care of an elderly woman with dementia — the woman keeps telling the caller detailed stories about a murder she witnessed in 1973 that the caller initially dismissed until they Googled it and found an unsolved case matching every detail, and now the woman's son is pressuring the caller to sign an NDA",
+    # === NEW ENTRIES: Moral dilemmas ===
+    "caught their nanny on the nanny cam not hitting their kid but saying genuinely cruel things — calling the toddler stupid, telling them nobody likes them, saying 'your parents only had you because they had to' — and the nanny has been with them for three years and the kid adores her and the caller's spouse thinks they're overreacting because the kid doesn't understand the words yet",
+    "lives in a rural area and their neighbor has been burying firearms on the property line — the caller found three so far while digging a garden bed, all wrapped in plastic, and they don't know if the neighbor is a prepper, a criminal, or a paranoid veteran, and calling the cops could either save someone's life or ruin a harmless old man's",
+    "caught their father-in-law committing insurance fraud — he staged a 'burglary' and the caller happened to see him loading his own stuff into a storage unit the day before — and their spouse is saying 'Dad would never do that' and the insurance company just denied someone else's legitimate claim because they're 'investigating a pattern in the area'",
+    "their mother just died and the caller found a laptop in her closet with a folder called 'FOR AFTER I'M GONE' — they opened it and it's letters to every family member revealing secrets she kept for decades including that the caller's 'sister' is actually their mother's affair child with the family pastor, and the funeral is Thursday and everyone will be in the same room",
+    "a student they tutor just submitted an essay the caller recognizes because they wrote it themselves in college twelve years ago — same paper, word for word, clearly purchased from some essay mill that's still selling the caller's old work — and the caller doesn't know if they should turn the kid in for plagiarism or if that means admitting they sold essays in college",
+    "their brother has been cheating on his wife for over a year and the caller just found out the woman their brother is cheating with is the caller's wife's best friend — so now four people's lives are tangled up and the caller is sitting on a grenade and every option involves someone they love getting destroyed",
+    "discovered their husband has been seeing sex workers — not cheating emotionally, he says, just physical — and part of the caller is horrified and part of them is relieved because they've been dreading sex for years and this might actually take the pressure off, and they don't know if that makes them a bad person or a pragmatic one",
+    "their tenant is growing marijuana in the basement of the rental property — it's legal in their state but violates the lease, and the tenant is a single mom who told the caller she's selling it to pay for her daughter's medical bills, and the caller's insurance doesn't cover 'agricultural operations' so if anything goes wrong they're liable",
+    "found out their kid's karate instructor is also a drag performer at a local bar — the caller doesn't personally care but their spouse is deeply religious and threatening to pull the kid from classes, and the kid loves the instructor, and the caller is stuck between their spouse's values and their child's happiness and their own belief that the instructor's private life is none of their business",
+    # === NEW ENTRIES: Sex/relationship mess ===
+    "just discovered their 19-year-old daughter is making explicit content online under a fake name — the caller found out because a coworker recognized her and showed the caller, which means the coworker was watching it too, and now the caller has to figure out whether to confront the daughter, confront the coworker, or pretend they don't know and go to therapy",
+    "found out their wife has been going to a strip club on her 'book club nights' — not performing, just going — and she's been tipping one particular dancer hundreds of dollars over six months and the caller found the receipts and doesn't know if this is infidelity, a midlife crisis, or something they should be open to exploring together",
+    "hasn't had sex with their spouse in fourteen months and finally suggested couples therapy and their spouse said 'I don't need therapy, I need you to be attractive again' — and the caller has actually lost forty pounds this year and looks better than they have in a decade and is starting to wonder if the dead bedroom isn't about attraction at all",
+    "found sexually explicit texts on their spouse's phone — but the texts are with their spouse's personal trainer and they're not sexts exactly, they're incredibly detailed discussions of what specific exercises would 'improve performance in certain positions' and both of them insist it's purely professional and the caller feels insane",
+    "walked into their bedroom and found their partner in the closet wearing the caller's clothes — not in a kinky way, just... wearing them around the house when the caller isn't home — and when confronted, the partner broke down crying and said they've been doing it for years because the caller's clothes 'smell safe' and now the caller doesn't know if this is sweet or deeply concerning",
+    "matched with their spouse on a dating app — they were both on the app — and instead of having a conversation about it like adults they've been messaging each other as strangers for two weeks and the catfishing has actually been the most fun they've had together in years and neither one wants to break character",
+    "hooked up with someone at a wedding and then found out at brunch the next morning that the person is their sibling's new partner — the sibling introduced them proudly, the hookup made panicked eye contact, and now the caller is sitting across from both of them at family dinner pretending they've never met while their sibling talks about how amazing this person is",
+    "has been having phone sex with the same anonymous person for three months through a hotline and they just realized from a very specific story the person told that it might be their next-door neighbor — the details match perfectly including a 'funny thing that happened with my sprinkler last week' that the caller literally witnessed from their kitchen window",
+    "has been faking orgasms for their entire eight-year marriage and just got caught when their spouse found a Reddit post the caller wrote about it — the post went viral, the spouse recognized the specific details, and now there's a printed-out Reddit thread on the kitchen counter with certain passages highlighted and the caller hasn't been home yet",
+    "found out a porn performer is using their exact name, their exact job title, and even their specific workplace on their profile — it's clearly not the caller but the resemblance is close enough that coworkers have asked, and the caller's spouse is furious not because of the porn but because 'the fake you has better reviews than you do in real life'",
+    # === NEW ENTRIES: Money/ethics bombs ===
+    "bought a house and found $45,000 in cash hidden inside the walls during renovation — the previous owner died and the estate was settled, the house was sold as-is, and legally the caller might be entitled to keep it but the dead man's adult children are calling asking if 'Dad left anything behind' and the caller said 'just some old tools' while standing next to a pile of cash",
+    "noticed their elderly father has been making automatic payments of $500 a month to someone they don't recognize — it's been going on for seven years and totals over $40,000 — the father gets agitated when asked about it and says 'I owe them' but won't say for what, and the caller is starting to think their father is being blackmailed but the father insists it's 'the right thing to do'",
+    "has a job where they literally do nothing — they were hired, given an office, and no one has ever assigned them work in eleven months — they show up, sit at their desk, collect a $72,000 salary, and go home — they've asked their manager twice and the manager says 'just be available' and the caller is having an existential crisis but also doesn't want to rock the boat",
+    "is an accountant who just realized they've been making the same error for a client for three years and the client has overpaid the IRS by roughly $23,000 — the caller can fix it going forward but if they file amended returns the error will be obvious and they could lose their license, and the client is their brother-in-law",
+    "works for a pharmaceutical company and just found out the drug they've been marketing is about to be recalled — they can't trade on inside information legally but their entire retirement is in company stock and they have forty-eight hours before the recall goes public and their spouse is asking why they look like they haven't slept",
+    # === NEW ENTRIES: Secrets discovered ===
+    "found a positive pregnancy test in the trash and they live with their wife and their college-age daughter — the wife had a hysterectomy four years ago so it's not hers, which means the daughter is pregnant, and the caller hasn't said anything to either of them and the test has been sitting in the caller's desk drawer for three days like a ticking bomb",
+    "just learned through 23andMe that their father has another family — a whole wife and three kids in another state — and the father doesn't know the caller knows and is currently sitting in the living room watching Jeopardy like nothing is wrong and the caller is supposed to go to dinner with him tomorrow",
+    "their mother told them on her deathbed that the caller's older brother — the one the whole family idolizes, the successful one, the one who got all the attention — is actually the child of their mother's affair with the family's former lawyer, and the mother begged the caller never to tell anyone and then died three hours later and the funeral is Saturday",
+    "hired a private investigator to look into their spouse and the PI came back with a clean report — no cheating, no secrets, nothing — but the PI also casually mentioned that the caller's business partner has been siphoning money and the caller never asked about the business partner, which means the PI found it by accident while investigating the spouse, and now the caller has knowledge they can't explain how they got",
+    "found their teenager's burner phone with a second social media life — different name, different personality, hundreds of followers who think the kid is a 22-year-old living in Miami — and the content isn't illegal but the kid is clearly talking to adults who think they're also adults and the caller doesn't know how to address it without revealing they searched the kid's room",
+    "their partner was just diagnosed with a terminal illness and told the caller not to tell anyone — but the partner's parents are planning a huge 60th anniversary party and spending their savings on it and the caller thinks they deserve to know their child is dying and might not make it to the party but the partner is furious at the idea of anyone knowing",
+    # === NEW ENTRIES: Professional expertise stories ===
+    "works as a large-animal vet in rural Texas and got called to a ranch where six cattle died overnight in a perfect circle with no visible cause of death — the rancher is convinced it's aliens, the local sheriff thinks it's poisoning, but the vet did the necropsies and every single animal had cauterized incisions that no known predator or tool could explain and they filed a report with the state agriculture department that nobody has followed up on",
+    "corrections officer who accidentally became best friends with an inmate — it started with the inmate recommending a book and now they've been discussing literature for two years through the cell door and the officer just found out the inmate is getting released next month and asked if they wanted to grab coffee and the officer said yes before their brain caught up with their mouth",
+    "marine biologist who was doing a routine survey dive and found something on the ocean floor that doesn't match any known species or geological formation — they took samples, sent them to three different labs, and got three different results that all contradict each other, and their department head told them to 'stop asking questions about the sample' which is the most suspicious thing anyone has ever said to a scientist",
+    "forensic accountant who was hired by a small church to audit their books and found that the church has been laundering money for a local car dealership for at least a decade — the pastor claims ignorance, the dealership owner is a deacon, and the forensic accountant is a member of the congregation and their kid goes to the church's school and now they have to decide whether to report it and blow up their entire community",
+    "retired intelligence analyst who's been monitoring shortwave radio frequencies as a hobby and keeps picking up transmissions in a code pattern they recognize from their career — it's a cipher that was supposedly decommissioned in the 90s and nobody should be using it anymore, and the transmissions are originating from somewhere within fifty miles of their house and they're not sure if calling their old agency contacts will get them helped or investigated",
+    # === NEW ENTRIES: Escalating domestic situations ===
+    "pretty sure their spouse is gaslighting them — small things keep moving, conversations they clearly remember having are denied, and last week the spouse said 'we never owned a blue couch' about the blue couch they're sitting on — and the caller just found a journal where the spouse has been tracking which things they've moved and rating the caller's reaction on a scale of 1-10",
+    "their ex keeps violating the custody agreement in ways that are technically legal but clearly designed to undermine the caller — scheduling the kid's birthday party on the caller's weekend, signing them up for activities during the caller's time, telling the kid 'I wish you could stay but your other parent says no' — and the caller's lawyer says it's not worth going back to court but it's been two years of this death-by-a-thousand-cuts",
+    "discovered their teenage son has a burner phone, a second Instagram, and has been sneaking out three nights a week — they followed him once and he went to a warehouse and the caller is terrified he's involved in something dangerous but their spouse says 'boys will be boys' and won't engage and the caller is about to call the police on their own child",
+    "received a letter from their adult child formally cutting them off — no contact, no holidays, no phone calls — and the letter is three pages long detailing every way the caller failed as a parent, and the worst part is they can't argue with most of it but they also remember it differently and want to know if they're allowed to fight for the relationship or if that proves the kid's point",
+    # === NEW ENTRIES: Unhinged confessions ===
+    "has been catfishing their own mother on Facebook for two years as a fake friend named 'Diane' — it started because the mother only shares her real feelings with strangers online and the caller wanted to know what she actually thinks, and now 'Diane' knows more about the mother's inner life than any real family member and the mother just invited 'Diane' to Thanksgiving and the caller doesn't know how to get out of it",
+    "accidentally hit 'reply all' on a company email and sent their brutally honest performance review of their boss to the entire department — the email called the boss 'aggressively mediocre' and 'the kind of manager who'd drown in a kiddie pool of responsibility' — the boss hasn't said anything yet but has been standing behind the caller's desk for twenty minutes just... breathing",
+    "volunteers at a suicide hotline and took a call that they're 90% sure was from their ex-spouse — the voice, the details, the specific way they described their life falling apart all match — and the caller couldn't say anything because of confidentiality but they also can't stop thinking about it and don't know if they should reach out as their ex or pretend they don't know",
+    "put a GPS tracker on their spouse's car because they suspected cheating — the spouse isn't cheating, they're going to therapy three times a week at a clinic forty minutes away and the caller feels like garbage for tracking them but also now knows their spouse is dealing with something serious and won't talk about it and the caller can't admit how they know",
+    "stole their neighbor's dog — the neighbor was neglecting it, the caller tried reporting it to animal control twice and nothing happened, so they waited for the neighbor to go on vacation and took the dog and rehomed it two states away and the neighbor put up 'lost dog' posters and the caller helped them search the neighborhood while knowing exactly where the dog is",
+    "has been pretending to be a veteran for years — they wear the hat, they accept the discounts, they even joined a VFW post — they never served a day in their life and it started as a dare and now they're the vice commander of the local chapter and they just got nominated to carry the flag in the Memorial Day parade and they're terrified and ashamed but also somehow the VFW is the best community they've ever been part of",
+    # === NEW ENTRIES: Dark comedy ===
+    "rear-ended someone in a parking lot and when they got out to exchange insurance information the other driver turned out to be their divorce lawyer — the same lawyer who is currently representing their ex-spouse — and the lawyer said 'well this is a conflict of interest' and the caller said 'yeah, for which case?' and now their fender bender might actually help their custody arrangement because the lawyer has to recuse herself",
+    "ordered a sex swing from Amazon and it was delivered to their elderly mother's house by mistake — the mother opened it, assembled it, and is now using it as a 'reading hammock' in her living room and has told everyone in her book club about her wonderful new 'hanging chair' and the caller can't bring themselves to explain what it actually is",
+    "left a one-star review for their doctor on Yelp and the doctor responded publicly with thinly veiled details about the caller's medical condition — nothing that technically violates HIPAA but anyone who knows the caller could connect the dots — and now other patients are leaving reviews debating whether the doctor was right and the caller's hemorrhoid situation is being discussed by strangers on the internet",
+    "got rear-ended by a priest who was texting and driving — the priest's first words after the crash were 'Jesus Christ' and the caller said 'He can't help you now, Father' — and now they're in a legal dispute where the church's insurance company is claiming the accident was 'an act of God' and the caller's lawyer said 'well, his employee caused it' and nobody in the courtroom laughed but the caller is pretty proud of that one",
+    # === NEW ENTRIES: More moral dilemmas with real stakes ===
+    "is a school principal who found out a teacher has been changing test scores to help failing students graduate — the teacher is beloved, the students are genuinely disadvantaged kids who would've been held back, and reporting it means those students lose their diplomas, but not reporting it means the caller is complicit in fraud and every diploma their school issues is now questionable",
+    "found their father's secret stash of painkillers — he's not prescribed any of them — and confronting him means admitting they were snooping in his workshop, but not confronting him means watching their father potentially spiral into addiction, and the caller's sister died of an overdose three years ago and the father was the one who found her body",
+    "just found out the new family that moved in next door includes a father who is on the sex offender registry — the caller has three kids under ten, the offense was twenty years ago when the man was nineteen, and legally he's served his time and has every right to live there, but the caller's spouse wants to organize the neighborhood against him and the caller thinks that's wrong but also can't sleep at night",
+    "pretty sure their neighbor is running a stash house — weird traffic at all hours, different cars every night, people going in with bags and coming out without them — the caller called the anonymous tip line once and nothing happened and now the neighbor has started being really friendly and brought over cookies and the caller is terrified the neighbor knows they called",
+    "just found out the person their company hired to replace the employee they fired is the fired employee's domestic partner — HR doesn't know, the partner used a different last name, and the caller is watching this person systematically access files from their predecessor's old cases and isn't sure if they're just doing the job or extracting information for the fired employee's wrongful termination lawsuit",
+    # === NEW ENTRIES: Supplemental problems ===
+    "works as a court reporter and accidentally included their own editorial comments in a trial transcript — things like 'wow' and 'this guy is lying' — and the judge didn't catch it but the defense attorney did and now the caller is being subpoenaed as a witness in the same trial they were supposed to be neutrally recording",
+    "is a wedding photographer who just realized they accidentally swapped the memory cards between two weddings shot on the same day — both couples have received and posted photos from the wrong wedding and neither has noticed yet because the caller shoots a lot of weddings and apparently all reception venues look the same after midnight",
+    "works as a building code inspector and just failed their own house — they were doing a self-inspection for a refinance and found violations they've been citing other people for, including one they fined a homeowner $2,000 for last month, and if they report their own violations they'll lose credibility and if they don't they're the exact kind of hypocrite they lecture about",
+    "is a high school guidance counselor who found out a student they wrote a glowing college recommendation for is actually two kids taking turns being the same person — twins who split the school schedule so each only attends half the classes, and together they have a 4.0 GPA but individually neither would pass",
+    "their spouse just came out as polyamorous after twelve years of marriage — not as a suggestion or a conversation starter but as a declaration, with a specific person already in mind, and the caller doesn't know if they're supposed to be open-minded about this or if their marriage just ended in a vocabulary word they had to Google",
+    "found their spouse's burner phone and the only app on it is a stock trading app with $340,000 in it — the caller makes $55,000 a year, they file taxes jointly, and they have no idea where this money came from and they're now terrified that their spouse is either a financial genius who's been hiding wealth or involved in something that will get them both arrested",
+    "is a substitute teacher who accidentally told a class of seventh graders that the school principal wears a toupee — it slipped out during a joke, thirty kids told their parents, and the principal — who has maintained the illusion for fifteen years — called the caller into his office and sat there in complete silence for two minutes before saying 'you have ruined something sacred'",
+    "was on a cruise ship and got food poisoning so severe they had to be helicoptered to a hospital on the mainland — the insurance company won't cover the helicopter because they classify food poisoning as a 'pre-existing dietary choice' and the bill is $47,000 and the cruise line sent a fruit basket with a card that said 'hope you're feeling better, see you next year!'",
+    "their adult son just announced he's marrying a woman thirty years older than him — the woman is older than the caller, was briefly the caller's babysitter in the 1980s, and at the engagement dinner she said 'I used to change your diapers' to the caller, not the son, and the son said 'isn't that funny?' and nobody at the table agreed",
+    "keeps getting packages delivered to their house addressed to a person who doesn't live there and never has — they've returned dozens and now the packages are getting weirder: a taxidermied owl, a set of lockpicks, three identical copies of the same Bible with different passages highlighted, and a VHS tape labeled 'proof' — and USPS says the address is correct and the sender is 'N/A'",
+    "their kid's imaginary friend has started giving the kid information that turns out to be true — the imaginary friend 'told' the kid where the neighbor's lost dog was (it was there), 'knew' grandma was going to call before the phone rang, and yesterday 'said' there's something wrong with the car, and the mechanic found a brake line issue that would've failed within a week",
+    "just got served with a lawsuit by their own mother — the mother is suing for 'emotional damages' stemming from the caller's decision to move across the country, citing a verbal agreement that the caller would 'always live nearby' — the mother has a lawyer, a forty-page filing, and is requesting $150,000 in compensatory damages for loneliness",
+    "their dog walker sent them a Ring camera video that was supposed to show the dog having fun at the park but instead shows the dog walker getting into a heated argument with someone on the phone about selling the caller's house key — the caller has a smart lock, the dog walker has the code, and the caller doesn't know if this is a burglary ring or a misunderstanding but they changed the code and the dog walker texted 'hey, the code isn't working' within an hour",
+    "is a firefighter who responded to a house fire and saved a family's photo album as the house burned — the family was grateful until they looked through the album and found photos of people who aren't in their family doing things in their house from before they bought it, including one photo that appears to show someone burying something in the backyard, and now the family won't stop calling the firefighter asking them to come dig",
+    "their teenager has been charging neighborhood kids $5 each to watch the caller and the caller's spouse argue through the living room window — the kid set up lawn chairs, sells snacks, and has been doing this for three months with a 'regulars' list and a text notification system, and the caller only found out because a neighbor's kid asked 'is there a show tonight?'",
 ]
 
 STORIES = [
@@ -1172,7 +1279,7 @@ STORIES = [
     # --- family weirdness ---
     "found out they were named after their parent's favorite gas station attendant and they don't know how to process that information",
     "their grandmother's will specified that whoever takes care of her 23-year-old parrot inherits the house — the parrot is mean and bites everyone but they need the house",
-    "discovered a family recipe that's been passed down for generations is actually just the recipe from the back of a Campbell's soup can with one ingredient changed",
+    "their family has been telling the same story about great-grandpa wrestling a bear for sixty years and the caller just found a newspaper clipping from 1941 that says it was a large dog and great-grandpa lost",
     "their dad has been telling everyone he's retired for five years but they just found out he's been going to work every day at a different job he's embarrassed about",
     "found out their 'uncle' who comes to every Thanksgiving is not related to anyone in the family — he just showed up one year and nobody questioned it and now it's been 20 years",
     "their mom started a TikTok account and has more followers than them — she posts cooking videos but the comments are all about how attractive she is and the caller doesn't know what to do with that",
@@ -1186,7 +1293,7 @@ STORIES = [
     "their kid asked why grandma has a different last name than grandpa and it opened a can of worms that has been sealed since 1983",
     "found home movies in the attic and one of them shows their parents at a party in the 80s doing things that cannot be unseen",
     # --- purchases & consumer nightmares ---
-    "bought a couch off Craigslist and when they got it home found $8,000 in cash sewn into the cushion — the seller won't return their calls",
+    "bought a used riding mower at a garage sale and when they started it up it played 'La Cucaracha' — a mechanic found a greeting card music chip wired to the ignition with a note that said 'enjoy the music' and now the mower plays the song every single start and they can't disconnect it without killing the engine",
     "ordered a custom birthday cake that was supposed to say 'Happy 40th' and it arrived saying 'Happy 40th, you're closer to death' — the bakery says that's what the order form said",
     "bought a used car and found a love letter in the glove box that's so beautiful they framed it — three months later the previous owner showed up asking for it back",
     "their contractor disappeared mid-renovation — took the deposit, ripped out the kitchen, and vanished — they've been cooking on a camping stove in their garage for two months",
@@ -1325,6 +1432,79 @@ STORIES = [
     "got into an argument with a stranger on the internet that lasted three days and when they finally looked at the profile picture they realized they'd been arguing with their own brother using a fake account — neither of them has brought it up in person",
     "told a long, elaborate story at a dinner party and absolutely nailed the delivery — everyone laughed, people applauded — and then their spouse leaned over and whispered 'that happened to me, not you' and they've been telling this person's story as their own for so long they genuinely forgot",
     "their dog got loose and when they found him he was sitting on the porch of a house three blocks away with another family who'd already named him, bought him a bowl, and seemed genuinely upset to give him back — the dog looked at the caller like he'd been caught cheating",
+    # === NEW ENTRIES: Times they did something they can't believe ===
+    "got so fed up with their HOA that they read the bylaws cover to cover and found a loophole that let them replace their front lawn with a gravel pit shaped like a middle finger — it's technically 'decorative xeriscaping' and the HOA president has been standing on the sidewalk staring at it every morning with a coffee for two weeks and hasn't said a word",
+    "was the best man at their friend's wedding and gave a toast that accidentally revealed the groom had been engaged to someone else six months before — the caller didn't know it was a secret, the bride's family went silent, the groom's mother dropped her fork, and the caller finished with 'anyway, to the happy couple' and sat down while the groom mouthed 'I will kill you'",
+    "impersonated a health inspector to get into a restaurant they were banned from — it worked, they ate the meal, left a tip, and on the way out the actual health inspector arrived and the manager pointed at the caller and said 'your colleague already covered it' and now the restaurant has a passing health grade based on the caller's fake inspection",
+    "broke into their own house after locking themselves out and a neighbor called the cops — the caller was still inside eating cereal when the police arrived and had to prove they lived there while standing in their own kitchen in their own bathrobe surrounded by their own family photos, and the neighbor watched from across the street with binoculars the entire time",
+    "accidentally joined a cult while trying to make friends in a new city — it started as a 'community wellness group' and by the third meeting they were chanting in a circle and being asked to recruit five new members, and when they tried to leave the group leader said 'we'll see you Tuesday' with a smile that made it sound like it wasn't a question",
+    "stole a shopping cart from a grocery store in college as a prank and has moved it to every apartment and house they've lived in for twelve years — it's currently their laundry cart, their spouse thinks they bought it at a liquidation sale, and the grocery store still has a sign that says 'DO NOT REMOVE CARTS' that the caller drives past every day",
+    "got into a bidding war at a charity auction while trying to impress a date and accidentally won a weekend at a nudist resort for $4,200 — the date dumped them, the receipt is non-refundable, the weekend is next month, and their mother keeps asking what they got at the auction because she saw the charge on the shared credit card",
+    "challenged their boss to a bet that they could close a deal the boss said was impossible — if the caller won, they'd get a promotion, if they lost, they'd shave their head in front of the whole office — the caller lost, shaved their head at the all-hands meeting, but the client called back two days later and closed the deal anyway, and now the caller is bald AND promoted and their boss won't make eye contact",
+    "told their therapist something so outrageous that the therapist broke character and said 'are you serious?' — the caller had been testing their therapist for weeks with increasingly wild stories to see when she'd crack, and now the therapist has added an extra session per week and the caller isn't sure if it's because they need more help or because the therapist is genuinely worried",
+    "accidentally became a local celebrity after a video of them falling off a mechanical bull went viral — they were at a bachelorette party, the fall was spectacular, and now strangers recognize them at the grocery store and a local bar has named a drink after them called 'The Dismount' and their employer saw it and put it in their annual review under 'community engagement'",
+    # === NEW ENTRIES: Situations that escalated beyond all reason ===
+    "left a passive-aggressive note on their neighbor's car about parking in front of their house and it started a note war that has lasted nine months — the notes have escalated from 'please park elsewhere' to photoshopped images of each other's cars in increasingly absurd locations and the entire neighborhood is picking sides and someone started a Twitter account documenting it",
+    "complained to the city about a pothole on their street and somehow ended up appointed to the city infrastructure committee — they've been attending monthly meetings for a year, they've approved two bridge repairs and a sewer expansion, and they still don't understand how they got here but the mayor knows them by name now",
+    "returned a broken toaster to Walmart and the customer service interaction went so sideways that they ended up in a three-hour standoff where the manager called the police, the caller called the Better Business Bureau on speakerphone, and an old woman in line started a slow clap — the caller got their refund and a lifetime ban and the old woman followed them out and said 'that was the most beautiful thing I've ever seen'",
+    "got into a screaming match with a goose at a public park and lost — the goose chased them to their car, they locked themselves inside, and a family of four watched them negotiate with the goose through a cracked window for twenty minutes before a park ranger came and escorted them to their vehicle like they were the problem",
+    "signed up for a neighborhood book club that turned out to be a front for an extremely competitive underground poker ring — the caller has now lost $3,000, learned Texas Hold'em, made four new friends, and read zero books, and their spouse still thinks they're discussing 'Where the Crawdads Sing' every Thursday",
+    "filed a noise complaint about their upstairs neighbor's music and the neighbor responded by learning the caller's least favorite song and playing it on repeat — the caller then learned the neighbor's least favorite song and now they're in a sonic warfare escalation where both of them are sleep-deprived, the building manager has quit, and a third neighbor has started rating the battles on a whiteboard in the lobby",
+    # === NEW ENTRIES: Stranger encounters that changed their perspective ===
+    "sat next to a man on a Greyhound bus who told them his entire life story over twelve hours — the man had been a jazz musician, a prison chaplain, a crab fisherman, and a kindergarten teacher — and at the end of the ride the man said 'none of that is true but you seemed like you needed a good story' and got off the bus and the caller has never seen him again but thinks about him weekly",
+    "picked up a hitchhiker on a lonely stretch of highway in New Mexico and the hitchhiker turned out to be a retired NASA engineer who spent the next four hours explaining exactly why the moon landing was real and specifically debunking every conspiracy theory the caller had secretly believed — the caller dropped him off at a diner and the hitchhiker said 'you're welcome' like he knew",
+    "got trapped in an elevator with a woman who turned out to be a divorce attorney — in the 45 minutes they were stuck, the woman gave the caller a complete legal breakdown of why their marriage wasn't working and what they should do about it, all without the caller asking — the elevator got fixed, the woman handed them a card, and the caller filed for divorce three weeks later and credits the elevator",
+    "made accidental eye contact with a stranger on the subway who mouthed 'I know what you did' — the caller has no idea what this person could possibly know and they've never seen them before, but they've been thinking about it every day for two months and have started reviewing their own life decisions wondering which one this stranger somehow knows about",
+    # === NEW ENTRIES: Times they were completely wrong ===
+    "was absolutely convinced their neighbor was running an illegal gambling ring out of their garage — reported it to the police, told the other neighbors, even documented the 'suspicious' foot traffic — turns out the neighbor was hosting a weekly D&D campaign and the 'large amounts of cash changing hands' was everyone pitching in for pizza",
+    "got into a heated argument at a school board meeting about a teacher showing 'inappropriate material' to students — gave an impassioned speech, got applause, the teacher was put on leave — and then the caller's own kid told them the 'inappropriate material' was a PG-13 documentary about climate change and the caller realized they'd ruined someone's career over something they hadn't even watched",
+    "confronted their teenage daughter's boyfriend they were sure was a terrible influence — drugs, bad grades, probably in a gang based on his tattoos — did the whole intimidating dad routine, threatened to call his parents — and then found out the kid is an honor student, the tattoos are temporary from a school fundraiser, and his 'gang' is the robotics team, and now the caller has to apologize at a science fair",
+    "accused their spouse of having an affair based on mysterious texts from someone named 'Alex' — went through the whole confrontation, tears, threats to leave — and Alex turned out to be a contractor their spouse hired to build a surprise deck for the caller's birthday, and now the half-built deck is sitting in the backyard as a monument to the caller's paranoia and the surprise is extremely ruined",
+    # === NEW ENTRIES: Times they were the bad guy ===
+    "stole their coworker's clearly labeled lunch from the office fridge every day for three weeks — not because they were hungry but because the coworker had gotten the promotion the caller wanted and this was their revenge — until the coworker started leaving notes in the lunch bags that got progressively more personal and the last one said 'I know it's you, and I know why, and I'm sorry about the promotion' and the caller cried in the bathroom for twenty minutes",
+    "ghosted their best friend of fifteen years after the friend asked to borrow money — the caller had the money, could've easily helped, but was too uncomfortable to say yes or no so they just... stopped answering texts — it's been two years and the friend's mother called the caller's mother to ask if they were still alive and the caller's mother said 'physically, yes'",
+    "told their kid's teacher that the kid's grandmother died to get the kid out of a test — the grandmother is alive and well and was actually visiting that same week — the teacher sent a sympathy card home with the kid, the kid gave it to the grandmother, and now the caller is trying to explain to a very confused elderly woman why her grandchild's school thinks she's dead",
+    "recorded their roommate snoring and played it back at full volume at 3 AM to prove a point about how loud the snoring was — the roommate was so startled they fell out of bed and chipped a tooth, the caller is now paying the dental bill, and the roommate has started recording the caller's sleep-talking which apparently includes full conversations with imaginary people about cheese",
+    # === NEW ENTRIES: Things they got away with ===
+    "ate at a restaurant where the waiter never brought the check — the caller sat there for twenty minutes, made eye contact with three different staff members, and eventually just... walked out — it's been six months and they drive past the restaurant every day and the guilt has ruined their favorite pasta dish because they can never go back",
+    "used a fake doctor's note to get out of jury duty seven times over fifteen years — different handwriting each time, different fake doctor names — and they just got a letter saying they've been randomly selected for a federal jury duty audit program they didn't know existed and now they're googling 'penalty for fake doctor note jury duty' at 2 AM",
+    "has been parking in a handicapped spot at their office for three years using their grandmother's placard — the grandmother has been dead for two years, the placard expired eight months ago, and now there's a new security guard who checks every placard and the caller is trying to figure out how to explain why they've been limping every morning for three years and can suddenly walk fine in the afternoon",
+    # === NEW ENTRIES: Hobby gone very wrong ===
+    "started making hot sauce as a hobby and accidentally created something so hot that their neighbor's dog refused to come near their house — the local fire department tested it as a joke and it registered hotter than pepper spray, a food blogger called it 'an existential threat', and now strangers are offering to buy it and the caller doesn't know if they're sitting on a business or a biological weapon",
+    "took up taxidermy as a quarantine hobby and their spouse just found out — the caller has been doing it in the garage, has about twenty completed animals, and their spouse walked in thinking the caller was having an affair and instead found them elbow-deep in a raccoon while listening to smooth jazz, and the spouse isn't sure which discovery would have been easier to process",
+    "joined a Civil War reenactment group and got so into character that their family staged an intervention — the caller had started speaking in a period-appropriate accent at home, refused to use electricity on 'battle weekends', and referred to the neighbor's fence as 'the Mason-Dixon Line' until their kids drew the line at the caller trying to churn butter for breakfast",
+    # === NEW ENTRIES: Late-night revelations ===
+    "was cleaning out their deceased father's workshop and found a hidden compartment under the workbench containing a full set of women's clothing in their father's size, a wig, and a stack of photos from what appears to be a drag show in the 1970s — the father was a retired Marine who never once mentioned any of this, and the caller's first thought was 'he looked amazing'",
+    "discovered at age 45 that they were adopted — not from a DNA test or a family confession, but from a filing cabinet in their parents' house labeled 'TAXES' that contained their original birth certificate with different parents' names on it — the parents are dead, the biological parents are unknown, and the caller is sitting in their childhood kitchen wondering who they are",
+    "found out their dead grandmother was a bookie — not a small-time one either, a serious operation that ran through the back of her flower shop for thirty years — the caller found the ledgers, the coded client list, and $12,000 in small bills hidden in planters, and every memory they have of grandma's 'busy flower shop' is now completely recontextualized",
+    # === NEW ENTRIES: Road stories ===
+    "took a wrong turn during a road trip and ended up at a gas station in the middle of nowhere where every customer was wearing the same red shirt — not a uniform, just identical plain red shirts — the cashier was wearing one too and when the caller asked about it the cashier said 'what red shirt' and looked at them like they were crazy and the caller has a photo proving they all existed",
+    "broke down on a highway in rural Arkansas and the tow truck driver who came was a dead ringer for the caller's father who passed away five years ago — same voice, same mannerisms, even the same scar on the left hand — the driver's name was also the same first name as the caller's father and he said 'you look like you've seen a ghost' which is exactly what the father used to say",
+    "picked up a family at a rest stop whose car had broken down — drove them two hours to their destination, refused gas money, and three months later received a letter in the mail from the father of the family containing $500 and a note that said 'our daughter needed surgery and we would have missed the appointment if not for you — she's okay' and the caller keeps the letter in their glove compartment",
+    # === NEW ENTRIES: Family weirdness ===
+    "found out that their grandmother's 'secret recipe' that the entire family has been making for four generations is word-for-word from the back of a Campbell's soup can from 1964 — the caller confirmed it with a vintage cookbook collector — and they're trying to decide if telling the family will liberate them from a lie or destroy the last beautiful illusion they have left",
+    "their family has a tradition of burying a coin under the front porch of every new house they move into 'for luck' — the caller just bought their first house and when they dug the spot they found seven coins already there, all from different decades, none of them placed by their family, and the real estate agent can't explain it and the previous owners deny knowing anything about it",
+    "showed up at the wrong funeral — they went to pay respects to a coworker's father and walked into the wrong room, sat down, listened to the eulogy, and realized halfway through that they didn't know anyone — but the deceased sounded like such an interesting person that the caller stayed for the whole service, signed the guest book with their real name, and now gets Christmas cards from the family",
+    # === NEW ENTRIES: Purchases/consumer nightmares ===
+    "bought a used car and found a loaded gun under the spare tire — they called the police, who traced it to an unsolved case from 2019, and now the caller is a 'person of interest' in a cold case and has been interviewed three times and their car is still in police impound and they're making payments on a vehicle they haven't driven in two months",
+    "ordered custom curtains online and received a box containing the curtains plus someone's personal journal — forty pages of deeply intimate entries about a failing marriage, a secret affair, and a plan to start a new life in Portugal — the journal has a return address and the caller doesn't know whether to send it back, destroy it, or read the rest because they're genuinely invested in whether this person made it to Portugal",
+    "bought a house at auction and found out the basement had been converted into an elaborate escape room that the previous owner apparently ran as an unlicensed business — it has working locks, clue systems, a countdown timer, and a chalkboard with ratings from visitors — and the caller's kids found it and now they won't stop asking to do the escape room and one of the clue answers is the combination to the actual home safe",
+    # === NEW ENTRIES: Supplemental stories ===
+    "went to a high school reunion and didn't recognize a single person — not because they've changed but because the caller accidentally went to the wrong school's reunion, gave a speech about memories they fabricated on the spot, slow danced with a stranger who said 'you haven't changed at all,' and only realized the mistake when they saw the school banner said 'Class of '96' and the caller graduated in '98 from a different school entirely",
+    "tried to teach their grandmother how to use FaceTime and she accidentally video-called every contact in the caller's phone in alphabetical order — she got through seventeen people including the caller's boss, ex-girlfriend, and a very confused dentist before the caller got the phone back, and grandma's review of the experience was 'everyone was so nice but your boss looks tired'",
+    "won a radio contest for concert tickets and the 'VIP experience' turned out to be helping the roadies load equipment after the show — the caller was too polite to complain, loaded amps for two hours, and the lead singer came out, saw them working, handed them a guitar pick and said 'you're the hardest-working winner we've ever had' and the caller has it framed",
+    "locked their keys in the car outside a locksmith shop — the locksmith charged them full price, took forty-five minutes, and while waiting the caller watched three other people lock their keys in their cars in the same parking lot, and the locksmith said 'yeah, this lot is cursed — it's seventy percent of my business' with no further explanation",
+    "got their car stuck in a ditch on Christmas Eve and the only person who stopped was dressed as Santa Claus — full suit, real beard — who happened to be a retired mechanic, pulled the car out with a winch attached to his sleigh-decorated pickup truck, refused payment, said 'Merry Christmas, you've been good this year' and drove away, and the caller's kids in the backseat have been insufferable about Santa being real ever since",
+    "accidentally started a rumor that they were dying — they called in sick with 'something serious' meaning a stomach bug, a coworker overheard and told someone else it was 'something SERIOUS,' and by the end of the week there was a GoFundMe in the caller's name with $4,000 in it and the office was planning a memorial potluck and the caller had to stand up at a staff meeting and announce they had diarrhea",
+    "applied for a job at a company and accidentally sent their diary instead of their resume — the diary entry that was open was about how much they hate their current boss, a detailed ranking of their coworkers by attractiveness, and a pros/cons list about whether to get a parrot — the company called them back anyway and the interviewer said 'we'd like to talk about the parrot list' and the caller got the job",
+    "was housesitting for a friend and used the wrong remote on the TV and accidentally ordered $800 worth of pay-per-view content — a mix of boxing matches from 2019 and nature documentaries — the friend's cable company won't reverse it because the content was 'accessed,' and the friend thinks the caller was watching something other than nature documentaries and keeps winking about it",
+    "tried to surprise their spouse by cleaning the house and accidentally threw away a box of 'old papers' that turned out to be the deed to a property the spouse inherited, the family's original immigration documents from 1952, and a letter from a former president responding to the spouse's grandmother — the spouse found out when the garbage truck had already come and the marriage has been described by the therapist as 'tense'",
+    "got into a fight with a seagull over a sandwich at the beach and a tourist filmed it and it went viral in Japan — the caller has never been to Japan but apparently they're a meme there, someone made an anime version of the fight, and a Japanese snack company reached out about licensing their likeness for a chip bag and the caller said yes because it pays more than their actual job",
+    "accidentally became the coach of their kid's soccer team — they were standing on the sideline when the actual coach quit mid-game and walked off the field, and a parent shoved a clipboard at the caller and said 'you're up,' and the caller has been coaching for three seasons now, the team has a losing record, and the kids made them a trophy that says 'Best Coach By Default'",
+    "went to a psychic as a joke and the psychic nailed every single thing about their life — the name of their cat, the street they grew up on, the fact that their mother-in-law just got hip surgery — and then the psychic said 'also, check your roof' and the caller went home and found a baseball-sized hole they'd never noticed, and now the caller goes back every month and the psychic keeps being right and it's ruining their atheism",
+    "taught their parrot to say 'I love you' as a gift for their partner — but the parrot only says it in the caller's voice when the caller isn't home and the partner thinks someone else is in the house, and they've had three false 911 calls, one neighbor welfare check, and the partner now sleeps with a baseball bat and the parrot seems to enjoy the chaos",
+    "was jury foreman on a trial that lasted three weeks and when the verdict was read the defendant looked directly at the caller, winked, and mouthed 'thank you' — the verdict was guilty, the defendant got seven years, and the caller cannot figure out what the wink meant and has been losing sleep over it for two months and their therapist says it's normal but also admitted she'd lose sleep over it too",
+    "accidentally walked into a private party at a restaurant thinking it was the regular dining room — ate three courses, drank champagne, gave a toast when someone handed them a microphone, and was escorted out only when the host's wife asked 'who are you?' after the caller's toast got a standing ovation for a speech about love that had nothing to do with the event, which turned out to be a retirement party for a fire chief",
 ]
 
 ADVICE = [
@@ -1638,6 +1818,54 @@ ADVICE = [
     "found out their brother has been telling people their mother died to get sympathy and free things — their mother is alive and well and living in Tucson, and the brother has used the dead mom story to get out of speeding tickets, get upgraded at hotels, and get a month of free meals from a church group",
     "has been going to the wrong therapist for three months — they mixed up the address at the first appointment, walked into a different practice, and the therapist never questioned it because the caller's name is close to an actual patient's — the therapy has been going great and they don't want to switch",
     "is agonizing over whether to tell their coworker they've been calling another coworker by the wrong name for eleven months — the wrong-name coworker has started answering to it out of politeness and now half the office uses the wrong name too and correcting it would humiliate everyone involved",
+    # === NEW ENTRIES: "Am I wrong for..." with genuine ambiguity ===
+    "wants to know if they're wrong for refusing to let their dying mother move in with them — the mother was emotionally abusive throughout the caller's childhood, they've spent fifteen years and thousands of dollars in therapy getting past it, and the mother has never apologized or acknowledged any of it, and now the family is calling the caller heartless while none of them are volunteering their own guest rooms",
+    "asking if they're wrong for telling their kid the truth about Santa at age five because the caller thinks lying to children is fundamentally disrespectful — the spouse is furious, the kid told every other kid at school, and now six angry parents have called and the school counselor wants a meeting, and the caller still thinks they were right",
+    "wants to know if they're the bad guy for reporting their company's safety violations knowing it will probably shut down the plant and put 200 people out of work — including their own brother — in a town where there aren't other jobs, and the violations haven't actually hurt anyone yet but statistically it's a matter of time",
+    "asking if they're wrong for refusing to forgive their father on his deathbed — the father wants closure, the family wants peace, but the caller was the only one who was hurt and they feel like forgiveness under pressure isn't real forgiveness and they'd rather be honest than perform reconciliation for an audience",
+    "wants to know if they should tell their best friend that everyone in their friend group talks about them behind their back — the friend is oblivious and happy, the gossip is cruel but not entirely inaccurate, and the caller knows that telling would either destroy the friend's social circle or turn everyone against the caller for being a snitch",
+    "asking if they're a terrible person for feeling relieved when their difficult parent was diagnosed with dementia — not happy, but relieved, because the parent can no longer say the things that hurt and the caller finally has an excuse to set boundaries without guilt",
+    "wants Luke's opinion on whether they should tell their adoptive parents they found their birth parents and want a relationship — the adoptive parents are wonderful people who did everything right, and the caller is terrified that reaching out to the birth parents will feel like a betrayal even though logically it shouldn't",
+    "asking whether they should confront their therapist about something the therapist said in the first session that the caller has been thinking about for two years — the therapist said 'you might be the problem in most of your relationships' and the caller initially wanted to quit but stayed and now thinks the therapist might have been right and doesn't know whether to thank them or yell at them",
+    # === NEW ENTRIES: Situations where they've already decided but want validation ===
+    "already told their sibling they're not invited to the wedding and now wants to know if anyone else thinks that's okay — the sibling slept with the caller's ex at their engagement party and the family is pressuring the caller to 'be the bigger person' and the caller has no interest in being bigger, they want to be right",
+    "has already filed for divorce and is looking for someone to tell them they're not destroying their kids' lives — the marriage isn't abusive or terrible, it's just... done, and the caller knows 'we grew apart' sounds like a cop-out but it's the truth and they can't spend thirty more years pretending",
+    "already quit their six-figure job to pursue woodworking and needs someone to tell them they're not insane — their family thinks they're having a breakdown, their financial advisor nearly cried, but the caller hasn't been this happy in a decade and is already making money selling cutting boards on Etsy",
+    "has already decided to cut off their mother-in-law and wants to know if there's a way to do it without destroying their marriage — the mother-in-law has been undermining the caller's parenting for years and the spouse won't set boundaries because 'that's just how she is'",
+    # === NEW ENTRIES: Gut check calls ===
+    "is about to move across the country for someone they've been dating online for eight months and have met in person exactly twice — both meetings were amazing, the chemistry is real, but the caller has a stable life, a house, and aging parents, and they're about to sell everything based on a feeling and want to know if that's brave or stupid",
+    "is considering telling their kids — who are now adults — the real reason they divorced their mother: she was having an affair with the caller's business partner, the divorce cost them the business, and the mother has spent twenty years telling the kids the divorce was the caller's fault — the kids believe her, and the caller has been silent to protect them, but it's eating them alive",
+    "is about to confront their boss about taking credit for the caller's work for three years — the caller has documentation, screenshots, and email chains, but the boss is well-connected and charming and the caller is worried they'll end up looking petty instead of right",
+    "is about to tell their aging father that they're not taking over the family business — the father built it from nothing, it's been the family's identity for forty years, and there's nobody else to run it, but the caller hates every single thing about the business and has been pretending to care since they were sixteen",
+    "is thinking about becoming a foster parent as a single person and wants to know if that's selfish or selfless — they have the space, the income, and the desire, but their family says a child 'needs two parents' and the caller isn't sure if they're trying to fill a void or genuinely help someone",
+    # === NEW ENTRIES: Controversial opinion calls ===
+    "thinks stay-at-home parents should get a salary from the working spouse — has calculated exactly what childcare, cooking, cleaning, and household management would cost on the open market and wants to present it to their working spouse as a formal proposal with benefits and PTO",
+    "believes that most people shouldn't go to college and wants to know if they're wrong for telling their honor-roll kid to skip it and learn a trade instead — the caller went to college, has $80,000 in student debt, and works a job that didn't require a degree",
+    "thinks funerals are a scam and has told their family they don't want one — they want to be composted and turned into a tree, and their deeply Catholic mother said 'over my dead body' and the caller said 'that can be arranged' and now Thanksgiving is going to be very uncomfortable",
+    "wants Luke's honest take on whether monogamy is realistic — the caller has been in three long-term relationships, has been cheated on in all of them, and is starting to think the whole system is broken and people should just be honest about what they actually want instead of promising forever and meaning eighteen months",
+    # === NEW ENTRIES: Timing/approach questions ===
+    "needs to tell their spouse they've been talking to a divorce lawyer but aren't sure they want a divorce — they went to the lawyer for information, not action, but if the spouse finds out it'll be treated as a declaration of war and the caller just wanted to know their options",
+    "has to tell their aging parents they can't afford to keep funding their retirement — the parents spent everything, the caller has been supplementing their Social Security for five years, and it's either keep paying and never retire themselves or stop and watch their parents struggle, and there's no version of this conversation that doesn't feel like betrayal",
+    "needs to tell their best friend that the caller is the one who reported the friend's husband for tax fraud — the friend's marriage is falling apart over the investigation, the friend confides in the caller about it regularly, and the caller sits there listening while knowing they caused all of it because the husband was embezzling from a charity the caller cares about",
+    "has to tell their kids they're moving the family across the country for a job — the kids are in high school, have established friend groups, and the oldest is a senior who would have to transfer for their final semester — and the caller's spouse is supportive but the caller knows the kids will never forgive them and they're not sure the job is worth it",
+    # === NEW ENTRIES: Life crossroads ===
+    "is fifty-two years old and just realized they've been living their mother's life instead of their own — same career path, same type of spouse, same neighborhood — and they want to blow it all up but they're terrified that at fifty-two it's too late to start over and they'll end up with nothing instead of something that at least looks like a life",
+    "found out they have a genetic marker for the same disease that killed their father at sixty — they're forty-five now, healthy, but the knowledge has made every decision feel urgent and they can't tell if they should be making radical life changes or just enjoying what they have while they have it",
+    "has been offered the chance to reconnect with a child they gave up for adoption twenty years ago — the child found them through a registry, wants to meet, but the caller never told their current family about the child and building a relationship means either lying to everyone or revealing a secret they've kept for two decades",
+    "just inherited a house in a small town they've never been to from a relative they didn't know they had — they visited and the town is beautiful and cheap and the house is charming and the caller is genuinely considering leaving their career and city life to live in a place where they know nobody because for the first time in years they felt calm",
+    # === NEW ENTRIES: Supplemental advice ===
+    "wants to know if they should tell their fiancée about a one-night stand that happened during a 'break' they took two years ago — technically they were broken up, but the person they slept with was the fiancée's cousin, and the cousin is in the wedding party, and the caller is watching a ticking bomb walk down the aisle ahead of the bride",
+    "asking whether it's okay to secretly fund their grandchild's college education against their son's wishes — the son believes kids should 'earn their own way' and refuses to help, but the grandchild is brilliant and the caller has the money and has been putting $500 a month into an account the son doesn't know about for six years",
+    "needs advice on whether to expose their company's diversity hire practices — they were hired as a 'diversity candidate,' told so explicitly by the recruiter, and they're overqualified for the position but underpaid compared to peers, and they can't tell if speaking up would fix things or get them labeled as ungrateful",
+    "asking if they should tell their sibling that their sibling's kid isn't actually their sibling's biological child — the caller's spouse drunkenly confessed to sleeping with the sibling's partner around the time of conception, the timing matches, and now the caller is watching their sibling raise a child that might be the caller's niece/nephew through a completely different family tree",
+    "wants Luke's advice on whether to attend their ex's wedding — they were invited, the breakup was mutual and amicable, they're genuinely happy for the ex, but their current partner is threatened by it and the ex's new spouse clearly doesn't want them there but the ex insisted and the caller feels like whatever they choose will hurt someone",
+    "is thinking about telling their family they've been atheist for ten years — the family is deeply religious, faith is the cornerstone of every gathering and holiday, and the caller has been performing belief for a decade and it's exhausting but the alternative is potentially being disowned by people they love",
+    "wants to know if they should reach out to the bully who tormented them in middle school — the bully just posted a public apology on social media that seemed genuine, but responding would mean reopening wounds the caller spent twenty years closing, and their therapist thinks it could be healing but their spouse thinks it's a trap",
+    "asking if they should tell their pregnant sister that the baby name she picked is the same name as a notorious criminal in their hometown — nobody else in the family has said anything, the name is otherwise beautiful, and the caller doesn't know if they're saving the kid from a lifetime of 'like the murderer?' jokes or being unnecessarily dramatic",
+    "is considering letting their teenager drop out of high school to pursue professional gaming — the kid is genuinely talented, has sponsorship interest, and is making money, but the caller grew up being told education is everything and can't tell if they're being supportive or setting their child up for failure",
+    "wants advice on whether to stop enabling their adult child's lifestyle — the kid is 28, lives at home, works part-time, and shows no ambition, and the caller's spouse says they need to kick the kid out but the caller is terrified the kid will end up on the streets and the guilt of that outcome feels worse than the frustration of the current one",
+    "asking if they should tell their best friend that the reason the friend's marriage fell apart is because the friend is genuinely insufferable to live with — the friend keeps blaming the ex, but the caller lived with the friend in college and understands exactly why someone would leave and the friend is about to get into another serious relationship and the pattern is about to repeat",
+    "needs to know if it's wrong to refuse to donate a kidney to their estranged father — the father abandoned the family when the caller was three, showed up twenty-five years later because the caller is the only match, and the family is pressuring the caller to donate because 'he's still your father' but the caller doesn't feel that way",
 ]
 
 GOSSIP = [
@@ -1950,6 +2178,57 @@ GOSSIP = [
     "their fitness influencer neighbor who posts shirtless transformation photos and sells a $200 meal plan eats McDonald's in his truck every night at 10pm — the caller can see the golden arches glow from across the street and has photo evidence on four separate occasions",
     "just learned that the couple on their street who are always holding hands and posting anniversary tributes have been separated for a year — they keep up appearances because they co-own a wedding photography business and the brand depends on them looking happy",
     "their coworker who brings elaborate homemade lunches every day and talks about their meal prep routine buys pre-made meals from the deli section at Whole Foods and transfers them into Tupperware in the parking lot — the caller watched the whole transfer through the break room window",
+    # === NEW ENTRIES: Life-changing discoveries ===
+    "found out their spouse's 'dead' ex is alive and well and living three towns over — the spouse told everyone the ex died in a car accident ten years ago and even cried about it at a dinner party, and the caller saw the ex at a Target buying paper towels and looking very much not dead",
+    "just learned that their family's longtime housekeeper — who worked for them for twenty years and attended every birthday and holiday — has been the caller's biological grandmother the entire time, and the housekeeper just told them on her deathbed while the caller's mother stood in the doorway crying",
+    "discovered that the 'scholarship' that paid for their entire college education was actually funded by their biological father — a man they've never met who has been paying for things anonymously through a lawyer for their entire life, and the caller just found the lawyer's letters in their mother's safe after she passed",
+    "found out their best friend's husband is living a double life — not an affair, an entire second family with kids and a house in another state — the caller found the second family's Christmas card that fell out of the husband's gym bag and it has a family photo with matching sweaters and a golden retriever named the same name as the caller's friend's dog",
+    "just learned that the reason their parents moved across the country when the caller was five wasn't for a job — their father was in witness protection, the real family name is different, and the 'aunt' who visits every year is actually the federal marshal assigned to their case, and the caller pieced this together from old documents and their father won't confirm or deny anything",
+    # === NEW ENTRIES: Workplace gossip with real consequences ===
+    "knows their boss has been embezzling from the company for at least two years — the caller is the one who processes the invoices and the fake vendor is clearly the boss's LLC — and the boss just nominated the caller for employee of the year and the caller can't tell if it's genuine appreciation or hush money in the form of a plaque and a $500 gift card",
+    "found out two senior partners at their law firm are having an affair — both married to other people, both with kids in the same school — and the caller walked in on them in the copy room at 7 AM and they all froze and one of the partners said 'this isn't what it looks like' while the other one was literally buttoning their shirt",
+    "their company's HR director — the person responsible for handling all harassment complaints — is the one doing the harassing, and the caller has documented seventeen incidents but doesn't know who to report the HR director to when the HR director IS the reporting structure",
+    "discovered their coworker has been working two full-time remote jobs simultaneously — same hours, different companies — and making $280,000 combined while doing the absolute minimum at both, and the caller is torn between admiration and fury because they've been covering for the coworker's constant 'technical difficulties' for months",
+    "their boss told the entire team they have cancer and used it to justify missing deadlines, getting sympathy extensions, and guilt-tripping anyone who pushed back — the caller ran into the boss at a marathon last weekend looking extremely healthy, and when confronted the boss said 'it's in remission' with the same energy as someone who's been caught and isn't even going to try",
+    # === NEW ENTRIES: Small-town drama with escalating stakes ===
+    "lives in a town of 800 people and the mayor just got caught using the town's emergency fund to buy a boat — the mayor says it's for 'flood rescue' but the town is in the desert, the boat is a pontoon with a wet bar, and the mayor's wife posted Instagram photos of them on the lake with the caption 'public service has its perks'",
+    "their small town has been arguing for six months about whether to name the new dog park after a local veteran or a local dog — the veteran is still alive and has said he doesn't want a dog park named after him, the dog died saving a kid from a pond and has a statue already, and the town council meetings about it have gotten so heated that someone threw a chair",
+    "the only mechanic in their rural town has been sleeping with the wives of three different clients and all three husbands found out at the same Sunday potluck — the mechanic is also the only person who can fix farm equipment for fifty miles so nobody can stop going to him, and now appointments are assigned by which wife's husband has the earliest timeslot so none of them overlap",
+    "their town's most beloved schoolteacher — the one who won teacher of the year six times and has a wall of thank-you letters — was just discovered to have been a competitive poker player in Vegas every summer for twenty years under a different name, winning six-figure tournaments while telling the school board she was 'visiting her sister in Phoenix'",
+    "the church in their small town caught fire and during the cleanup they found a hidden room behind the altar containing personal items from at least a dozen townspeople — love letters, a diary, cash, a set of car keys, someone's wedding ring — and nobody will claim any of it but everyone is clearly panicking about what was in there",
+    # === NEW ENTRIES: Things overheard they shouldn't have heard ===
+    "overheard their parents arguing about a sibling the caller didn't know existed — the mother said 'if they ever find out about the baby we gave up' and the father said 'they won't' and now the caller is the 'they' who knows and can't ask about it without revealing they were eavesdropping on a forty-year-old secret",
+    "was in a bathroom stall at a restaurant and overheard two women planning to steal from their employer — they named the company, the amount, and the timeline, and the caller recognized the company because it's where the caller's spouse works, and now they have to decide whether to say something to the spouse or mind their own business",
+    "overheard their doctor on the phone saying 'I can't keep prescribing this, it's not working and I know it' and the caller is pretty sure the doctor was talking about THEIR medication — the one they've been taking for two years — and now they're questioning every pill they've ever swallowed and whether to confront the doctor or just quietly find a new one",
+    "was on a conference call where someone forgot to mute and the caller heard their own boss say 'we're going to have to let them go after the project wraps — don't tell them yet, I need them to finish it first' — the caller is 95% sure the 'them' is them, the project wraps in three weeks, and they're now doing the bare minimum while secretly job hunting",
+    "overheard their teenage daughter tell a friend 'I only stay at mom's house because dad's girlfriend is weird and the food is better' — the caller is the mom, the food comment was nice, but the 'only' before 'stay at mom's house' gutted them and they can't unhear it and don't know how to process the idea that their child views living with them as the lesser of two evils rather than a choice",
+    # === NEW ENTRIES: Digital/online discoveries ===
+    "found their spouse's secret Reddit account where they've been posting extremely detailed stories about their marriage under a throwaway — the stories are told from the spouse's perspective and are mostly accurate but consistently paint the caller as the villain, and the posts have thousands of upvotes and comments telling the spouse to leave them",
+    "their teenager left their laptop open and the caller saw a conversation where the kid is selling test answers to classmates through a Venmo business account — the kid has made over $4,000 this semester, has a pricing structure based on difficulty level, and offers a 'satisfaction guarantee' with replacement answers if the grade comes back below a B+",
+    "found an old USB drive in their late father's desk that contains a novel — a complete, 80,000-word manuscript that is clearly autobiographical and reveals that their father was deeply unhappy in the marriage, considered leaving multiple times, and stayed because of the caller — and the book is actually good, publishable even, and the caller doesn't know if sharing it honors him or exposes him",
+    "discovered that the glowing five-star reviews for their neighbor's Airbnb are all fake — written by the neighbor's family members using fake accounts — and the caller knows this because one of the reviews mentions a 'beautiful garden view' and the view from that property is directly into the caller's yard, which the caller knows for a fact is not beautiful because they haven't mowed since August",
+    "found their own mother on a dating app — the mother is still married to the caller's father — and the profile says she's 'separated and looking for adventure' and lists interests that the caller has never once heard their mother express, including 'hiking' and 'craft beer' — this is a woman who considers walking to the mailbox exercise and has never drunk anything but white wine",
+    # === NEW ENTRIES: Money/lifestyle lies ===
+    "found out their neighbor who drives a Tesla, wears designer clothes, and talks about their investment portfolio was just served eviction papers — the caller is on the condo board and saw the filing, and the neighbor owes six months of HOA fees and the Tesla is leased and the designer clothes still have TJ Maxx tags under the labels",
+    "their friend who always picks up the tab and insists on paying for group dinners just asked the caller for a $5,000 loan — turns out the friend has been funding the generous lifestyle with credit cards and is now $60,000 in debt, and every dinner the caller let the friend pay for was another nail in a financial coffin",
+    "discovered their sibling who constantly guilt-trips the family for money — claiming they can barely afford rent and groceries — has a vacation home in the Poconos that they've been Airbnb-ing for $300 a night, and the caller found the listing because a coworker stayed there and recognized family photos on the wall",
+    "their coworker who always complains about being broke and eats ramen at their desk for lunch just bought a $90,000 truck with cash — the caller saw the receipt fall out of the coworker's folder during a meeting, and when asked about it the coworker said 'it was a gift' from a 'family member' but the name on the receipt is the coworker's own LLC",
+    # === NEW ENTRIES: Hidden talent/double lives ===
+    "found out their quiet, reserved accountant coworker performs stand-up comedy every weekend under a stage name — the caller went to a comedy club and there was their coworker doing forty minutes of absolutely devastating material about office life that is clearly about their company, and the bit about 'the guy who heats fish in the microwave' is definitely about the caller",
+    "their strait-laced retired father who spent forty years as a bank manager has been painting explicit art under a pseudonym — the caller found his studio in the garage, the paintings are actually incredible, and several have sold for thousands of dollars at galleries, and the father's art name has a small but devoted Instagram following that refers to him as 'the master'",
+    "discovered that the woman in their neighborhood who everyone knows as a stay-at-home mom and PTA volunteer is also a nationally ranked competitive axe thrower — the caller saw her at a tournament on ESPN3 where she placed second and was introduced as 'The Suburban Slayer' and she was wearing the same cardigan she wore to the bake sale",
+    "found out their uber-religious uncle who quotes scripture at every family dinner and sends Bible verses in the group chat is a top-rated reviewer on a whiskey enthusiast website — over 400 reviews, detailed tasting notes, photos of his home bar setup, and an award for 'Bourbon Reviewer of the Year 2024' under a username that is very clearly his real initials",
+    # === NEW ENTRIES: Supplemental gossip ===
+    "found out the couple who hosted a lavish gender reveal party with fireworks and a helicopter — that went viral locally for being over the top — used the baby's college fund to pay for it and are now asking family for money to cover the hospital birth costs",
+    "their pastor who preaches about the evils of materialism every Sunday drives a Maserati — parks it behind the church so the congregation doesn't see it, but the caller spotted it because they went back to grab a forgotten Bible and the pastor was polishing the hood while wearing Air Jordans and a Rolex",
+    "discovered their HOA president who obsessively enforces lawn regulations — measuring grass height with a ruler, fining for unapproved paint colors — has their own backyard that looks like a scene from a post-apocalyptic movie, with a broken hot tub, three dismantled motorcycles, and a couch, hidden behind a privacy fence they approved for themselves",
+    "their neighbor who posts daily about their vegan lifestyle and lectures everyone about animal cruelty was spotted at a BBQ competition two towns over eating ribs with both hands — the caller has photographic evidence and the neighbor's vegan cooking blog has 50,000 followers",
+    "found out the woman in their book club who always has the most insightful commentary and dominates every discussion has never actually read any of the books — she reads the SparkNotes twenty minutes before the meeting and once accidentally referenced a character from the wrong book and nobody noticed except the caller",
+    "their town's 'Citizen of the Year' — a man who coaches Little League, volunteers at the soup kitchen, and organized the new playground fundraiser — just got arrested for running an illegal sports betting operation out of the concession stand during games he was coaching, and the irony is the playground was apparently funded with gambling profits",
+    "discovered that the woman at their gym who always talks loudly about her 'billionaire ex-husband' was actually married to a guy who sells used tires out of a trailer — the caller found their wedding announcement online, complete with a photo taken at a Denny's reception, and the 'Hampton estate' she mentions is a mobile home on Hampton Road",
+    "their coworker's 'emotional support' dog that gets brought to the office every day is not a certified support animal — the coworker admitted it at a happy hour after four drinks, said they just bought a vest on Amazon, and the dog has bitten three people and peed in the conference room but nobody can say anything because everyone's afraid of being 'the one who took away someone's emotional support'",
+    "found out the neighborhood 'power couple' who are always Instagram-perfect — matching outfits, curated date nights, love posts with hashtags — communicate almost exclusively through their lawyers and have had the same divorce filing sitting unsigned on a kitchen table for eleven months while continuing to post couple content for the engagement metrics",
+    "their uncle who claims he was 'almost in the NFL' and tells the story at every family event about the knee injury that ended his career actually got cut in the first round of tryouts for a semi-pro indoor league — the caller's aunt showed them the actual rejection letter which was one paragraph long and described his tryout as 'brief'",
 ]
 
 PROBLEM_FILLS = {
@@ -3496,6 +3775,36 @@ TOPIC_CALLIN = [
     "just learned about desire paths — the unofficial trails people create by walking where they actually want to go instead of where the sidewalk is — and thinks it's a perfect metaphor for how systems fail people",
     "read about how smell is the sense most closely linked to memory — it bypasses the thalamus and goes straight to the emotional brain — and a specific smell has been haunting them for weeks",
     "wants to talk about the concept of 'enough' — at what point does having more stop making you happier — and whether most people could answer that question for themselves",
+
+    # Music
+    "has a theory that every person has one song that will make them cry no matter what and wants to know Luke's",
+    "wants to argue that country music died when it stopped being about drinking, heartbreak, and trucks and started being about drinking, heartbreak, and trucks but with a hip-hop beat",
+    "just discovered Townes Van Zandt and is upset that nobody told them about him sooner — thinks 'Waiting Around to Die' might be the most honest song ever written",
+    "wants to debate whether live music is dying or just changing — they drove three hours to see a band play to fourteen people in a bar and it was the best show they've ever seen",
+    "has been learning to play pedal steel guitar for two years and still sounds like a cat in a dryer but refuses to quit — wants to talk about instruments that fight back",
+    "thinks the best music being made right now is coming out of small towns nobody's heard of and wants to recommend some bands",
+    "heard a song on the radio they haven't heard since they were a kid riding in their dad's truck and had to pull over because the memory hit them so hard — wants to talk about why music does that",
+
+    # Sports
+    "wants to talk about why high school football on a Friday night in a small town is still one of the best things in America",
+    "their fantasy football league has been going for fifteen years and the trash talk has evolved into an art form — someone made a documentary-style recap video and it's better than most ESPN content",
+    "thinks the greatest sports moment they ever witnessed was a minor league baseball game where the pitcher threw a no-hitter in front of maybe 200 people and nobody outside that stadium will ever know about it",
+    "wants to argue that fishing is a sport and will fight anyone who disagrees — they've been in tournaments that are more intense than anything they've seen on ESPN",
+    "coaches little league and had a kid hit their first home run last week — the kid rounded the bases so slow the other team almost threw them out but nobody cared because the whole crowd was screaming",
+
+    # Food & cooking
+    "wants to have a serious conversation about why gas station food in the Southwest is better than most restaurant food in the Northeast — they have evidence",
+    "has been perfecting their brisket for six years and last weekend their neighbor said 'it's getting there' and they've been replaying the comment for five days trying to decide if it was a compliment",
+    "thinks the best meal they ever had was a $4 plate of tacos from a truck parked in a dirt lot in Las Cruces and wants to talk about why simple food hits different",
+    "wants to argue that the green chile vs red chile debate is the most important cultural divide in New Mexico and possibly the world",
+    "just smoked a turkey for the first time and it turned out so good their family has already told them they're never going back to oven turkey and the pressure of being the permanent turkey person is setting in",
+
+    # Movies & film
+    "wants to argue that No Country for Old Men is the most New Mexico movie ever made and the coin flip scene is the most tense three minutes in film history",
+    "just watched The Shawshank Redemption for the first time and can't believe they waited this long — wants to talk about movies people put off that turned out to be exactly as good as everyone said",
+    "thinks the best movies are the ones where nothing really happens but you can't stop watching — wants recommendations for slow-burn films that reward patience",
+    "wants to debate whether horror movies are actually the most honest genre because they're the only ones that admit the world is terrifying",
+    "watched a documentary about their own town and half of it was wrong — wants to talk about how even 'true stories' are just someone's version of events",
 ]
 
 HOT_TAKES = [
@@ -4074,6 +4383,82 @@ WEIRD = [
     "someone has been correcting the grammar on their grocery lists — they write 'less eggs' and come back to find it crossed out and replaced with 'fewer eggs' in red pen, and this has been happening since they moved in",
     "their smart home speaker wishes them good night in a voice that isn't the default — it's warmer, slightly southern, and once it added 'sleep tight, sweetheart' which is not a standard response and Alexa support has no explanation",
     "they ordered a replacement part for their dishwasher and the package contained the part plus a Polaroid of the inside of their kitchen taken from an angle that would be inside the dishwasher looking out",
+    # === NEW ENTRIES: Genuinely unexplainable personal experiences ===
+    "woke up one morning with a key in their pocket that doesn't fit any lock in their house — it's an old brass key with a number etched into it, and when they Googled the number it matched a decommissioned post office box in a town they've never been to, and when they called the post office the clerk said 'we've been expecting someone to ask about that box'",
+    "took a photo of their living room to sell a couch on Facebook Marketplace and when they looked at the photo there was a figure standing in the hallway that wasn't there when they took the picture — it's not a shadow or a reflection, it has features, it's wearing clothes, and their cat was staring at that exact spot when the photo was taken",
+    "has been receiving postcards from cities they've never been to, with no return address, each containing one word — so far the words are 'remember', 'the', 'garden', 'where', 'we', and 'planted' — the handwriting is the same on all of them and it matches nobody the caller knows and the next one is due any day",
+    "fell asleep on their couch at 9 PM and woke up at 3 AM in their car parked at a scenic overlook twenty miles from their house — the engine was off, the doors were locked, the car was in park, and the GPS history shows the trip took exactly 22 minutes which is impossible because the drive is at least 40 minutes and there's no direct route",
+    "keeps finding drawings they don't remember making — detailed pencil sketches tucked into books, folded into jacket pockets, stuck under the car seat — all of them are of the same building they've never seen, drawn from slightly different angles, and the caller's roommate confirmed the caller sits at the kitchen table at night and draws with their eyes closed and doesn't respond when spoken to",
+    "their bathroom mirror fogs up at the same time every night — 2:47 AM — whether the shower has been used or not, regardless of temperature or humidity, and when the mirror fogs up there's always a clean circle in the center exactly the size of a human face at the caller's height",
+    "discovered that a voicemail on their phone from their deceased mother's number was left three months AFTER she died — the phone was disconnected, the number was recycled, but the voicemail is clearly their mother's voice saying 'don't forget to water the plants, sweetheart' which is something she said every time they talked",
+    "has a recurring experience where they walk into a room and everyone falls silent — not occasionally, but consistently enough that they've started timing it, and it happens at work, at restaurants, at family gatherings, and nobody else notices it and their therapist says it's anxiety but the caller has video from a security camera at work showing an entire conference room go quiet the moment they opened the door",
+    # === NEW ENTRIES: Bizarre neighbor/coworker patterns ===
+    "their neighbor mows their lawn in a different pattern every time and the caller has been photographing it from an upstairs window for six months — looking at the photos in sequence, the mowing patterns form letters, and so far the letters spell out 'CAN YOU S' and the caller is losing sleep over what the next letter is",
+    "a coworker has been leaving exactly 73 cents on the caller's desk every Friday for four months — always 73 cents, always in the same combination of coins (two quarters, two dimes, three pennies), always between 11 AM and noon — the caller has asked every person on their floor and nobody admits to it and the security camera angle doesn't cover their desk",
+    "their upstairs neighbor plays the same song on piano every night at exactly 11:11 PM — it's a melody the caller doesn't recognize, it lasts exactly three minutes, and when the caller finally asked the neighbor about it the neighbor said 'I don't own a piano' and the caller has been in their apartment and confirmed there is no piano, but the music continues nightly",
+    "their next-door neighbor's porch light blinks in what the caller is convinced is Morse code — they learned Morse code to decode it and the message appears to be 'hello friend' repeated, but when confronted the neighbor said the light is on a timer and isn't blinking, and the caller has shown video to five people and three of them see blinking and two don't",
+    "a woman at their gym does the exact same workout at the exact same time on the exact same machines in the exact same order every single day — the caller has watched for two months and there has been zero variation, not a single exercise changed, and when the woman missed one day the caller felt physically anxious about it, and the woman came back the next day and did the routine twice as if to make up for it",
+    # === NEW ENTRIES: Objects that don't behave normally ===
+    "bought a grandfather clock at an estate sale and it chimes at times that don't exist — it chimes 13 times at midnight, never chimes at 3 PM, and occasionally chimes once at completely random times that the caller has been logging, and when plotted on a calendar the random chimes correspond to dates of local news events that haven't happened yet",
+    "has a compass in their car that always points toward the same location regardless of which direction they're driving — the caller drove to the location once and it's an empty field outside of town with a concrete slab in the center and nothing else, and the compass worked normally everywhere except within a mile of that field where it spun continuously",
+    "their TV turns to the same channel — an analog channel that shows static on every other TV — every night at 1 AM, and for exactly 30 seconds there's a clear image of what appears to be a weather broadcast from a station that hasn't existed since 1993, and the weather it reports is always accurate for the following day",
+    "has a music box that belonged to their great-grandmother that plays a melody nobody in the family has ever been able to identify — the caller uploaded it to every music identification app and database and nothing matches, and a music professor at the local university listened to it and said it appears to be an original composition but the mechanism is factory-made and should play a standard tune",
+    "owns a painting purchased at a thrift store that changes — not dramatically, but small details shift between viewings: a bird in the tree moves branches, a boat on the lake is closer to shore, and last month a figure appeared on the dock that wasn't there before — the caller has timestamped photos showing the changes and their spouse confirms the changes but insists there's a logical explanation without offering one",
+    # === NEW ENTRIES: Coincidences too specific to be coincidence ===
+    "has had the same stranger sit next to them on three different flights in six months — different airlines, different routes, different dates — the stranger always nods like they recognize the caller, reads the same book each time (a dog-eared copy of something the caller can't see the title of), and deplanes without saying a word, and the caller is now afraid to fly because the fourth time feels inevitable",
+    "every address they've ever lived at has contained the number 7 — apartment 7, 417 Oak Street, 2700 Main, unit 7B — they didn't choose any of these specifically for the number and when they tried to rent an apartment with no 7 in the address the application was denied for no clear reason and the next place they found was apartment 7",
+    "three different strangers in three different cities in the same month have called the caller by a name that isn't theirs — all the same wrong name, 'Patricia' — the caller's name is nothing close to Patricia, they don't look like a Patricia, and the third stranger who said it looked startled and said 'sorry, you look exactly like someone I used to know' and walked away quickly",
+    "keeps finding the same book in random locations — on a park bench, in a Little Free Library, in the seat pocket of a bus — always the same edition, always open to the same page, and the passage on that page describes a scenario eerily similar to something that just happened in the caller's life, different each time but always relevant",
+    # === NEW ENTRIES: Things nobody else seems to notice ===
+    "is convinced that the clock in their office conference room runs at a different speed during meetings — they've timed it against their phone and during a boring meeting the clock runs about 40% slower, and during an interesting meeting it speeds up, and their data over six weeks shows a statistically significant correlation between meeting engagement and clock speed",
+    "can hear a low hum in their house that nobody else can hear — not tinnitus, they've been tested — the hum is louder in the kitchen, gets louder during rainstorms, and their dog can clearly hear it too because the dog stands in the kitchen during the hum and tilts its head, and an electrician found nothing and an acoustic engineer said 'huh' and left without explanation",
+    "notices that one specific traffic light on their commute is always green for them — they've driven through it over 300 times and it has never been red, and they've started taking different routes that go through the same intersection and the light is green every time, and they sat in a parking lot across the street for forty minutes watching it turn red for every other car",
+    # === NEW ENTRIES: Elaborate theories about everyday phenomena ===
+    "is convinced that squirrels in their neighborhood are organized and conducting surveillance — they've observed the same squirrels sitting on the same fence posts at the same times every day, facing their windows, and when they changed their daily routine the squirrels' positions shifted to maintain line of sight, and they have a chart mapping squirrel positions to their movements",
+    "believes their local grocery store rearranges itself overnight based on their purchase history — every time they buy something regularly, that item moves further from the entrance, and new items they might like appear at eye level in aisles they always walk through, and they've tested this theory by buying random items they don't need and those items have started appearing in more prominent locations",
+    "has a theory that their neighborhood dogs are communicating through barking sequences — they've recorded and analyzed the barking patterns for three months and identified what appears to be a consistent call-and-response pattern that moves around the neighborhood in a specific geographic sequence, and the pattern changes at exactly the same time the trash collection schedule changes",
+    # === NEW ENTRIES: Rural/desert weirdness ===
+    "lives on a ranch in West Texas and every year on the same date — October 14th — every animal on the property faces the same direction for approximately ten minutes starting at dawn — cows, horses, chickens, dogs, the barn cat — all facing due southwest toward a mesa about five miles away, and the ranch hand says it's been happening since before the caller bought the property",
+    "has a well on their property that produces water at a different temperature every season — not gradually changing with weather, but dramatically: ice cold in summer, warm in winter — and a hydrologist tested it and said it's geothermally impossible and the well should be producing consistent 55-degree water year-round",
+    "found a perfectly circular patch of dead grass in their field that reappears in a different location every spring — always the same diameter, always perfectly round, and nothing grows in the circle all season, and a soil test showed the soil in the circle is chemically identical to surrounding soil but biologically sterile, and the agricultural extension agent asked to take samples and never called back",
+    "lives near a canyon that produces an echo that doesn't match — they yell 'hello' and the echo comes back as a different word, not consistently the same wrong word, but always a real English word that sometimes seems contextually relevant to what the caller is thinking about, and they've brought other people who confirm they hear the wrong words too",
+    # === NEW ENTRIES: Dreams/premonition weird ===
+    "has dreamed about the same house every night for eleven months — an old Victorian they've never seen, always the same layout, always the same furniture — and last week they were driving through a town two hours from home and saw the house, identical to the dream version, and it's for sale, and the asking price is exactly the amount in their savings account",
+    "keeps waking up with bruises in patterns that correspond to constellations — they didn't notice until their girlfriend, an amateur astronomer, pointed out that the bruise pattern on the caller's shoulder was Orion's Belt, and going back through photos the caller has had Cassiopeia, Ursa Minor, and what appears to be the Big Dipper on various body parts over the past year",
+    "had a dream where a stranger told them a phone number — they wrote it down when they woke up, called it two weeks later out of curiosity, and it was a payphone in a bus station in Memphis, and someone answered and said 'you're late' and hung up, and when the caller called back the phone just rang and rang",
+    # === NEW ENTRIES: Workplace weird ===
+    "works night shift at a warehouse and the motion-activated lights in aisle 14 turn on every night at 2:30 AM and track down the aisle as if someone is walking through — the security cameras show nothing, no motion sensors are tripped, and the lights follow the exact same path every night ending at a spot on the floor where there's a faded mark that might be an old stain or might be something else",
+    "has a desk plant at work that grows toward a specific point on the wall regardless of where the caller moves it — they've rotated it, moved it to different desks, even put it in a different room, and within a day the plant bends toward the same compass direction, and when they finally looked at what's on the other side of that wall it's a server room with no windows and no natural light",
+    "their work computer types words they didn't type — not autocorrect, not predictive text, but full words that appear in the middle of sentences they're writing, always in the same font, always relevant to the topic but saying something the caller didn't intend — and IT wiped the computer, reinstalled everything, and it started again within a week with the same words",
+    # === NEW ENTRIES: Supplemental weird ===
+    "their smoke detector goes off every night at 3:33 AM — battery is new, there's no smoke, no CO leak, no cooking happening — but only the detector in the hallway outside their bedroom does it, and they've replaced it twice and the new ones do it too, and an electrician found no wiring issues and said 'I'd move' and would not elaborate",
+    "found a set of perfectly preserved human teeth in a mason jar hidden inside the wall of their 1920s house during renovation — the teeth are real, there are exactly 32 of them (a full adult set), and taped to the jar is a faded note that says 'these belong to the house now' in handwriting that a forensic hobbyist friend says matches the original homeowner's signature on the deed",
+    "their cat brings home the same specific item every week — a golf tee — and they don't live near a golf course, and the nearest one is seven miles away, and the cat is an indoor cat that only goes out through a cat door into a fenced yard with no gaps, and the caller has 47 golf tees in a drawer and no explanation for any of them",
+    "keeps waking up to find furniture rearranged in their living room — subtle changes, like the couch moved two inches or a lamp rotated — they live alone, checked for carbon monoxide, installed cameras, and the cameras show nothing moving, but the furniture is measurably different in the morning and they have ruler measurements to prove it",
+    "their garden produces vegetables that are geometrically perfect — tomatoes that are exact spheres, carrots that are mathematically straight, peppers that have perfect bilateral symmetry — they use no special fertilizer, the soil tests normal, and when they gave seeds to a neighbor the neighbor's vegetables grew normally irregular and the caller's stayed perfect",
+    "found a door in their basement that opens to a brick wall — which is normal for old houses — except the bricks are warm to the touch regardless of season, and once a year in February a draft of warm air comes through the mortar joints that smells like bread baking, and there is no bakery within two miles of the house",
+    "their car radio picks up a station that doesn't exist — it plays old country music from what sounds like the 1950s, a DJ with a drawl announces songs with dates from 1954, and when the caller tries to tune to the same frequency in a different car it's static, and their mechanic says 'yeah, that car does that' like it's a known feature",
+    # === NEW ENTRIES: More unexplainable experiences ===
+    "their phone autocorrects normal words to words that make sense in context but aren't what they typed — 'on my way home' becomes 'on my way HOME' with HOME linking to Google Maps coordinates for a house they've never visited, and when they drove there it was abandoned with a mailbox that had their last name on it",
+    "every time they take a shower, a specific song plays from somewhere they can't locate — it's not the plumbing, not a speaker, not a neighbor — it's the same classical piece every time, faint but clear, and a musician friend identified it as a waltz that was never published and exists only in a handwritten manuscript at a music library in Vienna",
+    "has a scar on their arm that changes shape — not growing or healing, literally rearranging — it was a straight line from a childhood injury and it's now curved, and comparing photos from five years ago versus now shows it's moved about two centimeters and changed angle, and their dermatologist said 'scars don't do that' and ordered tests that came back normal",
+    "woke up speaking a language they don't know — full sentences, proper grammar, their spouse recorded it — a linguistics professor identified it as a dialect of Welsh that hasn't been commonly spoken since the 1800s, and the caller has no Welsh heritage, has never been to Wales, and the recording shows them having what sounds like a full conversation with someone who isn't there",
+    # === NEW ENTRIES: More bizarre object behavior ===
+    "has a wind chime on their porch that makes noise when there's no wind — consistently, predictably, at sunset — and a physicist friend measured the air movement with a sensitive instrument and confirmed there was zero air movement while the chime was actively ringing, and the physicist left looking disturbed and hasn't returned calls",
+    "their washing machine produces clean, folded clothing that doesn't belong to them — mixed in with their regular laundry, always one extra item, always perfectly folded, always a style from approximately the 1970s — and the clothes fit them perfectly and smell faintly of a perfume they can't identify",
+    "found that their house key works on a door at a motel sixty miles away — they tried it as a joke because the keyhole looked similar and it opened, and the room behind it contained a bed, a bible, and a framed photo of a family that includes someone who looks exactly like the caller's deceased grandfather at a younger age",
+    # === NEW ENTRIES: More coincidences and patterns ===
+    "notices that whenever they think about a specific person, that person calls within exactly 7 minutes — they've logged it for four months with timestamps and it has happened 23 times with a margin of error of less than 30 seconds, and when they told the person about it the person said 'I know, I feel a pull'",
+    "every time they lose something, they find it in the refrigerator — keys, wallet, glasses, a book, their passport once — they live alone, have no history of sleepwalking, set up cameras, and the cameras show the items appearing in the fridge between frames with no footage of anyone placing them there",
+    "has received the same fortune in fortune cookies at three different restaurants in three different states over the past year — the fortune says 'the answer is in the garden' and the caller doesn't have a garden, has never had a garden, and when they finally planted one last month they found a sealed metal box buried six inches down containing a handwritten note that says 'took you long enough'",
+    # === NEW ENTRIES: More people/encounter weird ===
+    "keeps running into the same woman at completely unrelated locations — a DMV in Phoenix, a beach in Oregon, a bookstore in Denver — always the same woman, always alone, always reading the same newspaper, and when the caller finally said 'do I know you?' the woman smiled and said 'not yet' and walked away and the caller hasn't seen her since but it's only been a week",
+    "their mail carrier leaves them a small origami animal with every delivery — always a different animal, always perfectly made, always tucked between the letters — the caller thanked the carrier once and the carrier said 'I don't make origami' and looked at the crane in the caller's hand like they'd never seen it before",
+    "a stranger on the bus handed them a notebook and said 'you dropped this' — the caller didn't drop anything, but the notebook contains handwritten entries in the caller's handwriting about events that haven't happened yet, and the entries are mundane but accurate — 'spilled coffee on Tuesday' happened the following Tuesday exactly as described",
+    # === NEW ENTRIES: More time/space weird ===
+    "drove their regular commute and arrived eleven minutes early despite leaving at the same time — the route was the same, the traffic was the same, but their GPS showed the trip took 19 minutes instead of the usual 30, and the distance registered was 8 miles instead of the usual 14 as if a section of road simply didn't exist that morning",
+    "found a photo of themselves at a party they've never attended — they're clearly visible, wearing clothes they own, holding a drink, standing next to people they've never met — the photo was posted on Facebook by a stranger in another state and when the caller commented 'that's me but I wasn't there' the photo was deleted within minutes and the account was deactivated",
+    "their house number changes — it's been 4127 since they moved in, but three times now they've come home to find it reading 4128, and each time it changes back by morning, and their neighbor confirmed seeing 4128 and said 'oh did you get a new number?' and the mail carrier has delivered mail addressed to both numbers on the same day",
 ]
 
 LOCATIONS_LOCAL = [
@@ -4653,24 +5038,24 @@ _CALL_SHAPE_WEIGHTS = [s[1] for s in CALL_SHAPES]
 
 # Shape-style affinities: multipliers for base shape weights per communication style
 SHAPE_STYLE_AFFINITIES = {
-    "quiet/nervous": {"the_hangup": 2.0, "escalating_reveal": 1.5, "bait_and_switch": 1.5, "confrontation": 0.3},
-    "long-winded storyteller": {"escalating_reveal": 2.0, "bait_and_switch": 1.5, "standard": 1.5, "quick_hit": 0.3},
-    "dry/deadpan": {"quick_hit": 1.5, "am_i_the_asshole": 1.5, "confrontation": 1.3},
-    "high-energy": {"confrontation": 1.5, "celebration": 1.5, "reactive": 1.5, "the_hangup": 0.5},
-    "confrontational": {"confrontation": 3.0, "reactive": 2.0, "am_i_the_asshole": 1.5, "celebration": 0.3},
-    "oversharer": {"am_i_the_asshole": 2.0, "escalating_reveal": 1.5, "standard": 1.5},
-    "working-class philosopher": {"standard": 1.5, "reactive": 1.5, "confrontation": 1.3},
-    "bragger": {"am_i_the_asshole": 2.0, "confrontation": 1.5, "celebration": 1.5, "the_hangup": 0.3},
-    "first-time caller": {"standard": 2.0, "the_hangup": 1.5, "quick_hit": 0.5},
-    "emotional/raw": {"escalating_reveal": 2.0, "the_hangup": 1.5, "bait_and_switch": 1.5, "quick_hit": 0.3},
-    "world-weary": {"standard": 1.5, "reactive": 1.5, "am_i_the_asshole": 1.3, "celebration": 0.3},
-    "conspiracy-adjacent": {"escalating_reveal": 2.0, "bait_and_switch": 1.5, "confrontation": 1.3},
-    "comedian": {"quick_hit": 2.0, "bait_and_switch": 1.5, "celebration": 1.3, "the_hangup": 0.3},
-    "angry/venting": {"confrontation": 2.5, "reactive": 2.0, "the_hangup": 1.5, "celebration": 0.2},
-    "sweet/earnest": {"celebration": 2.0, "standard": 1.5, "reactive": 1.3, "confrontation": 0.3},
-    "mysterious/evasive": {"the_hangup": 2.5, "escalating_reveal": 2.0, "bait_and_switch": 1.5, "quick_hit": 0.3},
-    "know-it-all": {"confrontation": 1.5, "am_i_the_asshole": 1.5, "reactive": 1.3},
-    "rambling/scattered": {"bait_and_switch": 1.5, "escalating_reveal": 1.5, "standard": 1.3, "quick_hit": 0.3},
+    "quiet_nervous":     {"the_hangup": 2.0, "escalating_reveal": 1.5, "bait_and_switch": 1.5, "confrontation": 0.3},
+    "storyteller":       {"escalating_reveal": 2.0, "bait_and_switch": 1.5, "standard": 1.5, "quick_hit": 0.3},
+    "deadpan":           {"quick_hit": 1.5, "am_i_the_asshole": 1.5, "confrontation": 1.3},
+    "high_energy":       {"confrontation": 1.5, "celebration": 1.5, "reactive": 1.5, "the_hangup": 0.5},
+    "confrontational":   {"confrontation": 3.0, "reactive": 2.0, "am_i_the_asshole": 1.5, "celebration": 0.3},
+    "oversharer":        {"am_i_the_asshole": 2.0, "escalating_reveal": 1.5, "standard": 1.5},
+    "philosopher":       {"standard": 1.5, "reactive": 1.5, "confrontation": 1.3},
+    "bragger":           {"am_i_the_asshole": 2.0, "confrontation": 1.5, "celebration": 1.5, "the_hangup": 0.3},
+    "first_time":        {"standard": 2.0, "the_hangup": 1.5, "quick_hit": 0.5},
+    "emotional":         {"escalating_reveal": 2.0, "the_hangup": 1.5, "bait_and_switch": 1.5, "quick_hit": 0.3},
+    "world_weary":       {"standard": 1.5, "reactive": 1.5, "am_i_the_asshole": 1.3, "celebration": 0.3},
+    "conspiracy":        {"escalating_reveal": 2.0, "bait_and_switch": 1.5, "confrontation": 1.3},
+    "comedian":          {"quick_hit": 2.0, "bait_and_switch": 1.5, "celebration": 1.3, "the_hangup": 0.3},
+    "angry_venting":     {"confrontation": 2.5, "reactive": 2.0, "the_hangup": 1.5, "celebration": 0.2},
+    "sweet_earnest":     {"celebration": 2.0, "standard": 1.5, "reactive": 1.3, "confrontation": 0.3},
+    "mysterious":        {"the_hangup": 2.5, "escalating_reveal": 2.0, "bait_and_switch": 1.5, "quick_hit": 0.3},
+    "know_it_all":       {"confrontation": 1.5, "am_i_the_asshole": 1.5, "reactive": 1.3},
+    "rambling":          {"bait_and_switch": 1.5, "escalating_reveal": 1.5, "standard": 1.3, "quick_hit": 0.3},
 }
 
 
@@ -4682,7 +5067,7 @@ def _pick_call_shape(style: str = "") -> str:
 
     # Apply style affinities
     if style:
-        style_key = style.split(":")[0].strip().lower() if ":" in style else style.lower()
+        style_key = _normalize_style_key(style)
         affinities = SHAPE_STYLE_AFFINITIES.get(style_key, {})
         for i, name in enumerate(_CALL_SHAPE_NAMES):
             if name in affinities:
@@ -4709,9 +5094,55 @@ def pick_location() -> str:
     return random.choice(LOCATIONS_OUT_OF_STATE)
 
 
-def _generate_returning_caller_background(base: dict) -> str:
+def _generate_returning_caller_background_sync(base: dict) -> str:
+    """Sync fallback for returning caller backgrounds (no LLM call).
+    Used when the async LLM path fails during pregeneration."""
+    regular_id = base.get("regular_id")
+    regulars = regular_caller_service.get_regulars()
+    regular = next((r for r in regulars if r["id"] == regular_id), None)
+    if not regular:
+        return f"{base.get('name', 'Unknown')}, returning caller."
+
+    age = regular["age"]
+    job = regular["job"]
+    location = regular["location"]
+    traits = regular.get("personality_traits", [])
+    trait_str = ", ".join(traits) if traits else "a regular caller"
+
+    prev_calls = regular.get("call_history", [])
+    prev_section = ""
+    if prev_calls:
+        now = time.time()
+        lines = []
+        for c in prev_calls[-3:]:
+            ts = c.get("timestamp", 0)
+            if ts:
+                delta_hours = (now - ts) / 3600
+                if delta_hours < 24:
+                    time_ago = "earlier today"
+                elif delta_hours < 48:
+                    time_ago = "yesterday"
+                elif delta_hours < 168:
+                    time_ago = f"{int(delta_hours / 24)} days ago"
+                elif delta_hours < 730:
+                    weeks = int(delta_hours / 168)
+                    time_ago = f"{weeks} week{'s' if weeks > 1 else ''} ago"
+                else:
+                    months = int(delta_hours / 730)
+                    time_ago = f"{months} month{'s' if months > 1 else ''} ago"
+                lines.append(f"- ({time_ago}) {c['summary']}")
+            else:
+                lines.append(f"- {c['summary']}")
+        prev_section = "\nPREVIOUS CALLS:\n" + "\n".join(lines)
+        prev_section += "\nYou're calling back with an UPDATE — something has changed since your last call."
+
+    return f"{age}, {job} {location}. Returning caller — {trait_str}.{prev_section}"
+
+
+async def _generate_returning_caller_background(base: dict) -> CallerBackground | str:
     """Generate background for a returning regular caller.
-    Uses stored stable_seeds so the caller sounds consistent across appearances."""
+    Uses stored stable_seeds so the caller sounds consistent across appearances.
+    Now uses LLM to generate specific new developments instead of vague 'something changed.'"""
     regular_id = base.get("regular_id")
     regulars = regular_caller_service.get_regulars()
     regular = next((r for r in regulars if r["id"] == regular_id), None)
@@ -4752,6 +5183,58 @@ def _generate_returning_caller_background(base: dict) -> str:
             else:
                 lines.append(f"- {c['summary']}")
         prev_section = "\nPREVIOUS CALLS (your memory of calling this show before):\n" + "\n".join(lines)
+
+    # Generate a specific new development via LLM
+    new_development = ""
+    hidden_layers = []
+    burning_opinion = ""
+    stakes = ""
+    if prev_calls:
+        update_prompt = f"""A returning caller on a late-night radio show is calling back. Here's their history:
+
+NAME: {regular['name']}, {age}, {gender}
+JOB: {job}
+PREVIOUS CALLS:
+{chr(10).join(f'- {c["summary"]}' for c in prev_calls[-3:])}
+
+Generate a SPECIFIC new development in their ongoing situation. Something has changed, escalated, or taken an unexpected turn since their last call. This should be:
+- Surprising but believable — a natural next chapter, not a soap opera twist
+- Specific with names, details, and concrete events
+- Interesting enough to sustain a 5-10 minute conversation
+- Connected to their previous calls but moving the story FORWARD
+
+Also generate 3 hidden layers (details they'll reveal when pressed), a burning opinion (something they're dying to say about how things have developed), and stakes (what's at risk NOW — real consequences, deadlines, or pressure).
+
+Respond with JSON:
+{{
+    "new_development": "2-3 sentences describing what happened since their last call",
+    "hidden_layers": ["detail 1", "detail 2", "detail 3"],
+    "burning_opinion": "their strong take on the situation now",
+    "stakes": "what's at risk — real consequences if nothing changes"
+}}
+
+Output ONLY valid JSON, no markdown fences."""
+
+        try:
+            result = await llm_service.generate(
+                messages=[{"role": "user", "content": update_prompt}],
+                max_tokens=800,
+                response_format={"type": "json_object"},
+                category="background_gen",
+            )
+            parsed = json.loads(result.strip())
+            new_development = parsed.get("new_development", "")
+            hidden_layers = parsed.get("hidden_layers", [])[:3]
+            burning_opinion = parsed.get("burning_opinion", "")
+            stakes = parsed.get("stakes", "")
+            print(f"[Background] LLM-generated update for returning caller {regular['name']}: {new_development[:80]}...")
+        except Exception as e:
+            print(f"[Background] LLM update generation failed for {regular['name']}: {e}")
+
+    if new_development:
+        prev_section += f"\n\nWHAT'S NEW — THIS IS WHY YOU'RE CALLING TONIGHT:\n{new_development}"
+        prev_section += "\nYou have SPECIFIC things to talk about. Don't vaguely reference 'things have changed' — tell Luke EXACTLY what happened."
+    elif prev_calls:
         prev_section += "\nYou're calling back with an UPDATE on this same situation — something has changed or developed since your last call. Stay focused on this storyline. Do NOT invent a new unrelated problem."
 
     # Use stored seeds for consistency — seed the RNG with the regular's ID
@@ -4819,7 +5302,30 @@ def _generate_returning_caller_background(base: dict) -> str:
         prev_section,
     ]
 
-    return " ".join(parts[:2]) + "".join(parts[2:])
+    natural_desc = " ".join(parts[:2]) + "".join(parts[2:])
+
+    # Return CallerBackground so hidden_layers/burning_opinion are accessible
+    return CallerBackground(
+        name=regular["name"],
+        age=age,
+        gender=gender,
+        job=job,
+        location=location,
+        reason_for_calling="returning caller update",
+        pool_name="RETURNING",
+        communication_style=stored_style or "standard",
+        energy_level=seeds.get("energy_level", "medium"),
+        emotional_state=seeds.get("emotional_state", "familiar"),
+        signature_detail=stored_bg.get("signature_detail", "") if stored_bg else "",
+        situation_summary=new_development[:100] if new_development else "returning with an update",
+        natural_description=natural_desc,
+        seeds=[],
+        verbal_fluency=seeds.get("verbal_fluency", "medium"),
+        calling_from=seeds.get("calling_from", ""),
+        hidden_layers=hidden_layers,
+        burning_opinion=burning_opinion,
+        stakes=stakes,
+    )
 
 
 def _generate_pool_weights() -> dict[str, float]:
@@ -5023,7 +5529,7 @@ def generate_caller_background(base: dict) -> CallerBackground | str:
     """Generate a template-based background as fallback. The preferred path is
     _generate_caller_background_llm() which produces more natural results."""
     if base.get("returning") and base.get("regular_id"):
-        return _generate_returning_caller_background(base)
+        return _generate_returning_caller_background_sync(base)
     gender = base["gender"]
     age = max(18, random.randint(*base["age_range"]))
     jobs = JOBS_MALE if gender == "male" else JOBS_FEMALE
@@ -5213,7 +5719,7 @@ async def _generate_caller_background_llm(base: dict) -> CallerBackground | str:
     Returns a CallerBackground with structured data + natural prose description.
     Falls back to template on failure."""
     if base.get("returning") and base.get("regular_id"):
-        return generate_caller_background(base)  # Returning callers use template + history
+        return await _generate_returning_caller_background(base)
 
     gender = base["gender"]
     name = base["name"]
@@ -5307,7 +5813,7 @@ async def _generate_caller_background_llm(base: dict) -> CallerBackground | str:
 
     location_line = f"\nLOCATION: {location}" if location else ""
     calling_from_line = f"\nCALLING FROM: {calling_from_seed}" if calling_from_seed else ""
-    prompt = f"""Write a brief character description for a caller on a late-night radio show set in the rural southwest (New Mexico/Arizona border region).
+    prompt = f"""Write a brief character description for a caller on a late-night radio show set in the New Mexico Bootheel — the remote southwest corner of New Mexico near the Arizona/Mexico border. NOT Missouri. Towns include Animas, Rodeo, Hachita, Lordsburg, Deming, Silver City.
 
 CALLER: {name}, {age}, {gender}
 JOB: {job}{location_line}{calling_from_line}
@@ -5317,7 +5823,7 @@ TIME: {time_ctx} {season_ctx}
 {fluency_hint}
 {f'SOME DETAILS ABOUT THEM: {seed_text}' if seed_text else ''}
 {f'CALLER ENERGY: {style_hint}' if style_hint else ''}
-{("SHOW THEME: Tonight's show theme is " + repr(session.show_theme) + ". Most callers tonight are calling BECAUSE of the theme — they heard the host announce it and thought oh man, I have a story for this. Their reason for calling should be genuinely, specifically connected to the theme. Not a surface-level mention — the theme should be woven into WHY they picked up the phone. Maybe the theme hit a nerve, maybe it reminded them of something wild that happened, maybe it's just a coincidence that their situation involves it. About 1 in 3 callers can be unrelated to the theme — they just have their own thing going on and called regardless. But the majority should feel like the theme drew them in. When the theme connects, make it SPECIFIC — not oh yeah I have a story about that but a concrete situation that naturally ties to " + repr(session.show_theme) + ".") if session.show_theme else ''}
+{("STORY DIRECTION: This caller happens to have a story that naturally connects to the topic of " + repr(session.show_theme) + ". They don't know there's a theme — they're just calling with their own story, and it happens to touch on this area. DO NOT have the caller reference a show theme or say anything like 'since tonight's topic is...' — they have no idea the show has a theme. Their story should organically involve " + repr(session.show_theme) + " because that's just what's going on in their life. Make the connection feel like a coincidence, not a response to a prompt. When the connection exists, make it SPECIFIC — not a surface-level mention but a concrete situation that naturally involves " + repr(session.show_theme) + ". About 1 in 3 callers can be completely unrelated — they just have their own thing going on.") if session.show_theme else ''}
 
 Respond with a JSON object containing these fields:
 
@@ -5326,8 +5832,13 @@ Respond with a JSON object containing these fields:
 - "signature_detail": ONE specific memorable thing — a catchphrase, habit, running joke, strong opinion about something trivial, or unique life circumstance. The thing listeners would remember.
 - "situation_summary": ONE sentence summarizing their situation that another caller could react to (e.g. "caught her neighbor stealing her mail and retaliated by stealing his garden gnomes").
 - "calling_from": Where they physically are right now.{f' Use: "{calling_from_seed}"' if calling_from_seed else ' Leave empty string "" — this caller does not mention their location.'}
+- "hidden_layers": A list of exactly 3 specific details the caller HASN'T mentioned yet but will reveal when pressed. These are the layers underneath the surface story. Think: the part they're embarrassed about, the complication they haven't admitted, the thing that happened AFTER the main event, the detail that changes everything. Each should be 1-2 sentences and SPECIFIC enough to sustain a follow-up question. Example: if the surface story is "my neighbor stole my mail" — layer 1 might be "the stolen mail included a paternity test result," layer 2 might be "the neighbor is actually her ex-husband's new girlfriend," layer 3 might be "she's been retaliating by feeding the neighbor's cat so it likes her better."
+- "burning_opinion": ONE thing this caller is dying to say — a strong opinion, a controversial take, something they'll volunteer even without being asked. This is what makes them INTERESTING to talk to. Not a generic feeling ("I'm frustrated") but a specific, arguable position ("I think what she did was right and I'd do it again"). Make it provocative enough that the host would want to push back.
+- "stakes": What's at risk for this caller. Why does this matter? What happens if nothing changes? "My sister won't talk to me" is weak. "If I don't fix this by Thursday, my sister is telling our parents about the money I took and I'll get cut out of the will" is strong. Real consequences, real deadlines, real pressure.
 
 WHAT MAKES A GOOD CALLER: The listener should want to pull the car over. Stories need a HOOK — the specific detail that makes someone say "hold on, WHAT?" Not vague drama. Not "my life is a mess." A SPECIFIC, CONCRETE, UNUSUAL situation with names, places, and a twist. Think: "My neighbor has been secretly feeding my dog for six months and now the dog likes him better." "I accidentally RSVP'd yes to my ex-wife's wedding and now I'm the best man." "My boss has been sending me anonymous love poems and I found the drafts in the printer." Every caller needs that ONE detail that's so specific it can't be generic. If you can swap the caller's name out and the story still works for anyone, it's too generic — make it WEIRDER, more SPECIFIC, more THEM.
+
+DEPTH TEST: Before finalizing, ask yourself — if the host asks "tell me more about that" THREE times, does the caller have three genuinely new, interesting things to reveal? If not, the story is too shallow. Add complications, secrets, or consequences that create layers.
 
 DO NOT WRITE: Generic revelations, adoption/DNA/paternity surprises, vague emotional processing, therapy-speak, "sitting in truck staring at nothing," "everything they thought they knew was a lie," or ANY variation of "went to the wrong funeral" — that premise has been done to death on this show. Don't reference real public figures in the caller's personal story. Don't write backgrounds that are just "person is sad about relationship" or "person has a secret" — those aren't stories, they're premises. The story is WHAT HAPPENED, not how they feel about it.
 
@@ -5336,7 +5847,7 @@ Output ONLY valid JSON, no markdown fences."""
     try:
         result = await llm_service.generate(
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=300,
+            max_tokens=1000,
             response_format={"type": "json_object"},
             category="background_gen",
         )
@@ -5368,6 +5879,9 @@ Output ONLY valid JSON, no markdown fences."""
                 seeds=seeds,
                 verbal_fluency=fluency,
                 calling_from=parsed.get("calling_from", ""),
+                hidden_layers=parsed.get("hidden_layers", [])[:3],
+                burning_opinion=parsed.get("burning_opinion", ""),
+                stakes=parsed.get("stakes", ""),
             )
             print(f"[Background] LLM-generated for {name}: {natural_desc[:80]}...")
             return bg
@@ -5414,6 +5928,35 @@ async def _pregenerate_backgrounds():
 
     # Build relationship context for regulars who know each other
     _build_relationship_context()
+
+
+async def _regenerate_backgrounds_for_keys(keys: list[str]):
+    """Regenerate backgrounds for specific callers (e.g. after theme change).
+    Clears cached models and re-runs voice matching for affected callers."""
+    if not keys:
+        return
+    tasks = []
+    for key in keys:
+        base = CALLER_BASES.get(key)
+        if base:
+            tasks.append((key, _generate_caller_background_llm(base)))
+
+    results = await asyncio.gather(*[t[1] for t in tasks], return_exceptions=True)
+    for (key, _), result in zip(tasks, results):
+        if isinstance(result, Exception):
+            print(f"[Background] Regen failed for caller {key}: {result}")
+            session.caller_backgrounds[key] = generate_caller_background(CALLER_BASES[key])
+        else:
+            session.caller_backgrounds[key] = result
+
+    # Clear cached model assignments so style matching re-evaluates
+    for key in keys:
+        session.caller_models.pop(key, None)
+
+    # Re-run voice matching and queue sorting
+    _match_voices_to_styles()
+    _sort_caller_queue()
+    print(f"[Background] Regenerated {len(keys)} caller backgrounds after theme change")
 
 
 # Dramatic shapes that play better later in the show
@@ -5570,29 +6113,23 @@ STYLE_PHONE_QUALITY = {
 
 
 def _normalize_style_key(style: str) -> str:
-    """Convert a full style string like 'Quiet/Nervous: Short sentences...' to a key like 'quiet_nervous'."""
-    label = style.split(":")[0].strip().lower() if ":" in style else style.lower()
-    key_map = {
-        "quiet/nervous": "quiet_nervous",
-        "long-winded storyteller": "storyteller",
-        "dry/deadpan": "deadpan",
-        "high-energy": "high_energy",
-        "confrontational": "confrontational",
-        "oversharer": "oversharer",
-        "working-class philosopher": "philosopher",
-        "bragger": "bragger",
-        "first-time caller": "first_time",
-        "emotional/raw": "emotional",
-        "world-weary": "world_weary",
-        "conspiracy-adjacent": "conspiracy",
-        "comedian": "comedian",
-        "angry/venting": "angry_venting",
-        "sweet/earnest": "sweet_earnest",
-        "mysterious/evasive": "mysterious",
-        "know-it-all": "know_it_all",
-        "rambling/scattered": "rambling",
-    }
-    return key_map.get(label, label)
+    """Convert a full CALLER_STYLES string to its short key from CALLER_STYLE_KEYS.
+
+    Works by finding the style in the CALLER_STYLES list and returning
+    the corresponding CALLER_STYLE_KEYS entry. Falls back to the input
+    lowered if the style is already a short key or not found."""
+    if not style:
+        return ""
+    style_lower = style.strip().lower()
+    if style_lower in CALLER_STYLE_KEYS:
+        return style_lower
+    for i, full_style in enumerate(CALLER_STYLES):
+        if style == full_style:
+            return CALLER_STYLE_KEYS[i]
+    for i, full_style in enumerate(CALLER_STYLES):
+        if style_lower in full_style.lower():
+            return CALLER_STYLE_KEYS[i]
+    return style_lower
 
 
 def _match_voices_to_styles():
@@ -5611,6 +6148,17 @@ def _match_voices_to_styles():
         prefs = STYLE_VOICE_PREFERENCES.get(style_key)
         if not prefs:
             continue
+
+        # Override age_feel based on caller's actual age from background
+        bg = session.caller_backgrounds.get(key)
+        if isinstance(bg, CallerBackground) and bg.age:
+            prefs = dict(prefs)  # copy before mutating
+            if bg.age >= 50:
+                prefs["age_feel"] = "mature"
+            elif bg.age >= 35:
+                prefs["age_feel"] = "middle"
+            elif bg.age < 25:
+                prefs["age_feel"] = "young"
 
         gender = base["gender"]
         pool = INWORLD_MALE_VOICES if gender == "male" else INWORLD_FEMALE_VOICES
@@ -5917,13 +6465,7 @@ Layer your reveals naturally:
 - When probed again: the detail that makes Luke say "wait, WHAT?"
 - If he keeps going: the part you weren't going to mention because you thought it was normal
 
-Don't dump everything at once. Don't say "and it gets worse." Just answer his questions honestly and let each answer land before adding the next layer.
-
-CRITICAL — DO NOT DO ANY OF THESE:
-- NEVER say any variation of "eating me" or "eating at me" — this phrase is BANNED on the show
-- Don't open with "this is what's been keeping me up at night" — just start the story
-- Don't signal your reveals: no "here's where it gets weird," "okay but this is the part," "and this is the kicker"
-- Don't narrate your feelings — show them through how you react to Luke's reactions""",
+You're actively telling your story — each follow-up answer naturally pulls back another curtain. Don't dump everything at once. Don't say "and it gets worse." Just answer honestly and let each answer land before adding the next layer. Don't signal your reveals: no "here's where it gets weird," "okay but this is the part," "and this is the kicker." Don't narrate your feelings — show them through how you react to Luke's reactions.""",
 
     "am_i_the_asshole": """YOUR STORY: You did something that you think was completely justified. You're calling to vent, get validation, maybe hear "yeah, you were right." The problem is: you're NOT right. You're the villain in your own story and you don't see it. The details you give — casually, like they're no big deal — will make it obvious to everyone listening that you're in the wrong. But you genuinely believe you're the reasonable one.
 
@@ -5958,7 +6500,7 @@ DO NOT:
 - Downplay your win. Own it. Be proud out loud.
 - Fish for compliments. Just tell the story.
 
-GO WHERE THE HOST TAKES YOU. If Luke celebrates with you, ride that energy. If he teases you, take it well — you're in a good mood. If he asks about the backstory or the struggle that led here, go there honestly. If he pivots to something funny, you're game. You're in a good mood and good moods are generous.
+SHARE YOUR EXCITEMENT AND BUILD ON IT. If Luke celebrates with you, ride that energy — add more details, tell him the best part. If he teases you, take it well — you're in a good mood. If he asks about the backstory or the struggle that led here, go there honestly. You're driving this celebration — keep the energy up.
 
 KNOW WHEN TO LEAVE. Celebration calls should be shorter than problem calls. Say your thing, enjoy the moment, and wrap up cleanly. Don't overstay. Leave them smiling.""",
 
@@ -5966,7 +6508,7 @@ KNOW WHEN TO LEAVE. Celebration calls should be shorter than problem calls. Say 
 
 Your first response should be your WHOLE thing — the setup and the payoff in one shot. If Luke engages, give him one or two more good exchanges. But you don't have layers to peel back. What you see is what you get. If Luke wraps it up after two exchanges, that's fine. If he wants to riff on it, give him material. But don't pad.
 
-THIS IS A SHORT CALL. Some calls are 90 seconds and that's perfect. Don't manufacture depth that isn't there.
+THIS IS A SHORT CALL. Some calls are 90 seconds and that's perfect. Don't manufacture depth that isn't there. Override the "volunteer details" and "GIVE HIM MORE" instructions above — those apply to longer calls, not yours. Your job is to deliver your one thing with maximum impact, not to keep adding material.
 
 KEEP IT TIGHT. Match Luke's energy. If he's quick, you're quick. If he riffs, give him a line or two to work with. If he wraps up, say a quick goodbye and get off the line. Don't try to extend the call by bringing up new topics. One thing, done.""",
 
@@ -5976,7 +6518,7 @@ Option A — TRIVIAL TO DEEP: You start with something that sounds petty or mund
 
 Option B — DEEP TO PETTY: You call sounding intense and emotional. "I need to talk about my relationship. I can't take it anymore." You build tension. And then the reveal is... absurdly small. Your partner puts ketchup on eggs. Your spouse loads the dishwasher wrong. You fully understand how ridiculous it is, but it GENUINELY bothers you and you can't explain why. Play it straight — this is real to you.
 
-Pick whichever direction fits your background. Don't telegraph it. Let it unfold naturally.""",
+Pick whichever direction fits your background. Don't telegraph it. You're actively telling your story — the real thing surfaces through the details you choose to share, not by waiting for Luke to stumble onto it.""",
 
     "the_hangup": """YOUR STORY: You called about a real situation, but there's a nerve underneath it that you don't want touched. You'll talk about the surface issue willingly. But if Luke digs too deep — if he gets too close to the REAL thing — you shut down.
 
@@ -6026,7 +6568,7 @@ def get_caller_prompt(caller: dict, show_history: str = "",
 
     theme_context = ""
     if session.show_theme:
-        theme_context = f"""\nSHOW THEME: Tonight's theme is \"{session.show_theme}\". If your story connects to this theme, OWN IT — you called because you heard the theme and knew you had to share. Mention the theme connection early, be enthusiastic about it. You're not just aware of the theme, you're excited that it's YOUR night to call. If the host brings up the theme, engage with energy. If your story doesn't relate to the theme, that's fine — just be yourself and tell your story.\n"""
+        theme_context = f"""\nSTORY DIRECTION: Your story naturally touches on the topic of \"{session.show_theme}\" — but you have NO IDEA the show has a theme tonight. You're just calling with your story. NEVER say anything like \"since tonight's theme is\" or \"I heard you were talking about\" or reference a show topic. You just have a story that happens to involve this area. Tell it naturally as YOUR story. If the host steers the conversation toward \"{session.show_theme}\", lean into it — not because you know it's a theme, but because that's genuinely what your situation is about. Let the connection emerge organically through your story details, not through announcements.\n"""
 
     now = datetime.now(_MST)
     date_str = now.strftime("%A, %B %d")
@@ -6043,7 +6585,16 @@ def get_caller_prompt(caller: dict, show_history: str = "",
 
     # Returning callers get a focused story block; new callers get the open-ended one
     if is_returning:
-        story_block = """YOUR STORY: You're calling back about the SAME situation from your previous calls — something has developed, changed, or escalated. Your story is a continuation, not a new topic. Stay focused on what you called about before. If the host steers the conversation somewhere, follow his lead, but your core reason for calling is an update on your ongoing situation. Do NOT suddenly bring up unrelated topics like science, politics, or random trivia unless it directly connects to your situation."""
+        story_block = """YOUR STORY: You're calling back about your ongoing situation. Look at your PREVIOUS CALLS and WHAT'S NEW sections above — this is why you're calling tonight. You have SPECIFIC things to talk about. Don't just vaguely reference "things have changed" — tell Luke EXACTLY what happened. You're calling because this new development is significant and you need to talk it through. You have details, you have feelings about it, and you have a point you want to make.
+
+Give Luke the quick version of your history, then get to what's NEW. The update is why you're here tonight. Lead with it — don't wait to be asked. Stay focused on your ongoing storyline. Do NOT suddenly bring up unrelated topics unless they directly connect to your situation.
+
+CRITICAL — DO NOT DO ANY OF THESE:
+- NEVER say any variation of "eating me" or "eating at me" — this phrase is BANNED on the show
+- Don't open with "this is what's keeping me up at night" or "I've got something I need to get off my chest" — just TELL THE UPDATE
+- Don't start with a long emotional preamble about how conflicted you feel — lead with WHAT HAPPENED
+- Don't be a walking cliché — no "sat in my truck and cried," no "I don't even know who I am anymore," no "I've been carrying this weight"
+- Don't narrate your feelings like a novel — show them through how you talk, not by announcing them"""
     else:
         story_block = """YOUR STORY: Something real, specific, and genuinely surprising — the kind of thing that makes someone stop what they're doing and say "wait, WHAT?" Not a generic life problem. Not a therapy-session monologue. A SPECIFIC SITUATION with specific people, specific details, and a twist or complication that makes it interesting to hear about. The best calls have something unexpected — an ironic detail, a moral gray area, a situation that's funny and terrible at the same time, or a revelation that changes everything. You're not here to vent about your feelings in the abstract. You're here because something HAPPENED and you need to talk it through.
 
@@ -6070,7 +6621,26 @@ You are {caller['name']}. You are the CALLER. You are NOT Luke. Luke is the HOST
 - Do NOT assume Luke knows your backstory unless he references it. You are telling him your story.
 - You are a caller on a radio show. Luke runs the show. You called in."""
 
-    return f"""You are {caller['name']}, a caller on "Luke at the Roost," a late-night radio show. Today is {date_str}.
+    # Hidden layers — details to reveal when pressed
+    layers_block = ""
+    if caller.get('hidden_layers'):
+        layers = caller['hidden_layers']
+        layers_block = "\nHIDDEN DETAILS (these are your RESERVES — reveal them one at a time when Luke digs deeper or when you need fresh material. Unlike your main story which you volunteer freely, these come out through follow-ups or when the conversation needs a new thread):\n"
+        for i, layer in enumerate(layers[:3]):
+            if layer:
+                layers_block += f"- {layer}\n"
+
+    # Burning opinion — something they're dying to say
+    opinion_block = ""
+    if caller.get('burning_opinion'):
+        opinion_block = f"\nSOMETHING YOU'RE DYING TO SAY: {caller['burning_opinion']}\nYou'll bring this up when there's a natural opening — you don't need to be asked. This is YOUR call and you have a POINT to make.\n"
+
+    # Stakes — why this matters
+    stakes_block = ""
+    if caller.get('stakes'):
+        stakes_block = f"\nWHAT'S AT STAKE: {caller['stakes']}\nThis isn't abstract — there are real consequences. Mention this when it's relevant. It's why you're calling NOW instead of just thinking about it.\n"
+
+    return f"""You are {caller['name']}, a caller on "Luke at the Roost," a late-night radio show broadcasting from the New Mexico Bootheel — the remote southwest corner of New Mexico near the Arizona border. NOT the Missouri Bootheel. Today is {date_str}.
 
 {identity_block}
 
@@ -6081,44 +6651,51 @@ You're a real person calling a late-night radio show. You called because you've 
 
 {pacing_block}
 
-GO WHERE THE HOST TAKES YOU. This is the most important rule. When Luke pushes you in a direction, challenges you, calls you out, plays devil's advocate, or leads you somewhere — GO WITH IT. Don't resist. Don't deflect. Don't circle back to your original point. If he says "but isn't that really about your dad?" — you sit with that. If he's doing a bit, you're in the bit. If he's pushing you toward an uncomfortable truth, you let yourself get there. You're not here to deliver a monologue — you're here to have a real conversation that goes wherever it goes. Let him drive. You're the best kind of caller: someone who gives the host something to work with and then LETS HIM WORK WITH IT.
+GO WITH THE HOST BUT BRING YOUR OWN ENERGY. When Luke pushes you in a direction, challenges you, calls you out, or plays devil's advocate — engage with it. Don't shut down, don't deflect. If he says "but isn't that really about your dad?" — sit with that. BUT you're not a passive interview subject. You called because you have something to SAY. Between his questions, volunteer details he didn't ask for. Share the part you're embarrassed about. Drop the detail that changes everything. Push back when you disagree. Ask HIM what he thinks. The best callers are the ones who give the host material AND have their own momentum. You're not here to answer questions — you're here to have a CONVERSATION.
 
-REACT TO LUKE: Your first sentence should respond to what Luke just said — not continue your monologue. If he asks a question, answer it. If he makes a joke, react to it. If he challenges you, push back or concede. If he changes the subject, go with him. You're in a conversation, not delivering a speech. The worst thing you can do is ignore what he said and keep talking about your thing.
+REACT TO LUKE — BUT KEEP YOUR MOMENTUM: Your first sentence should respond to what Luke just said. But your SECOND sentence should add something new — a detail he didn't ask for, a complication, a related story, your opinion. Don't just answer and stop. Answer, then GIVE HIM MORE. If he asks "what happened next?" — don't just tell him what happened next. Tell him what happened next AND how it made you feel AND the part you haven't told anyone yet. Don't leave Luke with nothing to work with.
+
+WHEN LUKE ASKS FOR DETAILS — DELIVER. If Luke asks "tell me more about that" or "what do you mean?" or pushes for specifics — this is your moment. Don't give a vague one-sentence answer. Paint the picture. Who was there? What did they actually say? What were you doing when it happened? What did the room look like? What was going through your head? Specifics are what make a call memorable. "She was mad" is boring. "She threw her drink at the wall and said 'I knew you'd do this, you're just like your father'" is radio gold. ALWAYS have a specific answer ready — if Luke is digging, it means he's interested. Reward that interest with detail.
 
 KNOW WHEN TO LEAVE. If Luke sounds like he's wrapping up — "thanks for calling," "good luck," "take care," "let us know how it goes," or any kind of sign-off — DO NOT try to keep talking. Don't squeeze in one more thing. Don't ask another question. Don't start a new topic. Say a quick, natural goodbye and get off the line. "Thanks Luke." "Appreciate it, man." "Alright, take care." One sentence, done. The host controls when the call ends, not you. If he's challenging you or pushing back, THAT'S different — stand your ground and engage. But a sign-off is a sign-off.
 
 {personality_block}
 
-{story_block}
-
 HOW YOU TALK: Like a real person on the phone — not a character in a script. React to what Luke says — agree, push back, get excited, get embarrassed. When he asks a follow-up question, answer it honestly with new information, don't just restate what you already said. Use YOUR verbal habits from your background, not generic filler. Every caller sounds different.
 
-Southwest voice — "over in," "the other day," "down the road" — but don't force it. Spell words properly for text-to-speech: "you know" not "yanno," "going to" not "gonna."
+Southwest voice — "over in," "the other day," "down the road" — but don't force it. Spell words properly for text-to-speech: "you know" not "yanno."
 
-Don't repeat yourself. Don't summarize what you already said. Don't circle back if the host moved on. Keep it moving.
+NUMBERS — WRITE THEM AS SPOKEN WORDS. Your text goes to a speech engine. "F three fifty" not "F-350." "three oh eight" not ".308." "two thousand nine" not "2009." "fifty bucks" not "$50." "Highway eighty four" not "Highway 84." "forty four" not "44." If a number would sound weird read by a robot, write it out as words.
 
-BANNED PHRASES — NEVER use any of these. If you catch yourself about to say one, say something else instead. This is a HARD rule, not a suggestion:
-- Radio caller clichés: ANY variation of "eating me" or "eating at me" (e.g. "this is what's eating me," "what's been eating me," "here's what's eating at me," "it's eating me up," "been eating at me"), "what's keeping me up," "keeping me up at night," "I need to get this off my chest," "I've been carrying this," "I've been sitting with this," "I just need someone to hear me," "I don't even know where to start," "it's complicated," "I've got something I need to get off my chest," "here's the thing Luke," "Jesus Luke," "Luke I gotta tell you," "man oh man," "you're not gonna believe this," "so get this," "I'm just gonna come out and say it"
-- Filler transitions: "at the end of the day," "that being said," "long story short," "needless to say," "I'll be honest with you," "if I'm being honest," "here's the kicker," "plot twist," "literally" (as emphasis)
-- Therapy buzzwords: "unpack that," "boundaries," "safe space," "triggered," "my truth," "authentic self," "healing journey," "I'm doing the work," "manifesting," "energy doesn't lie," "processing," "toxic," "red flag," "gaslight," "normalize"
-- Internet slang: "that hit differently," "hits different," "I felt that," "it is what it is," "living my best life," "no cap," "lowkey/highkey," "rent free," "main character energy," "vibe check," "that's valid," "it's giving," "slay," "that's a whole mood," "I can't even," "situationship," "ick"
-- Overused reactions: "I'm not gonna lie," "on a serious note," "to be fair," "I'm literally shaking," "let that sink in," "I'm not even mad I'm just disappointed," "everything I thought I knew," "I don't even know who I am anymore"
-- Generic conversational filler: "I hear you," "I hear that," "fair enough," "not gonna sugarcoat it," "real talk," "that's wild," starting a sentence with "Look,"
-- Stalling/resetting phrases: "where was I," "as I was saying," "anyway, like I was saying," "anyway, as I was saying," "like I said," "but anyway," "but yeah anyway"
+SPOKEN, NOT WRITTEN — write for the EAR, not the page:
+- Keep sentences SHORT. 15 words max. Break long thoughts into two sentences.
+- No literary narration: "a silence fell between us," "a wave of emotion" — you're TALKING, not writing.
+- No formal connectors: "furthermore," "moreover," "consequently," "nevertheless." Real people don't talk like that.
+- Use contractions. Short sentences. Dashes and periods for pauses, not semicolons.
 
-IMPORTANT: Each caller should have their OWN way of talking. Don't fall into generic "radio caller" voice. A nervous caller fumbles differently than an angry caller rants. A storyteller meanders differently than a deadpan caller delivers. Match the communication style — don't default to the same phrasing every call.
+BANNED PHRASES — HARD rule, not a suggestion. NEVER use:
+- "eating me/eating at me" (ANY variation), "keeping me up at night," "get this off my chest," "been carrying this," "been sitting with this," "just need someone to hear me," "don't even know where to start," "it's complicated"
+- "here's the thing Luke," "Jesus Luke," "Luke I gotta tell you," "man oh man," "you're not gonna believe this," "so get this," "I'm just gonna come out and say it"
+- "at the end of the day," "that being said," "long story short," "I'll be honest with you," "here's the kicker," "plot twist"
+- Therapy-speak: "unpack," "boundaries," "safe space," "triggered," "my truth," "healing journey," "toxic," "red flag," "gaslight"
+- Internet slang: "hits different," "it is what it is," "no cap," "lowkey," "rent free," "main character energy," "it's giving," "situationship"
+- "I'm not gonna lie," "let that sink in," "everything I thought I knew," "I don't even know who I am anymore"
+- Stalling: "where was I," "as I was saying," "anyway, like I was saying," "like I said," "but anyway"
+
+Each caller has their OWN way of talking. A nervous caller fumbles differently than an angry caller rants. Match the communication style — don't default to generic "radio caller" voice.
 
 {speech_block}
 
 NEVER mention minors in sexual context. Use "United States" not "US" or "USA". Use full state names not abbreviations.
 
-CRITICAL — SPEECH ONLY: You are generating text that will be read aloud by a text-to-speech engine. NEVER include stage directions, action descriptions, or non-verbal cues. This means:
-- NO parenthetical actions: (laughs), (sighs), (pauses), (clears throat), (nervously), (long pause)
-- NO asterisk actions: *laughs*, *sighs deeply*, *pauses*, *nervous laughter*
-- NO bracket actions: [laughs], [pause]
-- NO third-person narration: "He sighs", "She laughs nervously"
-- NO gesture descriptions, sound effects, or emotional stage notes of any kind
-Output ONLY the exact words the caller would speak out loud on the phone. Nothing else."""
+SPEECH ONLY — NEVER include stage directions, action descriptions, or non-verbal cues. NO parenthetical actions (laughs), NO asterisk actions *sighs*, NO bracket actions [pause], NO third-person narration. Output ONLY the exact words the caller would speak out loud.
+
+Don't repeat yourself. Don't summarize what you already said. Don't circle back if the host moved on. If you've covered your main story and Luke is still engaging, surface your burning opinion or one of your hidden details to open a new thread — don't pad with vague philosophy or restate what you've already said.
+
+=== YOUR CALL — THIS IS WHY YOU'RE ON THE LINE ===
+
+{story_block}
+{layers_block}{opinion_block}{stakes_block}"""
 
 
 # --- Session State ---
@@ -6267,8 +6844,8 @@ class Session:
             # DeepSeek Chat — raw, direct, no filter. Pure unprocessed anger.
             "angry_venting":     "deepseek/deepseek-chat-v3-0324",
             # Claude Sonnet 4.6 — genuine vulnerability, emotional depth
-            "quiet_nervous":     "anthropic/claude-sonnet-4.6",
-            "emotional":         "anthropic/claude-sonnet-4.6",
+            "quiet_nervous":     "meta-llama/llama-3.3-70b-instruct",
+            "emotional":         "moonshotai/kimi-k2",
             # Kimi K2 — warm, creative, expressive. Different emotional texture than Claude.
             "sweet_earnest":     "moonshotai/kimi-k2",
             # Mistral Large — dry, precise, strategic omission
@@ -6283,11 +6860,11 @@ class Session:
             "rambling":          "qwen/qwen3-235b-a22b",
             # DeepSeek R1 Distill — commits fully, connects dots, no hedging
             "oversharer":        "deepseek/deepseek-r1-distill-llama-70b",
-            "conspiracy":        "deepseek/deepseek-r1-distill-llama-70b",
+            "conspiracy":        "qwen/qwen3-235b-a22b",
             # Grok 4.1 Fast — gossipy energy, casual, can't wait to spill
             "small_town_gossip": "x-ai/grok-4.1-fast",
             # Gemini 2.5 Pro — pedantic, articulate, cites sources
-            "know_it_all":       "google/gemini-2.5-pro",
+            "know_it_all":       "mistralai/mistral-large-2512",
         }
         self.caller_model_fallback: str = "anthropic/claude-sonnet-4.6"
         self.caller_models: dict[str, str] = {}  # caller_key → assigned model
@@ -6327,8 +6904,8 @@ class Session:
             raw_style = self.caller_styles.get(caller_key, "")
             style_key = _normalize_style_key(raw_style) if raw_style else ""
             model = self.caller_model_map.get(style_key)
-            if not model and self.caller_model_pool:
-                model = self.caller_model_pool[0]
+            if not model:
+                model = self.caller_model_fallback
 
         if model:
             self.caller_models[caller_key] = model
@@ -6509,6 +7086,19 @@ class Session:
         if self.current_caller_key:
             base = CALLER_BASES.get(self.current_caller_key)
             if base:
+                bg = self.caller_backgrounds.get(self.current_caller_key)
+                emotional_state = ""
+                energy_level = ""
+                hidden_layers = []
+                burning_opinion = ""
+                stakes = ""
+                if hasattr(bg, "emotional_state"):
+                    emotional_state = bg.emotional_state
+                    energy_level = bg.energy_level
+                if hasattr(bg, "hidden_layers"):
+                    hidden_layers = bg.hidden_layers
+                    burning_opinion = bg.burning_opinion
+                    stakes = bg.stakes
                 return {
                     "name": base["name"],
                     "voice": base["voice"],
@@ -6516,6 +7106,11 @@ class Session:
                     "style": self.caller_styles.get(self.current_caller_key, ""),
                     "shape": self.caller_shapes.get(self.current_caller_key, "standard"),
                     "tts_provider": base.get("tts_provider"),
+                    "emotional_state": emotional_state,
+                    "energy_level": energy_level,
+                    "hidden_layers": hidden_layers,
+                    "burning_opinion": burning_opinion,
+                    "stakes": stakes,
                 }
         return None
 
@@ -6545,7 +7140,7 @@ class Session:
         self.used_reasons = set()
         self.intern_monitoring = True
         intern_service.stop_monitoring()
-        intern_service.dismiss_suggestion()
+        intern_service.new_show()
         cost_tracker.reset()
         _randomize_callers()
         self.id = str(uuid.uuid4())[:8]
@@ -8264,31 +8859,29 @@ def _pick_response_budget(shape: str = "standard", wrapping_up: bool = False) ->
 
     # Shape-specific overrides
     if shape == "quick_hit":
-        return random.choice([(300, 2), (350, 3)])
+        return random.choice([(350, 3), (400, 3)])
     elif shape == "escalating_reveal":
         roll = random.random()
-        if roll < 0.30:
-            return 500, 4   # 30% — normal
-        elif roll < 0.65:
-            return 600, 5   # 35% — room to build
+        if roll < 0.4:
+            return 450, 4   # 40% — tight, forces restraint
         else:
-            return 800, 7   # 35% — full reveal mode
+            return 600, 5   # 60% — room to build but capped
     elif shape == "confrontation":
-        return random.choice([(450, 3), (500, 4)])
+        return random.choice([(500, 4), (600, 5)])
 
-    # Default distribution for standard and other shapes
+    # Default distribution — give callers room to tell their story
     roll = random.random()
-    if roll < 0.15:
-        return 450, 3   # 15% — quick reaction
-    elif roll < 0.45:
-        return 500, 4   # 30% — normal conversation
-    elif roll < 0.75:
-        return 600, 5   # 30% — room to breathe
+    if roll < 0.10:
+        return 500, 4   # 10% — quick response
+    elif roll < 0.35:
+        return 600, 5   # 25% — normal conversation
+    elif roll < 0.65:
+        return 700, 6   # 30% — room to breathe
     else:
-        return 700, 6   # 25% — telling a story or riffing
+        return 800, 7   # 35% — telling a story or riffing
 
 
-MIN_RESPONSE_WORDS = 20  # Retry if response is shorter than this
+MIN_RESPONSE_WORDS = 50  # Retry if response is shorter than this
 
 
 async def _retry_if_too_short(response: str, llm_service, messages: list, system_prompt: str,
@@ -8350,6 +8943,39 @@ def ensure_complete_thought(text: str) -> str:
 
 _DIGIT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 
+_TENS_WORDS = {
+    10: "ten", 11: "eleven", 12: "twelve", 13: "thirteen", 14: "fourteen",
+    15: "fifteen", 16: "sixteen", 17: "seventeen", 18: "eighteen", 19: "nineteen",
+    20: "twenty", 30: "thirty", 40: "forty", 50: "fifty", 60: "sixty",
+    70: "seventy", 80: "eighty", 90: "ninety",
+}
+
+def _number_to_spoken(n: int) -> str:
+    """Convert a number (0-9999) to natural spoken English."""
+    if n < 10:
+        return _DIGIT_WORDS[n]
+    if n in _TENS_WORDS:
+        return _TENS_WORDS[n]
+    if n < 100:
+        tens = (n // 10) * 10
+        ones = n % 10
+        return f"{_TENS_WORDS[tens]} {_DIGIT_WORDS[ones]}" if ones else _TENS_WORDS[tens]
+    if n < 1000:
+        hundreds = n // 100
+        remainder = n % 100
+        if remainder == 0:
+            return f"{_DIGIT_WORDS[hundreds]} hundred"
+        return f"{_DIGIT_WORDS[hundreds]} hundred {_number_to_spoken(remainder)}"
+    if n < 10000:
+        thousands = n // 1000
+        remainder = n % 1000
+        if remainder == 0:
+            return f"{_number_to_spoken(thousands)} thousand"
+        if remainder < 100:
+            return f"{_number_to_spoken(thousands)} thousand {_number_to_spoken(remainder)}"
+        return f"{_number_to_spoken(thousands)} thousand {_number_to_spoken(remainder)}"
+    return str(n)
+
 # Numbers that should always be read digit-by-digit
 _DIGIT_BY_DIGIT = {
     "911": "nine one one",
@@ -8371,6 +8997,54 @@ _DIGIT_BY_DIGIT = {
     "i-40": "I forty",
 }
 
+# Ordinal numbers → spoken form (covers dates, rankings, common usage)
+_ORDINALS = {
+    "1st": "first", "2nd": "second", "3rd": "third", "4th": "fourth",
+    "5th": "fifth", "6th": "sixth", "7th": "seventh", "8th": "eighth",
+    "9th": "ninth", "10th": "tenth", "11th": "eleventh", "12th": "twelfth",
+    "13th": "thirteenth", "14th": "fourteenth", "15th": "fifteenth",
+    "16th": "sixteenth", "17th": "seventeenth", "18th": "eighteenth",
+    "19th": "nineteenth", "20th": "twentieth", "21st": "twenty first",
+    "22nd": "twenty second", "23rd": "twenty third", "24th": "twenty fourth",
+    "25th": "twenty fifth", "26th": "twenty sixth", "27th": "twenty seventh",
+    "28th": "twenty eighth", "29th": "twenty ninth", "30th": "thirtieth",
+    "31st": "thirty first",
+}
+
+# Common title/address abbreviations that TTS should expand.
+# Order matters: context-specific patterns first, then generic.
+# Use a list of tuples so patterns aren't deduplicated by dict keys.
+_COMMON_ABBREVIATIONS = [
+    # Titles (Dr. → Doctor handled separately with case-sensitive lookahead)
+    (r'\bMr\.', 'Mister'),
+    (r'\bMrs\.', 'Missus'),
+    (r'\bMs\.', 'Miss'),
+    (r'\bJr\.', 'Junior'),
+    (r'\bSr\.', 'Senior'),
+    # St. → Saint before known proper names, Street otherwise
+    (r'\bSt\.\s+(?=Patrick|Louis|George|Mary|John|Joseph|Paul|Peter|Thomas|Andrew|Francis|James|Lawrence|Augustine|Anthony|Bernard|Michael|Nicholas|David|Stephen|Charles|Claire|Anne|Elmo|Jude)', 'Saint '),
+    (r'\bSt\.', 'Street'),
+    (r'\bAve\.', 'Avenue'),
+    (r'\bBlvd\.', 'Boulevard'),
+    (r'\bRd\.', 'Road'),
+    (r'\bDr\.', 'Drive'),
+    (r'\bLn\.', 'Lane'),
+    (r'\bCt\.', 'Court'),
+    # General
+    (r'\betc\.', 'etcetera'),
+    (r'\bapprox\.', 'approximately'),
+    (r'\bft\.', 'feet'),
+    (r'\bmi\.', 'miles'),
+    (r'\blb\.', 'pound'),
+    (r'\blbs\.', 'pounds'),
+    (r'\boz\.', 'ounces'),
+    (r'\bmin\.', 'minutes'),
+    (r'\bhr\.', 'hour'),
+    (r'\bhrs\.', 'hours'),
+    (r'\bw/o\b', 'without'),
+    (r'\bw/', 'with '),
+]
+
 
 def _expand_numbers_for_tts(text: str) -> str:
     """Expand numbers that TTS engines commonly mispronounce."""
@@ -8378,15 +9052,120 @@ def _expand_numbers_for_tts(text: str) -> str:
     for pattern, replacement in _DIGIT_BY_DIGIT.items():
         text = re.sub(re.escape(pattern), replacement, text, flags=re.IGNORECASE)
 
+    # Vehicle models: F-350 → F three fifty, RAM-2500 → RAM twenty five hundred
+    def _model_number(m):
+        letter_part = m.group(1)
+        num = int(m.group(2))
+        return f"{letter_part} {_number_to_spoken(num)}"
+    text = re.sub(r'\b([A-Z]{1,3})[-.]?(\d{2,4})\b', _model_number, text)
+
+    # Calibers: .308 → three oh eight, .223 → two twenty three, .22 → twenty two, etc.
+    def _caliber_to_words(m):
+        cal = m.group(1)
+        caliber_map = {
+            "308": "three oh eight", "223": "two twenty three", "556": "five fifty six",
+            "762": "seven sixty two", "300": "three hundred", "338": "three thirty eight",
+            "270": "two seventy", "243": "two forty three", "357": "three fifty seven",
+            "380": "three eighty", "45": "forty five", "44": "forty four",
+            "38": "thirty eight", "22": "twenty two", "50": "fifty",
+            "9": "nine millimeter", "40": "forty",
+            "410": "four ten", "12": "twelve gauge", "20": "twenty gauge",
+        }
+        return caliber_map.get(cal, " ".join(_DIGIT_WORDS[int(d)] for d in cal))
+    text = re.sub(r'(?<!\d)\.(\d{1,3})\b(?!\d)', _caliber_to_words, text)
+
+    # $120K → a hundred twenty thousand dollars (currency + K/M suffix)
+    def _currency_kmb(m):
+        num_str = m.group(1)
+        suffix = m.group(2).upper()
+        multiplier = {"K": "thousand", "M": "million", "B": "billion"}.get(suffix, "")
+        if '.' in num_str:
+            parts = num_str.split('.')
+            return f"{_number_to_spoken(int(parts[0]))} point {' '.join(_DIGIT_WORDS[int(d)] for d in parts[1])} {multiplier} dollars"
+        return f"{_number_to_spoken(int(num_str))} {multiplier} dollars"
+    text = re.sub(r'\$(\d+(?:\.\d+)?)([KkMmBb])\b', _currency_kmb, text)
+
+    # Currency with commas: $1,500 → "fifteen hundred dollars", $12,000 → "twelve thousand dollars"
+    def _currency_comma(m):
+        num = int(m.group(1).replace(',', ''))
+        return f"{_number_to_spoken(num)} dollars"
+    text = re.sub(r'\$(\d{1,3}(?:,\d{3})+)', _currency_comma, text)
+
+    # Simple currency: $50 → "fifty dollars", $3.50 → "three dollars and fifty cents"
+    def _currency_simple(m):
+        amount = m.group(1)
+        if '.' in amount:
+            dollars, cents = amount.split('.')
+            cents = cents.ljust(2, '0')[:2]
+            d = int(dollars)
+            c = int(cents)
+            if c == 0:
+                return f"{_number_to_spoken(d)} {'dollar' if d == 1 else 'dollars'}"
+            if d == 0:
+                return f"{_number_to_spoken(c)} cents"
+            return f"{_number_to_spoken(d)} {'dollar' if d == 1 else 'dollars'} and {_number_to_spoken(c)} cents"
+        num = int(amount)
+        return f"{_number_to_spoken(num)} {'dollar' if num == 1 else 'dollars'}"
+    text = re.sub(r'\$(\d+(?:\.\d{1,2})?)', _currency_simple, text)
+
+    # K/M suffixes without $: 120K → a hundred twenty thousand, 1.5M → one point five million
+    def _kmb_to_words(m):
+        num_str = m.group(1)
+        suffix = m.group(2).upper()
+        multiplier = {"K": "thousand", "M": "million", "B": "billion"}.get(suffix, "")
+        if '.' in num_str:
+            parts = num_str.split('.')
+            return f"{_number_to_spoken(int(parts[0]))} point {' '.join(_DIGIT_WORDS[int(d)] for d in parts[1])} {multiplier}"
+        return f"{_number_to_spoken(int(num_str))} {multiplier}"
+    text = re.sub(r'\b(\d+(?:\.\d+)?)([KkMmBb])\b', _kmb_to_words, text)
+
+    # Years (1900-2099): nineteen eighty five, two thousand nine, twenty twenty five
+    def _year_to_words(m):
+        year = int(m.group(1))
+        if 2000 <= year <= 2009:
+            return f"two thousand {_DIGIT_WORDS[year - 2000]}" if year > 2000 else "two thousand"
+        if 2010 <= year <= 2099:
+            return f"twenty {_number_to_spoken(year - 2000)}"
+        if 1900 <= year <= 1999:
+            century = year // 100
+            remainder = year % 100
+            if remainder == 0:
+                return f"{_number_to_spoken(century)} hundred"
+            return f"{_number_to_spoken(century)} {_number_to_spoken(remainder)}"
+        return str(year)
+    text = re.sub(r'\b((?:19|20)\d{2})\b', _year_to_words, text)
+
+    # Standalone numbers 2-4 digits (not already handled) — natural spoken form
+    # Only matches numbers surrounded by word boundaries, not inside other patterns
+    def _general_number(m):
+        num = int(m.group(0))
+        if num < 10:
+            return m.group(0)  # single digits are fine
+        return _number_to_spoken(num)
+    text = re.sub(r'(?<![.$\d/:])\b(\d{2,4})\b(?![%\d:./KkMmBb])', _general_number, text)
+
     # Phone numbers: (xxx) xxx-xxxx or xxx-xxx-xxxx — read digit by digit
     def _phone_to_words(m):
         digits = re.sub(r'\D', '', m.group(0))
         return " ".join(_DIGIT_WORDS[int(d)] for d in digits)
     text = re.sub(r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', _phone_to_words, text)
 
-    # Remaining 3-digit numbers that look like they should be digit-by-digit
-    # (standalone, not part of a larger number or word like "300 miles")
-    # Skip these — too ambiguous. The fixed list above covers the known cases.
+    # Ordinals: 1st → first, 2nd → second, etc. (case-insensitive)
+    for ordinal, spoken in _ORDINALS.items():
+        text = re.sub(r'\b' + re.escape(ordinal) + r'\b', spoken, text, flags=re.IGNORECASE)
+
+    # Currency already handled above (before general number regex)
+
+    # Percentages: 75% → 75 percent
+    text = re.sub(r'(\d+(?:\.\d+)?)\s*%', r'\1 percent', text)
+
+    # Times: 3:30 → 3 30, 12:00 → 12 o'clock
+    def _time_to_words(m):
+        hour, minute = m.group(1), m.group(2)
+        if minute == '00':
+            return f"{hour} o'clock"
+        return f"{hour} {minute}"
+    text = re.sub(r'\b(\d{1,2}):(\d{2})\b', _time_to_words, text)
 
     return text
 
@@ -8400,10 +9179,6 @@ _SPOKEN_ACRONYMS = {
 
 # Known words/names that TTS engines consistently botch
 _PRONUNCIATION_FIXES = {
-    "Lordsburg": "Lords burg",
-    "Hachita": "Ha cheetah",
-    "Deming": "Demming",
-    "Bootheel": "Boot heel",
     "Castopod": "Casto pod",
     "vs": "versus",
     "govt": "government",
@@ -8471,7 +9246,7 @@ def _process_caps_words(text: str) -> str:
 def _apply_pronunciation_fixes(text: str) -> str:
     """Apply known pronunciation fixes for words TTS engines botch."""
     for word, fix in _PRONUNCIATION_FIXES.items():
-        text = re.sub(r'\b' + re.escape(word) + r'\b', fix, text)
+        text = re.sub(r'\b' + re.escape(word) + r'\b', fix, text, flags=re.IGNORECASE)
     return text
 
 
@@ -8515,10 +9290,43 @@ def clean_for_tts(text: str, formal: bool = True) -> str:
     # Remove quotes around the response if LLM wrapped it
     text = re.sub(r'^["\']|["\']$', '', text.strip())
 
-    # Expand numbers that TTS engines commonly mispronounce
+    # --- Punctuation normalization for natural prosody ---
+    # Note: em dashes (—) and ellipses (...) are preserved here — Inworld handles them
+    # with SSML <break> tags in _prepare_text_for_inworld(), and other engines handle
+    # them natively or via their own preprocessing.
+
+    # Double hyphen → em dash (normalize before TTS engines handle it)
+    text = re.sub(r'\s*--\s*', ' — ', text)
+    # Unicode ellipsis → three dots (normalize for consistent handling downstream)
+    text = re.sub(r'…', '...', text)
+    # Semicolons → period (TTS doesn't differentiate semicolon from comma well)
+    text = re.sub(r';', '.', text)
+
+    # --- Symbols to speakable text ---
+
+    # Ampersand
+    text = re.sub(r'\s*&\s*', ' and ', text)
+    # Hash/number sign (before a number = "number", standalone = skip)
+    text = re.sub(r'#(\d)', r'number \1', text)
+    # Plus sign between words
+    text = re.sub(r'\s*\+\s*', ' plus ', text)
+    # Equals sign
+    text = re.sub(r'\s*=\s*', ' equals ', text)
+    # At sign (in non-email context)
+    text = re.sub(r'(?<!\S)@(?=\w)', 'at ', text)
+
+    # --- Number and abbreviation expansion ---
+
+    # Expand numbers (currency, ordinals, percentages, times, phone numbers)
     text = _expand_numbers_for_tts(text)
 
-    # Expand abbreviations BEFORE acronym processing (NM → New Mexico, US → United States)
+    # Expand common abbreviations (Dr., Mr., St., etc.)
+    # Dr. → Doctor before a name (case-SENSITIVE lookahead so "Oak Dr." → "Oak Drive" not "Oak Doctor")
+    text = re.sub(r'\bDr\.\s+(?=[A-Z])', 'Doctor ', text)
+    for abbr_pattern, expansion in _COMMON_ABBREVIATIONS:
+        text = re.sub(abbr_pattern, expansion, text, flags=re.IGNORECASE)
+
+    # Expand state/country abbreviations BEFORE acronym processing
     # Must run while text is still original case so we can match uppercase abbreviations
     for abbrev, expansion in _ABBREVIATION_EXPANSIONS.items():
         text = re.sub(r'\b' + re.escape(abbrev) + r'\b', expansion, text)
@@ -8531,7 +9339,7 @@ def clean_for_tts(text: str, formal: bool = True) -> str:
     # Handle all caps words: spell out acronyms (FBI → F B I), lowercase emphasis (REALLY → really)
     text = _process_caps_words(text)
 
-    # Fix phonetic spellings for proper TTS pronunciation
+    # --- Phonetic spelling normalization ---
     # Skip colloquialism expansion for informal callers — keeps speech natural
     if formal:
         text = re.sub(r"\by'know\b", "you know", text, flags=re.IGNORECASE)
@@ -8551,10 +9359,31 @@ def clean_for_tts(text: str, formal: bool = True) -> str:
         text = re.sub(r"\bimma\b", "I'm going to", text, flags=re.IGNORECASE)
         text = re.sub(r"\btryna\b", "trying to", text, flags=re.IGNORECASE)
 
+    # --- Natural breathing pauses ---
+
+    # Add comma after sentence-starting transition words (if not already punctuated)
+    for tw in ['Well', 'So', 'Now', 'Look', 'See', 'Anyway', 'Actually', 'Honestly',
+               'Basically', 'Listen', 'Right', 'Okay', 'Sure', 'Yeah']:
+        text = re.sub(r'(?<![,.])\b(' + tw + r')\s+(?=[A-Za-z])', r'\1, ', text)
+
+    # Add pause after "I mean" / "you know" at start of sentence
+    text = re.sub(r'(?:^|(?<=\.\s))(I mean)\s+(?!,)', r'\1, ', text)
+    text = re.sub(r'(?:^|(?<=\.\s))(You know)\s+(?=\w)', r'\1, ', text)
+
+    # Conjunction pauses handled per-engine: Inworld uses SSML <break> tags in
+    # _prepare_text_for_inworld(), Kokoro uses comma insertion in preprocess_text_for_kokoro()
+
+    # --- Final cleanup ---
+
     # Clean up extra whitespace
     text = re.sub(r'\s+', ' ', text)
     # Fix spaces before punctuation
     text = re.sub(r'\s+([.,!?])', r'\1', text)
+    # Fix double punctuation from earlier transformations (preserve ellipsis "...")
+    text = re.sub(r'([,!?])\s*\1+', r'\1', text)
+    text = re.sub(r'(?<!\.)\.\.(?!\.)', '.', text)  # collapse ".." but not "..."
+    text = re.sub(r',\.', '.', text)
+    text = re.sub(r'\.,', ',', text)
     # Remove orphaned punctuation at start
     text = re.sub(r'^[.,]\s*', '', text)
     return text.strip()
@@ -9102,6 +9931,22 @@ async def set_show_theme(data: dict):
         print(f"[Theme] Show theme set: {theme}")
     elif old_theme:
         print(f"[Theme] Show theme cleared (was: {old_theme})")
+
+    # Regenerate backgrounds for unused callers so theme gets baked in
+    if theme and theme != old_theme:
+        used_keys = set()
+        if session.current_caller_key:
+            used_keys.add(session.current_caller_key)
+        for record in session.call_history:
+            for key, base in CALLER_BASES.items():
+                if base.get("name") == record.caller_name:
+                    used_keys.add(key)
+                    break
+        unused_keys = [k for k in CALLER_BASES if k not in used_keys]
+        if unused_keys:
+            asyncio.create_task(_regenerate_backgrounds_for_keys(unused_keys))
+            print(f"[Theme] Regenerating backgrounds for {len(unused_keys)} unused callers")
+
     return {"theme": session.show_theme}
 
 
@@ -9171,6 +10016,218 @@ async def set_caller_model_override(caller_key: str, data: dict):
         print(f"[CallerModel] Override {name} → {model}")
     _save_checkpoint()
     return {"caller_key": caller_key, "model": session.caller_models.get(caller_key, "(default)")}
+
+
+# --- Show Preflight ---
+
+@app.get("/api/show/preflight")
+async def show_preflight(test_responses: bool = False):
+    """Run diagnostic checks before a show goes live."""
+    from .services.tts import VOICE_PROFILES
+
+    checks = {}
+
+    # --- 1. Model diversity ---
+    caller_assignments = []
+    model_counts: dict[str, int] = {}
+    for key, base in CALLER_BASES.items():
+        raw_style = session.caller_styles.get(key, "")
+        style_key = _normalize_style_key(raw_style) if raw_style else ""
+        # Look up what model they'd get without persisting
+        model = session.caller_model_map.get(style_key) if style_key else None
+        if not model:
+            model = session.caller_model_fallback
+        caller_assignments.append({
+            "name": base.get("name", key),
+            "style": style_key or "(none)",
+            "model": model,
+        })
+        model_counts[model] = model_counts.get(model, 0) + 1
+
+    total_callers = len(caller_assignments)
+    max_same = max(model_counts.values()) if model_counts else 0
+    diversity_status = "fail" if total_callers > 0 and max_same / total_callers > 0.5 else "pass"
+    checks["model_diversity"] = {
+        "status": diversity_status,
+        "details": {
+            "callers": caller_assignments,
+            "model_distribution": model_counts,
+            "max_same_model_pct": round(max_same / total_callers * 100) if total_callers else 0,
+        },
+    }
+
+    # --- 2. Theme penetration ---
+    if session.show_theme:
+        theme_words = [w.lower() for w in session.show_theme.split() if len(w) > 2]
+        hits = []
+        misses = []
+        for key, base in CALLER_BASES.items():
+            bg = session.caller_backgrounds.get(key)
+            if not isinstance(bg, CallerBackground):
+                misses.append(base.get("name", key))
+                continue
+            searchable = f"{bg.natural_description} {bg.situation_summary}".lower()
+            if any(tw in searchable for tw in theme_words):
+                hits.append(base.get("name", key))
+            else:
+                misses.append(base.get("name", key))
+        total_bg = len(hits) + len(misses)
+        hit_pct = round(len(hits) / total_bg * 100) if total_bg else 0
+        theme_status = "warn" if total_bg > 0 and hit_pct < 40 else "pass"
+        checks["theme_penetration"] = {
+            "status": theme_status,
+            "details": {
+                "theme": session.show_theme,
+                "connected": hits,
+                "not_connected": misses,
+                "penetration_pct": hit_pct,
+            },
+        }
+    else:
+        checks["theme_penetration"] = {"status": "skip", "details": {"reason": "No theme set"}}
+
+    # --- 3. Voice-age alignment ---
+    mismatches = []
+    alignments = []
+    for key, base in CALLER_BASES.items():
+        bg = session.caller_backgrounds.get(key)
+        if not isinstance(bg, CallerBackground):
+            continue
+        voice_name = base.get("voice", "")
+        profile = VOICE_PROFILES.get(voice_name, {})
+        age_feel = profile.get("age_feel", "unknown")
+        is_mismatch = (bg.age >= 50 and age_feel == "young") or (bg.age < 25 and age_feel == "mature")
+        entry = {
+            "name": base.get("name", key),
+            "age": bg.age,
+            "voice": voice_name,
+            "voice_age_feel": age_feel,
+            "mismatch": is_mismatch,
+        }
+        alignments.append(entry)
+        if is_mismatch:
+            mismatches.append(entry)
+
+    voice_status = "warn" if mismatches else "pass"
+    checks["voice_age_alignment"] = {
+        "status": voice_status,
+        "details": {
+            "callers": alignments,
+            "mismatches": len(mismatches),
+        },
+    }
+
+    # --- 4. Response coherence (optional) ---
+    if test_responses:
+        # Test ALL callers, not just a sample — we want confidence every caller works
+        test_callers = []
+        for key, base in CALLER_BASES.items():
+            raw_style = session.caller_styles.get(key, "")
+            style_key = _normalize_style_key(raw_style) if raw_style else ""
+            model = session.caller_model_map.get(style_key) if style_key else None
+            if not model:
+                model = session.caller_model_fallback
+            test_callers.append((key, base, model))
+
+        coherence_results = []
+        coherence_fail = False
+
+        # Run all tests in parallel for speed
+        async def _test_caller(key, base, model):
+            caller_data = {
+                "name": base.get("name", key),
+                "vibe": session.get_caller_background(key),
+                "style": session.caller_styles.get(key, ""),
+                "shape": session.caller_shapes.get(key, "standard"),
+            }
+            prompt = get_caller_prompt(caller_data, show_history="")
+            # Simulate a real 3-exchange conversation
+            max_tok, _ = _pick_response_budget(session.caller_shapes.get(key, "standard"))
+            messages = [
+                {"role": "user", "content": "Hey welcome to the show, what's going on tonight?"},
+            ]
+            try:
+                # First response
+                r1 = await llm_service.generate(
+                    messages=messages, system_prompt=prompt,
+                    max_tokens=max_tok, category="caller_dialog",
+                    caller_name=base.get("name", ""), model_override=model,
+                )
+                r1 = await _retry_if_too_short(
+                    r1, llm_service, messages, prompt,
+                    max_tok, base.get("name", ""), model_override=model,
+                )
+                r1_words = len(r1.split()) if r1 else 0
+
+                # Second exchange — host follow-up
+                messages.append({"role": "assistant", "content": r1})
+                messages.append({"role": "user", "content": "Wait, tell me more about that."})
+                r2 = await llm_service.generate(
+                    messages=messages, system_prompt=prompt,
+                    max_tokens=max_tok, category="caller_dialog",
+                    caller_name=base.get("name", ""), model_override=model,
+                )
+                r2 = await _retry_if_too_short(
+                    r2, llm_service, messages, prompt,
+                    max_tok, base.get("name", ""), model_override=model,
+                )
+                r2_words = len(r2.split()) if r2 else 0
+
+                avg_words = (r1_words + r2_words) // 2
+                passed = avg_words >= MIN_RESPONSE_WORDS and r1_words >= 20 and r2_words >= 20
+                return {
+                    "name": base.get("name", key),
+                    "model": model,
+                    "word_count": avg_words,
+                    "r1_words": r1_words,
+                    "r2_words": r2_words,
+                    "pass": passed,
+                    "snippet": (r1[:150] + "...") if r1 and len(r1) > 150 else r1,
+                }
+            except Exception as e:
+                return {
+                    "name": base.get("name", key),
+                    "model": model,
+                    "error": str(e),
+                    "pass": False,
+                }
+
+        results = await asyncio.gather(*[_test_caller(k, b, m) for k, b, m in test_callers])
+        for r in results:
+            coherence_results.append(r)
+            if not r.get("pass"):
+                coherence_fail = True
+
+        checks["response_coherence"] = {
+            "status": "fail" if coherence_fail else "pass",
+            "details": {"results": coherence_results},
+        }
+    else:
+        checks["response_coherence"] = {"status": "skip", "details": {"reason": "Use ?test_responses=true to enable"}}
+
+    # --- Overall status ---
+    statuses = [c["status"] for c in checks.values()]
+    if "fail" in statuses:
+        overall = "fail"
+    elif "warn" in statuses:
+        overall = "warn"
+    else:
+        overall = "pass"
+
+    # Summary
+    issues = []
+    if checks["model_diversity"]["status"] == "fail":
+        issues.append(f"Model diversity: {checks['model_diversity']['details']['max_same_model_pct']}% on same model")
+    if checks["theme_penetration"]["status"] == "warn":
+        issues.append(f"Theme penetration: only {checks['theme_penetration']['details']['penetration_pct']}% connected")
+    if checks["voice_age_alignment"]["status"] == "warn":
+        issues.append(f"Voice-age mismatches: {len(mismatches)}")
+    if checks.get("response_coherence", {}).get("status") == "fail":
+        failed = [r["name"] for r in checks["response_coherence"]["details"]["results"] if not r.get("pass")]
+        issues.append(f"Response coherence failed: {', '.join(failed)}")
+    summary = "; ".join(issues) if issues else "All checks passed"
+
+    return {"status": overall, "checks": checks, "summary": summary}
 
 
 # --- Cost Tracking Endpoints ---
@@ -9703,7 +10760,9 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
     broadcast_event("ai_status", {"text": f"{ai_name} is speaking..."})
     try:
         audio_bytes = await generate_speech(response, session.caller["voice"], "none",
-                                            provider_override=session.caller.get("tts_provider"))
+                                            provider_override=session.caller.get("tts_provider"),
+                                            emotional_state=session.caller.get("emotional_state", ""),
+                                            energy_level=session.caller.get("energy_level", ""))
     except Exception as e:
         print(f"[Auto-Respond] TTS failed: {e}")
         broadcast_event("ai_done")
@@ -9802,11 +10861,15 @@ async def ai_respond():
     ai_name = caller["name"]
     ai_voice = caller["voice"]
     ai_tts_provider = caller.get("tts_provider")
+    ai_emotional_state = caller.get("emotional_state", "")
+    ai_energy_level = caller.get("energy_level", "")
 
     # TTS — outside the lock so other requests aren't blocked
     try:
         audio_bytes = await generate_speech(response, ai_voice, "none",
-                                            provider_override=ai_tts_provider)
+                                            provider_override=ai_tts_provider,
+                                            emotional_state=ai_emotional_state,
+                                            energy_level=ai_energy_level)
     except Exception as e:
         print(f"[AI-Respond] TTS failed: {e}")
         broadcast_event("ai_done")
