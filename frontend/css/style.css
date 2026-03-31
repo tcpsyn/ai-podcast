@@ -347,9 +347,14 @@ section h2 {
 }
 
 .caller-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--bg);
+    border-color: transparent;
+}
+.caller-btn.active .caller-name {
     color: #fff;
+    background: var(--accent);
+    padding: 2px 8px;
+    border-radius: 4px;
 }
 
 .call-status {
@@ -1929,3 +1934,110 @@ button:focus-visible {
 .log-toggle-btn:hover {
     color: var(--text);
 }
+
+/* Preflight */
+.preflight-btn {
+    background: rgba(90, 138, 60, 0.15);
+    color: var(--accent-green);
+    border: 1px solid rgba(90, 138, 60, 0.3);
+}
+.preflight-btn:hover {
+    background: rgba(90, 138, 60, 0.25);
+}
+
+.preflight-content {
+    max-width: 700px;
+}
+
+.preflight-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+.preflight-status.pass { background: rgba(90, 138, 60, 0.15); color: var(--accent-green); }
+.preflight-status.warn { background: rgba(232, 169, 29, 0.15); color: #e8a91d; }
+.preflight-status.fail { background: rgba(204, 34, 34, 0.15); color: var(--accent-red); }
+.preflight-status.loading { background: rgba(232, 121, 29, 0.1); color: var(--text-muted); }
+
+.preflight-checks {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.preflight-check {
+    background: var(--bg);
+    border: 1px solid rgba(232, 121, 29, 0.1);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+}
+.preflight-check-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+.preflight-check-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+.preflight-check-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+.preflight-check-badge.pass { background: rgba(90, 138, 60, 0.2); color: var(--accent-green); }
+.preflight-check-badge.warn { background: rgba(232, 169, 29, 0.2); color: #e8a91d; }
+.preflight-check-badge.fail { background: rgba(204, 34, 34, 0.2); color: var(--accent-red); }
+.preflight-check-badge.skip { background: rgba(154, 139, 120, 0.2); color: var(--text-muted); }
+
+.preflight-check-details {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: none;
+}
+.preflight-check.open .preflight-check-details {
+    display: block;
+}
+
+.preflight-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+}
+.preflight-table th {
+    text-align: left;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-bottom: 1px solid rgba(232, 121, 29, 0.1);
+}
+.preflight-table td {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    color: var(--text);
+    border-bottom: 1px solid rgba(232, 121, 29, 0.05);
+}
+.preflight-table tr.mismatch td { color: var(--accent-red); }
+.preflight-table tr.connected td { color: var(--accent-green); }
+
+.preflight-test-btn {
+    background: rgba(232, 121, 29, 0.15);
+    color: var(--accent);
+    border: 1px solid rgba(232, 121, 29, 0.3);
+}
+.preflight-test-btn:hover { background: rgba(232, 121, 29, 0.25); }
+.preflight-test-btn.loading { opacity: 0.6; pointer-events: none; }

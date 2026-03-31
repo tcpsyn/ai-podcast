@@ -392,6 +392,17 @@ function initEventListeners() {
     });
     document.getElementById('refresh-ollama')?.addEventListener('click', refreshOllamaModels);
 
+    // Preflight
+    document.getElementById('preflight-btn')?.addEventListener('click', () => {
+        document.getElementById('preflight-modal')?.classList.remove('hidden');
+        runPreflight(false);
+    });
+    document.getElementById('preflight-test-btn')?.addEventListener('click', () => runPreflight(true));
+    document.getElementById('preflight-rerun-btn')?.addEventListener('click', () => runPreflight(false));
+    document.getElementById('close-preflight')?.addEventListener('click', () => {
+        document.getElementById('preflight-modal')?.classList.add('hidden');
+    });
+
     // Wrap-up button
     document.getElementById('wrapup-btn')?.addEventListener('click', wrapUp);
 
@@ -686,6 +697,31 @@ async function startCall(key, name) {
     document.querySelector('.callers-section')?.classList.add('call-active');
     document.querySelector('.chat-section')?.classList.add('call-active');
 
+    // Highlight active caller button immediately
+    document.querySelectorAll('.caller-btn').forEach(btn => {
+        const isActive = btn.dataset.key === key;
+        btn.classList.toggle('active', isActive);
+        if (isActive) {
+            btn.style.outline = '2px solid #5a8a3c';
+            const nameEl = btn.querySelector('.caller-name');
+            if (nameEl) {
+                nameEl.style.background = '#e8791d';
+                nameEl.style.color = '#fff';
+                nameEl.style.padding = '2px 8px';
+                nameEl.style.borderRadius = '4px';
+            }
+        } else {
+            btn.style.outline = '';
+            const nameEl = btn.querySelector('.caller-name');
+            if (nameEl) {
+                nameEl.style.background = '';
+                nameEl.style.color = '';
+                nameEl.style.padding = '';
+                nameEl.style.borderRadius = '';
+            }
+        }
+    });
+
     // Check if real caller is active (three-way scenario)
     const realCallerActive = document.getElementById('real-caller-info') &&
         !document.getElementById('real-caller-info').classList.contains('hidden');
@@ -723,14 +759,32 @@ async function startCall(key, name) {
         if (situation) situation.textContent = ci.situation_summary || '';
         infoPanel.classList.remove('hidden');
     }
-    showCallerModelBadge(callerModelAssignments[key] || data.model);
+    try {
+        showCallerModelBadge(callerModelAssignments[key] || data.model);
+    } catch(e) { console.error('[startCall] showCallerModelBadge error:', e); }
     document.getElementById('caller-model-override')?.classList.add('hidden');
     const bgEl = document.getElementById('caller-background');
     if (bgEl && data.background) bgEl.textContent = data.background;
 
+    let matchCount = 0;
     document.querySelectorAll('.caller-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.key === key);
+        const isActive = btn.dataset.key === key;
+        btn.classList.toggle('active', isActive);
+        if (isActive) {
+            btn.style.outline = '2px solid #5a8a3c';
+            matchCount++;
+        } else {
+            btn.style.outline = '';
+        }
+        const nameEl = btn.querySelector('.caller-name');
+        if (nameEl) {
+            nameEl.style.background = isActive ? '#e8791d' : '';
+            nameEl.style.color = isActive ? '#fff' : '';
+            nameEl.style.padding = isActive ? '2px 8px' : '';
+            nameEl.style.borderRadius = isActive ? '4px' : '';
+        }
     });
+    console.log(`[ActiveCaller] key=${key}, matched=${matchCount} buttons`);
 
     log(`Connected to ${name}` + (realCallerActive ? ' (three-way)' : ''));
     if (!realCallerActive) clearChat();
@@ -779,7 +833,16 @@ async function hangup() {
     document.getElementById('hangup-btn').disabled = true;
     const wrapBtn = document.getElementById('wrapup-btn');
     if (wrapBtn) { wrapBtn.disabled = true; wrapBtn.classList.remove('active'); }
-    document.querySelectorAll('.caller-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.caller-btn').forEach(btn => {
+        btn.classList.remove('active');
+        const nameEl = btn.querySelector('.caller-name');
+        if (nameEl) {
+            nameEl.style.background = '';
+            nameEl.style.color = '';
+            nameEl.style.padding = '';
+            nameEl.style.borderRadius = '';
+        }
+    });
 
     // Hide caller info panel and background
     document.getElementById('caller-info-panel')?.classList.add('hidden');
@@ -964,6 +1027,7 @@ async function sendTypedMessage() {
 
 // --- Music (Server-Side) ---
 let genreMap = {};       // { genre: [track, ...] }
+let genreQueues = {};    // { genre: [shuffled track indices...] }
 let activeGenre = null;
 let currentTrackName = '';
 
@@ -1009,12 +1073,24 @@ async function loadMusic() {
 }
 
 
-async function playGenre(genre) {
+function getNextTrack(genre) {
     const genreTracks = genreMap[genre];
-    if (!genreTracks || genreTracks.length === 0) return;
+    if (!genreTracks || genreTracks.length === 0) return null;
+    // Refill and shuffle queue when empty
+    if (!genreQueues[genre] || genreQueues[genre].length === 0) {
+        const indices = genreTracks.map((_, i) => i);
+        for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+        genreQueues[genre] = indices;
+    }
+    return genreTracks[genreQueues[genre].shift()];
+}
 
-    // Pick a random track from the genre
-    const track = genreTracks[Math.floor(Math.random() * genreTracks.length)];
+async function playGenre(genre) {
+    const track = getNextTrack(genre);
+    if (!track) return;
 
     try {
         const res = await fetch('/api/music/play', {
@@ -2352,4 +2428,154 @@ async function dismissDevonSuggestion() {
         await safeFetch('/api/intern/suggestion/dismiss', { method: 'POST' });
         document.getElementById('devon-suggestion')?.classList.add('hidden');
     } catch (err) {}
+}
+
+
+// --- Preflight ---
+
+const PREFLIGHT_STATUS_ICONS = { pass: '✓', warn: '⚠', fail: '✗', skip: '—' };
+
+const PREFLIGHT_CHECK_NAMES = {
+    model_diversity: 'Model Diversity',
+    theme_penetration: 'Theme Penetration',
+    voice_age_alignment: 'Voice-Age Alignment',
+    response_coherence: 'Response Coherence',
+};
+
+async function runPreflight(testResponses) {
+    const statusEl = document.getElementById('preflight-status');
+    const checksEl = document.getElementById('preflight-checks');
+    const testBtn = document.getElementById('preflight-test-btn');
+
+    statusEl.className = 'preflight-status loading';
+    statusEl.querySelector('.preflight-status-icon').textContent = '...';
+    statusEl.querySelector('.preflight-status-text').textContent = 'Running checks...';
+    checksEl.innerHTML = '';
+
+    if (testResponses && testBtn) testBtn.classList.add('loading');
+
+    try {
+        const url = '/api/show/preflight' + (testResponses ? '?test_responses=true' : '');
+        const data = await safeFetch(url, {}, 120000);
+        renderPreflightResults(data, statusEl, checksEl);
+    } catch (err) {
+        statusEl.className = 'preflight-status fail';
+        statusEl.querySelector('.preflight-status-icon').textContent = '✗';
+        statusEl.querySelector('.preflight-status-text').textContent = 'Error: ' + err.message;
+    } finally {
+        if (testBtn) testBtn.classList.remove('loading');
+    }
+}
+
+function renderPreflightResults(data, statusEl, checksEl) {
+    const overall = data.status || 'pass';
+    statusEl.className = 'preflight-status ' + overall;
+    statusEl.querySelector('.preflight-status-icon').textContent = PREFLIGHT_STATUS_ICONS[overall] || '✓';
+    statusEl.querySelector('.preflight-status-text').textContent =
+        overall === 'pass' ? 'All checks passed' :
+        overall === 'warn' ? 'Passed with warnings' : 'Issues found';
+
+    checksEl.innerHTML = '';
+    const checksObj = data.checks || {};
+    for (const [checkKey, check] of Object.entries(checksObj)) {
+        const card = document.createElement('div');
+        card.className = 'preflight-check';
+
+        const status = check.status || 'skip';
+        const name = PREFLIGHT_CHECK_NAMES[checkKey] || checkKey;
+
+        card.innerHTML = `
+            <div class="preflight-check-header">
+                <span class="preflight-check-name">${escapeHtml(name)}</span>
+                <span class="preflight-check-badge ${status}">${status.toUpperCase()}</span>
+            </div>
+            <div class="preflight-check-details">${renderCheckDetails(checkKey, check)}</div>
+        `;
+
+        card.querySelector('.preflight-check-header').addEventListener('click', () => {
+            card.classList.toggle('open');
+        });
+
+        checksEl.appendChild(card);
+    }
+}
+
+function renderCheckDetails(name, check) {
+    const d = check.details || {};
+    switch (name) {
+        case 'model_diversity': return renderModelDiversity(d);
+        case 'theme_penetration': return renderThemePenetration(d);
+        case 'voice_age_alignment': return renderVoiceAgeAlignment(d);
+        case 'response_coherence': return renderResponseCoherence(check);
+        default: return `<pre>${escapeHtml(JSON.stringify(d, null, 2))}</pre>`;
+    }
+}
+
+function renderModelDiversity(d) {
+    const callers = d.callers || [];
+    if (!callers.length) return '<p>No callers to check.</p>';
+    let html = `<table class="preflight-table">
+        <thead><tr><th>Caller</th><th>Style</th><th>Model</th></tr></thead><tbody>`;
+    for (const c of callers) {
+        html += `<tr><td>${escapeHtml(c.name || '')}</td><td>${escapeHtml(c.style || '')}</td><td>${escapeHtml(c.model || '')}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    if (d.max_same_model_pct != null) {
+        html += `<p style="margin-top:8px">${d.max_same_model_pct}% on same model</p>`;
+    }
+    return html;
+}
+
+function renderThemePenetration(d) {
+    let html = '';
+    if (d.theme) html += `<p><strong>Theme:</strong> ${escapeHtml(d.theme)}</p>`;
+    if (d.connected?.length) {
+        html += `<p style="color:var(--accent-green);margin-top:6px">Connected: ${d.connected.map(n => escapeHtml(n)).join(', ')}</p>`;
+    }
+    if (d.not_connected?.length) {
+        html += `<p style="color:var(--text-muted);margin-top:4px">Not connected: ${d.not_connected.map(n => escapeHtml(n)).join(', ')}</p>`;
+    }
+    if (d.penetration_pct != null) {
+        html += `<p style="margin-top:6px">${d.penetration_pct}% penetration</p>`;
+    }
+    return html || '<p>No theme set.</p>';
+}
+
+function renderVoiceAgeAlignment(d) {
+    const callers = d.callers || [];
+    if (!callers.length) return '<p>No callers to check.</p>';
+    let html = `<table class="preflight-table">
+        <thead><tr><th>Caller</th><th>Age</th><th>Voice</th><th>Age Feel</th></tr></thead><tbody>`;
+    for (const c of callers) {
+        const cls = c.mismatch ? ' class="mismatch"' : '';
+        html += `<tr${cls}><td>${escapeHtml(c.name || '')}</td><td>${c.age || ''}</td><td>${escapeHtml(c.voice || '')}</td><td>${escapeHtml(c.age_feel || '')}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    return html;
+}
+
+function renderResponseCoherence(check) {
+    if (check.status === 'skip') {
+        return '<p>Use <strong>Test Responses</strong> button to run this check.</p>';
+    }
+    const d = check.details || {};
+    const results = d.results || [];
+    if (!results.length) return '<p>No test results.</p>';
+    let html = `<table class="preflight-table">
+        <thead><tr><th>Caller</th><th>Model</th><th>R1</th><th>R2</th><th>Avg</th><th></th></tr></thead><tbody>`;
+    for (const c of results) {
+        const cls = c.pass ? '' : ' class="mismatch"';
+        if (c.error) {
+            html += `<tr class="mismatch"><td>${escapeHtml(c.name || '')}</td><td>${escapeHtml(c.model || '')}</td><td colspan="3">${escapeHtml(c.error)}</td><td>✗</td></tr>`;
+        } else {
+            html += `<tr${cls}><td>${escapeHtml(c.name || '')}</td><td>${escapeHtml(c.model || '')}</td><td>${c.r1_words || 0}</td><td>${c.r2_words || 0}</td><td>${c.word_count || 0}</td><td>${c.pass ? '✓' : '✗'}</td></tr>`;
+            if (c.snippet) {
+                html += `<tr><td colspan="6" style="color:var(--text-muted);font-size:0.75rem;padding-left:16px">${escapeHtml(c.snippet)}</td></tr>`;
+            }
+        }
+    }
+    html += '</tbody></table>';
+    const passed = results.filter(r => r.pass).length;
+    html += `<p style="margin-top:8px">${passed}/${results.length} callers passed (min ${50} words per response)</p>`;
+    return html;
 }
