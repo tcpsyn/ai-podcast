@@ -3,8 +3,11 @@
 import json
 import time
 from dataclasses import dataclass, field, asdict
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+from backend.services import cost_db
 
 
 @dataclass
@@ -95,6 +98,7 @@ def _calc_tts_cost(provider: str, char_count: int) -> float:
 
 class CostTracker:
     def __init__(self):
+        self._session_id = f"session-{datetime.now().strftime('%Y-%m-%d_%H%M%S')}"
         self.llm_records: list[LLMCallRecord] = []
         self.tts_records: list[TTSCallRecord] = []
         # Running totals for fast get_live_summary()
@@ -137,6 +141,16 @@ class CostTracker:
         )
         self.llm_records.append(record)
 
+        try:
+            cost_db.ensure_session(self._session_id)
+            cost_db.record_llm_call(
+                self._session_id, record.timestamp, record.category, record.model,
+                record.prompt_tokens, record.completion_tokens, record.cost_usd,
+                record.caller_name, record.latency_ms,
+            )
+        except Exception:
+            pass  # don't break show over analytics
+
         # Update running totals
         self._llm_cost += cost
         self._llm_calls += 1
@@ -165,6 +179,15 @@ class CostTracker:
             cost_usd=cost,
         )
         self.tts_records.append(record)
+
+        try:
+            cost_db.record_tts_call(
+                self._session_id, record.timestamp, record.provider, record.voice,
+                record.char_count, record.cost_usd,
+            )
+        except Exception:
+            pass
+
         self._tts_cost += cost
 
     def get_live_summary(self) -> dict:
@@ -368,6 +391,11 @@ class CostTracker:
         with open(filepath, "w") as f:
             json.dump(report, f, indent=2)
         print(f"[Costs] Report saved to {filepath}")
+
+        try:
+            cost_db.update_session_totals(self._session_id)
+        except Exception:
+            pass
 
     def reset(self):
         self.llm_records.clear()
