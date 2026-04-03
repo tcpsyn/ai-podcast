@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost Dashboard - Luke at the Roost</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/costs.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header class="costs-header">
+        <h1>Cost Dashboard</h1>
+        <a href="/" class="back-link">Back to Show</a>
+        <nav class="period-tabs">
+            <button class="period-tab active" data-period="all">All Time</button>
+            <button class="period-tab" data-period="month">This Month</button>
+            <button class="period-tab" data-period="week">This Week</button>
+            <button class="period-tab" data-period="today">Today</button>
+        </nav>
+    </header>
+    <main class="costs-main">
+        <section class="summary-cards">
+            <div class="card" id="card-total">
+                <div class="card-label">Total Spend</div>
+                <div class="card-value" id="total-spend">--</div>
+                <div class="card-change" id="total-change"></div>
+            </div>
+            <div class="card" id="card-llm-tts">
+                <div class="card-label">LLM / TTS</div>
+                <div class="card-value" id="llm-tts-split">--</div>
+            </div>
+            <div class="card" id="card-sessions">
+                <div class="card-label">Sessions</div>
+                <div class="card-value" id="session-count">--</div>
+            </div>
+            <div class="card" id="card-avg">
+                <div class="card-label">Avg / Session</div>
+                <div class="card-value" id="avg-cost">--</div>
+            </div>
+        </section>
+        <section class="chart-row">
+            <div class="chart-container">
+                <h3>Cost Over Time</h3>
+                <canvas id="timeline-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Cost by Model</h3>
+                <canvas id="model-chart"></canvas>
+            </div>
+        </section>
+        <section class="chart-row">
+            <div class="chart-container">
+                <h3>Cost by Category</h3>
+                <canvas id="category-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Cost Per Session</h3>
+                <canvas id="session-chart"></canvas>
+            </div>
+        </section>
+        <section class="tables-section">
+            <div class="table-container">
+                <h3>Most Expensive Calls</h3>
+                <table id="expensive-table">
+                    <thead>
+                        <tr><th>Model</th><th>Category</th><th>Caller</th><th>Tokens</th><th>Cost</th><th>Latency</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="table-container">
+                <h3>Sessions</h3>
+                <table id="sessions-table">
+                    <thead>
+                        <tr><th>Date</th><th>LLM</th><th>TTS</th><th>Total</th><th>Calls</th><th></th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+        <section class="session-detail hidden" id="session-detail">
+            <h2>Session Detail: <span id="detail-session-id"></span></h2>
+            <button class="close-detail" id="close-detail">Back</button>
+            <div class="detail-grid">
+                <div class="table-container">
+                    <h3>By Caller</h3>
+                    <table id="detail-caller-table">
+                        <thead><tr><th>Caller</th><th>Calls</th><th>Cost</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="table-container">
+                    <h3>By Category</h3>
+                    <table id="detail-category-table">
+                        <thead><tr><th>Category</th><th>Calls</th><th>Cost</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="table-container">
+                    <h3>By Model</h3>
+                    <table id="detail-model-table">
+                        <thead><tr><th>Model</th><th>Calls</th><th>Cost</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="table-container">
+                    <h3>Most Expensive Calls</h3>
+                    <table id="detail-expensive-table">
+                        <thead><tr><th>Category</th><th>Model</th><th>Caller</th><th>Cost</th><th>Tokens</th><th>Latency</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="/js/costs.js"></script>
+</body>
+</html>
