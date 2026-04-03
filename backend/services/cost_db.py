@@ -13,7 +13,7 @@ _conn: sqlite3.Connection | None = None
 
 
 def init_db(db_path: Path = DB_PATH) -> sqlite3.Connection:
-    conn = sqlite3.connect(str(db_path))
+    conn = sqlite3.connect(str(db_path), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
@@ -59,6 +59,8 @@ def init_db(db_path: Path = DB_PATH) -> sqlite3.Connection:
             ON llm_calls(session_id, timestamp, category, model);
         CREATE INDEX IF NOT EXISTS idx_tts_session_ts
             ON tts_calls(session_id, timestamp);
+        CREATE INDEX IF NOT EXISTS idx_llm_timestamp
+            ON llm_calls(timestamp);
     """)
     conn.commit()
     return conn
@@ -116,29 +118,35 @@ def import_json_reports(conn: sqlite3.Connection | None = None):
         )
 
         for r in data.get("raw_llm_records", []):
-            ts = datetime.fromtimestamp(r["timestamp"], tz=timezone.utc).isoformat()
-            conn.execute(
-                "INSERT INTO llm_calls (session_id, timestamp, category, model, "
-                "prompt_tokens, completion_tokens, cost, caller_name, latency_ms) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (
-                    session_id, ts, r.get("category"), r.get("model"),
-                    r.get("prompt_tokens", 0), r.get("completion_tokens", 0),
-                    r.get("cost_usd", 0), r.get("caller_name", ""),
-                    r.get("latency_ms", 0),
-                ),
-            )
+            try:
+                ts = datetime.fromtimestamp(r.get("timestamp", 0), tz=timezone.utc).isoformat()
+                conn.execute(
+                    "INSERT INTO llm_calls (session_id, timestamp, category, model, "
+                    "prompt_tokens, completion_tokens, cost, caller_name, latency_ms) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        session_id, ts, r.get("category"), r.get("model"),
+                        r.get("prompt_tokens", 0), r.get("completion_tokens", 0),
+                        r.get("cost_usd", 0), r.get("caller_name", ""),
+                        r.get("latency_ms", 0),
+                    ),
+                )
+            except Exception:
+                continue
 
         for r in data.get("raw_tts_records", []):
-            ts = datetime.fromtimestamp(r["timestamp"], tz=timezone.utc).isoformat()
-            conn.execute(
-                "INSERT INTO tts_calls (session_id, timestamp, provider, voice, "
-                "char_count, cost) VALUES (?, ?, ?, ?, ?, ?)",
-                (
-                    session_id, ts, r.get("provider"), r.get("voice"),
-                    r.get("char_count", 0), r.get("cost_usd", 0),
-                ),
-            )
+            try:
+                ts = datetime.fromtimestamp(r.get("timestamp", 0), tz=timezone.utc).isoformat()
+                conn.execute(
+                    "INSERT INTO tts_calls (session_id, timestamp, provider, voice, "
+                    "char_count, cost) VALUES (?, ?, ?, ?, ?, ?)",
+                    (
+                        session_id, ts, r.get("provider"), r.get("voice"),
+                        r.get("char_count", 0), r.get("cost_usd", 0),
+                    ),
+                )
+            except Exception:
+                continue
 
         existing.add(session_id)
 
@@ -271,6 +279,7 @@ def get_summary(period: str = "all") -> dict:
         "llm_calls": row["llm_calls"],
         "tts_calls": row["tts_calls"],
         "tokens": row["tokens"],
+        "avg_cost_per_session": round(row["total_cost"] / max(row["sessions"], 1), 4),
     }
 
     # % change vs previous period
@@ -341,9 +350,10 @@ def get_models(period: str = "all") -> list[dict]:
     start = _period_filter(period)
     if start:
         rows = conn.execute(
-            "SELECT model, COUNT(*) as calls, SUM(cost) as cost, "
-            "SUM(prompt_tokens) as prompt_tokens, SUM(completion_tokens) as completion_tokens "
-            "FROM llm_calls WHERE timestamp >= ? GROUP BY model ORDER BY cost DESC", [start]
+            "SELECT l.model, COUNT(*) as calls, SUM(l.cost) as cost, "
+            "SUM(l.prompt_tokens) as prompt_tokens, SUM(l.completion_tokens) as completion_tokens "
+            "FROM llm_calls l JOIN sessions s ON l.session_id = s.id "
+            "WHERE s.started_at >= ? GROUP BY l.model ORDER BY cost DESC", [start]
         ).fetchall()
     else:
         rows = conn.execute(
@@ -368,9 +378,10 @@ def get_categories(period: str = "all") -> list[dict]:
     start = _period_filter(period)
     if start:
         rows = conn.execute(
-            "SELECT category, COUNT(*) as calls, SUM(cost) as cost, "
-            "SUM(prompt_tokens + completion_tokens) as tokens "
-            "FROM llm_calls WHERE timestamp >= ? GROUP BY category ORDER BY cost DESC", [start]
+            "SELECT l.category, COUNT(*) as calls, SUM(l.cost) as cost, "
+            "SUM(l.prompt_tokens + l.completion_tokens) as tokens "
+            "FROM llm_calls l JOIN sessions s ON l.session_id = s.id "
+            "WHERE s.started_at >= ? GROUP BY l.category ORDER BY cost DESC", [start]
         ).fetchall()
     else:
         rows = conn.execute(
@@ -496,7 +507,8 @@ def get_expensive_calls(period: str = "all", limit: int = 20) -> list[dict]:
         rows = conn.execute(
             "SELECT l.session_id, l.timestamp, l.category, l.model, l.caller_name, "
             "l.cost, l.prompt_tokens, l.completion_tokens, l.latency_ms "
-            "FROM llm_calls l WHERE l.timestamp >= ? ORDER BY l.cost DESC LIMIT ?",
+            "FROM llm_calls l JOIN sessions s ON l.session_id = s.id "
+            "WHERE s.started_at >= ? ORDER BY l.cost DESC LIMIT ?",
             [start, limit]
         ).fetchall()
     else:
