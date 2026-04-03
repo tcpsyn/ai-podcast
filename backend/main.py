@@ -11,7 +11,8 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request, Response
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from backend.services import cost_db
 import json
 import time
 import httpx
@@ -56,6 +57,7 @@ class CallerBackground:
     hidden_layers: list[str] = field(default_factory=list)  # 3 details they haven't mentioned yet
     burning_opinion: str = ""  # Something they're dying to say — will bring up even without being asked
     stakes: str = ""  # What's at risk for them — why this matters, what happens if nothing changes
+    theme_connected: bool = False  # True if this caller's story was generated around the show theme
 
 
 app = FastAPI(title="AI Radio Show")
@@ -5731,8 +5733,14 @@ async def _generate_caller_background_llm(base: dict) -> CallerBackground | str:
     include_location = random.random() < 0.25
     location = pick_location() if include_location else None
 
-    # Pick a reason for calling
-    reason, pool_name = _pick_unique_reason()
+    # Pick a reason for calling — theme-driven callers get LLM-generated reasons
+    theme_driven = False
+    if session.show_theme and random.random() < 0.65:
+        reason = f"has a personal story that directly involves {session.show_theme}"
+        pool_name = "THEME"
+        theme_driven = True
+    else:
+        reason, pool_name = _pick_unique_reason()
 
     # Assign communication style matched to content
     style = _pick_caller_style(reason, pool_name)
@@ -5823,7 +5831,7 @@ TIME: {time_ctx} {season_ctx}
 {fluency_hint}
 {f'SOME DETAILS ABOUT THEM: {seed_text}' if seed_text else ''}
 {f'CALLER ENERGY: {style_hint}' if style_hint else ''}
-{("STORY DIRECTION: This caller happens to have a story that naturally connects to the topic of " + repr(session.show_theme) + ". They don't know there's a theme — they're just calling with their own story, and it happens to touch on this area. DO NOT have the caller reference a show theme or say anything like 'since tonight's topic is...' — they have no idea the show has a theme. Their story should organically involve " + repr(session.show_theme) + " because that's just what's going on in their life. Make the connection feel like a coincidence, not a response to a prompt. When the connection exists, make it SPECIFIC — not a surface-level mention but a concrete situation that naturally involves " + repr(session.show_theme) + ". About 1 in 3 callers can be completely unrelated — they just have their own thing going on.") if session.show_theme else ''}
+{("STORY DIRECTION: This caller is calling BECAUSE of something that involves " + repr(session.show_theme) + ". Their reason for calling — the core of their story — must be a specific, concrete situation involving " + repr(session.show_theme) + ". Not a surface mention. The theme IS their story. Do not write a generic situation with " + repr(session.show_theme) + " tacked on — write a situation where " + repr(session.show_theme) + " is the load-bearing element. If you removed the " + repr(session.show_theme) + " element, the story wouldn't exist. The caller has NO IDEA the show has a theme — they're just calling with their own story. DO NOT have them reference a show theme or say 'since tonight's topic is...' — this is just what's happening in their life.") if theme_driven else ''}
 
 Respond with a JSON object containing these fields:
 
@@ -5882,6 +5890,7 @@ Output ONLY valid JSON, no markdown fences."""
                 hidden_layers=parsed.get("hidden_layers", [])[:3],
                 burning_opinion=parsed.get("burning_opinion", ""),
                 stakes=parsed.get("stakes", ""),
+                theme_connected=theme_driven,
             )
             print(f"[Background] LLM-generated for {name}: {natural_desc[:80]}...")
             return bg
@@ -6567,8 +6576,8 @@ def get_caller_prompt(caller: dict, show_history: str = "",
         world_context = "\n".join(parts) + "\n"
 
     theme_context = ""
-    if session.show_theme:
-        theme_context = f"""\nSTORY DIRECTION: Your story naturally touches on the topic of \"{session.show_theme}\" — but you have NO IDEA the show has a theme tonight. You're just calling with your story. NEVER say anything like \"since tonight's theme is\" or \"I heard you were talking about\" or reference a show topic. You just have a story that happens to involve this area. Tell it naturally as YOUR story. If the host steers the conversation toward \"{session.show_theme}\", lean into it — not because you know it's a theme, but because that's genuinely what your situation is about. Let the connection emerge organically through your story details, not through announcements.\n"""
+    if session.show_theme and caller.get('theme_connected'):
+        theme_context = f"""\nYour situation directly involves \"{session.show_theme}\". This is literally what's going on in your life. Talk about it naturally and with detail. You have NO IDEA the show has a theme — you're just calling with your own story. NEVER say anything like \"since tonight's theme is\" or \"I heard you were talking about\" — this is just your life.\n"""
 
     now = datetime.now(_MST)
     date_str = now.strftime("%A, %B %d")
@@ -6646,6 +6655,8 @@ You are {caller['name']}. You are the CALLER. You are NOT Luke. Luke is the HOST
 
 YOUR BACKGROUND:
 {caller['vibe']}
+{layers_block}{opinion_block}{stakes_block}
+YOUR MINIMUM: Every response must have real detail and substance. If Luke asks you a question, answer with the specific detail, why it matters to you, and one thing he didn't ask for. Never give a surface-level answer when you have layers to reveal.
 {relationship_context}{history}{world_context}{theme_context}{emotional_read}
 You're a real person calling a late-night radio show. You called because you've got something specific and you want to talk about it.
 
@@ -6695,7 +6706,7 @@ Don't repeat yourself. Don't summarize what you already said. Don't circle back 
 === YOUR CALL — THIS IS WHY YOU'RE ON THE LINE ===
 
 {story_block}
-{layers_block}{opinion_block}{stakes_block}"""
+"""
 
 
 # --- Session State ---
@@ -6828,7 +6839,6 @@ class Session:
             "anthropic/claude-sonnet-4.6",              # empathetic, nuanced ($3/$15)
             "moonshotai/kimi-k2",                       # creative, warm, expressive ($0.60/$2)
             "mistralai/mistral-large-2512",             # dry wit, precise ($0.50/$1.50)
-            "deepseek/deepseek-r1-distill-llama-70b",  # raw, commits to the bit ($0.70/$0.80)
             "deepseek/deepseek-chat-v3-0324",           # direct, unfiltered ($0.27/$1.10)
             "qwen/qwen3-235b-a22b",                     # meandering storyteller ($0.20/$0.60)
             "google/gemini-2.5-pro",                    # articulate, analytical ($1.25/$10)
@@ -6841,29 +6851,25 @@ class Session:
             "comedian":          "x-ai/grok-4.1-fast",
             # Grok 4 Full — deep reasoning for confrontation and arguments
             "confrontational":   "x-ai/grok-4",
-            # DeepSeek Chat — raw, direct, no filter. Pure unprocessed anger.
+            # DeepSeek Chat — raw, direct, no filter
             "angry_venting":     "deepseek/deepseek-chat-v3-0324",
-            # Claude Sonnet 4.6 — genuine vulnerability, emotional depth
-            "quiet_nervous":     "meta-llama/llama-3.3-70b-instruct",
-            "emotional":         "moonshotai/kimi-k2",
-            # Kimi K2 — warm, creative, expressive. Different emotional texture than Claude.
+            # Claude Sonnet 4.6 — genuine vulnerability, emotional depth, nuance
+            "quiet_nervous":     "anthropic/claude-sonnet-4.6",
+            "emotional":         "anthropic/claude-sonnet-4.6",
             "sweet_earnest":     "moonshotai/kimi-k2",
+            "first_time":        "moonshotai/kimi-k2",
+            "world_weary":       "anthropic/claude-sonnet-4.6",
+            "philosopher":       "anthropic/claude-sonnet-4.6",
             # Mistral Large — dry, precise, strategic omission
             "deadpan":           "mistralai/mistral-large-2512",
             "mysterious":        "mistralai/mistral-large-2512",
-            # Llama 3.3 — casual resignation, natural world-weariness
-            "world_weary":       "meta-llama/llama-3.3-70b-instruct",
-            "reluctant_caller":  "meta-llama/llama-3.3-70b-instruct",
-            "first_time":        "meta-llama/llama-3.3-70b-instruct",
             # Qwen — loves tangents, detail-rich, born rambler
             "storyteller":       "qwen/qwen3-235b-a22b",
             "rambling":          "qwen/qwen3-235b-a22b",
-            # DeepSeek R1 Distill — commits fully, connects dots, no hedging
-            "oversharer":        "deepseek/deepseek-r1-distill-llama-70b",
             "conspiracy":        "qwen/qwen3-235b-a22b",
-            # Grok 4.1 Fast — gossipy energy, casual, can't wait to spill
-            "small_town_gossip": "x-ai/grok-4.1-fast",
-            # Gemini 2.5 Pro — pedantic, articulate, cites sources
+            # Grok 4.1 Fast — oversharing energy, can't stop talking
+            "oversharer":        "x-ai/grok-4.1-fast",
+            # Mistral Large — pedantic, articulate
             "know_it_all":       "mistralai/mistral-large-2512",
         }
         self.caller_model_fallback: str = "anthropic/claude-sonnet-4.6"
@@ -7642,6 +7648,11 @@ frontend_dir = Path(__file__).parent.parent / "frontend"
 app.mount("/css", StaticFiles(directory=frontend_dir / "css"), name="css")
 app.mount("/js", StaticFiles(directory=frontend_dir / "js"), name="js")
 app.mount("/images", StaticFiles(directory=frontend_dir / "images"), name="images")
+
+
+@app.get("/costs")
+async def costs_page():
+    return FileResponse(frontend_dir / "costs.html")
 
 
 @app.get("/")
@@ -8859,29 +8870,29 @@ def _pick_response_budget(shape: str = "standard", wrapping_up: bool = False) ->
 
     # Shape-specific overrides
     if shape == "quick_hit":
-        return random.choice([(350, 3), (400, 3)])
+        return random.choice([(450, 4), (500, 5)])
     elif shape == "escalating_reveal":
         roll = random.random()
         if roll < 0.4:
-            return 450, 4   # 40% — tight, forces restraint
+            return 600, 6   # 40% — tight, forces restraint
         else:
-            return 600, 5   # 60% — room to build but capped
+            return 800, 8   # 60% — room to build but capped
     elif shape == "confrontation":
-        return random.choice([(500, 4), (600, 5)])
+        return random.choice([(700, 6), (800, 8)])
 
     # Default distribution — give callers room to tell their story
     roll = random.random()
     if roll < 0.10:
-        return 500, 4   # 10% — quick response
+        return 600, 6   # 10% — quick response
     elif roll < 0.35:
-        return 600, 5   # 25% — normal conversation
+        return 700, 7   # 25% — normal conversation
     elif roll < 0.65:
-        return 700, 6   # 30% — room to breathe
+        return 800, 8   # 30% — room to breathe
     else:
-        return 800, 7   # 35% — telling a story or riffing
+        return 900, 10  # 35% — telling a story or riffing
 
 
-MIN_RESPONSE_WORDS = 50  # Retry if response is shorter than this
+MIN_RESPONSE_WORDS = 80  # Retry if response is shorter than this
 
 
 async def _retry_if_too_short(response: str, llm_service, messages: list, system_prompt: str,
@@ -8907,6 +8918,52 @@ async def _retry_if_too_short(response: str, llm_service, messages: list, system
         return retry
     print(f"[Chat] Retry no better, keeping original")
     return response
+
+
+_REPETITION_STOPWORDS = {
+    "i", "me", "my", "you", "your", "he", "she", "it", "we", "they",
+    "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
+    "have", "has", "had", "do", "does", "did", "will", "would", "could",
+    "should", "can", "may", "might", "shall", "to", "of", "in", "for",
+    "on", "with", "at", "by", "from", "and", "or", "but", "not", "no",
+    "that", "this", "what", "which", "who", "how", "if", "so", "just",
+    "than", "then", "about", "up", "out", "all", "like", "got", "get",
+}
+
+
+def _has_repetition(response: str, conversation: list, threshold: int = 3) -> bool:
+    """Check if the response contains repeated 3+ word n-grams from recent conversation."""
+    # Collect last 6 assistant messages
+    recent_assistant = [
+        msg["content"] for msg in conversation
+        if msg.get("role") == "assistant" and msg.get("content")
+    ][-6:]
+    prior_text = " ".join(recent_assistant)
+
+    # Extract 3-word n-grams from response and prior text combined
+    def get_ngrams(text):
+        words = text.lower().split()
+        return [" ".join(words[i:i+3]) for i in range(len(words) - 2)]
+
+    response_ngrams = get_ngrams(response)
+    if not response_ngrams:
+        return False
+
+    all_ngrams = get_ngrams(prior_text) + response_ngrams
+
+    # Count occurrences
+    counts: dict[str, int] = {}
+    for ng in all_ngrams:
+        counts[ng] = counts.get(ng, 0) + 1
+
+    # Check if any response n-gram hits threshold (skip all-stopword n-grams)
+    response_set = set(response_ngrams)
+    for ng in response_set:
+        if counts.get(ng, 0) >= threshold:
+            words = ng.split()
+            if not all(w in _REPETITION_STOPWORDS for w in words):
+                return True
+    return False
 
 
 def _trim_to_sentences(text: str, max_sentences: int) -> str:
@@ -9536,6 +9593,19 @@ async def chat(request: ChatRequest):
         response = await _retry_if_too_short(
             response, llm_service, messages, system_prompt, max_tokens,
             _caller_name, _model_override, wrapping_up=is_wrapping)
+        if not is_wrapping and response and "[HANGUP]" not in response and _has_repetition(response, session.conversation):
+            print(f"[Chat] Repetition detected, retrying with anti-repetition prompt...")
+            retry_messages = messages + [{"role": "user", "content": "You're repeating yourself. Say something NEW — a detail you haven't mentioned, a different angle, or move the story forward. Do not repeat facts you've already stated."}]
+            retry_response = await llm_service.generate(
+                messages=retry_messages, system_prompt=system_prompt,
+                max_tokens=max_tokens, category="caller_dialog",
+                caller_name=_caller_name, model_override=_model_override,
+            )
+            if retry_response and not _has_repetition(retry_response, session.conversation):
+                print(f"[Chat] Anti-repetition retry succeeded")
+                response = retry_response
+            else:
+                print(f"[Chat] Anti-repetition retry no better, keeping original")
 
     # Discard if call changed while we were generating
     if _session_epoch != epoch:
@@ -10174,7 +10244,7 @@ async def show_preflight(test_responses: bool = False):
                 r2_words = len(r2.split()) if r2 else 0
 
                 avg_words = (r1_words + r2_words) // 2
-                passed = avg_words >= MIN_RESPONSE_WORDS and r1_words >= 20 and r2_words >= 20
+                passed = avg_words >= MIN_RESPONSE_WORDS and r1_words >= 30 and r2_words >= 30
                 return {
                     "name": base.get("name", key),
                     "model": model,
@@ -10242,6 +10312,46 @@ async def get_costs():
 async def get_cost_report():
     """Get full cost report with breakdowns and recommendations"""
     return cost_tracker.generate_report()
+
+
+# --- Cost Dashboard Endpoints ---
+
+@app.get("/api/costs/summary")
+async def get_cost_summary(period: str = "all"):
+    return cost_db.get_summary(period)
+
+
+@app.get("/api/costs/timeline")
+async def get_cost_timeline(period: str = "all", group_by: str = "session"):
+    return cost_db.get_timeline(period, group_by)
+
+
+@app.get("/api/costs/models")
+async def get_cost_models(period: str = "all"):
+    return cost_db.get_models(period)
+
+
+@app.get("/api/costs/categories")
+async def get_cost_categories(period: str = "all"):
+    return cost_db.get_categories(period)
+
+
+@app.get("/api/costs/sessions")
+async def get_cost_sessions(period: str = "all"):
+    return cost_db.get_sessions_list(period)
+
+
+@app.get("/api/costs/session/{session_id}")
+async def get_cost_session_detail(session_id: str):
+    detail = cost_db.get_session_detail(session_id)
+    if not detail:
+        return JSONResponse(status_code=404, content={"error": "Session not found"})
+    return detail
+
+
+@app.get("/api/costs/expensive")
+async def get_cost_expensive_calls(period: str = "all", limit: int = 10):
+    return cost_db.get_expensive_calls(period, limit)
 
 
 # --- Caller Screening ---
@@ -10726,6 +10836,19 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         response = await _retry_if_too_short(
             response, llm_service, messages, system_prompt, max_tokens,
             _caller_name, _model_override, wrapping_up=is_wrapping)
+        if not is_wrapping and response and "[HANGUP]" not in response and _has_repetition(response, session.conversation):
+            print(f"[Auto-Respond] Repetition detected, retrying...")
+            retry_messages = messages + [{"role": "user", "content": "You're repeating yourself. Say something NEW — a detail you haven't mentioned, a different angle, or move the story forward. Do not repeat facts you've already stated."}]
+            retry_response = await llm_service.generate(
+                messages=retry_messages, system_prompt=system_prompt,
+                max_tokens=max_tokens, category="caller_dialog",
+                caller_name=_caller_name, model_override=_model_override,
+            )
+            if retry_response and not _has_repetition(retry_response, session.conversation):
+                print(f"[Auto-Respond] Anti-repetition retry succeeded")
+                response = retry_response
+            else:
+                print(f"[Auto-Respond] Anti-repetition retry no better, keeping original")
 
     # Discard if call changed during generation
     if _session_epoch != epoch:
@@ -10835,6 +10958,19 @@ async def ai_respond():
         response = await _retry_if_too_short(
             response, llm_service, messages, system_prompt, max_tokens,
             _caller_name, _model_override, wrapping_up=is_wrapping)
+        if not is_wrapping and response and "[HANGUP]" not in response and _has_repetition(response, session.conversation):
+            print(f"[Chat] Repetition detected, retrying with anti-repetition prompt...")
+            retry_messages = messages + [{"role": "user", "content": "You're repeating yourself. Say something NEW — a detail you haven't mentioned, a different angle, or move the story forward. Do not repeat facts you've already stated."}]
+            retry_response = await llm_service.generate(
+                messages=retry_messages, system_prompt=system_prompt,
+                max_tokens=max_tokens, category="caller_dialog",
+                caller_name=_caller_name, model_override=_model_override,
+            )
+            if retry_response and not _has_repetition(retry_response, session.conversation):
+                print(f"[Chat] Anti-repetition retry succeeded")
+                response = retry_response
+            else:
+                print(f"[Chat] Anti-repetition retry no better, keeping original")
 
     if _session_epoch != epoch:
         raise HTTPException(409, "Call changed during response")
