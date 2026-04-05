@@ -37,6 +37,17 @@ def test_parse_batch_response_rejects_missing_fields():
         parse_batch_response(bad)
 
 
+FENCED_JSON = '''```json
+{"callers": [{"name": "Terrence", "age": 61, "voice_suggestion": "Marcus", "location": "Tucumcari, NM", "identity": "Retired irrigation engineer", "situation": "Reading water bill", "reason_calling": "Found clause", "opening_line": "Luke.", "secret_want": "Vindication", "specific_details": ["a", "b"], "emotional_register": "intense"}]}
+```'''
+
+
+def test_parse_batch_response_strips_markdown_fences():
+    callers = parse_batch_response(FENCED_JSON)
+    assert len(callers) == 1
+    assert callers[0].name == "Terrence"
+
+
 def test_resolve_voice_matches_exact():
     from backend.services.caller_gen import resolve_voice
     roster = ["Marcus", "Dennis", "Priya", "Edward"]
