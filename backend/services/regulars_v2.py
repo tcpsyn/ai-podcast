@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 import json
 import re
@@ -103,3 +104,33 @@ async def _call_sonnet(prompt: str) -> dict:
 async def evaluate_promotion(caller_name: str, call_transcript: str) -> dict:
     prompt = PROMOTION_PROMPT.format(name=caller_name, transcript=call_transcript)
     return await _call_sonnet(prompt)
+
+
+def write_new_regular(name: str, voice: str, age: int, identity_paragraph: str,
+                      arc_plan: str, first_call_summary: str) -> Path:
+    REGULARS_DIR.mkdir(parents=True, exist_ok=True)
+    slug = name.lower().replace(" ", "-")
+    path = REGULARS_DIR / f"{slug}.md"
+    today = date.today().isoformat()
+    content = f"""---
+name: {name}
+voice: {voice}
+age: {age}
+arc_state: {arc_plan}
+promoted_on: {today}
+---
+
+# {name}
+
+{identity_paragraph}
+
+## Arc Plan
+
+{arc_plan}
+
+## Arc Log
+
+- {today}: {first_call_summary}
+"""
+    path.write_text(content)
+    return path
