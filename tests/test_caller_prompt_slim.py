@@ -19,5 +19,7 @@ def test_slim_prompt_includes_identity_and_situation():
     assert "Permission to throw it all away" in prompt
     assert "React to what Luke says" in prompt
     assert "Stay in character" in prompt
-    # Assert it's under 800 tokens (roughly 3200 chars) — should be ~400 tokens
-    assert len(prompt) < 3200
+    assert "NEVER use asterisks" in prompt
+    assert "NEVER use parenthetical stage directions" in prompt
+    assert "Mix short punchy replies with longer ones" in prompt
+    assert len(prompt) < 3500

@@ -6573,8 +6573,15 @@ Specific details you'll drop if it feels natural:
 {detail_str}
 
 Speak as this person. React to what Luke says. Stay in character.
-Don't narrate. No stage directions. Just talk.
-Keep responses natural — 1-3 sentences most of the time. Real callers don't monologue."""
+
+CRITICAL OUTPUT RULES:
+- Output ONLY the words the caller says out loud.
+- NEVER use asterisks. No *pause*, *breath*, *sighs*, *voice gets quieter* — none of it.
+- NEVER use parenthetical stage directions. No (laughs), (nervous), (sighs).
+- No narration. No describing what you're doing or feeling except through what you say.
+- If you catch yourself writing an asterisk or parenthesis, delete it and just say the words instead.
+
+Mix short punchy replies with longer ones where natural. Real callers breathe, react in fragments, ask their own questions — they don't deliver a monologue every turn."""
 
 
 def get_caller_prompt(caller: dict, show_history: str = "",
