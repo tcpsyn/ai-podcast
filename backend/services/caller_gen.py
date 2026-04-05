@@ -2,6 +2,13 @@ from dataclasses import dataclass
 from typing import Optional
 import json
 
+import httpx
+
+from ..config import settings
+from .cost_tracker import cost_tracker
+
+BATCH_MODEL = "anthropic/claude-sonnet-4.6"
+
 REQUIRED_FIELDS = {
     "name", "age", "voice_suggestion", "location", "identity",
     "situation", "reason_calling", "opening_line", "secret_want",
@@ -88,3 +95,35 @@ def build_batch_prompt(ctx: dict) -> str:
     lines.append("")
     lines.append(f"Generate {ctx['caller_count']} callers. Output JSON only, no prose.")
     return BATCH_SYSTEM_PROMPT + "\n\n" + "\n".join(lines)
+
+
+async def generate_batch(ctx: dict) -> list[CallerIdentity]:
+    """Call sonnet-4.6 with the batch prompt, parse + voice-resolve the response."""
+    prompt = build_batch_prompt(ctx)
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        resp = await client.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={"Authorization": f"Bearer {settings.openrouter_api_key}"},
+            json={
+                "model": BATCH_MODEL,
+                "messages": [{"role": "user", "content": prompt}],
+                "response_format": {"type": "json_object"},
+                "max_tokens": 8000,
+                "temperature": 0.9,
+            },
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+    content = data["choices"][0]["message"]["content"]
+    usage = data.get("usage", {})
+    cost_tracker.record_llm_call(
+        category="background_gen",
+        model=BATCH_MODEL,
+        usage_data=usage,
+    )
+
+    callers = parse_batch_response(content)
+    for c in callers:
+        c.voice_resolved = resolve_voice(c.voice_suggestion, ctx["voice_roster"])
+    return callers

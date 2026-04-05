@@ -62,3 +62,6 @@ upload-history.json
 
 # Git worktrees
 .worktrees/
+
+# Scratch/smoke tests (not committed)
+scratch/
