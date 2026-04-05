@@ -322,25 +322,6 @@ section h2 {
     position: relative;
 }
 
-.energy-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
-}
-
-.shape-badge {
-    font-size: 0.6rem;
-    background: rgba(232, 121, 29, 0.25);
-    color: var(--accent);
-    padding: 1px 4px;
-    border-radius: 3px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-    flex-shrink: 0;
-}
-
 .caller-btn:hover {
     border-color: var(--accent);
     background: #2a1e10;
@@ -439,20 +420,19 @@ section h2 {
     font-weight: 600;
 }
 
-.info-badge.shape {
-    background: rgba(232, 121, 29, 0.2);
-    color: var(--accent);
+.caller-identity {
+    font-size: 0.85rem;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 4px;
+    line-height: 1.3;
 }
 
-.info-badge.energy {
-    color: white;
-    font-size: 0.7rem;
-}
-
-.info-badge.emotion {
-    background: rgba(154, 139, 120, 0.2);
+.caller-situation {
+    font-size: 0.8rem;
     color: var(--text-muted);
-    font-style: italic;
+    margin-bottom: 4px;
+    line-height: 1.3;
 }
 
 .caller-signature {
@@ -462,9 +442,10 @@ section h2 {
     font-style: italic;
 }
 
-.caller-situation {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+.caller-secret-want {
+    font-size: 0.75rem;
+    color: #d4a030;
+    font-style: italic;
     line-height: 1.3;
 }
 

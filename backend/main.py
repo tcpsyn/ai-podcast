@@ -8350,17 +8350,16 @@ async def get_callers():
             "key": k,
             "name": v["name"],
             "returning": v.get("returning", False),
+            "avatar_url": f"/api/avatar/{v['name']}",
         }
         bg = session.caller_backgrounds.get(k)
-        if isinstance(bg, CallerBackground):
-            caller_info["energy_level"] = bg.energy_level
-            caller_info["emotional_state"] = bg.emotional_state
-            caller_info["communication_style"] = _normalize_style_key(bg.communication_style)
-            caller_info["signature_detail"] = bg.signature_detail
-            caller_info["situation_summary"] = bg.situation_summary
-            caller_info["pool_name"] = bg.pool_name
-        caller_info["call_shape"] = session.caller_shapes.get(k, "standard")
-        caller_info["avatar_url"] = f"/api/avatar/{v['name']}"
+        if isinstance(bg, dict):
+            details = bg.get("specific_details") or []
+            caller_info["identity"] = bg.get("identity", "")
+            caller_info["situation"] = bg.get("situation", "")
+            caller_info["signature"] = details[0] if details else ""
+            caller_info["secret_want"] = bg.get("secret_want", "")
+            caller_info["voice"] = bg.get("voice", "")
         callers.append(caller_info)
     return {
         "callers": callers,
@@ -8454,17 +8453,16 @@ async def start_call(caller_key: str):
     if caller_key in session.caller_backgrounds:
         asyncio.create_task(_enrich_background_async(caller_key))
 
-    # Extract CallerBackground structured data if available
+    # Extract slim background for UI info panel
     bg = session.caller_backgrounds.get(caller_key)
     caller_info = {}
-    if isinstance(bg, CallerBackground):
+    if isinstance(bg, dict):
+        details = bg.get("specific_details") or []
         caller_info = {
-            "emotional_state": bg.emotional_state,
-            "energy_level": bg.energy_level,
-            "signature_detail": bg.signature_detail,
-            "situation_summary": bg.situation_summary,
-            "call_shape": caller.get("shape", "standard"),
-            "communication_style": bg.communication_style,
+            "identity": bg.get("identity", ""),
+            "situation": bg.get("situation", ""),
+            "signature": details[0] if details else "",
+            "secret_want": bg.get("secret_want", ""),
         }
 
     # Start intern monitoring if enabled

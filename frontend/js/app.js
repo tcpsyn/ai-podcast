@@ -637,21 +637,7 @@ async function loadCallers() {
             btn.dataset.key = caller.key;
 
             let html = '';
-            if (caller.energy_level) {
-                const energyColors = { low: '#4a7ab5', medium: '#5a8a3c', high: '#e8791d', very_high: '#cc2222' };
-                const color = energyColors[caller.energy_level] || '#9a8b78';
-                html += `<span class="energy-dot" style="background:${color}" title="${caller.energy_level} energy"></span>`;
-            }
             html += caller.returning ? `<span class="caller-name">\u2605 ${caller.name}</span>` : `<span class="caller-name">${caller.name}</span>`;
-            if (caller.call_shape && caller.call_shape !== 'standard') {
-                const shapeLabels = {
-                    escalating_reveal: 'ER', am_i_the_asshole: 'AITA', confrontation: 'VS',
-                    celebration: '\u{1F389}', quick_hit: 'QH', bait_and_switch: 'B&S',
-                    the_hangup: 'HU', reactive: 'RE'
-                };
-                const label = shapeLabels[caller.call_shape] || caller.call_shape.substring(0, 2).toUpperCase();
-                html += `<span class="shape-badge" title="${caller.call_shape.replace(/_/g, ' ')}">${label}</span>`;
-            }
             // Shortcut label: 1-9 for first 9, 0 for 10th
             if (idx < 10) {
                 const shortcutKey = idx === 9 ? '0' : String(idx + 1);
@@ -742,21 +728,18 @@ async function startCall(key, name) {
     if (aiInfo) aiInfo.classList.remove('hidden');
     if (aiName) aiName.textContent = name;
 
-    // Show caller info panel with structured data
+    // Show caller info panel with slim background data
     const infoPanel = document.getElementById('caller-info-panel');
     if (infoPanel && data.caller_info) {
         const ci = data.caller_info;
-        const energyColors = { low: '#4a7ab5', medium: '#5a8a3c', high: '#e8791d', very_high: '#cc2222' };
-        const shapeBadge = document.getElementById('caller-shape-badge');
-        const energyBadge = document.getElementById('caller-energy-badge');
-        const emotionBadge = document.getElementById('caller-emotion');
-        const signature = document.getElementById('caller-signature');
+        const identity = document.getElementById('caller-identity');
         const situation = document.getElementById('caller-situation');
-        if (shapeBadge) shapeBadge.textContent = (ci.call_shape || 'standard').replace(/_/g, ' ');
-        if (energyBadge) { energyBadge.textContent = (ci.energy_level || '').replace('_', ' '); energyBadge.style.background = energyColors[ci.energy_level] || '#9a8b78'; }
-        if (emotionBadge) emotionBadge.textContent = ci.emotional_state || '';
-        if (signature) signature.textContent = ci.signature_detail ? `"${ci.signature_detail}"` : '';
-        if (situation) situation.textContent = ci.situation_summary || '';
+        const signature = document.getElementById('caller-signature');
+        const secretWant = document.getElementById('caller-secret-want');
+        if (identity) identity.textContent = ci.identity || '';
+        if (situation) situation.textContent = ci.situation || '';
+        if (signature) signature.textContent = ci.signature ? `"${ci.signature}"` : '';
+        if (secretWant) secretWant.textContent = ci.secret_want ? `secretly wants: ${ci.secret_want}` : '';
         infoPanel.classList.remove('hidden');
     }
     try {
