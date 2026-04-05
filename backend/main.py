@@ -35,31 +35,6 @@ from .services.intern import intern_service
 from .services.avatars import avatar_service
 
 
-# --- Structured Caller Background (must be defined before functions that use it) ---
-@dataclass
-class CallerBackground:
-    name: str
-    age: int
-    gender: str
-    job: str
-    location: str | None
-    reason_for_calling: str
-    pool_name: str
-    communication_style: str
-    energy_level: str              # low / medium / high / very_high
-    emotional_state: str           # nervous, excited, angry, vulnerable, calm, etc.
-    signature_detail: str          # The memorable thing about them
-    situation_summary: str         # 1-sentence summary for other callers to reference
-    natural_description: str       # 3-5 sentence prose for the prompt
-    seeds: list[str] = field(default_factory=list)
-    verbal_fluency: str = "medium"
-    calling_from: str = ""
-    hidden_layers: list[str] = field(default_factory=list)  # 3 details they haven't mentioned yet
-    burning_opinion: str = ""  # Something they're dying to say — will bring up even without being asked
-    stakes: str = ""  # What's at risk for them — why this matters, what happens if nothing changes
-    theme_connected: bool = False  # True if this caller's story was generated around the show theme
-
-
 app = FastAPI(title="AI Radio Show")
 
 app.add_middleware(
@@ -274,42 +249,6 @@ async def _regenerate_backgrounds_for_keys(keys: list[str]):
         print(f"[Background] Regenerated backgrounds after theme change (touched {len(keys)} unused slots)")
     except Exception as e:
         print(f"[Background] Regen failed: {e}")
-
-
-def _build_relationship_context():
-    """Find regulars with existing relationships who are both in the current session.
-    Inject mutual awareness into both callers' prompts."""
-    regulars = regular_caller_service.get_regulars()
-    if not regulars:
-        return
-
-    # Map regular names to their caller keys in this session
-    name_to_key = {}
-    key_to_regular = {}
-    for key, base in CALLER_BASES.items():
-        if base.get("returning") and base.get("regular_id"):
-            for reg in regulars:
-                if reg["id"] == base["regular_id"]:
-                    name_to_key[reg["name"]] = key
-                    key_to_regular[key] = reg
-                    break
-
-    if len(name_to_key) < 2:
-        return  # Need at least 2 regulars to have relationships
-
-    # Check for mutual relationships
-    for key, regular in key_to_regular.items():
-        relationships = regular.get("relationships", {})
-        for other_name, rel_info in relationships.items():
-            if other_name in name_to_key:
-                other_key = name_to_key[other_name]
-                rel_type = rel_info.get("type", "knows")
-                context = rel_info.get("context", "")
-                # Inject awareness into this caller's prompt
-                line = f"\nSOMEONE YOU KNOW IS ON THE SHOW TONIGHT: {other_name} is also calling in. You know them — {rel_type}. {context} You might hear them on air. If Luke mentions them or you hear them, react naturally. Don't force it — if it comes up, it comes up."
-                existing = session.relationship_context.get(key, "")
-                session.relationship_context[key] = existing + line
-                print(f"[Relationships] {regular['name']} knows {other_name} ({rel_type})")
 
 
 # Known topics for smarter search queries — maps keywords in backgrounds to search terms
@@ -572,12 +511,9 @@ class CallRecord:
     started_at: float = 0.0
     ended_at: float = 0.0
     quality_signals: dict = field(default_factory=dict)  # Per-call quality heuristics
-    # Inter-caller awareness fields (populated from CallerBackground)
-    topic_category: str = ""           # Pool name: PROBLEMS, STORIES, etc.
+    # Inter-caller awareness fields (populated from slim caller background dicts)
     situation_summary: str = ""        # 1-sentence summary for other callers
-    emotional_state: str = ""          # How the caller was feeling
-    energy_level: str = ""             # low/medium/high/very_high
-    communication_style: str = ""      # Style key
+    communication_style: str = ""      # Emotional register of the caller
     key_details: list[str] = field(default_factory=list)  # Specific memorable details
 
 
@@ -590,10 +526,7 @@ def _serialize_call_record(record: CallRecord) -> dict:
         "started_at": record.started_at,
         "ended_at": record.ended_at,
         "quality_signals": record.quality_signals,
-        "topic_category": record.topic_category,
         "situation_summary": record.situation_summary,
-        "emotional_state": record.emotional_state,
-        "energy_level": record.energy_level,
         "communication_style": record.communication_style,
         "key_details": record.key_details,
     }
@@ -608,10 +541,7 @@ def _deserialize_call_record(data: dict) -> CallRecord:
         started_at=data.get("started_at", 0.0),
         ended_at=data.get("ended_at", 0.0),
         quality_signals=data.get("quality_signals", {}),
-        topic_category=data.get("topic_category", ""),
         situation_summary=data.get("situation_summary", ""),
-        emotional_state=data.get("emotional_state", ""),
-        energy_level=data.get("energy_level", ""),
         communication_style=data.get("communication_style", ""),
         key_details=data.get("key_details", []),
     )
@@ -656,7 +586,7 @@ class Session:
         self.id = str(uuid.uuid4())[:8]
         self.current_caller_key: str = None
         self.conversation: list[dict] = []
-        self.caller_backgrounds: dict[str, CallerBackground | str] = {}  # Generated backgrounds
+        self.caller_backgrounds: dict[str, dict] = {}  # Slim caller identity dicts, keyed by caller_key
         self.call_history: list[CallRecord] = []
         self._call_started_at: float = 0.0
         self.active_real_caller: dict | None = None
@@ -666,13 +596,11 @@ class Session:
         self.research_notes: dict[str, list] = {}
         self._research_task: asyncio.Task | None = None
         self.used_reasons: set[str] = set()  # Track used caller reasons to prevent repeats
-        self.tone_streak: list[str] = []  # Track tone per call for variety balancing
         self.call_quality_signals: list[dict] = []  # Per-call quality heuristics for tuning
         self._caller_hangup: bool = False  # Set when [HANGUP] sentinel detected in current call
         self._wrapping_up: bool = False  # Set via /api/wrap-up to gracefully wind down calls
         self._wrapup_exchanges: int = 0  # Track how many exchanges since wrap-up started
         self.caller_queue: list[str] = []  # Sorted presentation order of caller keys
-        self.relationship_context: dict[str, str] = {}  # caller_key → relationship prompt injection
         self.intern_monitoring: bool = True  # Devon monitors conversations by default
         self.show_theme: str = ""  # Current show theme (e.g. "St. Patrick's Day")
 
@@ -691,18 +619,11 @@ class Session:
     def add_message(self, role: str, content: str):
         self.conversation.append({"role": role, "content": content, "timestamp": time.time()})
 
-    def get_caller_model(self, caller_key: str) -> str | None:
-        """All callers run through the single haiku-4.5 dialog model."""
-        return "anthropic/claude-haiku-4.5"
-
     def get_caller_background(self, caller_key: str) -> str:
-        """Get background for a caller in this session.
-        Returns the natural_description string for prompt injection.
+        """Return the caller's situation string for UI display.
         Backgrounds are populated by _pregenerate_backgrounds at session start."""
-        bg = self.caller_backgrounds.get(caller_key, "")
-        if isinstance(bg, dict):
-            return bg.get("situation", "")
-        return bg.natural_description if isinstance(bg, CallerBackground) else bg
+        bg = self.caller_backgrounds.get(caller_key) or {}
+        return bg.get("situation", "") if isinstance(bg, dict) else ""
 
     def get_show_history(self) -> str:
         """Get formatted show history for AI caller prompts.
@@ -743,11 +664,6 @@ class Session:
             else:
                 lines.append("You're aware of these but you're calling about YOUR thing, not theirs. Don't bring them up unless the host does.")
 
-        # Show energy tracking
-        energy_note = self._get_show_energy()
-        if energy_note:
-            lines.append(f"\n{energy_note}")
-
         return "\n".join(lines)
 
     def _find_thematic_match(self, current_bg) -> tuple:
@@ -759,16 +675,16 @@ class Session:
         best_target = None
         best_score = 0
 
-        current_pool = current_bg.pool_name if isinstance(current_bg, CallerBackground) else ""
-        current_reason = current_bg.reason_for_calling if isinstance(current_bg, CallerBackground) else ""
-        current_summary = current_bg.situation_summary if isinstance(current_bg, CallerBackground) else ""
+        if isinstance(current_bg, dict):
+            current_reason = current_bg.get("reason_calling", "")
+            current_summary = current_bg.get("situation", "")
+        else:
+            current_reason = ""
+            current_summary = ""
         current_words = set((current_reason + " " + current_summary).lower().split())
 
         for record in self.call_history:
             score = 0
-            # Same topic pool = strong match
-            if current_pool and record.topic_category == current_pool:
-                score += 2
             # Keyword overlap in situation summaries
             if record.situation_summary:
                 record_words = set(record.situation_summary.lower().split())
@@ -776,11 +692,6 @@ class Session:
                 if len(overlap) >= 2:
                     score += 2
                 elif len(overlap) >= 1:
-                    score += 1
-            # Emotional contrast bonus (opposite energies are interesting)
-            if record.energy_level and isinstance(current_bg, CallerBackground):
-                if (record.energy_level in ("low", "medium") and current_bg.energy_level in ("high", "very_high")) or \
-                   (record.energy_level in ("high", "very_high") and current_bg.energy_level in ("low", "medium")):
                     score += 1
 
             if score > best_score:
@@ -820,20 +731,6 @@ class Session:
         # Fallback to generic reactions
         return random.choice(SHOW_HISTORY_REACTIONS)
 
-    def _get_show_energy(self) -> str:
-        """Summarize the energy arc of the show for caller awareness."""
-        if len(self.call_history) < 3:
-            return ""
-        recent = self.call_history[-3:]
-        energies = [r.energy_level for r in recent if r.energy_level]
-        if not energies:
-            return ""
-        if all(e in ("high", "very_high") for e in energies):
-            return "SHOW ENERGY: The last few calls have been high-energy — the show could use a breather."
-        if all(e in ("low", "medium") for e in energies):
-            return "SHOW ENERGY: The last few calls have been mellow — some energy would shake things up."
-        return ""
-
     def get_conversation_summary(self) -> str:
         """Get a brief summary of conversation so far for context"""
         if len(self.conversation) <= 2:
@@ -863,29 +760,11 @@ class Session:
         if self.current_caller_key:
             base = CALLER_BASES.get(self.current_caller_key)
             if base:
-                bg = self.caller_backgrounds.get(self.current_caller_key)
-                emotional_state = ""
-                energy_level = ""
-                hidden_layers = []
-                burning_opinion = ""
-                stakes = ""
-                if hasattr(bg, "emotional_state"):
-                    emotional_state = bg.emotional_state
-                    energy_level = bg.energy_level
-                if hasattr(bg, "hidden_layers"):
-                    hidden_layers = bg.hidden_layers
-                    burning_opinion = bg.burning_opinion
-                    stakes = bg.stakes
                 return {
                     "name": base["name"],
                     "voice": base["voice"],
                     "vibe": self.get_caller_background(self.current_caller_key),
                     "tts_provider": base.get("tts_provider"),
-                    "emotional_state": emotional_state,
-                    "energy_level": energy_level,
-                    "hidden_layers": hidden_layers,
-                    "burning_opinion": burning_opinion,
-                    "stakes": stakes,
                 }
         return None
 
@@ -955,12 +834,10 @@ class Session:
         if self._research_task and not self._research_task.done():
             self._research_task.cancel()
         self._research_task = None
-        self.tone_streak = []
         self.call_quality_signals = []
         self._wrapping_up = False
         self._wrapup_exchanges = 0
         self.caller_queue = []
-        self.relationship_context = {}
         self.used_reasons = set()
         self.intern_monitoring = True
         intern_service.stop_monitoring()
@@ -1045,17 +922,15 @@ def _save_checkpoint():
         data = {
             "session_id": session.id,
             "call_history": [_serialize_call_record(r) for r in session.call_history],
-            "caller_backgrounds": {k: asdict(v) if isinstance(v, CallerBackground) else v for k, v in session.caller_backgrounds.items()},
+            "caller_backgrounds": session.caller_backgrounds,
             "used_reasons": list(session.used_reasons),
             "ai_respond_mode": session.ai_respond_mode,
             "auto_followup": session.auto_followup,
             "news_headlines": session.news_headlines,
             "research_notes": session.research_notes,
             "caller_bases": caller_bases_snapshot,
-            "tone_streak": session.tone_streak,
             "call_quality_signals": session.call_quality_signals,
             "caller_queue": session.caller_queue,
-            "relationship_context": session.relationship_context,
             "intern_monitoring": session.intern_monitoring,
             "costs": cost_tracker.get_live_summary(),
             "cost_records": {
@@ -1083,22 +958,20 @@ def _load_checkpoint() -> bool:
             return False
         session.id = data["session_id"]
         session.call_history = [_deserialize_call_record(r) for r in data.get("call_history", [])]
+        # Drop any legacy background dicts (pre-slim schema). They'll be regenerated
+        # fresh on next Session.reset or when startup sees no restored backgrounds.
         raw_bgs = data.get("caller_backgrounds", {})
-        session.caller_backgrounds = {}
-        for k, v in raw_bgs.items():
-            if isinstance(v, dict) and "natural_description" in v:
-                session.caller_backgrounds[k] = CallerBackground(**v)
-            else:
-                session.caller_backgrounds[k] = v
+        session.caller_backgrounds = {
+            k: v for k, v in raw_bgs.items()
+            if isinstance(v, dict) and "identity" in v and "situation" in v
+        }
         session.used_reasons = set(data.get("used_reasons", []))
         session.ai_respond_mode = data.get("ai_respond_mode", "manual")
         session.auto_followup = data.get("auto_followup", False)
         session.news_headlines = data.get("news_headlines", [])
         session.research_notes = data.get("research_notes", {})
-        session.tone_streak = data.get("tone_streak", [])
         session.call_quality_signals = data.get("call_quality_signals", [])
         session.caller_queue = data.get("caller_queue", [])
-        session.relationship_context = data.get("relationship_context", {})
         session.intern_monitoring = data.get("intern_monitoring", True)
         for key, snapshot in data.get("caller_bases", {}).items():
             if key in CALLER_BASES:
@@ -1351,7 +1224,7 @@ async def startup():
     asyncio.create_task(_sync_signalwire_voicemails())
     asyncio.create_task(_poll_imap_emails())
     restored = _load_checkpoint()
-    if not restored:
+    if not restored or not session.caller_backgrounds:
         asyncio.create_task(session._pregenerate_backgrounds())
     asyncio.create_task(avatar_service.ensure_devon())
     threading.Thread(target=_update_on_air_cdn, args=(False,), daemon=True).start()
@@ -2090,10 +1963,8 @@ def _get_all_caller_names() -> list[str]:
     names = []
     for key in CALLER_BASES:
         bg = session.caller_backgrounds.get(key)
-        if bg and hasattr(bg, "name"):
-            names.append(bg.name)
-        elif isinstance(bg, str):
-            pass  # raw string background, no structured name
+        if isinstance(bg, dict) and bg.get("name"):
+            names.append(bg["name"])
         elif "name" in CALLER_BASES[key]:
             names.append(CALLER_BASES[key]["name"])
     # Always include Devon (the intern)
@@ -2311,13 +2182,11 @@ async def start_call(caller_key: str):
     if not base.get("returning"):
         callback = _maybe_generate_callback()
         if callback:
-            existing_bg = session.caller_backgrounds.get(caller_key, "")
-            callback_ctx = f"\n\nPREVIOUS CALLS:\n- (earlier tonight) {callback['original_summary']}\nYou're calling back with an update — {callback['callback_reason']}. Reference your earlier call naturally."
-            if isinstance(existing_bg, CallerBackground):
-                existing_bg.natural_description += callback_ctx
-            else:
-                session.caller_backgrounds[caller_key] = existing_bg + callback_ctx
-            print(f"[Callback] Injected callback context for {base.get('name', caller_key)}")
+            existing_bg = session.caller_backgrounds.get(caller_key)
+            if isinstance(existing_bg, dict):
+                callback_ctx = f"\n\nPREVIOUS CALLS:\n- (earlier tonight) {callback['original_summary']}\nYou're calling back with an update — {callback['callback_reason']}. Reference your earlier call naturally."
+                existing_bg["situation"] = existing_bg.get("situation", "") + callback_ctx
+                print(f"[Callback] Injected callback context for {base.get('name', caller_key)}")
 
     caller = session.caller  # This generates the background if needed
 
@@ -2358,13 +2227,11 @@ async def start_call(caller_key: str):
 async def _enrich_background_async(caller_key: str):
     """Enrich caller background with news/weather without blocking the call"""
     try:
-        bg = session.caller_backgrounds[caller_key]
-        bg_text = bg.natural_description if isinstance(bg, CallerBackground) else bg
-        enriched = await enrich_caller_background(bg_text)
-        if isinstance(bg, CallerBackground):
-            bg.natural_description = enriched
-        else:
-            session.caller_backgrounds[caller_key] = enriched
+        bg = session.caller_backgrounds.get(caller_key)
+        if not isinstance(bg, dict):
+            return
+        enriched = await enrich_caller_background(bg.get("situation", ""))
+        bg["situation"] = enriched
     except Exception as e:
         print(f"[Research] Background enrichment failed: {e}")
 
@@ -2444,19 +2311,9 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
 
     # Populate from slim caller background dict
     bg = session.caller_backgrounds.get(caller_key) or {}
-    if isinstance(bg, dict):
-        comm_style = bg.get("emotional_register", "")
-        sit_summary = bg.get("situation", "")
-        key_dets = list(bg.get("specific_details") or [])
-    else:
-        # Legacy CallerBackground object from stale checkpoint — removed in later commit
-        comm_style = getattr(bg, "communication_style", "")
-        sit_summary = getattr(bg, "situation_summary", "")
-        sig = getattr(bg, "signature_detail", "")
-        key_dets = [sig] if sig else []
-    topic_cat = ""
-    emo_state = ""
-    energy = ""
+    comm_style = bg.get("emotional_register", "") if isinstance(bg, dict) else ""
+    sit_summary = bg.get("situation", "") if isinstance(bg, dict) else ""
+    key_dets = list(bg.get("specific_details") or []) if isinstance(bg, dict) else []
 
     quality_signals = _assess_call_quality(
         conversation,
@@ -2472,10 +2329,7 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
         started_at=started_at,
         ended_at=ended_at,
         quality_signals=quality_signals,
-        topic_category=topic_cat,
         situation_summary=sit_summary,
-        emotional_state=emo_state,
-        energy_level=energy,
         communication_style=comm_style,
         key_details=key_dets,
     ))
@@ -2491,47 +2345,28 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
                 regular_caller_service.update_after_call(base["regular_id"], summary)
             elif len(conversation) >= 8 and random.random() < 0.05:
                 # 5% chance to promote first-timer with 8+ messages
-                bg = session.caller_backgrounds.get(caller_key, "")
-
-                if isinstance(bg, CallerBackground):
-                    # Clean extraction from structured data
-                    traits = [bg.signature_detail] + bg.seeds[:3] if bg.signature_detail else bg.seeds[:4]
-                    promo_job = bg.job
-                    promo_location = bg.location or "unknown"
-                    promo_age = bg.age
-                    promo_gender = bg.gender
-                else:
-                    # Legacy fallback — fragile string parsing
-                    traits = []
-                    for label in ["QUIRK", "STRONG OPINION", "SECRET SIDE", "FOOD OPINION"]:
-                        for line in bg.split("\n"):
-                            if label in line:
-                                traits.append(line.split(":", 1)[-1].strip()[:80])
-                                break
-                    first_line = bg.split(".")[0] if bg else ""
-                    parts = first_line.split(",", 1)
-                    job_loc = parts[1].strip() if len(parts) > 1 else ""
-                    job_parts = job_loc.rsplit(" in ", 1) if " in " in job_loc else (job_loc, "unknown")
-                    promo_job = job_parts[0].strip() if isinstance(job_parts, tuple) else job_parts[0]
-                    promo_location = "in " + job_parts[1].strip() if isinstance(job_parts, tuple) and len(job_parts) > 1 else "unknown"
-                    promo_age = random.randint(*base.get("age_range", (30, 50)))
+                bg = session.caller_backgrounds.get(caller_key) or {}
+                if isinstance(bg, dict):
+                    traits = list(bg.get("specific_details") or [])[:4]
+                    promo_job = bg.get("identity", "") or ""
+                    promo_location = bg.get("location") or "unknown"
+                    promo_age = bg.get("age") or random.randint(*base.get("age_range", (30, 50)))
                     promo_gender = base.get("gender", "male")
-
-                structured_bg = asdict(bg) if isinstance(bg, CallerBackground) else None
-                avatar_path = avatar_service.get_path(caller_name)
-                regular_caller_service.add_regular(
-                    name=caller_name,
-                    gender=promo_gender,
-                    age=promo_age,
-                    job=promo_job,
-                    location=promo_location,
-                    personality_traits=traits[:4],
-                    first_call_summary=summary,
-                    voice=base.get("voice"),
-                    stable_seeds={},
-                    structured_background=structured_bg,
-                    avatar=avatar_path.name if avatar_path else None,
-                )
+                    structured_bg = dict(bg)
+                    avatar_path = avatar_service.get_path(caller_name)
+                    regular_caller_service.add_regular(
+                        name=caller_name,
+                        gender=promo_gender,
+                        age=promo_age,
+                        job=promo_job,
+                        location=promo_location,
+                        personality_traits=traits,
+                        first_call_summary=summary,
+                        voice=base.get("voice"),
+                        stable_seeds={},
+                        structured_background=structured_bg,
+                        avatar=avatar_path.name if avatar_path else None,
+                    )
     except Exception as e:
         print(f"[Regulars] Promotion logic error: {e}")
 
@@ -3289,7 +3124,7 @@ async def chat(request: ChatRequest):
         max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         _caller_name = session.caller.get("name", "") if session.caller else ""
-        _model_override = session.get_caller_model(session.current_caller_key) if session.current_caller_key else None
+        _model_override = None  # caller_dialog category routes to haiku-4.5
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
@@ -4250,7 +4085,7 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         _caller_name = session.caller.get("name", "") if session.caller else ""
-        _model_override = session.get_caller_model(session.current_caller_key) if session.current_caller_key else None
+        _model_override = None  # caller_dialog category routes to haiku-4.5
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
@@ -4308,9 +4143,7 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
     broadcast_event("ai_status", {"text": f"{ai_name} is speaking..."})
     try:
         audio_bytes = await generate_speech(response, session.caller["voice"], "none",
-                                            provider_override=session.caller.get("tts_provider"),
-                                            emotional_state=session.caller.get("emotional_state", ""),
-                                            energy_level=session.caller.get("energy_level", ""))
+                                            provider_override=session.caller.get("tts_provider"))
     except Exception as e:
         print(f"[Auto-Respond] TTS failed: {e}")
         broadcast_event("ai_done")
@@ -4370,7 +4203,7 @@ async def ai_respond():
         max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         _caller_name = session.caller.get("name", "") if session.caller else ""
-        _model_override = session.get_caller_model(session.current_caller_key) if session.current_caller_key else None
+        _model_override = None  # caller_dialog category routes to haiku-4.5
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
@@ -4420,15 +4253,11 @@ async def ai_respond():
     ai_name = caller["name"]
     ai_voice = caller["voice"]
     ai_tts_provider = caller.get("tts_provider")
-    ai_emotional_state = caller.get("emotional_state", "")
-    ai_energy_level = caller.get("energy_level", "")
 
     # TTS — outside the lock so other requests aren't blocked
     try:
         audio_bytes = await generate_speech(response, ai_voice, "none",
-                                            provider_override=ai_tts_provider,
-                                            emotional_state=ai_emotional_state,
-                                            energy_level=ai_energy_level)
+                                            provider_override=ai_tts_provider)
     except Exception as e:
         print(f"[AI-Respond] TTS failed: {e}")
         broadcast_event("ai_done")
