@@ -34,7 +34,11 @@ class CallerIdentity:
 
 
 def parse_batch_response(raw: str) -> list[CallerIdentity]:
-    data = json.loads(raw)
+    stripped = raw.strip()
+    if stripped.startswith("```") and stripped.endswith("```"):
+        lines = stripped.splitlines()
+        stripped = "\n".join(lines[1:-1])
+    data = json.loads(stripped)
     callers = data.get("callers", [])
     result = []
     for c in callers:
