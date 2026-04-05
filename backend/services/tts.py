@@ -710,7 +710,33 @@ def _detect_speech_rate(text: str, base_speed: float) -> float:
     return base_speed
 
 
-async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray, int]:
+def _emotional_register_to_params(emotional_register: str) -> tuple[float, float]:
+    """Map caller's emotional_register description to (temperature, speed_adjust).
+    speed_adjust is added to the base speed BEFORE clamping to 0.5-1.5.
+    Returns (0.9, 0.0) default for unknown/empty registers."""
+    if not emotional_register:
+        return (0.9, 0.0)
+    er = emotional_register.lower()
+    # Sadness/grief family
+    if any(kw in er for kw in ["fractured", "grief", "hollow", "sad", "mournful", "somber", "quietly desperate"]):
+        return (0.85, -0.1)
+    # Anger/aggression family
+    if any(kw in er for kw in ["angry", "combative", "furious", "aggressive", "sharp intelligence"]):
+        return (1.0, 0.1)
+    # Manic/excited family
+    if any(kw in er for kw in ["caffeinated", "manic", "giddy", "vibrating", "adrenaline", "frantic", "hyper-articulate"]):
+        return (1.0, 0.15)
+    # Nervous/earnest family
+    if any(kw in er for kw in ["earnest", "nervous", "unsettled", "anxious", "tentative", "quietly unsettled"]):
+        return (0.9, 0.0)
+    # Gruff/restrained family
+    if any(kw in er for kw in ["gruff", "measured", "precise", "stoic", "restrained", "deadpan", "forthright"]):
+        return (0.85, -0.05)
+    # Default
+    return (0.9, 0.0)
+
+
+async def generate_speech_inworld(text: str, voice_id: str, emotional_register: str = "") -> tuple[np.ndarray, int]:
     """Generate speech using Inworld TTS API (high quality, natural voices)"""
     import httpx
     import base64
@@ -727,9 +753,10 @@ async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray,
     if not api_key:
         raise RuntimeError("INWORLD_API_KEY not set in environment")
 
-    base_speed = INWORLD_SPEED_OVERRIDES.get(voice, DEFAULT_INWORLD_SPEED)
-    speed = _detect_speech_rate(text, base_speed)
-    print(f"[Inworld TTS] Voice: {voice}, Speed: {speed:.2f} (base {base_speed}), Text: {text[:50]}...")
+    temperature, speed_adjust = _emotional_register_to_params(emotional_register)
+    base_speed = INWORLD_SPEED_OVERRIDES.get(voice, DEFAULT_INWORLD_SPEED) + speed_adjust
+    speed = max(0.5, min(1.5, _detect_speech_rate(text, base_speed)))
+    print(f"[Inworld TTS] Voice: {voice}, Speed: {speed:.2f} (base {base_speed:.2f}), Temp: {temperature}, Text: {text[:50]}...")
 
     url = "https://api.inworld.ai/tts/v1/voice"
     headers = {
@@ -740,6 +767,8 @@ async def generate_speech_inworld(text: str, voice_id: str) -> tuple[np.ndarray,
         "text": text,
         "voiceId": voice,
         "modelId": "inworld-tts-1.5-max",
+        "temperature": temperature,
+        "applyTextNormalization": "ON",
         "audioConfig": {
             "audioEncoding": "LINEAR16",
             "sampleRateHertz": 48000,
@@ -797,14 +826,14 @@ def pick_caller_tts_provider() -> str | None:
 
 
 _TTS_PROVIDERS = {
-    "kokoro": lambda text, vid: generate_speech_kokoro(text, vid),
-    "f5tts": lambda text, vid: generate_speech_f5tts(text, vid),
-    "inworld": lambda text, vid: generate_speech_inworld(text, vid),
-    "chattts": lambda text, vid: generate_speech_chattts(text, vid),
-    "styletts2": lambda text, vid: generate_speech_styletts2(text, vid),
-    "bark": lambda text, vid: generate_speech_bark(text, vid),
-    "vits": lambda text, vid: generate_speech_vits(text, vid),
-    "elevenlabs": lambda text, vid: generate_speech_elevenlabs(text, vid),
+    "kokoro": lambda text, vid, er: generate_speech_kokoro(text, vid),
+    "f5tts": lambda text, vid, er: generate_speech_f5tts(text, vid),
+    "inworld": lambda text, vid, er: generate_speech_inworld(text, vid, emotional_register=er),
+    "chattts": lambda text, vid, er: generate_speech_chattts(text, vid),
+    "styletts2": lambda text, vid, er: generate_speech_styletts2(text, vid),
+    "bark": lambda text, vid, er: generate_speech_bark(text, vid),
+    "vits": lambda text, vid, er: generate_speech_vits(text, vid),
+    "elevenlabs": lambda text, vid, er: generate_speech_elevenlabs(text, vid),
 }
 
 TTS_MAX_RETRIES = 2
@@ -816,7 +845,8 @@ async def generate_speech(
     voice_id: str,
     phone_quality: str = "normal",
     apply_filter: bool = True,
-    provider_override: str = None
+    provider_override: str = None,
+    emotional_register: str = "",
 ) -> bytes:
     """
     Generate speech from text with automatic retry on failure.
@@ -827,6 +857,7 @@ async def generate_speech(
         phone_quality: Quality of phone filter ("none" to disable)
         apply_filter: Whether to apply phone filter
         provider_override: Override the global TTS provider for this call
+        emotional_register: Caller's emotional register (used by Inworld for temp/speed tuning)
 
     Returns:
         Raw PCM audio bytes (16-bit signed int, 24kHz)
@@ -845,7 +876,7 @@ async def generate_speech(
         async with asyncio.timeout(20):
             for attempt in range(TTS_MAX_RETRIES):
                 try:
-                    audio, sample_rate = await gen_fn(text, voice_id)
+                    audio, sample_rate = await gen_fn(text, voice_id, emotional_register)
                     cost_tracker.record_tts_call(provider, voice_id, len(text))
                     if attempt > 0:
                         print(f"[TTS] Succeeded on retry {attempt}")
