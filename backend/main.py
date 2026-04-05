@@ -6831,6 +6831,7 @@ def _assess_call_quality(
 class Session:
     def __init__(self):
         self.id = str(uuid.uuid4())[:8]
+        self.use_slim_caller_path = os.environ.get("CALLER_REDESIGN", "0") == "1"
         self.current_caller_key: str = None
         self.conversation: list[dict] = []
         self.caller_backgrounds: dict[str, CallerBackground | str] = {}  # Generated backgrounds
@@ -6918,6 +6919,8 @@ class Session:
     def get_caller_model(self, caller_key: str) -> str | None:
         """Get the assigned model for a caller, or assign one based on strategy.
         Returns None to use default category routing."""
+        if self.use_slim_caller_path:
+            return "anthropic/claude-haiku-4.5"
         if self.caller_model_strategy == "single":
             return None  # use default category_models["caller_dialog"]
 
