@@ -35,3 +35,27 @@ def test_parse_batch_response_rejects_missing_fields():
     bad = '{"callers": [{"name": "Jim"}]}'
     with pytest.raises(ValueError, match="missing"):
         parse_batch_response(bad)
+
+
+def test_resolve_voice_matches_exact():
+    from backend.services.caller_gen import resolve_voice
+    roster = ["Marcus", "Dennis", "Priya", "Edward"]
+    assert resolve_voice("Marcus", roster) == "Marcus"
+
+
+def test_resolve_voice_case_insensitive():
+    from backend.services.caller_gen import resolve_voice
+    roster = ["Marcus", "Dennis"]
+    assert resolve_voice("marcus", roster) == "Marcus"
+
+
+def test_resolve_voice_falls_back_when_no_match():
+    from backend.services.caller_gen import resolve_voice
+    roster = ["Marcus", "Dennis"]
+    # Deterministic fallback: return first from roster
+    assert resolve_voice("Santiago", roster) == "Marcus"
+
+
+def test_resolve_voice_empty_suggestion_falls_back():
+    from backend.services.caller_gen import resolve_voice
+    assert resolve_voice("", ["Marcus"]) == "Marcus"

@@ -36,3 +36,12 @@ def parse_batch_response(raw: str) -> list[CallerIdentity]:
             raise ValueError(f"CallerIdentity missing fields: {missing}")
         result.append(CallerIdentity(**{k: c[k] for k in REQUIRED_FIELDS}))
     return result
+
+
+def resolve_voice(suggestion: str, roster: list[str]) -> str:
+    """Map sonnet's voice suggestion to a real voice in the roster.
+    Case-insensitive exact match; deterministic fallback to first roster entry."""
+    if not suggestion or not roster:
+        return roster[0] if roster else ""
+    lower_map = {v.lower(): v for v in roster}
+    return lower_map.get(suggestion.lower(), roster[0])
