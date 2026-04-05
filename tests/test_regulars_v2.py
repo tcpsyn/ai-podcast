@@ -1,3 +1,6 @@
+import asyncio
+from unittest.mock import AsyncMock, patch
+
 from backend.services.regulars_v2 import Regular, load_regular, REGULARS_DIR, SILAS_DIR
 
 
@@ -25,3 +28,24 @@ Silas runs a small desert cult outside Truth or Consequences...
     assert reg.age == 54
     assert "splintering" in reg.arc_state
     assert "Silas runs a small desert cult" in reg.lore_body
+
+
+def test_evaluate_promotion_returns_arc_plan_when_worthy():
+    from backend.services.regulars_v2 import evaluate_promotion
+    fake_response = {
+        "promote": True,
+        "arc_plan": "3 episodes. He'll start distant, then reveal he's actually the one who damaged the car, then resolve with an apology.",
+        "reason": "Has clear internal conflict with room to grow",
+    }
+    with patch("backend.services.regulars_v2._call_sonnet", new=AsyncMock(return_value=fake_response)):
+        result = asyncio.run(evaluate_promotion(caller_name="Bobby", call_transcript="..."))
+    assert result["promote"] is True
+    assert "3 episodes" in result["arc_plan"]
+
+
+def test_evaluate_promotion_rejects_when_no_arc():
+    from backend.services.regulars_v2 import evaluate_promotion
+    fake_response = {"promote": False, "arc_plan": None, "reason": "One-note complaint, no growth"}
+    with patch("backend.services.regulars_v2._call_sonnet", new=AsyncMock(return_value=fake_response)):
+        result = asyncio.run(evaluate_promotion(caller_name="Carl", call_transcript="..."))
+    assert result["promote"] is False
