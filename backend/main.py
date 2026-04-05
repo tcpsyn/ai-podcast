@@ -4141,9 +4141,12 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
     broadcast_chat(ai_name, response)
 
     broadcast_event("ai_status", {"text": f"{ai_name} is speaking..."})
+    _caller_bg = session.caller_backgrounds.get(session.current_caller_key) or {}
+    _emotional_register = _caller_bg.get("emotional_register", "") if isinstance(_caller_bg, dict) else ""
     try:
         audio_bytes = await generate_speech(response, session.caller["voice"], "none",
-                                            provider_override=session.caller.get("tts_provider"))
+                                            provider_override=session.caller.get("tts_provider"),
+                                            emotional_register=_emotional_register)
     except Exception as e:
         print(f"[Auto-Respond] TTS failed: {e}")
         broadcast_event("ai_done")
@@ -4253,11 +4256,14 @@ async def ai_respond():
     ai_name = caller["name"]
     ai_voice = caller["voice"]
     ai_tts_provider = caller.get("tts_provider")
+    _caller_bg = session.caller_backgrounds.get(session.current_caller_key) or {}
+    ai_emotional_register = _caller_bg.get("emotional_register", "") if isinstance(_caller_bg, dict) else ""
 
     # TTS — outside the lock so other requests aren't blocked
     try:
         audio_bytes = await generate_speech(response, ai_voice, "none",
-                                            provider_override=ai_tts_provider)
+                                            provider_override=ai_tts_provider,
+                                            emotional_register=ai_emotional_register)
     except Exception as e:
         print(f"[AI-Respond] TTS failed: {e}")
         broadcast_event("ai_done")
