@@ -584,6 +584,11 @@ class InternService:
         self.pending_interjection = None
         self.pending_sources = []
 
+    def new_show(self):
+        self.pending_interjection = None
+        self.pending_sources = []
+        self.research_cache = {}
+
     @staticmethod
     def _clean_for_tts(text: str) -> str:
         if not text:
