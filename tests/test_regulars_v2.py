@@ -69,3 +69,24 @@ def test_call_sonnet_strips_markdown_fences():
         result = asyncio.run(_call_sonnet("prompt"))
     assert result["promote"] is True
     assert result["arc_plan"] == "ok"
+
+
+def test_write_new_regular_creates_lore_file(tmp_path, monkeypatch):
+    monkeypatch.setattr("backend.services.regulars_v2.REGULARS_DIR", tmp_path)
+    from backend.services.regulars_v2 import write_new_regular
+
+    write_new_regular(
+        name="Bobby",
+        voice="Marcus",
+        age=34,
+        identity_paragraph="A landscaper in Las Cruces who...",
+        arc_plan="3 episodes: distant → reveal → apology",
+        first_call_summary="Called about damaged car",
+    )
+    f = tmp_path / "bobby.md"
+    assert f.exists()
+    body = f.read_text()
+    assert "name: Bobby" in body
+    assert "voice: Marcus" in body
+    assert "A landscaper in Las Cruces" in body
+    assert "3 episodes: distant → reveal → apology" in body
