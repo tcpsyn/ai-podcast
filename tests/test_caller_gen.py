@@ -59,3 +59,45 @@ def test_resolve_voice_falls_back_when_no_match():
 def test_resolve_voice_empty_suggestion_falls_back():
     from backend.services.caller_gen import resolve_voice
     assert resolve_voice("", ["Marcus"]) == "Marcus"
+
+
+def test_build_batch_prompt_includes_context():
+    from backend.services.caller_gen import build_batch_prompt
+    ctx = {
+        "date": "Saturday, April 5, 2026",
+        "weather": "cool desert night, 48°F",
+        "headlines": ["New Mexico legislature approves water bill"],
+        "recent_caller_summaries": ["Jerry called about his neighbor's goat"],
+        "regulars_included": [],
+        "caller_count": 12,
+        "voice_roster": ["Marcus", "Dennis", "Priya"],
+    }
+    prompt = build_batch_prompt(ctx)
+    assert "Saturday, April 5, 2026" in prompt
+    assert "water bill" in prompt
+    assert "Jerry called about his neighbor's goat" in prompt
+    assert "12 callers" in prompt
+    assert "Marcus" in prompt  # voice roster listed
+    assert "Stern" in prompt
+    assert "Coast to Coast" in prompt
+    assert "Loveline" in prompt
+    assert "Delilah" in prompt
+    assert "Opie and Anthony" in prompt
+
+
+def test_build_batch_prompt_includes_silas_lore_when_present():
+    from backend.services.caller_gen import build_batch_prompt
+    ctx = {
+        "date": "...",
+        "weather": "...",
+        "headlines": [],
+        "recent_caller_summaries": [],
+        "regulars_included": [{"name": "Silas", "lore": "Silas leads a small desert cult...", "arc_state": "seeking new members"}],
+        "caller_count": 12,
+        "voice_roster": ["Marcus"],
+    }
+    prompt = build_batch_prompt(ctx)
+    assert "Silas" in prompt
+    assert "desert cult" in prompt
+    assert "seeking new members" in prompt
+    assert "DO NOT alter his voice, personality, or core traits" in prompt
