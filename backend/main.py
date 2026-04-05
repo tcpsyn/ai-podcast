@@ -7147,6 +7147,58 @@ class Session:
                 }
         return None
 
+    async def _pregenerate_backgrounds_slim(self):
+        """New path: single sonnet-4.6 batch call generates all caller identities."""
+        from .services import caller_gen, regulars_v2
+        from datetime import datetime
+
+        voice_roster = [name for name in INWORLD_MALE_VOICES + INWORLD_FEMALE_VOICES
+                        if name not in BLACKLISTED_VOICES]
+
+        active_regulars = regulars_v2.load_all_active_regulars()
+        regulars_for_tonight = [
+            {"name": r.name, "lore": r.lore_body, "arc_state": r.arc_state}
+            for r in active_regulars
+        ][:3]
+
+        headlines: list[str] = []
+        if self.news_headlines:
+            for h in self.news_headlines[:5]:
+                headlines.append(h.title if hasattr(h, "title") else str(h))
+
+        ctx = {
+            "date": datetime.now().strftime("%A, %B %d, %Y"),
+            "weather": "cool desert night",  # TODO: real weather feed
+            "headlines": headlines,
+            "recent_caller_summaries": self._get_recent_summaries(),
+            "regulars_included": regulars_for_tonight,
+            "caller_count": 12,
+            "voice_roster": voice_roster,
+        }
+
+        identities = await caller_gen.generate_batch(ctx)
+
+        for i, identity in enumerate(identities[:10]):
+            key = str(i + 1)
+            self.caller_backgrounds[key] = {
+                "name": identity.name,
+                "age": identity.age,
+                "voice": identity.voice_resolved,
+                "location": identity.location,
+                "identity": identity.identity,
+                "situation": identity.situation,
+                "reason_calling": identity.reason_calling,
+                "opening_line": identity.opening_line,
+                "secret_want": identity.secret_want,
+                "specific_details": identity.specific_details,
+                "emotional_register": identity.emotional_register,
+            }
+        print(f"[Background] Slim batch generated {len(identities[:10])} caller identities")
+
+    def _get_recent_summaries(self) -> list[str]:
+        # Return last 2 shows' caller summaries — stub for now, can wire into cost_db
+        return []
+
     def reset(self):
         """Reset session - clears all caller backgrounds for fresh personalities"""
         self.caller_backgrounds = {}
@@ -7639,7 +7691,10 @@ async def startup():
     asyncio.create_task(_poll_imap_emails())
     restored = _load_checkpoint()
     if not restored:
-        asyncio.create_task(_pregenerate_backgrounds())
+        if session.use_slim_caller_path:
+            asyncio.create_task(session._pregenerate_backgrounds_slim())
+        else:
+            asyncio.create_task(_pregenerate_backgrounds())
     asyncio.create_task(avatar_service.ensure_devon())
     threading.Thread(target=_update_on_air_cdn, args=(False,), daemon=True).start()
 
@@ -8540,7 +8595,10 @@ async def reset_session():
     session.reset()
     _chat_updates.clear()
     # Pre-generate backgrounds in background so they're ready when callers are clicked
-    asyncio.create_task(_pregenerate_backgrounds())
+    if session.use_slim_caller_path:
+        asyncio.create_task(session._pregenerate_backgrounds_slim())
+    else:
+        asyncio.create_task(_pregenerate_backgrounds())
     return {"status": "reset", "session_id": session.id}
 
 
@@ -9602,7 +9660,11 @@ async def chat(request: ChatRequest):
                 mood += "\nSay goodbye NOW and end with [HANGUP]\n"
 
         rel_ctx = session.relationship_context.get(session.current_caller_key, "")
-        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
+        if session.use_slim_caller_path:
+            slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
+            system_prompt = get_caller_prompt_slim(slim_caller)
+        else:
+            system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
 
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
         max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
@@ -10231,13 +10293,17 @@ async def show_preflight(test_responses: bool = False):
 
         # Run all tests in parallel for speed
         async def _test_caller(key, base, model):
-            caller_data = {
-                "name": base.get("name", key),
-                "vibe": session.get_caller_background(key),
-                "style": session.caller_styles.get(key, ""),
-                "shape": session.caller_shapes.get(key, "standard"),
-            }
-            prompt = get_caller_prompt(caller_data, show_history="")
+            if session.use_slim_caller_path:
+                slim_caller = session.caller_backgrounds.get(key, {})
+                prompt = get_caller_prompt_slim(slim_caller)
+            else:
+                caller_data = {
+                    "name": base.get("name", key),
+                    "vibe": session.get_caller_background(key),
+                    "style": session.caller_styles.get(key, ""),
+                    "shape": session.caller_shapes.get(key, "standard"),
+                }
+                prompt = get_caller_prompt(caller_data, show_history="")
             # Simulate a real 3-exchange conversation
             max_tok, _ = _pick_response_budget(session.caller_shapes.get(key, "standard"))
             messages = [
@@ -10845,7 +10911,11 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
             if session._wrapup_exchanges > 2:
                 mood += "\nSay goodbye NOW and end with [HANGUP]\n"
         rel_ctx = session.relationship_context.get(session.current_caller_key, "")
-        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
+        if session.use_slim_caller_path:
+            slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
+            system_prompt = get_caller_prompt_slim(slim_caller)
+        else:
+            system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
 
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
         max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
@@ -10967,7 +11037,11 @@ async def ai_respond():
             if session._wrapup_exchanges > 2:
                 mood += "\nSay goodbye NOW and end with [HANGUP]\n"
         rel_ctx = session.relationship_context.get(session.current_caller_key, "")
-        system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
+        if session.use_slim_caller_path:
+            slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
+            system_prompt = get_caller_prompt_slim(slim_caller)
+        else:
+            system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
 
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
         max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
