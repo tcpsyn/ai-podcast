@@ -1,7 +1,7 @@
-from backend.main import get_caller_prompt_slim
+from backend.main import get_caller_prompt
 
 
-def test_slim_prompt_includes_identity_and_situation():
+def test_prompt_includes_identity_and_situation():
     caller = {
         "name": "Danny",
         "identity": "A plumber who inherited a taxidermy shop",
@@ -10,7 +10,7 @@ def test_slim_prompt_includes_identity_and_situation():
         "secret_want": "Permission to throw it all away",
         "specific_details": ["elk head in basement", "note said she forgot"],
     }
-    prompt = get_caller_prompt_slim(caller)
+    prompt = get_caller_prompt(caller)
     assert "Danny" in prompt
     assert "taxidermy shop" in prompt
     assert "strange calls" in prompt

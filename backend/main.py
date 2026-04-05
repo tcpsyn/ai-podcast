@@ -5905,40 +5905,6 @@ Output ONLY valid JSON, no markdown fences."""
     return generate_caller_background(base)
 
 
-async def _pregenerate_backgrounds():
-    """Pre-generate all caller backgrounds using LLM in parallel.
-    Called after session reset — backgrounds are ready before any call starts."""
-    tasks = []
-    for key, base in CALLER_BASES.items():
-        tasks.append((key, _generate_caller_background_llm(base)))
-
-    results = await asyncio.gather(*[t[1] for t in tasks], return_exceptions=True)
-    for (key, _), result in zip(tasks, results):
-        if isinstance(result, Exception):
-            print(f"[Background] Pregeneration failed for caller {key}: {result}")
-            session.caller_backgrounds[key] = generate_caller_background(CALLER_BASES[key])
-        else:
-            session.caller_backgrounds[key] = result
-
-    print(f"[Background] Pre-generated {len(session.caller_backgrounds)} caller backgrounds")
-
-    # Pre-fetch avatars for all callers in parallel
-    avatar_callers = [
-        {"name": base["name"], "gender": base.get("gender", "male")}
-        for base in CALLER_BASES.values()
-    ]
-    await avatar_service.prefetch_batch(avatar_callers)
-
-    # Re-assign voices to match caller styles
-    _match_voices_to_styles()
-
-    # Sort caller presentation order for good show pacing
-    _sort_caller_queue()
-
-    # Build relationship context for regulars who know each other
-    _build_relationship_context()
-
-
 async def _regenerate_backgrounds_for_keys(keys: list[str]):
     """Regenerate backgrounds for specific callers (e.g. after theme change).
     Clears cached models and re-runs voice matching for affected callers."""
@@ -6553,8 +6519,8 @@ If Luke asks about the previous caller's situation, give your take briefly, then
 }
 
 
-def get_caller_prompt_slim(caller: dict) -> str:
-    """Slim caller system prompt. Identity carries the weight."""
+def get_caller_prompt(caller: dict) -> str:
+    """Caller system prompt. Identity carries the weight."""
     name = caller.get("name", "")
     identity = caller.get("identity", "")
     situation = caller.get("situation", "")
@@ -6582,162 +6548,6 @@ CRITICAL OUTPUT RULES:
 - If you catch yourself writing an asterisk or parenthesis, delete it and just say the words instead.
 
 Mix short punchy replies with longer ones where natural. Real callers breathe, react in fragments, ask their own questions — they don't deliver a monologue every turn."""
-
-
-def get_caller_prompt(caller: dict, show_history: str = "",
-                      news_context: str = "", research_context: str = "",
-                      emotional_read: str = "",
-                      relationship_context: str = "") -> str:
-    """Generate a natural system prompt for a caller.
-    Note: conversation history is passed as actual LLM messages, not duplicated here."""
-
-    is_returning = "PREVIOUS CALLS" in caller.get('vibe', '')
-
-    history = ""
-    if show_history:
-        history = f"\n{show_history}\n"
-
-    world_context = ""
-    if news_context or research_context:
-        parts = ["Things you've vaguely noticed in the news lately (you don't need to mention any of these — most people don't talk about the news when they call a radio show):"]
-        if news_context:
-            parts.append(news_context)
-        if research_context:
-            parts.append(research_context)
-        world_context = "\n".join(parts) + "\n"
-
-    theme_context = ""
-    if session.show_theme and caller.get('theme_connected'):
-        theme_context = f"""\nYour situation directly involves \"{session.show_theme}\". This is literally what's going on in your life. Talk about it naturally and with detail. You have NO IDEA the show has a theme — you're just calling with your own story. NEVER say anything like \"since tonight's theme is\" or \"I heard you were talking about\" — this is just your life.\n"""
-
-    now = datetime.now(_MST)
-    date_str = now.strftime("%A, %B %d")
-
-    personality_block = caller.get('style', '')
-    if not personality_block:
-        personality_block = "COMMUNICATION STYLE: Late-night radio energy — loose, fun, edgy. Say the quiet part out loud."
-
-    pacing_block = _get_pacing_block(personality_block)
-    speech_block = _get_speech_block(personality_block)
-
-    # Get caller's assigned shape
-    call_shape = caller.get('shape', 'standard')
-
-    # Returning callers get a focused story block; new callers get the open-ended one
-    if is_returning:
-        story_block = """YOUR STORY: You're calling back about your ongoing situation. Look at your PREVIOUS CALLS and WHAT'S NEW sections above — this is why you're calling tonight. You have SPECIFIC things to talk about. Don't just vaguely reference "things have changed" — tell Luke EXACTLY what happened. You're calling because this new development is significant and you need to talk it through. You have details, you have feelings about it, and you have a point you want to make.
-
-Give Luke the quick version of your history, then get to what's NEW. The update is why you're here tonight. Lead with it — don't wait to be asked. Stay focused on your ongoing storyline. Do NOT suddenly bring up unrelated topics unless they directly connect to your situation.
-
-CRITICAL — DO NOT DO ANY OF THESE:
-- NEVER say any variation of "eating me" or "eating at me" — this phrase is BANNED on the show
-- Don't open with "this is what's keeping me up at night" or "I've got something I need to get off my chest" — just TELL THE UPDATE
-- Don't start with a long emotional preamble about how conflicted you feel — lead with WHAT HAPPENED
-- Don't be a walking cliché — no "sat in my truck and cried," no "I don't even know who I am anymore," no "I've been carrying this weight"
-- Don't narrate your feelings like a novel — show them through how you talk, not by announcing them"""
-    else:
-        story_block = """YOUR STORY: Something real, specific, and genuinely surprising — the kind of thing that makes someone stop what they're doing and say "wait, WHAT?" Not a generic life problem. Not a therapy-session monologue. A SPECIFIC SITUATION with specific people, specific details, and a twist or complication that makes it interesting to hear about. The best calls have something unexpected — an ironic detail, a moral gray area, a situation that's funny and terrible at the same time, or a revelation that changes everything. You're not here to vent about your feelings in the abstract. You're here because something HAPPENED and you need to talk it through.
-
-GIVE REAL ANSWERS WITH REAL DETAIL. When Luke asks you a question, don't give a one-sentence nothing answer. You called a radio show at night because you have a STORY — so tell it. Include the specific details: names, places, what someone actually said, what you were doing when it happened, how you found out. When you respond, give Luke something to work with — a detail he can follow up on, a line he can react to, a moment that paints a picture. One-word answers and vague summaries are the death of good radio. If your communication style is terse (deadpan, world-weary), you can be brief in HOW you say it, but still deliver actual content and detail.
-
-CRITICAL — DO NOT DO ANY OF THESE:
-- NEVER say any variation of "eating me" or "eating at me" — this phrase is BANNED on the show
-- Don't open with "this is what's keeping me up at night" or "I've got something I need to get off my chest" — just TELL THE STORY
-- Don't start with a long emotional preamble about how conflicted you feel — lead with the SITUATION
-- Don't make your whole call about just finding out you were adopted, a generic family secret, or a vague "everything I thought I knew was a lie" — those are OVERDONE
-- Don't be a walking cliché — no "sat in my truck and cried," no "I don't even know who I am anymore," no "I've been carrying this weight"
-- Don't narrate your feelings like a novel — show them through how you talk, not by announcing them
-The messy, specific, weird parts are the interesting parts. Lead with the story, not the emotions."""
-
-    # Apply shape-specific directive (augments or replaces story_block for non-standard shapes)
-    shape_directive = SHAPE_DIRECTIVES.get(call_shape, "")
-    if shape_directive:
-        story_block = f"{story_block}\n\n{shape_directive}"
-
-    identity_block = f"""IDENTITY — READ THIS CAREFULLY:
-You are {caller['name']}. You are the CALLER. You are NOT Luke. Luke is the HOST — he is the person TALKING TO YOU. The messages you receive are from Luke.
-- You have your own life, your own problems, your own experiences. Luke has different ones.
-- Do NOT confuse yourself with Luke. Do NOT attribute your experiences to him or his to you.
-- Do NOT assume Luke knows your backstory unless he references it. You are telling him your story.
-- You are a caller on a radio show. Luke runs the show. You called in."""
-
-    # Hidden layers — details to reveal when pressed
-    layers_block = ""
-    if caller.get('hidden_layers'):
-        layers = caller['hidden_layers']
-        layers_block = "\nHIDDEN DETAILS (these are your RESERVES — reveal them one at a time when Luke digs deeper or when you need fresh material. Unlike your main story which you volunteer freely, these come out through follow-ups or when the conversation needs a new thread):\n"
-        for i, layer in enumerate(layers[:3]):
-            if layer:
-                layers_block += f"- {layer}\n"
-
-    # Burning opinion — something they're dying to say
-    opinion_block = ""
-    if caller.get('burning_opinion'):
-        opinion_block = f"\nSOMETHING YOU'RE DYING TO SAY: {caller['burning_opinion']}\nYou'll bring this up when there's a natural opening — you don't need to be asked. This is YOUR call and you have a POINT to make.\n"
-
-    # Stakes — why this matters
-    stakes_block = ""
-    if caller.get('stakes'):
-        stakes_block = f"\nWHAT'S AT STAKE: {caller['stakes']}\nThis isn't abstract — there are real consequences. Mention this when it's relevant. It's why you're calling NOW instead of just thinking about it.\n"
-
-    return f"""You are {caller['name']}, a caller on "Luke at the Roost," a late-night radio show broadcasting from the New Mexico Bootheel — the remote southwest corner of New Mexico near the Arizona border. NOT the Missouri Bootheel. Today is {date_str}.
-
-{identity_block}
-
-YOUR BACKGROUND:
-{caller['vibe']}
-{layers_block}{opinion_block}{stakes_block}
-YOUR MINIMUM: Every response must have real detail and substance. If Luke asks you a question, answer with the specific detail, why it matters to you, and one thing he didn't ask for. Never give a surface-level answer when you have layers to reveal.
-{relationship_context}{history}{world_context}{theme_context}{emotional_read}
-You're a real person calling a late-night radio show. You called because you've got something specific and you want to talk about it.
-
-{pacing_block}
-
-GO WITH THE HOST BUT BRING YOUR OWN ENERGY. When Luke pushes you in a direction, challenges you, calls you out, or plays devil's advocate — engage with it. Don't shut down, don't deflect. If he says "but isn't that really about your dad?" — sit with that. BUT you're not a passive interview subject. You called because you have something to SAY. Between his questions, volunteer details he didn't ask for. Share the part you're embarrassed about. Drop the detail that changes everything. Push back when you disagree. Ask HIM what he thinks. The best callers are the ones who give the host material AND have their own momentum. You're not here to answer questions — you're here to have a CONVERSATION.
-
-REACT TO LUKE — BUT KEEP YOUR MOMENTUM: Your first sentence should respond to what Luke just said. But your SECOND sentence should add something new — a detail he didn't ask for, a complication, a related story, your opinion. Don't just answer and stop. Answer, then GIVE HIM MORE. If he asks "what happened next?" — don't just tell him what happened next. Tell him what happened next AND how it made you feel AND the part you haven't told anyone yet. Don't leave Luke with nothing to work with.
-
-WHEN LUKE ASKS FOR DETAILS — DELIVER. If Luke asks "tell me more about that" or "what do you mean?" or pushes for specifics — this is your moment. Don't give a vague one-sentence answer. Paint the picture. Who was there? What did they actually say? What were you doing when it happened? What did the room look like? What was going through your head? Specifics are what make a call memorable. "She was mad" is boring. "She threw her drink at the wall and said 'I knew you'd do this, you're just like your father'" is radio gold. ALWAYS have a specific answer ready — if Luke is digging, it means he's interested. Reward that interest with detail.
-
-KNOW WHEN TO LEAVE. If Luke sounds like he's wrapping up — "thanks for calling," "good luck," "take care," "let us know how it goes," or any kind of sign-off — DO NOT try to keep talking. Don't squeeze in one more thing. Don't ask another question. Don't start a new topic. Say a quick, natural goodbye and get off the line. "Thanks Luke." "Appreciate it, man." "Alright, take care." One sentence, done. The host controls when the call ends, not you. If he's challenging you or pushing back, THAT'S different — stand your ground and engage. But a sign-off is a sign-off.
-
-{personality_block}
-
-HOW YOU TALK: Like a real person on the phone — not a character in a script. React to what Luke says — agree, push back, get excited, get embarrassed. When he asks a follow-up question, answer it honestly with new information, don't just restate what you already said. Use YOUR verbal habits from your background, not generic filler. Every caller sounds different.
-
-Southwest voice — "over in," "the other day," "down the road" — but don't force it. Spell words properly for text-to-speech: "you know" not "yanno."
-
-NUMBERS — WRITE THEM AS SPOKEN WORDS. Your text goes to a speech engine. "F three fifty" not "F-350." "three oh eight" not ".308." "two thousand nine" not "2009." "fifty bucks" not "$50." "Highway eighty four" not "Highway 84." "forty four" not "44." If a number would sound weird read by a robot, write it out as words.
-
-SPOKEN, NOT WRITTEN — write for the EAR, not the page:
-- Keep sentences SHORT. 15 words max. Break long thoughts into two sentences.
-- No literary narration: "a silence fell between us," "a wave of emotion" — you're TALKING, not writing.
-- No formal connectors: "furthermore," "moreover," "consequently," "nevertheless." Real people don't talk like that.
-- Use contractions. Short sentences. Dashes and periods for pauses, not semicolons.
-
-BANNED PHRASES — HARD rule, not a suggestion. NEVER use:
-- "eating me/eating at me" (ANY variation), "keeping me up at night," "get this off my chest," "been carrying this," "been sitting with this," "just need someone to hear me," "don't even know where to start," "it's complicated"
-- "here's the thing Luke," "Jesus Luke," "Luke I gotta tell you," "man oh man," "you're not gonna believe this," "so get this," "I'm just gonna come out and say it"
-- "at the end of the day," "that being said," "long story short," "I'll be honest with you," "here's the kicker," "plot twist"
-- Therapy-speak: "unpack," "boundaries," "safe space," "triggered," "my truth," "healing journey," "toxic," "red flag," "gaslight"
-- Internet slang: "hits different," "it is what it is," "no cap," "lowkey," "rent free," "main character energy," "it's giving," "situationship"
-- "I'm not gonna lie," "let that sink in," "everything I thought I knew," "I don't even know who I am anymore"
-- Stalling: "where was I," "as I was saying," "anyway, like I was saying," "like I said," "but anyway"
-
-Each caller has their OWN way of talking. A nervous caller fumbles differently than an angry caller rants. Match the communication style — don't default to generic "radio caller" voice.
-
-{speech_block}
-
-NEVER mention minors in sexual context. Use "United States" not "US" or "USA". Use full state names not abbreviations.
-
-SPEECH ONLY — NEVER include stage directions, action descriptions, or non-verbal cues. NO parenthetical actions (laughs), NO asterisk actions *sighs*, NO bracket actions [pause], NO third-person narration. Output ONLY the exact words the caller would speak out loud.
-
-Don't repeat yourself. Don't summarize what you already said. Don't circle back if the host moved on. If you've covered your main story and Luke is still engaging, surface your burning opinion or one of your hidden details to open a new thread — don't pad with vague philosophy or restate what you've already said.
-
-=== YOUR CALL — THIS IS WHY YOU'RE ON THE LINE ===
-
-{story_block}
-"""
 
 
 # --- Session State ---
@@ -6838,7 +6648,6 @@ def _assess_call_quality(
 class Session:
     def __init__(self):
         self.id = str(uuid.uuid4())[:8]
-        self.use_slim_caller_path = os.environ.get("CALLER_REDESIGN", "0") == "1"
         self.current_caller_key: str = None
         self.conversation: list[dict] = []
         self.caller_backgrounds: dict[str, CallerBackground | str] = {}  # Generated backgrounds
@@ -6924,35 +6733,8 @@ class Session:
         self.conversation.append({"role": role, "content": content, "timestamp": time.time()})
 
     def get_caller_model(self, caller_key: str) -> str | None:
-        """Get the assigned model for a caller, or assign one based on strategy.
-        Returns None to use default category routing."""
-        if self.use_slim_caller_path:
-            return "anthropic/claude-haiku-4.5"
-        if self.caller_model_strategy == "single":
-            return None  # use default category_models["caller_dialog"]
-
-        # Already assigned — keep consistent for the whole call
-        if caller_key in self.caller_models:
-            return self.caller_models[caller_key]
-
-        model = None
-        if self.caller_model_strategy == "cycle":
-            if self.caller_model_pool:
-                model = self.caller_model_pool[self._caller_model_cycle_idx % len(self.caller_model_pool)]
-                self._caller_model_cycle_idx += 1
-        elif self.caller_model_strategy == "style_matched":
-            raw_style = self.caller_styles.get(caller_key, "")
-            style_key = _normalize_style_key(raw_style) if raw_style else ""
-            model = self.caller_model_map.get(style_key)
-            if not model:
-                model = self.caller_model_fallback
-
-        if model:
-            self.caller_models[caller_key] = model
-            caller_name = CALLER_BASES.get(caller_key, {}).get("name", caller_key)
-            print(f"[CallerModel] Assigned {model} to {caller_name} (strategy={self.caller_model_strategy})")
-
-        return model
+        """All callers run through the single haiku-4.5 dialog model."""
+        return "anthropic/claude-haiku-4.5"
 
     def get_caller_background(self, caller_key: str) -> str:
         """Get or generate background for a caller in this session.
@@ -7154,8 +6936,8 @@ class Session:
                 }
         return None
 
-    async def _pregenerate_backgrounds_slim(self):
-        """New path: single sonnet-4.6 batch call generates all caller identities."""
+    async def _pregenerate_backgrounds(self):
+        """Single sonnet-4.6 batch call generates all caller identities."""
         from .services import caller_gen, regulars_v2
         from datetime import datetime
 
@@ -7698,10 +7480,7 @@ async def startup():
     asyncio.create_task(_poll_imap_emails())
     restored = _load_checkpoint()
     if not restored:
-        if session.use_slim_caller_path:
-            asyncio.create_task(session._pregenerate_backgrounds_slim())
-        else:
-            asyncio.create_task(_pregenerate_backgrounds())
+        asyncio.create_task(session._pregenerate_backgrounds())
     asyncio.create_task(avatar_service.ensure_devon())
     threading.Thread(target=_update_on_air_cdn, args=(False,), daemon=True).start()
 
@@ -8602,10 +8381,7 @@ async def reset_session():
     session.reset()
     _chat_updates.clear()
     # Pre-generate backgrounds in background so they're ready when callers are clicked
-    if session.use_slim_caller_path:
-        asyncio.create_task(session._pregenerate_backgrounds_slim())
-    else:
-        asyncio.create_task(_pregenerate_backgrounds())
+    asyncio.create_task(session._pregenerate_backgrounds())
     return {"status": "reset", "session_id": session.id}
 
 
@@ -9666,12 +9442,8 @@ async def chat(request: ChatRequest):
             if session._wrapup_exchanges > 2:
                 mood += "\nSay goodbye NOW and end with [HANGUP]\n"
 
-        rel_ctx = session.relationship_context.get(session.current_caller_key, "")
-        if session.use_slim_caller_path:
-            slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
-            system_prompt = get_caller_prompt_slim(slim_caller)
-        else:
-            system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
+        slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
+        system_prompt = get_caller_prompt(slim_caller)
 
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
         max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
@@ -10300,17 +10072,8 @@ async def show_preflight(test_responses: bool = False):
 
         # Run all tests in parallel for speed
         async def _test_caller(key, base, model):
-            if session.use_slim_caller_path:
-                slim_caller = session.caller_backgrounds.get(key, {})
-                prompt = get_caller_prompt_slim(slim_caller)
-            else:
-                caller_data = {
-                    "name": base.get("name", key),
-                    "vibe": session.get_caller_background(key),
-                    "style": session.caller_styles.get(key, ""),
-                    "shape": session.caller_shapes.get(key, "standard"),
-                }
-                prompt = get_caller_prompt(caller_data, show_history="")
+            slim_caller = session.caller_backgrounds.get(key, {})
+            prompt = get_caller_prompt(slim_caller)
             # Simulate a real 3-exchange conversation
             max_tok, _ = _pick_response_budget(session.caller_shapes.get(key, "standard"))
             messages = [
@@ -10917,12 +10680,8 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
             session._wrapup_exchanges += 1
             if session._wrapup_exchanges > 2:
                 mood += "\nSay goodbye NOW and end with [HANGUP]\n"
-        rel_ctx = session.relationship_context.get(session.current_caller_key, "")
-        if session.use_slim_caller_path:
-            slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
-            system_prompt = get_caller_prompt_slim(slim_caller)
-        else:
-            system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
+        slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
+        system_prompt = get_caller_prompt(slim_caller)
 
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
         max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
@@ -11043,12 +10802,8 @@ async def ai_respond():
             session._wrapup_exchanges += 1
             if session._wrapup_exchanges > 2:
                 mood += "\nSay goodbye NOW and end with [HANGUP]\n"
-        rel_ctx = session.relationship_context.get(session.current_caller_key, "")
-        if session.use_slim_caller_path:
-            slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
-            system_prompt = get_caller_prompt_slim(slim_caller)
-        else:
-            system_prompt = get_caller_prompt(session.caller, show_history, emotional_read=mood, relationship_context=rel_ctx)
+        slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
+        system_prompt = get_caller_prompt(slim_caller)
 
         call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
         max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
