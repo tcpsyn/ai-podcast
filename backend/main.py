@@ -4994,101 +4994,6 @@ CALLER_STYLE_KEYS = [
     "rambling",          # 17
 ]
 
-# Preferred voice dimensions for each communication style.
-# None = no preference (matcher can pick any value for that dimension).
-# Maps style key → dict of preferred VOICE_PROFILES dimensions.
-# Used by voice matching (Phase 2c) to score voices against caller personality.
-STYLE_VOICE_PREFERENCES = {
-    "quiet_nervous":     {"weight": "light",  "energy": "low",    "warmth": None,      "age_feel": None},
-    "storyteller":       {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": None},
-    "deadpan":           {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": None},
-    "high_energy":       {"weight": None,     "energy": "high",   "warmth": "warm",    "age_feel": "young"},
-    "confrontational":   {"weight": "heavy",  "energy": "high",   "warmth": "cool",    "age_feel": None},
-    "oversharer":        {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": None},
-    "philosopher":       {"weight": "heavy",  "energy": "low",    "warmth": "warm",    "age_feel": "mature"},
-    "bragger":           {"weight": "heavy",  "energy": "high",   "warmth": "neutral", "age_feel": "middle"},
-    "first_time":        {"weight": "light",  "energy": "low",    "warmth": "warm",    "age_feel": "young"},
-    "emotional":         {"weight": "medium", "energy": "low",    "warmth": "warm",    "age_feel": None},
-    "world_weary":       {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
-    "conspiracy":        {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
-    "comedian":          {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": None},
-    "angry_venting":     {"weight": "heavy",  "energy": "high",   "warmth": "neutral", "age_feel": None},
-    "sweet_earnest":     {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": None},
-    "mysterious":        {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "middle"},
-    "know_it_all":       {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "middle"},
-    "rambling":          {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": None},
-}
-
-
-# --- Call Shapes ---
-# Each shape defines the dramatic arc of a call. Weights control frequency.
-CALL_SHAPES = [
-    ("standard", 25),           # Normal call — caller has a thing, they talk about it
-    ("escalating_reveal", 15),  # Starts mundane, each exchange reveals something bigger
-    ("am_i_the_asshole", 10),   # Caller wants validation but the situation is morally gray
-    ("confrontation", 10),      # Caller is fired up and wants to argue/vent
-    ("celebration", 8),         # Something great happened — caller is riding high
-    ("quick_hit", 10),          # Short and punchy — one thing to say, says it, done
-    ("bait_and_switch", 8),     # Starts as one thing, turns out to be something completely different
-    ("the_hangup", 7),          # Caller gets upset/embarrassed and hangs up mid-call
-    ("reactive", 7),            # Caller is reacting to something that happened earlier on the show
-]
-
-_CALL_SHAPE_NAMES = [s[0] for s in CALL_SHAPES]
-_CALL_SHAPE_WEIGHTS = [s[1] for s in CALL_SHAPES]
-
-
-# Shape-style affinities: multipliers for base shape weights per communication style
-SHAPE_STYLE_AFFINITIES = {
-    "quiet_nervous":     {"the_hangup": 2.0, "escalating_reveal": 1.5, "bait_and_switch": 1.5, "confrontation": 0.3},
-    "storyteller":       {"escalating_reveal": 2.0, "bait_and_switch": 1.5, "standard": 1.5, "quick_hit": 0.3},
-    "deadpan":           {"quick_hit": 1.5, "am_i_the_asshole": 1.5, "confrontation": 1.3},
-    "high_energy":       {"confrontation": 1.5, "celebration": 1.5, "reactive": 1.5, "the_hangup": 0.5},
-    "confrontational":   {"confrontation": 3.0, "reactive": 2.0, "am_i_the_asshole": 1.5, "celebration": 0.3},
-    "oversharer":        {"am_i_the_asshole": 2.0, "escalating_reveal": 1.5, "standard": 1.5},
-    "philosopher":       {"standard": 1.5, "reactive": 1.5, "confrontation": 1.3},
-    "bragger":           {"am_i_the_asshole": 2.0, "confrontation": 1.5, "celebration": 1.5, "the_hangup": 0.3},
-    "first_time":        {"standard": 2.0, "the_hangup": 1.5, "quick_hit": 0.5},
-    "emotional":         {"escalating_reveal": 2.0, "the_hangup": 1.5, "bait_and_switch": 1.5, "quick_hit": 0.3},
-    "world_weary":       {"standard": 1.5, "reactive": 1.5, "am_i_the_asshole": 1.3, "celebration": 0.3},
-    "conspiracy":        {"escalating_reveal": 2.0, "bait_and_switch": 1.5, "confrontation": 1.3},
-    "comedian":          {"quick_hit": 2.0, "bait_and_switch": 1.5, "celebration": 1.3, "the_hangup": 0.3},
-    "angry_venting":     {"confrontation": 2.5, "reactive": 2.0, "the_hangup": 1.5, "celebration": 0.2},
-    "sweet_earnest":     {"celebration": 2.0, "standard": 1.5, "reactive": 1.3, "confrontation": 0.3},
-    "mysterious":        {"the_hangup": 2.5, "escalating_reveal": 2.0, "bait_and_switch": 1.5, "quick_hit": 0.3},
-    "know_it_all":       {"confrontation": 1.5, "am_i_the_asshole": 1.5, "reactive": 1.3},
-    "rambling":          {"bait_and_switch": 1.5, "escalating_reveal": 1.5, "standard": 1.3, "quick_hit": 0.3},
-}
-
-
-def _pick_call_shape(style: str = "") -> str:
-    """Pick a call shape using weighted random selection.
-    If a communication style is provided, applies affinity multipliers.
-    Also avoids repeating the last used shape."""
-    weights = list(_CALL_SHAPE_WEIGHTS)
-
-    # Apply style affinities
-    if style:
-        style_key = _normalize_style_key(style)
-        affinities = SHAPE_STYLE_AFFINITIES.get(style_key, {})
-        for i, name in enumerate(_CALL_SHAPE_NAMES):
-            if name in affinities:
-                weights[i] *= affinities[name]
-
-    # Reduce weight of recently used shapes to avoid consecutive repeats
-    if hasattr(session, 'call_history') and session.call_history:
-        # Check if any recent call used this shape
-        recent_shapes = set()
-        for record in session.call_history[-2:]:
-            for k, v in session.caller_shapes.items():
-                if CALLER_BASES.get(k, {}).get("name") == record.caller_name:
-                    recent_shapes.add(v)
-        for i, name in enumerate(_CALL_SHAPE_NAMES):
-            if name in recent_shapes:
-                weights[i] *= 0.4  # Reduce but don't eliminate
-
-    return random.choices(_CALL_SHAPE_NAMES, weights=weights, k=1)[0]
-
 
 def pick_location() -> str:
     if random.random() < 0.8:
@@ -5244,14 +5149,6 @@ Output ONLY valid JSON, no markdown fences."""
     people_pool = PEOPLE_MALE if gender == "male" else PEOPLE_FEMALE
     person1, person2 = rng.sample(people_pool, 2)
     tic1, tic2 = rng.sample(VERBAL_TICS, 2)
-
-    # Restore stored communication style
-    stored_style = seeds.get("style", "")
-    if stored_style:
-        for key, b in CALLER_BASES.items():
-            if b is base or b.get("name") == base.get("name"):
-                session.caller_styles[key] = stored_style
-                break
 
     time_ctx = _get_time_context()
 
@@ -5460,72 +5357,6 @@ def _pick_unique_reason() -> tuple[str, str]:
     return reason, chosen
 
 
-# Style indices by name fragment for filtering
-_HEAVY_STYLES = ["emotional", "raw", "quiet", "nervous", "world-weary", "sweet", "earnest"]
-_LIGHT_STYLES = ["comedian", "bragger", "high-energy", "confrontational"]
-_EVASIVE_STYLES = ["mysterious", "evasive"]
-
-def _pick_caller_style(reason: str, pool_name: str) -> str:
-    """Pick a communication style appropriate for the caller's reason and pool."""
-    reason_lower = reason.lower()
-    style_lower_map = [(s, s.lower()) for s in CALLER_STYLES]
-
-    # Heavy emotional content — exclude styles that trivialize it
-    heavy_keywords = ["dying", "suicide", "terminal", "cancer", "funeral", "dead ",
-                      "death", "grief", "miscarriage", "abuse", "assault", "murder"]
-    if any(kw in reason_lower for kw in heavy_keywords):
-        filtered = [s for s, sl in style_lower_map
-                    if not any(t in sl for t in _LIGHT_STYLES)]
-        if filtered:
-            return random.choice(filtered)
-
-    # Gossip pool — evasive or oversharer fit well, exclude emotional/raw
-    if pool_name == "GOSSIP":
-        filtered = [s for s, sl in style_lower_map
-                    if not any(t in sl for t in _HEAVY_STYLES)]
-        if filtered:
-            return random.choice(filtered)
-
-    # Stories pool — storyteller and high-energy fit, exclude evasive
-    if pool_name == "STORIES":
-        filtered = [s for s, sl in style_lower_map
-                    if not any(t in sl for t in _EVASIVE_STYLES)]
-        if filtered:
-            return random.choice(filtered)
-
-    # Hot takes — confrontational/opinionated styles only
-    if pool_name == "HOT_TAKES":
-        _hot_take_exclude = ["quiet", "nervous", "sweet", "earnest", "emotional", "raw", "world-weary"]
-        filtered = [s for s, sl in style_lower_map
-                    if not any(t in sl for t in _hot_take_exclude)]
-        if filtered:
-            return random.choice(filtered)
-
-    # Topic/trivia calls — exclude emotional/raw styles
-    if pool_name == "TOPIC_CALLIN":
-        filtered = [s for s, sl in style_lower_map
-                    if not any(t in sl for t in ["emotional", "raw"])]
-        if filtered:
-            return random.choice(filtered)
-
-    return random.choice(CALLER_STYLES)
-
-
-def _assign_call_shape(base: dict) -> str:
-    """Pick and store a call shape for a caller, logging the assignment.
-    Uses style-based affinities when a communication style is assigned."""
-    caller_key = None
-    for key, b in CALLER_BASES.items():
-        if b is base or b.get("name") == base.get("name"):
-            caller_key = key
-            break
-    style = session.caller_styles.get(caller_key, "") if caller_key else ""
-    shape = _pick_call_shape(style)
-    if caller_key:
-        session.caller_shapes[caller_key] = shape
-        print(f"[Shape] {base.get('name', caller_key)} assigned shape: {shape} (style: {style[:30]})")
-    return shape
-
 
 def generate_caller_background(base: dict) -> CallerBackground | str:
     """Generate a template-based background as fallback. The preferred path is
@@ -5549,16 +5380,6 @@ def generate_caller_background(base: dict) -> CallerBackground | str:
 
     # Core identity (problem or topic)
     reason, pool_name = _pick_unique_reason()
-
-    # Assign communication style matched to content
-    style = _pick_caller_style(reason, pool_name)
-    for key, b in CALLER_BASES.items():
-        if b is base or b.get("name") == base.get("name"):
-            session.caller_styles[key] = style
-            break
-
-    # Assign call shape
-    _assign_call_shape(base)
 
     interest1, interest2 = random.sample(INTERESTS, 2)
     quirk1, quirk2 = random.sample(QUIRKS, 2)
@@ -5742,30 +5563,8 @@ async def _generate_caller_background_llm(base: dict) -> CallerBackground | str:
     else:
         reason, pool_name = _pick_unique_reason()
 
-    # Assign communication style matched to content
-    style = _pick_caller_style(reason, pool_name)
-    caller_key = None
-    for key, b in CALLER_BASES.items():
-        if b is base or b.get("name") == base.get("name"):
-            caller_key = key
-            break
-    if caller_key:
-        session.caller_styles[caller_key] = style
-    style_hint = style.split(":")[1].strip()[:120] if ":" in style else ""
-
-    # Determine energy level from style
-    _high_energy_styles = {"high-energy", "confrontational", "angry/venting", "bragger", "comedian"}
-    _low_energy_styles = {"quiet/nervous", "world-weary", "mysterious/evasive", "sweet/earnest", "emotional/raw"}
-    style_label = style.split(":")[0].strip().lower() if ":" in style else style.lower()
-    if style_label in _high_energy_styles:
-        energy_level = random.choice(["high", "very_high"])
-    elif style_label in _low_energy_styles:
-        energy_level = random.choice(["low", "medium"])
-    else:
-        energy_level = random.choice(["medium", "high"])
-
-    # Assign call shape
-    _assign_call_shape(base)
+    style_hint = ""
+    energy_level = random.choice(["medium", "high"])
 
     # Pick a few random color details as seeds — not a full list
     seeds = []
@@ -5923,104 +5722,7 @@ async def _regenerate_backgrounds_for_keys(keys: list[str]):
             session.caller_backgrounds[key] = generate_caller_background(CALLER_BASES[key])
         else:
             session.caller_backgrounds[key] = result
-
-    # Clear cached model assignments so style matching re-evaluates
-    for key in keys:
-        session.caller_models.pop(key, None)
-
-    # Re-run voice matching and queue sorting
-    _match_voices_to_styles()
-    _sort_caller_queue()
     print(f"[Background] Regenerated {len(keys)} caller backgrounds after theme change")
-
-
-# Dramatic shapes that play better later in the show
-_LATE_SHOW_SHAPES = {"escalating_reveal", "bait_and_switch", "the_hangup"}
-
-
-def _sort_caller_queue():
-    """Sort caller presentation order for good show pacing.
-    Does NOT change which callers exist — only the order they're presented.
-    Prioritizes: energy alternation, topic variety, shape variety,
-    dramatic shapes later in the show."""
-    keys = list(session.caller_backgrounds.keys())
-    if not keys:
-        return
-
-    # Gather attributes for each caller
-    caller_attrs = {}
-    for key in keys:
-        bg = session.caller_backgrounds.get(key)
-        if isinstance(bg, CallerBackground):
-            energy = bg.energy_level
-            pool = bg.pool_name
-        else:
-            energy = "medium"
-            pool = ""
-        shape = session.caller_shapes.get(key, "standard")
-        caller_attrs[key] = {"energy": energy, "pool": pool, "shape": shape}
-
-    # Greedy placement: pick the best next caller at each position
-    remaining = list(keys)
-    ordered = []
-
-    for position in range(len(keys)):
-        best_key = None
-        best_score = -999
-
-        for key in remaining:
-            attrs = caller_attrs[key]
-            score = 0.0
-
-            # Energy alternation: penalize same energy as previous caller
-            if ordered:
-                prev_energy = caller_attrs[ordered[-1]]["energy"]
-                if attrs["energy"] == prev_energy:
-                    score -= 3.0
-                # Bonus for contrast
-                high = {"high", "very_high"}
-                low = {"low", "medium"}
-                if (attrs["energy"] in high and prev_energy in low) or \
-                   (attrs["energy"] in low and prev_energy in high):
-                    score += 2.0
-
-            # Topic variety: penalize same pool as previous caller
-            if ordered:
-                prev_pool = caller_attrs[ordered[-1]]["pool"]
-                if attrs["pool"] and attrs["pool"] == prev_pool:
-                    score -= 3.0
-                # Also check 2-back
-                if len(ordered) >= 2:
-                    prev2_pool = caller_attrs[ordered[-2]]["pool"]
-                    if attrs["pool"] and attrs["pool"] == prev2_pool:
-                        score -= 1.5
-
-            # Shape variety: penalize same shape as previous caller
-            if ordered:
-                prev_shape = caller_attrs[ordered[-1]]["shape"]
-                if attrs["shape"] == prev_shape:
-                    score -= 2.0
-
-            # Dramatic shapes: boost for later positions (7-10)
-            if attrs["shape"] in _LATE_SHOW_SHAPES:
-                if position >= 6:  # positions 7-10 (0-indexed 6-9)
-                    score += 3.0
-                elif position <= 2:  # too early
-                    score -= 2.0
-
-            if score > best_score:
-                best_score = score
-                best_key = key
-
-        ordered.append(best_key)
-        remaining.remove(best_key)
-
-    session.caller_queue = ordered
-    queue_summary = ", ".join(
-        f"{CALLER_BASES.get(k, {}).get('name', k)}({caller_attrs[k]['energy'][0]}/{caller_attrs[k]['pool'][:4] if caller_attrs[k]['pool'] else '?'}/{caller_attrs[k]['shape'][:4]})"
-        for k in ordered
-    )
-    print(f"[Pacing] Caller queue: {queue_summary}")
 
 
 def _build_relationship_context():
@@ -6057,135 +5759,6 @@ def _build_relationship_context():
                 existing = session.relationship_context.get(key, "")
                 session.relationship_context[key] = existing + line
                 print(f"[Relationships] {regular['name']} knows {other_name} ({rel_type})")
-
-
-# Style-based TTS speed modifiers — stacks with per-voice and per-utterance adjustments
-STYLE_SPEED_MODIFIERS = {
-    "quiet_nervous": -0.1,
-    "first_time": -0.08,
-    "emotional": -0.1,
-    "world_weary": -0.15,
-    "philosopher": -0.08,
-    "storyteller": -0.05,
-    "high_energy": +0.1,
-    "confrontational": +0.08,
-    "angry_venting": +0.08,
-    "rambling": +0.05,
-    "comedian": +0.05,
-}
-
-# Style-based phone filter quality
-STYLE_PHONE_QUALITY = {
-    "quiet_nervous": "bad",
-    "mysterious": "bad",
-    "world_weary": "bad",
-    "conspiracy": "bad",
-    "high_energy": "good",
-    "confrontational": "good",
-    "bragger": "good",
-    "comedian": "good",
-}
-
-
-def _normalize_style_key(style: str) -> str:
-    """Convert a full CALLER_STYLES string to its short key from CALLER_STYLE_KEYS.
-
-    Works by finding the style in the CALLER_STYLES list and returning
-    the corresponding CALLER_STYLE_KEYS entry. Falls back to the input
-    lowered if the style is already a short key or not found."""
-    if not style:
-        return ""
-    style_lower = style.strip().lower()
-    if style_lower in CALLER_STYLE_KEYS:
-        return style_lower
-    for i, full_style in enumerate(CALLER_STYLES):
-        if style == full_style:
-            return CALLER_STYLE_KEYS[i]
-    for i, full_style in enumerate(CALLER_STYLES):
-        if style_lower in full_style.lower():
-            return CALLER_STYLE_KEYS[i]
-    return style_lower
-
-
-def _match_voices_to_styles():
-    """Re-assign voices to match caller communication styles after backgrounds are generated."""
-    from .services.tts import VOICE_PROFILES
-
-    for key, base in CALLER_BASES.items():
-        if base.get("returning"):
-            continue
-
-        style_raw = session.caller_styles.get(key, "")
-        if not style_raw:
-            continue
-
-        style_key = _normalize_style_key(style_raw)
-        prefs = STYLE_VOICE_PREFERENCES.get(style_key)
-        if not prefs:
-            continue
-
-        # Override age_feel based on caller's actual age from background
-        bg = session.caller_backgrounds.get(key)
-        if isinstance(bg, CallerBackground) and bg.age:
-            prefs = dict(prefs)  # copy before mutating
-            if bg.age >= 50:
-                prefs["age_feel"] = "mature"
-            elif bg.age >= 35:
-                prefs["age_feel"] = "middle"
-            elif bg.age < 25:
-                prefs["age_feel"] = "young"
-
-        gender = base["gender"]
-        pool = INWORLD_MALE_VOICES if gender == "male" else INWORLD_FEMALE_VOICES
-        voice_pool = [v for v in pool if v not in BLACKLISTED_VOICES]
-
-        scored = []
-        for voice_name in voice_pool:
-            profile = VOICE_PROFILES.get(voice_name)
-            if not profile:
-                scored.append((voice_name, 0))
-                continue
-            score = 0
-            for dim in ["weight", "energy", "warmth", "age_feel"]:
-                pref_val = prefs.get(dim)
-                if pref_val and profile.get(dim) == pref_val:
-                    score += 1
-            scored.append((voice_name, score))
-
-        if scored:
-            names = [s[0] for s in scored]
-            weights = [max(1, s[1] * 3) for s in scored]
-            chosen = random.choices(names, weights=weights, k=1)[0]
-
-            used_voices = {CALLER_BASES[k]["voice"] for k in CALLER_BASES if k != key and "voice" in CALLER_BASES[k]}
-            if chosen in used_voices:
-                alternatives = [(n, w) for n, w in zip(names, weights) if n not in used_voices]
-                if alternatives:
-                    alt_names, alt_weights = zip(*alternatives)
-                    chosen = random.choices(alt_names, weights=alt_weights, k=1)[0]
-
-            old_voice = base.get("voice", "")
-            base["voice"] = chosen
-            if old_voice != chosen:
-                print(f"[VoiceMatch] {base.get('name', key)}: {old_voice} → {chosen} (style: {style_key})")
-
-
-def get_style_speed_modifier(caller_key: str) -> float:
-    """Get the TTS speed modifier for a caller based on their communication style."""
-    style_raw = session.caller_styles.get(caller_key, "")
-    if not style_raw:
-        return 0.0
-    style_key = _normalize_style_key(style_raw)
-    return STYLE_SPEED_MODIFIERS.get(style_key, 0.0)
-
-
-def get_style_phone_quality(caller_key: str) -> str | None:
-    """Get the phone filter quality override for a caller based on their style."""
-    style_raw = session.caller_styles.get(caller_key, "")
-    if not style_raw:
-        return None
-    style_key = _normalize_style_key(style_raw)
-    return STYLE_PHONE_QUALITY.get(style_key)
 
 
 # Known topics for smarter search queries — maps keywords in backgrounds to search terms
@@ -6608,9 +6181,6 @@ def _deserialize_call_record(data: dict) -> CallRecord:
 def _assess_call_quality(
     conversation: list[dict],
     caller_hangup: bool = False,
-    shape: str = "",
-    style: str = "",
-    pool_name: str = "",
 ) -> dict:
     """Compute heuristic quality signals for a completed call. No LLM needed.
     Returns a plain dict for storage in CallRecord.quality_signals and session.call_quality_signals."""
@@ -6639,9 +6209,6 @@ def _assess_call_quality(
         "host_engagement": host_engagement,
         "caller_depth": caller_depth,
         "natural_ending": natural_ending,
-        "shape": shape,
-        "style": style,
-        "pool_name": pool_name,
     }
 
 
@@ -6661,8 +6228,6 @@ class Session:
         self._research_task: asyncio.Task | None = None
         self.used_reasons: set[str] = set()  # Track used caller reasons to prevent repeats
         self.pool_weights: dict[str, float] = _generate_pool_weights()
-        self.caller_styles: dict[str, str] = {}
-        self.caller_shapes: dict[str, str] = {}
         self.tone_streak: list[str] = []  # Track tone per call for variety balancing
         self.call_quality_signals: list[dict] = []  # Per-call quality heuristics for tuning
         self._caller_hangup: bool = False  # Set when [HANGUP] sentinel detected in current call
@@ -6672,50 +6237,6 @@ class Session:
         self.relationship_context: dict[str, str] = {}  # caller_key → relationship prompt injection
         self.intern_monitoring: bool = True  # Devon monitors conversations by default
         self.show_theme: str = ""  # Current show theme (e.g. "St. Patrick's Day")
-        # Caller model routing
-        self.caller_model_strategy: str = "style_matched"  # "single" | "cycle" | "style_matched"
-        self.caller_model_pool: list[str] = [
-            "x-ai/grok-4.1-fast",                     # edgy, casual ($0.20/$0.50)
-            "x-ai/grok-4",                             # deep edgy reasoning ($3/$15)
-            "anthropic/claude-sonnet-4.6",              # empathetic, nuanced ($3/$15)
-            "moonshotai/kimi-k2",                       # creative, warm, expressive ($0.60/$2)
-            "mistralai/mistral-large-2512",             # dry wit, precise ($0.50/$1.50)
-            "deepseek/deepseek-chat-v3-0324",           # direct, unfiltered ($0.27/$1.10)
-            "qwen/qwen3-235b-a22b",                     # meandering storyteller ($0.20/$0.60)
-            "google/gemini-2.5-pro",                    # articulate, analytical ($1.25/$10)
-            "meta-llama/llama-3.3-70b-instruct",        # casual, natural hesitation ($0.10/$0.32)
-        ]
-        self.caller_model_map: dict[str, str] = {
-            # Grok 4.1 Fast — high-energy swagger, edgy humor, fast
-            "high_energy":       "x-ai/grok-4.1-fast",
-            "bragger":           "x-ai/grok-4.1-fast",
-            "comedian":          "x-ai/grok-4.1-fast",
-            # Grok 4 Full — deep reasoning for confrontation and arguments
-            "confrontational":   "x-ai/grok-4",
-            # DeepSeek Chat — raw, direct, no filter
-            "angry_venting":     "deepseek/deepseek-chat-v3-0324",
-            # Claude Sonnet 4.6 — genuine vulnerability, emotional depth, nuance
-            "quiet_nervous":     "anthropic/claude-sonnet-4.6",
-            "emotional":         "anthropic/claude-sonnet-4.6",
-            "sweet_earnest":     "moonshotai/kimi-k2",
-            "first_time":        "moonshotai/kimi-k2",
-            "world_weary":       "anthropic/claude-sonnet-4.6",
-            "philosopher":       "anthropic/claude-sonnet-4.6",
-            # Mistral Large — dry, precise, strategic omission
-            "deadpan":           "mistralai/mistral-large-2512",
-            "mysterious":        "mistralai/mistral-large-2512",
-            # Qwen — loves tangents, detail-rich, born rambler
-            "storyteller":       "qwen/qwen3-235b-a22b",
-            "rambling":          "qwen/qwen3-235b-a22b",
-            "conspiracy":        "qwen/qwen3-235b-a22b",
-            # Grok 4.1 Fast — oversharing energy, can't stop talking
-            "oversharer":        "x-ai/grok-4.1-fast",
-            # Mistral Large — pedantic, articulate
-            "know_it_all":       "mistralai/mistral-large-2512",
-        }
-        self.caller_model_fallback: str = "anthropic/claude-sonnet-4.6"
-        self.caller_models: dict[str, str] = {}  # caller_key → assigned model
-        self._caller_model_cycle_idx: int = 0
 
     def start_call(self, caller_key: str):
         self.current_caller_key = caller_key
@@ -6925,8 +6446,6 @@ class Session:
                     "name": base["name"],
                     "voice": base["voice"],
                     "vibe": self.get_caller_background(self.current_caller_key),
-                    "style": self.caller_styles.get(self.current_caller_key, ""),
-                    "shape": self.caller_shapes.get(self.current_caller_key, "standard"),
                     "tts_provider": base.get("tts_provider"),
                     "emotional_state": emotional_state,
                     "energy_level": energy_level,
@@ -7003,8 +6522,6 @@ class Session:
             self._research_task.cancel()
         self._research_task = None
         self.pool_weights = _generate_pool_weights()
-        self.caller_styles = {}
-        self.caller_shapes = {}
         self.tone_streak = []
         self.call_quality_signals = []
         self._wrapping_up = False
@@ -7153,19 +6670,11 @@ def _save_checkpoint():
             "research_notes": session.research_notes,
             "caller_bases": caller_bases_snapshot,
             "pool_weights": session.pool_weights,
-            "caller_styles": session.caller_styles,
-            "caller_shapes": session.caller_shapes,
             "tone_streak": session.tone_streak,
             "call_quality_signals": session.call_quality_signals,
             "caller_queue": session.caller_queue,
             "relationship_context": session.relationship_context,
             "intern_monitoring": session.intern_monitoring,
-            "caller_model_strategy": session.caller_model_strategy,
-            "caller_model_pool": session.caller_model_pool,
-            "caller_model_map": session.caller_model_map,
-            "caller_model_fallback": session.caller_model_fallback,
-            "caller_models": session.caller_models,
-            "caller_model_cycle_idx": session._caller_model_cycle_idx,
             "costs": cost_tracker.get_live_summary(),
             "cost_records": {
                 "llm": [asdict(r) for r in cost_tracker.llm_records],
@@ -7205,29 +6714,11 @@ def _load_checkpoint() -> bool:
         session.news_headlines = data.get("news_headlines", [])
         session.research_notes = data.get("research_notes", {})
         session.pool_weights = data.get("pool_weights", _generate_pool_weights())
-        session.caller_styles = data.get("caller_styles", {})
-        session.caller_shapes = data.get("caller_shapes", {})
         session.tone_streak = data.get("tone_streak", [])
         session.call_quality_signals = data.get("call_quality_signals", [])
         session.caller_queue = data.get("caller_queue", [])
         session.relationship_context = data.get("relationship_context", {})
         session.intern_monitoring = data.get("intern_monitoring", True)
-        session.caller_model_strategy = data.get("caller_model_strategy", "style_matched")
-        # Use fresh defaults if checkpoint has stale/empty model config
-        fresh = Session()
-        saved_pool = data.get("caller_model_pool", [])
-        saved_map = data.get("caller_model_map", {})
-        # Detect stale config: check if saved models are in the current OPENROUTER_MODELS list
-        from backend.services.llm import OPENROUTER_MODELS
-        valid_models = set(OPENROUTER_MODELS)
-        saved_map_models = set(saved_map.values()) if saved_map else set()
-        pool_has_invalid = saved_pool and not all(m in valid_models for m in saved_pool)
-        map_has_invalid = saved_map_models and not all(m in valid_models for m in saved_map_models)
-        session.caller_model_pool = saved_pool if saved_pool and not pool_has_invalid else fresh.caller_model_pool
-        session.caller_model_map = saved_map if saved_map and not map_has_invalid else fresh.caller_model_map
-        session.caller_model_fallback = fresh.caller_model_fallback if data.get("caller_model_fallback", "") not in valid_models else data["caller_model_fallback"]
-        session.caller_models = data.get("caller_models", {})
-        session._caller_model_cycle_idx = data.get("caller_model_cycle_idx", 0)
         for key, snapshot in data.get("caller_bases", {}).items():
             if key in CALLER_BASES:
                 CALLER_BASES[key]["name"] = snapshot["name"]
@@ -8589,9 +8080,6 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
     quality_signals = _assess_call_quality(
         conversation,
         caller_hangup=caller_hangup,
-        shape="",
-        style=comm_style,
-        pool_name="",
     )
     session.call_quality_signals.append(quality_signals)
 
@@ -8611,7 +8099,7 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
         key_details=key_dets,
     ))
     print(f"[AI Summary] {caller_name} call summarized: {summary[:80]}...")
-    print(f"[Quality] {caller_name}: exchanges={quality_signals['exchange_count']} avg_len={quality_signals['avg_response_length']:.0f}c host_engagement={quality_signals['host_engagement']} caller_depth={quality_signals['caller_depth']} natural_end={quality_signals['natural_ending']} shape={quality_signals['shape']} style={quality_signals['style']} pool={quality_signals['pool_name']}")
+    print(f"[Quality] {caller_name}: exchanges={quality_signals['exchange_count']} avg_len={quality_signals['avg_response_length']:.0f}c host_engagement={quality_signals['host_engagement']} caller_depth={quality_signals['caller_depth']} natural_end={quality_signals['natural_ending']}")
 
     # Returning caller promotion/update logic
     try:
@@ -8623,7 +8111,6 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
             elif len(conversation) >= 8 and random.random() < 0.05:
                 # 5% chance to promote first-timer with 8+ messages
                 bg = session.caller_backgrounds.get(caller_key, "")
-                caller_style = session.caller_styles.get(caller_key, "")
 
                 if isinstance(bg, CallerBackground):
                     # Clean extraction from structured data
@@ -8660,7 +8147,7 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
                     personality_traits=traits[:4],
                     first_call_summary=summary,
                     voice=base.get("voice"),
-                    stable_seeds={"style": caller_style},
+                    stable_seeds={},
                     structured_background=structured_bg,
                     avatar=avatar_path.name if avatar_path else None,
                 )
@@ -8721,28 +8208,15 @@ def _detect_caller_relationships(caller_key: str, caller_name: str,
 import re
 
 
-def _pick_response_budget(shape: str = "standard", wrapping_up: bool = False) -> tuple[int, int]:
+def _pick_response_budget(wrapping_up: bool = False) -> tuple[int, int]:
     """Pick a random max_tokens and sentence cap for response variety.
     Returns (max_tokens, max_sentences).
     Keeps responses conversational but gives room for real answers.
     Token budget is intentionally generous to avoid mid-sentence cutoffs —
-    the sentence cap controls actual length.
-    Shape overrides the default distribution for certain call types."""
+    the sentence cap controls actual length."""
 
     if wrapping_up:
         return 200, 2
-
-    # Shape-specific overrides
-    if shape == "quick_hit":
-        return random.choice([(450, 4), (500, 5)])
-    elif shape == "escalating_reveal":
-        roll = random.random()
-        if roll < 0.4:
-            return 600, 6   # 40% — tight, forces restraint
-        else:
-            return 800, 8   # 60% — room to build but capped
-    elif shape == "confrontation":
-        return random.choice([(700, 6), (800, 8)])
 
     # Default distribution — give callers room to tell their story
     roll = random.random()
@@ -9171,16 +8645,6 @@ def _apply_pronunciation_fixes(text: str) -> str:
     return text
 
 
-_INFORMAL_STYLES = {"nervous", "scattered", "rambling", "high-energy", "comedian",
-                     "angry", "venting", "confrontational"}
-
-
-def _is_informal_style(style: str) -> bool:
-    """Check if a caller style should keep colloquialisms."""
-    style_lower = style.lower()
-    return any(s in style_lower for s in _INFORMAL_STYLES)
-
-
 def clean_for_tts(text: str, formal: bool = True) -> str:
     """Strip out non-speakable content and fix phonetic spellings for TTS.
     When formal=False, keeps colloquialisms (gonna, kinda, etc.) for natural-sounding callers."""
@@ -9441,8 +8905,7 @@ async def chat(request: ChatRequest):
         slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
         system_prompt = get_caller_prompt(slim_caller)
 
-        call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
-        max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
+        max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         _caller_name = session.caller.get("name", "") if session.caller else ""
         _model_override = session.get_caller_model(session.current_caller_key) if session.current_caller_key else None
@@ -9476,11 +8939,10 @@ async def chat(request: ChatRequest):
         print(f"[Chat] Discarding stale response (epoch {epoch} → {_session_epoch})")
         raise HTTPException(409, "Call changed during response")
 
-    print(f"[Chat] Raw LLM ({max_tokens}tok/{max_sentences}s, shape={call_shape}): {response[:100] if response else '(empty)'}...")
+    print(f"[Chat] Raw LLM ({max_tokens}tok/{max_sentences}s): {response[:100] if response else '(empty)'}...")
 
     # Clean response for TTS (remove parenthetical actions, asterisks, etc.)
-    caller_style = session.caller.get("style", "") if session.caller else ""
-    response = clean_for_tts(response, formal=not _is_informal_style(caller_style))
+    response = clean_for_tts(response, formal=False)
     response = _trim_to_sentences(response, max_sentences)
     response = ensure_complete_thought(response)
 
@@ -9489,7 +8951,7 @@ async def chat(request: ChatRequest):
     if caller_hangup:
         response = response.replace("[HANGUP]", "").strip()
         session._caller_hangup = True
-        print(f"[Chat] Caller hangup detected (shape={call_shape})")
+        print(f"[Chat] Caller hangup detected")
 
     print(f"[Chat] Cleaned: {response[:100] if response else '(empty)'}...")
 
@@ -10404,8 +9866,7 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
         system_prompt = get_caller_prompt(slim_caller)
 
-        call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
-        max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
+        max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         _caller_name = session.caller.get("name", "") if session.caller else ""
         _model_override = session.get_caller_model(session.current_caller_key) if session.current_caller_key else None
@@ -10440,8 +9901,7 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         broadcast_event("ai_done")
         return
 
-    auto_style = session.caller.get("style", "") if session.caller else ""
-    response = clean_for_tts(response, formal=not _is_informal_style(auto_style))
+    response = clean_for_tts(response, formal=False)
     response = _trim_to_sentences(response, max_sentences)
     response = ensure_complete_thought(response)
 
@@ -10526,8 +9986,7 @@ async def ai_respond():
         slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
         system_prompt = get_caller_prompt(slim_caller)
 
-        call_shape = session.caller.get("shape", "standard") if session.caller else "standard"
-        max_tokens, max_sentences = _pick_response_budget(call_shape, wrapping_up=is_wrapping)
+        max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         _caller_name = session.caller.get("name", "") if session.caller else ""
         _model_override = session.get_caller_model(session.current_caller_key) if session.current_caller_key else None
@@ -10559,8 +10018,7 @@ async def ai_respond():
     if _session_epoch != epoch:
         raise HTTPException(409, "Call changed during response")
 
-    ai_style = session.caller.get("style", "") if session.caller else ""
-    response = clean_for_tts(response, formal=not _is_informal_style(ai_style))
+    response = clean_for_tts(response, formal=False)
     response = _trim_to_sentences(response, max_sentences)
     response = ensure_complete_thought(response)
 
