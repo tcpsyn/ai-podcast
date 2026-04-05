@@ -6553,6 +6553,30 @@ If Luke asks about the previous caller's situation, give your take briefly, then
 }
 
 
+def get_caller_prompt_slim(caller: dict) -> str:
+    """Slim caller system prompt. Identity carries the weight."""
+    name = caller.get("name", "")
+    identity = caller.get("identity", "")
+    situation = caller.get("situation", "")
+    reason = caller.get("reason_calling", "")
+    want = caller.get("secret_want", "")
+    details = caller.get("specific_details", []) or []
+    detail_str = " | ".join(f"- {d}" for d in details)
+
+    return f"""You are {name}. {identity}
+
+You're calling Luke's late-night radio show because: {situation} — specifically, {reason}.
+
+What you secretly want from this call: {want}
+
+Specific details you'll drop if it feels natural:
+{detail_str}
+
+Speak as this person. React to what Luke says. Stay in character.
+Don't narrate. No stage directions. Just talk.
+Keep responses natural — 1-3 sentences most of the time. Real callers don't monologue."""
+
+
 def get_caller_prompt(caller: dict, show_history: str = "",
                       news_context: str = "", research_context: str = "",
                       emotional_read: str = "",
