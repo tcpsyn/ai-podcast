@@ -14,7 +14,7 @@ from backend.main import (
     BLACKLISTED_VOICES,
     INWORLD_FEMALE_VOICES,
     INWORLD_MALE_VOICES,
-    get_caller_prompt_slim,
+    get_caller_prompt,
 )
 from backend.services import caller_gen, regulars_v2
 
@@ -118,7 +118,7 @@ async def main():
                 "secret_want": caller.secret_want,
                 "specific_details": caller.specific_details,
             }
-            system_prompt = get_caller_prompt_slim(cdict)
+            system_prompt = get_caller_prompt(cdict)
             conversation = [{"role": "assistant", "content": caller.opening_line}]
 
             for _ in range(4):
