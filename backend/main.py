@@ -8572,30 +8572,28 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
             print(f"[AI Summary] Failed to generate summary: {e}")
             summary = f"{caller_name} called in."
 
-    # Extract structured data from CallerBackground for inter-caller awareness
-    bg = session.caller_backgrounds.get(caller_key)
-    if isinstance(bg, CallerBackground):
-        topic_cat = bg.pool_name
-        sit_summary = bg.situation_summary
-        emo_state = bg.emotional_state
-        energy = bg.energy_level
-        comm_style = bg.communication_style
-        key_dets = [bg.signature_detail] if bg.signature_detail else []
+    # Populate from slim caller background dict
+    bg = session.caller_backgrounds.get(caller_key) or {}
+    if isinstance(bg, dict):
+        comm_style = bg.get("emotional_register", "")
+        sit_summary = bg.get("situation", "")
+        key_dets = list(bg.get("specific_details") or [])
     else:
-        topic_cat = ""
-        sit_summary = ""
-        emo_state = ""
-        energy = ""
-        comm_style = session.caller_styles.get(caller_key, "")
-        key_dets = []
+        # Legacy CallerBackground object from stale checkpoint — removed in later commit
+        comm_style = getattr(bg, "communication_style", "")
+        sit_summary = getattr(bg, "situation_summary", "")
+        sig = getattr(bg, "signature_detail", "")
+        key_dets = [sig] if sig else []
+    topic_cat = ""
+    emo_state = ""
+    energy = ""
 
-    call_shape = session.caller_shapes.get(caller_key, "standard")
     quality_signals = _assess_call_quality(
         conversation,
         caller_hangup=caller_hangup,
-        shape=call_shape,
+        shape="",
         style=comm_style,
-        pool_name=topic_cat,
+        pool_name="",
     )
     session.call_quality_signals.append(quality_signals)
 
