@@ -93,7 +93,11 @@ async def _call_sonnet(prompt: str) -> dict:
         model=PROMOTION_MODEL,
         usage_data=usage,
     )
-    return json.loads(data["choices"][0]["message"]["content"])
+    content = data["choices"][0]["message"]["content"].strip()
+    if content.startswith("```") and content.endswith("```"):
+        lines = content.splitlines()
+        content = "\n".join(lines[1:-1])
+    return json.loads(content)
 
 
 async def evaluate_promotion(caller_name: str, call_transcript: str) -> dict:

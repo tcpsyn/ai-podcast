@@ -1,5 +1,5 @@
 import asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from backend.services.regulars_v2 import Regular, load_regular, REGULARS_DIR, SILAS_DIR
 
@@ -49,3 +49,23 @@ def test_evaluate_promotion_rejects_when_no_arc():
     with patch("backend.services.regulars_v2._call_sonnet", new=AsyncMock(return_value=fake_response)):
         result = asyncio.run(evaluate_promotion(caller_name="Carl", call_transcript="..."))
     assert result["promote"] is False
+
+
+def test_call_sonnet_strips_markdown_fences():
+    from backend.services.regulars_v2 import _call_sonnet
+    fake_resp = MagicMock()
+    fake_resp.raise_for_status = MagicMock()
+    fake_resp.json = MagicMock(return_value={
+        "choices": [{"message": {"content": "```json\n{\"promote\": true, \"arc_plan\": \"ok\"}\n```"}}],
+        "usage": {"prompt_tokens": 10, "completion_tokens": 5},
+    })
+    mock_client = MagicMock()
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=None)
+    mock_client.post = AsyncMock(return_value=fake_resp)
+
+    with patch("backend.services.regulars_v2.httpx.AsyncClient", return_value=mock_client), \
+         patch("backend.services.regulars_v2.cost_tracker.record_llm_call"):
+        result = asyncio.run(_call_sonnet("prompt"))
+    assert result["promote"] is True
+    assert result["arc_plan"] == "ok"
