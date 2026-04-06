@@ -744,18 +744,32 @@ async function newSession() {
         await hangup();
     }
 
-    await fetch('/api/session/reset', { method: 'POST' });
-    conversationSince = 0;
+    const btn = document.getElementById('new-session-btn');
+    const originalText = btn?.textContent;
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Generating...';
+    }
 
-    // Hide caller background
-    const bgDetails = document.getElementById('caller-background-details');
-    if (bgDetails) bgDetails.classList.add('hidden');
+    try {
+        await fetch('/api/session/reset', { method: 'POST' });
+        conversationSince = 0;
 
-    // Reload callers to get new session ID
-    await loadCallers();
-    await loadShowTheme();
+        // Hide caller background
+        const bgDetails = document.getElementById('caller-background-details');
+        if (bgDetails) bgDetails.classList.add('hidden');
 
-    log('New session started - all callers have fresh backgrounds');
+        // Reload callers to get new session ID
+        await loadCallers();
+        await loadShowTheme();
+
+        log('New session started - all callers have fresh backgrounds');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText || 'New Session';
+        }
+    }
 }
 
 

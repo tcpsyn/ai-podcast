@@ -32,7 +32,7 @@ from .services.stem_recorder import StemRecorder
 from .services.news import news_service, extract_keywords, STOP_WORDS
 from .services.regulars import regular_caller_service
 from .services.intern import intern_service
-from .services.avatars import avatar_service
+from .services.avatars import avatar_service, AVATAR_DIR
 
 
 app = FastAPI(title="AI Radio Show")
@@ -245,7 +245,7 @@ async def _regenerate_backgrounds_for_keys(keys: list[str]):
     if not keys:
         return
     try:
-        await session._pregenerate_backgrounds()
+        session.caller_backgrounds = await session._build_backgrounds()
         print(f"[Background] Regenerated backgrounds after theme change (touched {len(keys)} unused slots)")
     except Exception as e:
         print(f"[Background] Regen failed: {e}")
@@ -603,6 +603,8 @@ class Session:
         self.caller_queue: list[str] = []  # Sorted presentation order of caller keys
         self.intern_monitoring: bool = True  # Devon monitors conversations by default
         self.show_theme: str = ""  # Current show theme (e.g. "St. Patrick's Day")
+        self.pending_backgrounds: dict[str, dict] | None = None  # Pre-warmed next-session lineup
+        self._prewarm_task: asyncio.Task | None = None
 
     def start_call(self, caller_key: str):
         self.current_caller_key = caller_key
@@ -760,6 +762,17 @@ class Session:
         if self.current_caller_key:
             base = CALLER_BASES.get(self.current_caller_key)
             if base:
+                # Prefer the slim background's name/voice (actual caller identity)
+                # over the CALLER_BASES randomized defaults. The bg dict is the
+                # source of truth once pregen has populated it.
+                bg = self.caller_backgrounds.get(self.current_caller_key)
+                if isinstance(bg, dict) and bg.get("name") and bg.get("voice"):
+                    return {
+                        "name": bg["name"],
+                        "voice": bg["voice"],
+                        "vibe": self.get_caller_background(self.current_caller_key),
+                        "tts_provider": base.get("tts_provider"),
+                    }
                 return {
                     "name": base["name"],
                     "voice": base["voice"],
@@ -768,40 +781,126 @@ class Session:
                 }
         return None
 
-    async def _pregenerate_backgrounds(self):
-        """Single sonnet-4.6 batch call generates all caller identities."""
+    async def _build_backgrounds(self) -> dict[str, dict]:
+        """Generate a fresh caller lineup via two parallel sonnet-4.6 calls.
+        Returns a caller_backgrounds dict keyed by caller slot (no mutation)."""
         from .services import caller_gen, regulars_v2
         from datetime import datetime
 
         voice_roster = [name for name in INWORLD_MALE_VOICES + INWORLD_FEMALE_VOICES
                         if name not in BLACKLISTED_VOICES]
 
+        # Each active regular has an independent 50% chance to appear tonight.
+        REGULAR_APPEARANCE_PROB = 0.5
         active_regulars = regulars_v2.load_all_active_regulars()
         regulars_for_tonight = [
-            {"name": r.name, "lore": r.lore_body, "arc_state": r.arc_state}
+            {"name": r.name, "voice": r.voice, "age": r.age,
+             "lore": r.lore_body, "arc_state": r.arc_state}
             for r in active_regulars
+            if random.random() < REGULAR_APPEARANCE_PROB
         ][:3]
+        if regulars_for_tonight:
+            names = ", ".join(r["name"] for r in regulars_for_tonight)
+            print(f"[Background] Regulars tonight: {names}")
+        else:
+            print("[Background] No regulars tonight — all walk-ins")
 
         headlines: list[str] = []
         if self.news_headlines:
             for h in self.news_headlines[:5]:
                 headlines.append(h.title if hasattr(h, "title") else str(h))
 
-        ctx = {
+        base_ctx = {
             "date": datetime.now().strftime("%A, %B %d, %Y"),
             "weather": "cool desert night",  # TODO: real weather feed
             "headlines": headlines,
             "recent_caller_summaries": self._get_recent_summaries(),
-            "regulars_included": regulars_for_tonight,
-            "caller_count": 12,
             "voice_roster": voice_roster,
         }
+        # Split into two parallel calls: call 1 includes regulars + 5 walk-ins,
+        # call 2 is 6 pure walk-ins. Halves generation time by parallelizing.
+        ctx_a = {**base_ctx, "regulars_included": regulars_for_tonight, "caller_count": 6}
+        ctx_b = {**base_ctx, "regulars_included": [], "caller_count": 6}
 
-        identities = await caller_gen.generate_batch(ctx)
+        batches = await asyncio.gather(
+            caller_gen.generate_batch(ctx_a),
+            caller_gen.generate_batch(ctx_b),
+            return_exceptions=True,
+        )
+        identities: list = []
+        for i, result in enumerate(batches):
+            if isinstance(result, Exception):
+                print(f"[Background] Batch {i+1} failed: {result}")
+                continue
+            identities.extend(result)
 
-        for i, identity in enumerate(identities[:10]):
-            key = str(i + 1)
-            self.caller_backgrounds[key] = {
+        # Build regular lookup tables
+        regular_names = {r["name"] for r in regulars_for_tonight}
+        regular_voice_by_name = {r["name"]: r["voice"] for r in regulars_for_tonight}
+        regular_age_by_name = {r["name"]: r["age"] for r in regulars_for_tonight}
+
+        # Separate regulars from walk-ins, filter leaks, dedupe walk-in names
+        regular_idents: dict[str, caller_gen.CallerIdentity] = {}
+        walk_ins: list[caller_gen.CallerIdentity] = []
+        seen_walk_in_names: set[str] = set()
+        for ident in identities:
+            if ident.name in regular_names:
+                if ident.name in regular_idents:
+                    continue
+                # Force-lock canonical voice/age (these voices are blacklisted
+                # from the sonnet roster, so voice_resolved would otherwise fall
+                # back to roster[0]).
+                ident.voice_resolved = regular_voice_by_name[ident.name]
+                ident.age = regular_age_by_name[ident.name]
+                regular_idents[ident.name] = ident
+                continue
+            # Drop walk-ins whose content references a regular by name (leak guard)
+            leaks_regular = False
+            for rname in regular_names:
+                if rname in ident.identity or rname in ident.situation:
+                    leaks_regular = True
+                    break
+            if leaks_regular:
+                print(f"[Background] Dropping caller '{ident.name}' — leaks regular into content")
+                continue
+            # Dedupe walk-ins by name (both parallel calls could produce same name)
+            if ident.name in seen_walk_in_names:
+                continue
+            seen_walk_in_names.add(ident.name)
+            walk_ins.append(ident)
+
+        # If sonnet missed a gated-in regular, generate their situation directly
+        for r in regulars_for_tonight:
+            if r["name"] not in regular_idents:
+                print(f"[Background] Regular '{r['name']}' missing from batch output — generating directly")
+                try:
+                    fields = await caller_gen.generate_regular_situation(r, ctx_a)
+                    regular_idents[r["name"]] = caller_gen.CallerIdentity(
+                        name=r["name"],
+                        age=r["age"],
+                        voice_suggestion=r["voice"],
+                        location=fields.get("location", ""),
+                        identity=fields.get("identity", ""),
+                        situation=fields.get("situation", ""),
+                        reason_calling=fields.get("reason_calling", ""),
+                        opening_line=fields.get("opening_line", ""),
+                        secret_want=fields.get("secret_want", ""),
+                        specific_details=fields.get("specific_details", []),
+                        emotional_register=fields.get("emotional_register", ""),
+                        voice_resolved=r["voice"],
+                    )
+                except Exception as e:
+                    print(f"[Background] Failed to generate fallback for '{r['name']}': {e}")
+
+        # Regulars first (in the order they were gated in), then walk-ins
+        ordered = [regular_idents[r["name"]] for r in regulars_for_tonight if r["name"] in regular_idents]
+        ordered.extend(walk_ins)
+
+        backgrounds: dict[str, dict] = {}
+        caller_keys = list(CALLER_BASES.keys())  # ["1"-"9","0"]
+        for i, identity in enumerate(ordered[:10]):
+            key = caller_keys[i]
+            backgrounds[key] = {
                 "name": identity.name,
                 "age": identity.age,
                 "voice": identity.voice_resolved,
@@ -814,7 +913,47 @@ class Session:
                 "specific_details": identity.specific_details,
                 "emotional_register": identity.emotional_register,
             }
-        print(f"[Background] Slim batch generated {len(identities[:10])} caller identities")
+        print(f"[Background] Built {len(backgrounds)} callers (from {len(identities)} raw, {len(regular_idents)} regulars locked)")
+        return backgrounds
+
+    def start_prewarm(self):
+        """Kick off background generation of the NEXT session's lineup.
+        No-op if a pre-warm task is already running."""
+        if self._prewarm_task and not self._prewarm_task.done():
+            return
+        self._prewarm_task = asyncio.create_task(self._prewarm_next())
+
+    async def _prewarm_next(self):
+        """Generate next session's lineup and stash it in pending_backgrounds."""
+        try:
+            print("[Background] Pre-warming next session's callers...")
+            self.pending_backgrounds = await self._build_backgrounds()
+            print("[Background] Next session's callers are pre-warmed and ready")
+        except Exception as e:
+            import traceback
+            print(f"[Background] Pre-warm failed: {e}")
+            print(traceback.format_exc())
+
+    async def populate_backgrounds(self):
+        """Install callers into this session. Uses pre-warmed batch if ready,
+        else generates fresh (blocking). Always kicks off next pre-warm."""
+        if self.pending_backgrounds is not None:
+            self.caller_backgrounds = self.pending_backgrounds
+            self.pending_backgrounds = None
+            print(f"[Background] Swapped in pre-warmed backgrounds ({len(self.caller_backgrounds)} callers)")
+        else:
+            # Wait for in-flight pre-warm if present, otherwise generate fresh
+            if self._prewarm_task and not self._prewarm_task.done():
+                print("[Background] Waiting for in-flight pre-warm to finish...")
+                await self._prewarm_task
+                if self.pending_backgrounds is not None:
+                    self.caller_backgrounds = self.pending_backgrounds
+                    self.pending_backgrounds = None
+                    print(f"[Background] Swapped in pre-warmed backgrounds ({len(self.caller_backgrounds)} callers)")
+                    self.start_prewarm()
+                    return
+            self.caller_backgrounds = await self._build_backgrounds()
+        self.start_prewarm()
 
     def _get_recent_summaries(self) -> list[str]:
         # Return last 2 shows' caller summaries — stub for now, can wire into cost_db
@@ -1225,7 +1364,11 @@ async def startup():
     asyncio.create_task(_poll_imap_emails())
     restored = _load_checkpoint()
     if not restored or not session.caller_backgrounds:
-        asyncio.create_task(session._pregenerate_backgrounds())
+        # First reset will need callers — prewarm now so they're ready
+        session.start_prewarm()
+    else:
+        # Existing session good, but prewarm so next reset is instant
+        session.start_prewarm()
     asyncio.create_task(avatar_service.ensure_devon())
     threading.Thread(target=_update_on_air_cdn, args=(False,), daemon=True).start()
 
@@ -2089,13 +2232,15 @@ async def get_callers():
     """Get list of available callers with background info for UI display"""
     callers = []
     for k, v in CALLER_BASES.items():
+        bg = session.caller_backgrounds.get(k)
+        # Prefer the slim bg name (actual caller identity) over the CALLER_BASES default
+        display_name = bg.get("name") if isinstance(bg, dict) and bg.get("name") else v["name"]
         caller_info = {
             "key": k,
-            "name": v["name"],
+            "name": display_name,
             "returning": v.get("returning", False),
-            "avatar_url": f"/api/avatar/{v['name']}",
+            "avatar_url": f"/api/avatar/{display_name}",
         }
-        bg = session.caller_backgrounds.get(k)
         if isinstance(bg, dict):
             details = bg.get("specific_details") or []
             caller_info["identity"] = bg.get("identity", "")
@@ -2119,11 +2264,11 @@ async def get_regulars():
 
 @app.post("/api/session/reset")
 async def reset_session():
-    """Reset session - all callers get fresh backgrounds"""
+    """Reset session - all callers get fresh backgrounds.
+    Uses pre-warmed batch if available (instant); otherwise generates fresh."""
     session.reset()
     _chat_updates.clear()
-    # Pre-generate backgrounds in background so they're ready when callers are clicked
-    asyncio.create_task(session._pregenerate_backgrounds())
+    await session.populate_backgrounds()
     return {"status": "reset", "session_id": session.id}
 
 
@@ -4568,22 +4713,44 @@ async def _play_intern_audio(text: str):
 
 # --- Avatars ---
 
+def _infer_gender_for_name(name: str) -> str:
+    """Infer gender for avatar lookup. Priority:
+    1. Match against slim caller_backgrounds by name → use voice pool
+    2. Match against CALLER_BASES by name → use slot gender
+    3. Default to male
+    """
+    # Priority 1: slim caller backgrounds (new redesigned system)
+    for bg in session.caller_backgrounds.values():
+        if isinstance(bg, dict) and bg.get("name") == name:
+            voice = bg.get("voice", "")
+            if voice in INWORLD_FEMALE_VOICES:
+                return "female"
+            if voice in INWORLD_MALE_VOICES:
+                return "male"
+            break
+    # Priority 2: CALLER_BASES randomized names
+    for base in CALLER_BASES.values():
+        if base.get("name") == name:
+            return base.get("gender", "male")
+    return "male"
+
+
 @app.get("/api/avatar/{name}")
 async def get_avatar(name: str):
     """Serve a caller's avatar image"""
-    path = avatar_service.get_path(name)
-    if path:
+    gender = _infer_gender_for_name(name)
+    # Check cache with gender-correctness; fetch/re-fetch if missing or wrong gender
+    path = AVATAR_DIR / f"{name}.jpg"
+    marker = AVATAR_DIR / f"{name}.gender"
+    if path.exists() and marker.exists() and marker.read_text().strip() == gender:
         return FileResponse(path, media_type="image/jpeg")
-    # Try to fetch on the fly — find gender from CALLER_BASES
-    gender = "male"
-    for base in CALLER_BASES.values():
-        if base.get("name") == name:
-            gender = base.get("gender", "male")
-            break
     try:
-        path = await avatar_service.get_or_fetch(name, gender)
-        return FileResponse(path, media_type="image/jpeg")
+        fetched = await avatar_service.get_or_fetch(name, gender)
+        return FileResponse(fetched, media_type="image/jpeg")
     except Exception:
+        # If fetch fails but a stale file exists, serve it rather than 404
+        if path.exists():
+            return FileResponse(path, media_type="image/jpeg")
         raise HTTPException(404, "Avatar not found")
 
 
