@@ -58,7 +58,7 @@ class LLMService:
     @property
     def client(self) -> httpx.AsyncClient:
         if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(timeout=10.0)
+            self._client = httpx.AsyncClient(timeout=30.0)
         return self._client
 
     def update_settings(
@@ -317,7 +317,7 @@ class LLMService:
             if model == self.openrouter_model:
                 continue  # Already tried
             print(f"[LLM] Falling back to {model}...")
-            result = await self._call_openrouter_once(messages, model, timeout=8.0, max_tokens=max_tokens, category=category, caller_name=caller_name)
+            result = await self._call_openrouter_once(messages, model, timeout=20.0, max_tokens=max_tokens, category=category, caller_name=caller_name)
             if result is not None:
                 return result
 
@@ -325,18 +325,39 @@ class LLMService:
         print("[LLM] All models failed, using canned response")
         return "Sorry, I totally blanked out for a second. What were you saying?"
 
-    async def _call_openrouter_once(self, messages: list[dict], model: str, timeout: float = 10.0, max_tokens: Optional[int] = None, response_format: Optional[dict] = None, category: str = "unknown", caller_name: str = "") -> str | None:
+    # Per-model parameter overrides for caller_dialog category.
+    # Different models need different tuning for natural conversation:
+    # - Qwen: high freq penalty to fight phrase-level repetition loops
+    # - Llama: high temp + low freq penalty to reduce terseness
+    # - Grok/Mistral/DeepSeek/Kimi: slightly warmer than Sonnet defaults
+    _CALLER_DIALOG_MODEL_PARAMS = {
+        "anthropic/claude-sonnet-4.6":          {"temperature": 0.65, "frequency_penalty": 0.3,  "presence_penalty": 0.15},
+        "x-ai/grok-4.1-fast":                   {"temperature": 0.7,  "frequency_penalty": 0.2,  "presence_penalty": 0.1},
+        "x-ai/grok-4":                           {"temperature": 0.7,  "frequency_penalty": 0.2,  "presence_penalty": 0.1},
+        "qwen/qwen3-235b-a22b":                  {"temperature": 0.6,  "frequency_penalty": 0.5,  "presence_penalty": 0.2},
+        "mistralai/mistral-large-2512":          {"temperature": 0.7,  "frequency_penalty": 0.2,  "presence_penalty": 0.1},
+        "deepseek/deepseek-chat-v3-0324":        {"temperature": 0.7,  "frequency_penalty": 0.2,  "presence_penalty": 0.1},
+        "moonshotai/kimi-k2":                    {"temperature": 0.7,  "frequency_penalty": 0.2,  "presence_penalty": 0.1},
+        "meta-llama/llama-3.3-70b-instruct":     {"temperature": 0.8,  "frequency_penalty": 0.1,  "presence_penalty": 0.1},
+    }
+
+    async def _call_openrouter_once(self, messages: list[dict], model: str, timeout: float = 20.0, max_tokens: Optional[int] = None, response_format: Optional[dict] = None, category: str = "unknown", caller_name: str = "") -> str | None:
         """Single attempt to call OpenRouter. Returns None on failure (not a fallback string)."""
         start_time = time.time()
         try:
+            # Use per-model params for caller dialog, defaults for everything else
+            if category == "caller_dialog" and model in self._CALLER_DIALOG_MODEL_PARAMS:
+                params = self._CALLER_DIALOG_MODEL_PARAMS[model]
+            else:
+                params = {"temperature": 0.65, "frequency_penalty": 0.3, "presence_penalty": 0.15}
             payload = {
                 "model": model,
                 "messages": messages,
                 "max_tokens": max_tokens or 500,
-                "temperature": 0.65,
+                "temperature": params["temperature"],
                 "top_p": 0.9,
-                "frequency_penalty": 0.3,
-                "presence_penalty": 0.15,
+                "frequency_penalty": params["frequency_penalty"],
+                "presence_penalty": params["presence_penalty"],
             }
             if response_format:
                 payload["response_format"] = response_format
