@@ -1249,10 +1249,10 @@ def generate_clip_video_remotion(
     ]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(REMOTION_DIR), timeout=180)
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(REMOTION_DIR), timeout=600)
     except subprocess.TimeoutExpired:
         props_path.unlink(missing_ok=True)
-        print(f"    Remotion render timed out (180s)")
+        print(f"    Remotion render timed out (600s)")
         return False
     props_path.unlink(missing_ok=True)
 

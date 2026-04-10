@@ -30,7 +30,8 @@ local BLOCK_SAMPLES = math.floor(SAMPLE_RATE * BLOCK_SEC)
 local THRESHOLD = 10 ^ (SILENCE_DB / 20)
 local MIN_VOICE_BLOCKS = math.ceil(MIN_VOICE_SEC / BLOCK_SEC)
 local function log(msg)
-  reaper.ShowConsoleMsg("[PostProd] " .. msg .. "\n")
+  -- Silent by default — uncomment for debugging:
+  -- reaper.ShowConsoleMsg("[PostProd] " .. msg .. "\n")
 end
 
 ---------------------------------------------------------------------------

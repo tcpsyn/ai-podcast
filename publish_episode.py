@@ -204,12 +204,12 @@ TRANSCRIPT:
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": "anthropic/claude-3.5-sonnet",
+                    "model": "anthropic/claude-sonnet-4.6",
                     "messages": [{"role": "user", "content": full_prompt}],
                     "max_tokens": 8192,
                     "temperature": 0
                 },
-                timeout=120
+                timeout=300
             )
         except requests.exceptions.Timeout:
             print(f"    Warning: Speaker labeling timed out for chunk {i+1}, using raw text")
@@ -1311,19 +1311,23 @@ def upload_to_youtube(audio_path: str, metadata: dict, chapters: list,
     video_path = Path(audio_path).with_suffix(".yt.mp4")
 
     # Convert MP3 + cover art to MP4 (pad to 1920x1080 for YouTube compatibility)
-    print("    Converting audio to video...")
-    result = subprocess.run([
-        "ffmpeg", "-y", "-loop", "1",
-        "-i", str(cover_art), "-i", audio_path,
-        "-vf", "scale=-1:1080,pad=1920:1080:(ow-iw)/2:0:black",
-        "-c:v", "libx264", "-tune", "stillimage",
-        "-c:a", "aac", "-b:a", "192k",
-        "-pix_fmt", "yuv420p", "-shortest",
-        "-movflags", "+faststart", str(video_path)
-    ], capture_output=True, text=True, timeout=1800)
-    if result.returncode != 0:
-        print(f"    Warning: ffmpeg failed: {result.stderr[-200:]}")
-        return None
+    # Skip if video already exists and is non-trivial size (>1MB)
+    if video_path.exists() and video_path.stat().st_size > 1_000_000:
+        print(f"    Using existing video: {video_path} ({video_path.stat().st_size / 1_000_000:.0f}MB)")
+    else:
+        print("    Converting audio to video...")
+        result = subprocess.run([
+            "ffmpeg", "-y", "-loop", "1",
+            "-i", str(cover_art), "-i", audio_path,
+            "-vf", "scale=-1:1080,pad=1920:1080:(ow-iw)/2:0:black",
+            "-c:v", "libx264", "-tune", "stillimage",
+            "-c:a", "aac", "-b:a", "192k",
+            "-pix_fmt", "yuv420p", "-shortest",
+            "-movflags", "+faststart", str(video_path)
+        ], capture_output=True, text=True, timeout=1800)
+        if result.returncode != 0:
+            print(f"    Warning: ffmpeg failed: {result.stderr[-200:]}")
+            return None
 
     # Build chapter timestamps for description
     chapter_lines = []
@@ -1446,6 +1450,7 @@ def main():
     parser.add_argument("--title", "-t", help="Override generated title")
     parser.add_argument("--description", help="Override generated description")
     parser.add_argument("--session-data", "-s", help="Path to session export JSON (from /api/session/export)")
+    parser.add_argument("--resume", action="store_true", help="Resume a failed publish — skip transcription/Castopod, continue from CDN/YouTube/social")
     args = parser.parse_args()
 
     audio_path = Path(args.audio_file).expanduser().resolve()
@@ -1493,88 +1498,148 @@ def main():
         episode_number = get_next_episode_number()
     print(f"Episode number: {episode_number}")
 
-    # Guard against duplicate publish
-    if not args.dry_run:
-        exists = _check_episode_exists_in_db(episode_number)
-        if exists is None:
-            print(f"Error: Could not reach Castopod DB to check for duplicates. "
-                  f"Aborting to prevent duplicate uploads. Fix NAS connectivity and retry.")
+    # --- Resume path: skip transcription + Castopod, pick up from CDN/YouTube/social ---
+    if args.resume:
+        castopod_step = _get_step_details(episode_number, "castopod")
+        if not castopod_step:
+            print(f"Error: No Castopod data in publish_state.json for episode {episode_number}. Nothing to resume.")
             _cleanup_mysql_auth()
             lock_fp.close()
             LOCK_FILE.unlink(missing_ok=True)
             sys.exit(1)
-        if exists:
-            print(f"Error: Episode {episode_number} already exists in Castopod. "
-                  f"Use --episode-number to specify a different number, or remove the existing episode first.")
-            _cleanup_mysql_auth()
-            lock_fp.close()
-            LOCK_FILE.unlink(missing_ok=True)
-            sys.exit(1)
+        episode = {"id": castopod_step["episode_id"], "slug": castopod_step["slug"]}
+        print(f"Resuming episode {episode_number}: id={episode['id']}, slug={episode['slug']}")
 
-    # Load session data if provided
-    session_data = None
-    if args.session_data:
-        session_path = Path(args.session_data).expanduser().resolve()
-        if session_path.exists():
-            with open(session_path) as f:
-                session_data = json.load(f)
-            print(f"Loaded session data: {session_data.get('call_count', 0)} calls")
+        # Load existing metadata from files saved during first run
+        transcript_path = audio_path.with_suffix(".transcript.txt")
+        chapters_path = audio_path.with_suffix(".chapters.json")
+        srt_path = audio_path.with_suffix(".srt")
+
+        # Build metadata from existing files; re-transcribe + gen only if missing
+        if chapters_path.exists():
+            print("    Loading existing chapters and metadata files")
+            with open(chapters_path) as f:
+                chapters_data = json.load(f)
+            # Reconstruct metadata from slug and chapters
+            slug = episode["slug"]
+            # Convert slug to title: "episode-49-foo-bar" -> "Episode 49: Foo Bar"
+            title_part = slug.replace(f"episode-{episode_number}-", "").replace("-", " ").title()
+            metadata = {
+                "title": f"Episode {episode_number}: {title_part}",
+                "description": f"Episode {episode_number} of Luke at the Roost.",
+                "chapters": chapters_data if isinstance(chapters_data, list) else chapters_data.get("chapters", []),
+                "thumbnail_text": title_part.upper()[:30],
+            }
         else:
-            print(f"Warning: Session data file not found: {session_path}")
+            print("[1/5] Re-transcribing audio for metadata...")
+            transcript = transcribe_audio(str(audio_path))
+            metadata = generate_metadata(transcript, episode_number)
+            save_chapters(metadata, str(chapters_path))
+            if not transcript_path.exists():
+                labeled_text = label_transcript_speakers(transcript["full_text"])
+                with open(transcript_path, "w") as f:
+                    f.write(labeled_text)
+            if not srt_path.exists():
+                generate_srt(transcript["segments"], str(srt_path))
 
-    # Step 1: Transcribe
-    transcript = transcribe_audio(str(audio_path))
+        if args.title:
+            metadata["title"] = args.title
+        if args.description:
+            metadata["description"] = args.description
 
-    # Step 2: Generate metadata
-    metadata = generate_metadata(transcript, episode_number)
+        srt_path = audio_path.with_suffix(".srt")
+        direct_upload = os.path.getsize(str(audio_path)) > CLOUDFLARE_UPLOAD_LIMIT
+        chapters_uploaded = True
+        transcript_uploaded = True
+        yt_video_id = None
+        # Jump to CDN upload (step 3.7)
+        # (fall through to the common CDN/publish/YouTube/social code below)
 
-    # Use session chapters if available (more accurate than LLM-generated)
-    if session_data and session_data.get("chapters"):
-        metadata["chapters"] = session_data["chapters"]
-        print(f"    Using {len(metadata['chapters'])} chapters from session data")
+    else:
+        # --- Normal (non-resume) path ---
 
-    # Apply overrides
-    if args.title:
-        metadata["title"] = args.title
-    if args.description:
-        metadata["description"] = args.description
+        # Guard against duplicate publish
+        if not args.dry_run:
+            exists = _check_episode_exists_in_db(episode_number)
+            if exists is None:
+                print(f"Error: Could not reach Castopod DB to check for duplicates. "
+                      f"Aborting to prevent duplicate uploads. Fix NAS connectivity and retry.")
+                _cleanup_mysql_auth()
+                lock_fp.close()
+                LOCK_FILE.unlink(missing_ok=True)
+                sys.exit(1)
+            if exists:
+                print(f"Error: Episode {episode_number} already exists in Castopod. "
+                      f"Use --episode-number to specify a different number, or remove the existing episode first.")
+                _cleanup_mysql_auth()
+                lock_fp.close()
+                LOCK_FILE.unlink(missing_ok=True)
+                sys.exit(1)
 
-    # Save chapters file
-    chapters_path = audio_path.with_suffix(".chapters.json")
-    save_chapters(metadata, str(chapters_path))
+        # Load session data if provided
+        session_data = None
+        if args.session_data:
+            session_path = Path(args.session_data).expanduser().resolve()
+            if session_path.exists():
+                with open(session_path) as f:
+                    session_data = json.load(f)
+                print(f"Loaded session data: {session_data.get('call_count', 0)} calls")
+            else:
+                print(f"Warning: Session data file not found: {session_path}")
 
-    # Save transcript text file with LUKE:/CALLER: speaker labels
-    transcript_path = audio_path.with_suffix(".transcript.txt")
-    raw_text = transcript["full_text"]
-    labeled_text = label_transcript_speakers(raw_text)
-    with open(transcript_path, "w") as f:
-        f.write(labeled_text)
-    print(f"    Transcript saved to: {transcript_path}")
+        # Step 1: Transcribe
+        transcript = transcribe_audio(str(audio_path))
 
-    # Generate SRT from whisper segments (for Castopod/podcast apps)
-    srt_path = audio_path.with_suffix(".srt")
-    generate_srt(transcript["segments"], str(srt_path))
-    print(f"    SRT saved to: {srt_path}")
+        # Step 2: Generate metadata
+        metadata = generate_metadata(transcript, episode_number)
 
-    # Save session transcript alongside episode if available (has speaker labels)
-    if session_data and session_data.get("transcript"):
-        session_transcript_path = audio_path.with_suffix(".session_transcript.txt")
-        with open(session_transcript_path, "w") as f:
-            f.write(session_data["transcript"])
-        print(f"    Session transcript saved to: {session_transcript_path}")
+        # Use session chapters if available (more accurate than LLM-generated)
+        if session_data and session_data.get("chapters"):
+            metadata["chapters"] = session_data["chapters"]
+            print(f"    Using {len(metadata['chapters'])} chapters from session data")
 
-    if args.dry_run:
-        print("\n[DRY RUN] Would publish with:")
-        print(f"  Title: {metadata['title']}")
-        print(f"  Description: {metadata['description']}")
-        print(f"  Chapters: {json.dumps(metadata['chapters'], indent=2)}")
-        print("\nChapters file saved. Run without --dry-run to publish.")
-        return
+        # Apply overrides
+        if args.title:
+            metadata["title"] = args.title
+        if args.description:
+            metadata["description"] = args.description
 
-    # Step 3: Create episode
-    direct_upload = os.path.getsize(str(audio_path)) > CLOUDFLARE_UPLOAD_LIMIT
-    episode = create_episode(str(audio_path), metadata, episode_number, duration=transcript["duration"])
-    _mark_step_done(episode_number, "castopod", {"episode_id": episode["id"], "slug": episode.get("slug")})
+        # Save chapters file
+        chapters_path = audio_path.with_suffix(".chapters.json")
+        save_chapters(metadata, str(chapters_path))
+
+        # Save transcript text file with LUKE:/CALLER: speaker labels
+        transcript_path = audio_path.with_suffix(".transcript.txt")
+        raw_text = transcript["full_text"]
+        labeled_text = label_transcript_speakers(raw_text)
+        with open(transcript_path, "w") as f:
+            f.write(labeled_text)
+        print(f"    Transcript saved to: {transcript_path}")
+
+        # Generate SRT from whisper segments (for Castopod/podcast apps)
+        srt_path = audio_path.with_suffix(".srt")
+        generate_srt(transcript["segments"], str(srt_path))
+        print(f"    SRT saved to: {srt_path}")
+
+        # Save session transcript alongside episode if available (has speaker labels)
+        if session_data and session_data.get("transcript"):
+            session_transcript_path = audio_path.with_suffix(".session_transcript.txt")
+            with open(session_transcript_path, "w") as f:
+                f.write(session_data["transcript"])
+            print(f"    Session transcript saved to: {session_transcript_path}")
+
+        if args.dry_run:
+            print("\n[DRY RUN] Would publish with:")
+            print(f"  Title: {metadata['title']}")
+            print(f"  Description: {metadata['description']}")
+            print(f"  Chapters: {json.dumps(metadata['chapters'], indent=2)}")
+            print("\nChapters file saved. Run without --dry-run to publish.")
+            return
+
+        # Step 3: Create episode
+        direct_upload = os.path.getsize(str(audio_path)) > CLOUDFLARE_UPLOAD_LIMIT
+        episode = create_episode(str(audio_path), metadata, episode_number, duration=transcript["duration"])
+        _mark_step_done(episode_number, "castopod", {"episode_id": episode["id"], "slug": episode.get("slug")})
 
     # Step 3.5: Upload chapters and transcript to Castopod
     # (must happen before CDN sync so media records exist for syncing)
