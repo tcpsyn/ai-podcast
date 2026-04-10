@@ -131,7 +131,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         initEventListeners();
         initClock();
         loadShowTheme();
-        loadCallerModels();
         loadVoicemails();
         setInterval(loadVoicemails, 30000);
         loadEmails();
@@ -356,27 +355,6 @@ function initEventListeners() {
         else if (e.key === 'Escape') e.target.blur();
     });
 
-    // Caller Models
-    document.getElementById('cm-strategy')?.addEventListener('change', () => {
-        callerModelSettings.strategy = document.getElementById('cm-strategy').value;
-        updateCallerModelUI();
-    });
-    document.getElementById('caller-model-badge')?.addEventListener('click', () => {
-        const sel = document.getElementById('caller-model-override');
-        if (!sel || !currentCaller) return;
-        sel.classList.toggle('hidden');
-        if (!sel.classList.contains('hidden')) {
-            const current = callerModelAssignments[currentCaller.key];
-            if (current) sel.value = current;
-        }
-    });
-    document.getElementById('caller-model-override')?.addEventListener('change', (e) => {
-        if (currentCaller && e.target.value) {
-            overrideCallerModel(currentCaller.key, e.target.value);
-            e.target.classList.add('hidden');
-        }
-    });
-
     // Settings
     document.getElementById('settings-btn')?.addEventListener('click', async () => {
         document.getElementById('settings-modal')?.classList.remove('hidden');
@@ -391,17 +369,6 @@ function initEventListeners() {
         phoneFilter = e.target.checked;
     });
     document.getElementById('refresh-ollama')?.addEventListener('click', refreshOllamaModels);
-
-    // Preflight
-    document.getElementById('preflight-btn')?.addEventListener('click', () => {
-        document.getElementById('preflight-modal')?.classList.remove('hidden');
-        runPreflight(false);
-    });
-    document.getElementById('preflight-test-btn')?.addEventListener('click', () => runPreflight(true));
-    document.getElementById('preflight-rerun-btn')?.addEventListener('click', () => runPreflight(false));
-    document.getElementById('close-preflight')?.addEventListener('click', () => {
-        document.getElementById('preflight-modal')?.classList.add('hidden');
-    });
 
     // Wrap-up button
     document.getElementById('wrapup-btn')?.addEventListener('click', wrapUp);
@@ -637,21 +604,7 @@ async function loadCallers() {
             btn.dataset.key = caller.key;
 
             let html = '';
-            if (caller.energy_level) {
-                const energyColors = { low: '#4a7ab5', medium: '#5a8a3c', high: '#e8791d', very_high: '#cc2222' };
-                const color = energyColors[caller.energy_level] || '#9a8b78';
-                html += `<span class="energy-dot" style="background:${color}" title="${caller.energy_level} energy"></span>`;
-            }
             html += caller.returning ? `<span class="caller-name">\u2605 ${caller.name}</span>` : `<span class="caller-name">${caller.name}</span>`;
-            if (caller.call_shape && caller.call_shape !== 'standard') {
-                const shapeLabels = {
-                    escalating_reveal: 'ER', am_i_the_asshole: 'AITA', confrontation: 'VS',
-                    celebration: '\u{1F389}', quick_hit: 'QH', bait_and_switch: 'B&S',
-                    the_hangup: 'HU', reactive: 'RE'
-                };
-                const label = shapeLabels[caller.call_shape] || caller.call_shape.substring(0, 2).toUpperCase();
-                html += `<span class="shape-badge" title="${caller.call_shape.replace(/_/g, ' ')}">${label}</span>`;
-            }
             // Shortcut label: 1-9 for first 9, 0 for 10th
             if (idx < 10) {
                 const shortcutKey = idx === 9 ? '0' : String(idx + 1);
@@ -669,7 +622,6 @@ async function loadCallers() {
         }
 
         console.log('Loaded', data.callers.length, 'callers, session:', data.session_id);
-        updateCallerModelBadges();
     } catch (err) {
         console.error('loadCallers error:', err);
     }
@@ -742,27 +694,20 @@ async function startCall(key, name) {
     if (aiInfo) aiInfo.classList.remove('hidden');
     if (aiName) aiName.textContent = name;
 
-    // Show caller info panel with structured data
+    // Show caller info panel with slim background data
     const infoPanel = document.getElementById('caller-info-panel');
     if (infoPanel && data.caller_info) {
         const ci = data.caller_info;
-        const energyColors = { low: '#4a7ab5', medium: '#5a8a3c', high: '#e8791d', very_high: '#cc2222' };
-        const shapeBadge = document.getElementById('caller-shape-badge');
-        const energyBadge = document.getElementById('caller-energy-badge');
-        const emotionBadge = document.getElementById('caller-emotion');
-        const signature = document.getElementById('caller-signature');
+        const identity = document.getElementById('caller-identity');
         const situation = document.getElementById('caller-situation');
-        if (shapeBadge) shapeBadge.textContent = (ci.call_shape || 'standard').replace(/_/g, ' ');
-        if (energyBadge) { energyBadge.textContent = (ci.energy_level || '').replace('_', ' '); energyBadge.style.background = energyColors[ci.energy_level] || '#9a8b78'; }
-        if (emotionBadge) emotionBadge.textContent = ci.emotional_state || '';
-        if (signature) signature.textContent = ci.signature_detail ? `"${ci.signature_detail}"` : '';
-        if (situation) situation.textContent = ci.situation_summary || '';
+        const signature = document.getElementById('caller-signature');
+        const secretWant = document.getElementById('caller-secret-want');
+        if (identity) identity.textContent = ci.identity || '';
+        if (situation) situation.textContent = ci.situation || '';
+        if (signature) signature.textContent = ci.signature ? `"${ci.signature}"` : '';
+        if (secretWant) secretWant.textContent = ci.secret_want ? `secretly wants: ${ci.secret_want}` : '';
         infoPanel.classList.remove('hidden');
     }
-    try {
-        showCallerModelBadge(callerModelAssignments[key] || data.model);
-    } catch(e) { console.error('[startCall] showCallerModelBadge error:', e); }
-    document.getElementById('caller-model-override')?.classList.add('hidden');
     const bgEl = document.getElementById('caller-background');
     if (bgEl && data.background) bgEl.textContent = data.background;
 
@@ -799,19 +744,32 @@ async function newSession() {
         await hangup();
     }
 
-    await fetch('/api/session/reset', { method: 'POST' });
-    conversationSince = 0;
+    const btn = document.getElementById('new-session-btn');
+    const originalText = btn?.textContent;
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Generating...';
+    }
 
-    // Hide caller background
-    const bgDetails = document.getElementById('caller-background-details');
-    if (bgDetails) bgDetails.classList.add('hidden');
+    try {
+        await fetch('/api/session/reset', { method: 'POST' });
+        conversationSince = 0;
 
-    // Reload callers to get new session ID
-    await loadCallers();
-    await loadShowTheme();
-    await loadCallerModels();
+        // Hide caller background
+        const bgDetails = document.getElementById('caller-background-details');
+        if (bgDetails) bgDetails.classList.add('hidden');
 
-    log('New session started - all callers have fresh backgrounds');
+        // Reload callers to get new session ID
+        await loadCallers();
+        await loadShowTheme();
+
+        log('New session started - all callers have fresh backgrounds');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText || 'New Session';
+        }
+    }
 }
 
 
@@ -848,8 +806,6 @@ async function hangup() {
     document.getElementById('caller-info-panel')?.classList.add('hidden');
     const bgDetails2 = document.getElementById('caller-background-details');
     if (bgDetails2) bgDetails2.classList.add('hidden');
-    showCallerModelBadge(null);
-    document.getElementById('caller-model-override')?.classList.add('hidden');
 
     // Hide AI caller indicator
     document.getElementById('ai-caller-info')?.classList.add('hidden');
@@ -1437,188 +1393,6 @@ async function clearShowTheme() {
 }
 
 
-// --- Caller Model Routing ---
-const MODEL_ABBREVS = {
-    'claude-sonnet-4-5': 'Son', 'claude-haiku-4.5': 'Hai', 'claude-3-haiku': 'H3',
-    'grok-4': 'Grk', 'grok-4-fast': 'GrF',
-    'minimax-m2-her': 'MnM', 'mistral-small-creative': 'Mis',
-    'deepseek-v3.2': 'DSk', 'gemini-2.5-flash': 'Gem', 'gemini-flash-1.5': 'Gm1',
-    'gpt-4o-mini': '4oM', 'gpt-4o': '4o', 'llama-3.1-8b-instruct': 'Lla',
-};
-
-const CALLER_STYLES = [
-    'quiet_nervous', 'storyteller', 'deadpan', 'high_energy', 'confrontational',
-    'oversharer', 'philosopher', 'bragger', 'first_time', 'emotional',
-    'world_weary', 'conspiracy', 'comedian', 'angry_venting', 'sweet_earnest',
-    'mysterious', 'know_it_all', 'rambling',
-];
-
-let callerModelSettings = { strategy: 'single', pool: [], fallback: '', style_map: {} };
-let callerModelAssignments = {}; // key -> model_id
-
-function modelAbbrev(modelId) {
-    const name = (modelId || '').split('/').pop();
-    return MODEL_ABBREVS[name] || name.substring(0, 3).toUpperCase();
-}
-
-async function loadCallerModels() {
-    try {
-        const res = await fetch('/api/caller-models');
-        if (!res.ok) return;
-        const data = await res.json();
-        callerModelSettings = {
-            strategy: data.strategy || 'single',
-            pool: data.pool || [],
-            fallback: data.fallback || '',
-            style_map: data.map || data.style_map || {},
-        };
-        callerModelAssignments = data.assignments || {};
-        updateCallerModelUI();
-        updateCallerModelBadges();
-    } catch (e) {
-        console.error('Failed to load caller models:', e);
-    }
-}
-
-function updateCallerModelUI() {
-    const strategyEl = document.getElementById('cm-strategy');
-    if (strategyEl) strategyEl.value = callerModelSettings.strategy;
-
-    const poolSection = document.getElementById('cm-pool-section');
-    const styleMap = document.getElementById('cm-style-map');
-    if (poolSection) poolSection.classList.toggle('hidden', callerModelSettings.strategy === 'single');
-    if (styleMap) styleMap.classList.toggle('hidden', callerModelSettings.strategy !== 'style_matched');
-
-    const poolInput = document.getElementById('cm-pool');
-    if (poolInput) poolInput.value = callerModelSettings.pool.join(', ');
-
-    // Populate style map grid
-    const grid = document.getElementById('cm-style-grid');
-    if (grid && callerModelSettings.strategy === 'style_matched') {
-        grid.innerHTML = '';
-        for (const style of CALLER_STYLES) {
-            const item = document.createElement('div');
-            item.className = 'cm-style-item';
-            const label = style.replace(/_/g, ' ');
-            item.innerHTML = `<span class="cm-style-name">${label}</span>`;
-            const sel = document.createElement('select');
-            sel.className = 'cm-style-select';
-            sel.dataset.style = style;
-            const models = window._openrouterModels || callerModelSettings.pool;
-            for (const m of models) {
-                const opt = document.createElement('option');
-                opt.value = m;
-                opt.textContent = m.split('/').pop();
-                if (m === callerModelSettings.style_map[style]) opt.selected = true;
-                sel.appendChild(opt);
-            }
-            item.appendChild(sel);
-            grid.appendChild(item);
-        }
-    }
-
-    // Fallback dropdown
-    const fallbackEl = document.getElementById('cm-fallback');
-    if (fallbackEl) {
-        const currentVal = fallbackEl.value;
-        fallbackEl.innerHTML = '';
-        const models = callerModelSettings.pool.length > 0
-            ? callerModelSettings.pool
-            : (window._openrouterModels || []);
-        for (const m of models) {
-            const opt = document.createElement('option');
-            opt.value = m;
-            opt.textContent = m.split('/').pop();
-            if (m === callerModelSettings.fallback) opt.selected = true;
-            fallbackEl.appendChild(opt);
-        }
-        if (!fallbackEl.value && currentVal) fallbackEl.value = currentVal;
-    }
-}
-
-function updateCallerModelBadges() {
-    document.querySelectorAll('.caller-btn').forEach(btn => {
-        const key = btn.dataset.key;
-        const model = callerModelAssignments[key];
-        let tag = btn.querySelector('.model-tag');
-        if (model) {
-            if (!tag) {
-                tag = document.createElement('span');
-                tag.className = 'model-tag';
-                btn.appendChild(tag);
-            }
-            tag.textContent = modelAbbrev(model);
-            tag.title = model;
-        } else if (tag) {
-            tag.remove();
-        }
-    });
-}
-
-function showCallerModelBadge(model) {
-    const badge = document.getElementById('caller-model-badge');
-    if (badge) {
-        badge.textContent = model ? `via ${modelAbbrev(model)}` : '';
-        badge.title = model || '';
-        badge.classList.toggle('hidden', !model);
-    }
-}
-
-function populateCallerModelOverride() {
-    const sel = document.getElementById('caller-model-override');
-    if (!sel) return;
-    sel.innerHTML = '';
-    const models = window._openrouterModels || [];
-    for (const m of models) {
-        const opt = document.createElement('option');
-        opt.value = m;
-        opt.textContent = m.split('/').pop();
-        sel.appendChild(opt);
-    }
-}
-
-async function overrideCallerModel(callerKey, modelId) {
-    try {
-        const res = await fetch(`/api/caller-models/${callerKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model: modelId })
-        });
-        if (!res.ok) throw new Error(res.status);
-        callerModelAssignments[callerKey] = modelId;
-        showCallerModelBadge(modelId);
-        updateCallerModelBadges();
-        log(`Model override: ${currentCaller?.name || callerKey} → ${modelAbbrev(modelId)}`);
-    } catch (err) {
-        log('Model override failed: ' + err.message);
-    }
-}
-
-async function saveCallerModels() {
-    const strategy = document.getElementById('cm-strategy')?.value || 'single';
-    const poolRaw = document.getElementById('cm-pool')?.value || '';
-    const pool = poolRaw.split(',').map(s => s.trim()).filter(Boolean);
-    const fallback = document.getElementById('cm-fallback')?.value || '';
-
-    const style_map = {};
-    document.querySelectorAll('.cm-style-select').forEach(sel => {
-        if (sel.value) style_map[sel.dataset.style] = sel.value;
-    });
-
-    try {
-        const res = await fetch('/api/caller-models', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ strategy, pool, fallback, map: style_map })
-        });
-        if (!res.ok) throw new Error(res.status);
-        callerModelSettings = { strategy, pool, fallback, style_map };
-    } catch (err) {
-        log('Caller model save failed: ' + err.message);
-    }
-}
-
-
 // --- Settings ---
 async function loadSettings() {
     try {
@@ -1675,7 +1449,6 @@ async function loadSettings() {
         // Category model routing
         const models = data.available_openrouter_models || [];
         window._openrouterModels = models;
-        populateCallerModelOverride();
         const categoryModels = data.category_models || {};
         const categories = ['caller_dialog', 'devon_monitor', 'devon_ask', 'background_gen', 'call_summary', 'news_summary'];
         for (const cat of categories) {
@@ -1708,9 +1481,6 @@ async function saveSettings() {
     try {
         // Save audio devices
         await saveAudioDevices();
-
-        // Save caller model routing
-        await saveCallerModels();
 
         // Collect category model routing
         const categoryModels = {};
@@ -2431,151 +2201,3 @@ async function dismissDevonSuggestion() {
 }
 
 
-// --- Preflight ---
-
-const PREFLIGHT_STATUS_ICONS = { pass: '✓', warn: '⚠', fail: '✗', skip: '—' };
-
-const PREFLIGHT_CHECK_NAMES = {
-    model_diversity: 'Model Diversity',
-    theme_penetration: 'Theme Penetration',
-    voice_age_alignment: 'Voice-Age Alignment',
-    response_coherence: 'Response Coherence',
-};
-
-async function runPreflight(testResponses) {
-    const statusEl = document.getElementById('preflight-status');
-    const checksEl = document.getElementById('preflight-checks');
-    const testBtn = document.getElementById('preflight-test-btn');
-
-    statusEl.className = 'preflight-status loading';
-    statusEl.querySelector('.preflight-status-icon').textContent = '...';
-    statusEl.querySelector('.preflight-status-text').textContent = 'Running checks...';
-    checksEl.innerHTML = '';
-
-    if (testResponses && testBtn) testBtn.classList.add('loading');
-
-    try {
-        const url = '/api/show/preflight' + (testResponses ? '?test_responses=true' : '');
-        const data = await safeFetch(url, {}, 120000);
-        renderPreflightResults(data, statusEl, checksEl);
-    } catch (err) {
-        statusEl.className = 'preflight-status fail';
-        statusEl.querySelector('.preflight-status-icon').textContent = '✗';
-        statusEl.querySelector('.preflight-status-text').textContent = 'Error: ' + err.message;
-    } finally {
-        if (testBtn) testBtn.classList.remove('loading');
-    }
-}
-
-function renderPreflightResults(data, statusEl, checksEl) {
-    const overall = data.status || 'pass';
-    statusEl.className = 'preflight-status ' + overall;
-    statusEl.querySelector('.preflight-status-icon').textContent = PREFLIGHT_STATUS_ICONS[overall] || '✓';
-    statusEl.querySelector('.preflight-status-text').textContent =
-        overall === 'pass' ? 'All checks passed' :
-        overall === 'warn' ? 'Passed with warnings' : 'Issues found';
-
-    checksEl.innerHTML = '';
-    const checksObj = data.checks || {};
-    for (const [checkKey, check] of Object.entries(checksObj)) {
-        const card = document.createElement('div');
-        card.className = 'preflight-check';
-
-        const status = check.status || 'skip';
-        const name = PREFLIGHT_CHECK_NAMES[checkKey] || checkKey;
-
-        card.innerHTML = `
-            <div class="preflight-check-header">
-                <span class="preflight-check-name">${escapeHtml(name)}</span>
-                <span class="preflight-check-badge ${status}">${status.toUpperCase()}</span>
-            </div>
-            <div class="preflight-check-details">${renderCheckDetails(checkKey, check)}</div>
-        `;
-
-        card.querySelector('.preflight-check-header').addEventListener('click', () => {
-            card.classList.toggle('open');
-        });
-
-        checksEl.appendChild(card);
-    }
-}
-
-function renderCheckDetails(name, check) {
-    const d = check.details || {};
-    switch (name) {
-        case 'model_diversity': return renderModelDiversity(d);
-        case 'theme_penetration': return renderThemePenetration(d);
-        case 'voice_age_alignment': return renderVoiceAgeAlignment(d);
-        case 'response_coherence': return renderResponseCoherence(check);
-        default: return `<pre>${escapeHtml(JSON.stringify(d, null, 2))}</pre>`;
-    }
-}
-
-function renderModelDiversity(d) {
-    const callers = d.callers || [];
-    if (!callers.length) return '<p>No callers to check.</p>';
-    let html = `<table class="preflight-table">
-        <thead><tr><th>Caller</th><th>Style</th><th>Model</th></tr></thead><tbody>`;
-    for (const c of callers) {
-        html += `<tr><td>${escapeHtml(c.name || '')}</td><td>${escapeHtml(c.style || '')}</td><td>${escapeHtml(c.model || '')}</td></tr>`;
-    }
-    html += '</tbody></table>';
-    if (d.max_same_model_pct != null) {
-        html += `<p style="margin-top:8px">${d.max_same_model_pct}% on same model</p>`;
-    }
-    return html;
-}
-
-function renderThemePenetration(d) {
-    let html = '';
-    if (d.theme) html += `<p><strong>Theme:</strong> ${escapeHtml(d.theme)}</p>`;
-    if (d.connected?.length) {
-        html += `<p style="color:var(--accent-green);margin-top:6px">Connected: ${d.connected.map(n => escapeHtml(n)).join(', ')}</p>`;
-    }
-    if (d.not_connected?.length) {
-        html += `<p style="color:var(--text-muted);margin-top:4px">Not connected: ${d.not_connected.map(n => escapeHtml(n)).join(', ')}</p>`;
-    }
-    if (d.penetration_pct != null) {
-        html += `<p style="margin-top:6px">${d.penetration_pct}% penetration</p>`;
-    }
-    return html || '<p>No theme set.</p>';
-}
-
-function renderVoiceAgeAlignment(d) {
-    const callers = d.callers || [];
-    if (!callers.length) return '<p>No callers to check.</p>';
-    let html = `<table class="preflight-table">
-        <thead><tr><th>Caller</th><th>Age</th><th>Voice</th><th>Age Feel</th></tr></thead><tbody>`;
-    for (const c of callers) {
-        const cls = c.mismatch ? ' class="mismatch"' : '';
-        html += `<tr${cls}><td>${escapeHtml(c.name || '')}</td><td>${c.age || ''}</td><td>${escapeHtml(c.voice || '')}</td><td>${escapeHtml(c.age_feel || '')}</td></tr>`;
-    }
-    html += '</tbody></table>';
-    return html;
-}
-
-function renderResponseCoherence(check) {
-    if (check.status === 'skip') {
-        return '<p>Use <strong>Test Responses</strong> button to run this check.</p>';
-    }
-    const d = check.details || {};
-    const results = d.results || [];
-    if (!results.length) return '<p>No test results.</p>';
-    let html = `<table class="preflight-table">
-        <thead><tr><th>Caller</th><th>Model</th><th>R1</th><th>R2</th><th>Avg</th><th></th></tr></thead><tbody>`;
-    for (const c of results) {
-        const cls = c.pass ? '' : ' class="mismatch"';
-        if (c.error) {
-            html += `<tr class="mismatch"><td>${escapeHtml(c.name || '')}</td><td>${escapeHtml(c.model || '')}</td><td colspan="3">${escapeHtml(c.error)}</td><td>✗</td></tr>`;
-        } else {
-            html += `<tr${cls}><td>${escapeHtml(c.name || '')}</td><td>${escapeHtml(c.model || '')}</td><td>${c.r1_words || 0}</td><td>${c.r2_words || 0}</td><td>${c.word_count || 0}</td><td>${c.pass ? '✓' : '✗'}</td></tr>`;
-            if (c.snippet) {
-                html += `<tr><td colspan="6" style="color:var(--text-muted);font-size:0.75rem;padding-left:16px">${escapeHtml(c.snippet)}</td></tr>`;
-            }
-        }
-    }
-    html += '</tbody></table>';
-    const passed = results.filter(r => r.pass).length;
-    html += `<p style="margin-top:8px">${passed}/${results.length} callers passed (min ${50} words per response)</p>`;
-    return html;
-}

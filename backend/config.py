@@ -34,9 +34,8 @@ class Settings(BaseSettings):
     ollama_host: str = "http://localhost:11434"
 
     # Per-category model routing
-    # caller_dialog is overridden by style_matched routing (see Session.caller_model_map)
     category_models: dict = {
-        "caller_dialog": "x-ai/grok-4.1-fast",               # fallback if style_matched disabled ($0.20/$0.50)
+        "caller_dialog": "anthropic/claude-haiku-4.5",       # live caller dialog ($0.80/$4)
         "devon_ask": "x-ai/grok-4.1-fast",                   # Devon matches show energy, cheap ($0.20/$0.50)
         "devon_monitor": "google/gemini-2.5-flash",          # just yes/no decisions, keep cheap ($0.15/$0.60)
         "background_gen": "anthropic/claude-sonnet-4.6",       # backgrounds drive the whole call — worth the quality ($3/$15, ~$0.30/show)

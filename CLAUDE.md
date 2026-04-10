@@ -42,13 +42,14 @@ Required in `.env`:
 - `generate_with_tools()` in llm.py supports OpenRouter function calling for the intern feature
 
 ## Caller Generation System
-- **CallerBackground dataclass**: Structured output from LLM background generation (JSON mode). Fields: name, age, gender, job, location, reason_for_calling, pool_name, communication_style, energy_level, emotional_state, signature_detail, situation_summary, natural_description, seeds, verbal_fluency, calling_from.
-- **Voice-personality matching**: `_match_voices_to_styles()` runs after background generation. 68 voice profiles in `VOICE_PROFILES` (tts.py), 18 style-to-voice mappings in `STYLE_VOICE_PREFERENCES` (main.py). Soft matching — scores voices against style preferences.
-- **Adaptive call shapes**: `SHAPE_STYLE_AFFINITIES` maps communication styles to shape weight multipliers. Consecutive shape repeats are dampened.
-- **Inter-caller awareness**: Thematic matching in `get_show_history()` scores previous callers by keyword/category overlap. Adaptive reaction frequency (60%/35%/15%). Show energy tracking via `_get_show_energy()`.
-- **Caller memory**: Returning callers store structured backgrounds, key moments, arc status, and relationships with other regulars. `RegularCallerService` has `add_relationship()` and expanded `update_after_call()`.
-- **Show pacing**: `_sort_caller_queue()` sorts presentation order by energy alternation, topic variety, shape variety.
-- **Call quality signals**: `_assess_call_quality()` captures exchange count, response length, host engagement, shape target hit, natural ending.
+- **Two-stage pipeline**: (1) batch identity pregen via Sonnet 4.6 at session start, (2) live dialog via Haiku 4.5 per turn. Cost ~$1/show.
+- **Slim caller dict**: Populated once at `Session._pregenerate_backgrounds()` via `caller_gen.generate_batch()`. Keys: `name`, `age`, `voice`, `location`, `identity`, `situation`, `reason_calling`, `opening_line`, `secret_want`, `specific_details`, `emotional_register`. Stored in `session.caller_backgrounds[caller_key]`.
+- **Dialog model**: Always Haiku 4.5 via the `caller_dialog` category in `config.category_models`. No per-caller model routing — deleted in Phase 5B.
+- **Prompt builder**: `get_caller_prompt(caller)` in main.py builds the slim system prompt from the dict; see `tests/test_caller_prompt.py` for the contract.
+- **Regulars**: `backend/services/regulars_v2.py` loads lore from Obsidian markdown files for named recurring callers (e.g. Silas). The batch prompt optionally includes 2-3 active regulars per session.
+- **Inter-caller awareness**: `get_show_history()` scores previous callers by keyword overlap with the current caller's `situation`/`reason_calling`. Reaction frequency scales with match strength (60%/35%/15%).
+- **Caller memory**: Returning callers auto-promote from first-timers at ~5% probability after 8+ exchanges. `RegularCallerService` tracks summaries, relationships, arc state.
+- **Call quality signals**: `_assess_call_quality()` captures exchange count, response length, host engagement, caller depth, natural ending.
 
 ## Devon (Intern Character)
 - **Service**: `backend/services/intern.py` — persistent show character, not a caller
@@ -62,8 +63,8 @@ Required in `.env`:
 ## Frontend Control Panel
 - **Keyboard shortcuts**: 1-0 (callers), H (hangup), W (wrap up), M (music toggle), D (ask Devon), Escape (close modals)
 - **Wrap It Up**: Amber button that signals callers to wind down gracefully. Reduces response budget, injects wrap-up signals, forces goodbye after 2 exchanges.
-- **Caller info panel**: Shows call shape, energy level, emotional state, signature detail, situation summary during active calls
-- **Caller buttons**: Energy dots (colored by level) and shape badges on each button
+- **Caller info panel**: Shows identity, situation, signature detail, secret want during active calls
+- **Caller buttons**: Populated from the slim caller background dicts
 - **Pinned SFX**: Cheer/Applause/Boo always visible, rest collapsible
 - **Visual polish**: Thinking pulse, call glow, compact media row, smoother transitions
 
