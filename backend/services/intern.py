@@ -391,9 +391,14 @@ class InternService:
                 "content": "A caller is on the line right now. Focus on delivering useful facts, context, and information. Skip personal stories and anecdotes — save those for when it's just you and Luke talking between calls."
             })
 
-        # Include Devon's own recent conversation history
+        # Include Devon's own recent conversation history (current show only)
         if self._devon_history:
-            messages.extend(self._devon_history[-10:])
+            last_marker = -1
+            for i, msg in enumerate(self._devon_history):
+                if msg.get("role") == "system" and "NEW SHOW" in msg.get("content", ""):
+                    last_marker = i
+            relevant = self._devon_history[last_marker + 1:] if last_marker >= 0 else self._devon_history
+            messages.extend(relevant[-10:])
 
         messages.append({"role": "user", "content": question})
 
@@ -436,6 +441,11 @@ class InternService:
             "sources": [tc["name"] for tc in tool_calls],
             "tool_calls": tool_calls,
         }
+
+    def _track_suggestion(self, text: str):
+        """Record a suggestion in Devon's history so he won't repeat it."""
+        self._devon_history.append({"role": "assistant", "content": text})
+        self._save()
 
     async def interject(self, conversation: list[dict], caller_active: bool = False) -> dict | None:
         """Intern looks at conversation and decides if there's something worth adding.
@@ -549,6 +559,7 @@ class InternService:
                 if result:
                     self.pending_interjection = result["text"]
                     self.pending_sources = result.get("tool_calls", [])
+                    self._track_suggestion(result["text"])
                     await on_suggestion(result["text"], result["sources"])
                     print(f"[Intern] Buffered suggestion: {result['text'][:60]}...")
             except Exception as e:
@@ -562,6 +573,24 @@ class InternService:
             self.monitor_conversation(get_conversation, on_suggestion, get_caller_active)
         )
         print("[Intern] Monitoring started")
+
+    def new_show(self):
+        """Mark the start of a new show in Devon's memory so he knows the context has changed."""
+        if self._devon_history and self._devon_history[-1].get("role") == "system" and "NEW SHOW" in self._devon_history[-1].get("content", ""):
+            print("[Intern] Skipping duplicate new_show marker")
+            return
+        self._devon_history.append({
+            "role": "system",
+            "content": "--- NEW SHOW STARTING --- The previous show is over. A brand new episode is about to begin. Everything before this point was a previous show. Don't reference the previous show's callers or topics unless Luke brings them up. Fresh energy, clean slate."
+        })
+        self.research_cache.clear()
+        self.pending_interjection = None
+        self.pending_sources = []
+        # Trim older history but keep some for long-term memory
+        if len(self._devon_history) > 30:
+            self._devon_history = self._devon_history[-30:]
+        self._save()
+        print("[Intern] New show marker added to conversation history")
 
     def stop_monitoring(self):
         self.monitoring = False
@@ -588,29 +617,25 @@ class InternService:
     def _clean_for_tts(text: str) -> str:
         if not text:
             return ""
-        # Strip stage directions BEFORE markdown processing
-        # Parenthetical: (laughs), (sighs nervously), (clears throat), etc.
-        text = re.sub(r'\s*\([^)]{1,40}\)\s*', ' ', text)
-        # Multi-word asterisk stage directions: *sighs deeply*, *nervous laughter*
-        text = re.sub(r'\s*\*\w+\s[^*]{1,30}\*\s*', ' ', text)
-        # Single-word asterisk stage directions (known action words only)
-        _actions = r'(?:laughs?|sighs?|pauses?|smiles?|chuckles?|grins?|nods?|shrugs?|frowns?|coughs?|gasps?|whispers?|mumbles?|gulps?|blinks?|winces?|crying|sobbing)'
-        text = re.sub(r'\s*\*' + _actions + r'\*\s*', ' ', text, flags=re.IGNORECASE)
-        # Remove markdown formatting (after stage directions are stripped)
+        # Devon-specific: strip markdown and tool artifacts first
+        # Remove markdown formatting
         text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
         text = re.sub(r'\*(.+?)\*', r'\1', text)
         text = re.sub(r'`(.+?)`', r'\1', text)
         text = re.sub(r'\[(.+?)\]\(.+?\)', r'\1', text)
         # Remove bullet points / list markers
         text = re.sub(r'^\s*[-*•]\s+', '', text, flags=re.MULTILINE)
-        # Collapse whitespace
-        text = re.sub(r'\s+', ' ', text).strip()
-        # Remove quotes that TTS reads awkwardly
-        text = text.replace('"', '').replace('"', '').replace('"', '')
+        # Remove smart quotes that TTS reads awkwardly
+        text = text.replace('\u201c', '').replace('\u201d', '').replace('\u2018', '').replace('\u2019', "'")
         # Strip tool error artifacts that shouldn't be spoken on air
         text = re.sub(r'(?:Error|ERROR|error):?\s*\S.*?(?:\.|$)', '', text)
         text = re.sub(r'Tool unavailable[^.]*\.?', '', text)
         text = re.sub(r'\s+', ' ', text).strip()
+
+        # Run shared TTS preprocessing (stage directions, numbers, abbreviations,
+        # symbols, pronunciation fixes, breathing pauses)
+        from backend.main import clean_for_tts
+        text = clean_for_tts(text, formal=True)
         return text
 
 
