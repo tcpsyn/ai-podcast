@@ -50,19 +50,21 @@ function destroyChart(key) {
 async function loadDashboard() {
     const p = currentPeriod;
     try {
-        const [summary, timeline, models, categories, sessions, expensive] = await Promise.all([
+        const [summary, timeline, models, categories, sessions, expensive, tts] = await Promise.all([
             fetch(`/api/costs/summary?period=${p}`).then(r => r.json()),
             fetch(`/api/costs/timeline?period=${p}&group_by=session`).then(r => r.json()),
             fetch(`/api/costs/models?period=${p}`).then(r => r.json()),
             fetch(`/api/costs/categories?period=${p}`).then(r => r.json()),
             fetch(`/api/costs/sessions?period=${p}`).then(r => r.json()),
             fetch(`/api/costs/expensive?period=${p}&limit=10`).then(r => r.json()),
+            fetch(`/api/costs/tts?period=${p}`).then(r => r.json()),
         ]);
         renderSummary(summary);
         renderTimeline(timeline);
         renderModels(models);
         renderCategories(categories);
         renderSessionBars(timeline);
+        renderTtsTable(tts);
         renderExpensiveTable(expensive);
         renderSessionsTable(sessions);
     } catch (e) {
@@ -199,6 +201,18 @@ function renderSessionBars(data) {
             },
         },
     });
+}
+
+function renderTtsTable(data) {
+    const tbody = document.querySelector('#tts-table tbody');
+    tbody.innerHTML = data.map(d => `
+        <tr>
+            <td>${d.provider}</td>
+            <td>${d.calls.toLocaleString()}</td>
+            <td>${d.chars.toLocaleString()}</td>
+            <td>${formatCost(d.cost)}</td>
+        </tr>
+    `).join('');
 }
 
 function renderExpensiveTable(data) {

@@ -59,7 +59,16 @@
                 <canvas id="session-chart"></canvas>
             </div>
         </section>
-        <section class="tables-section">
+        <section class="chart-row">
+            <div class="table-container">
+                <h3>TTS Providers</h3>
+                <table id="tts-table">
+                    <thead>
+                        <tr><th>Provider</th><th>Calls</th><th>Characters</th><th>Cost</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
             <div class="table-container">
                 <h3>Most Expensive Calls</h3>
                 <table id="expensive-table">
@@ -69,6 +78,8 @@
                     <tbody></tbody>
                 </table>
             </div>
+        </section>
+        <section class="tables-section">
             <div class="table-container">
                 <h3>Sessions</h3>
                 <table id="sessions-table">

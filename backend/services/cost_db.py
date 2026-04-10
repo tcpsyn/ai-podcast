@@ -500,6 +500,27 @@ def get_session_detail(session_id: str) -> dict | None:
     }
 
 
+def get_tts_providers(period: str = "all") -> list[dict]:
+    conn = get_db()
+    start = _period_filter(period)
+    if start:
+        rows = conn.execute(
+            "SELECT t.provider, COUNT(*) as calls, COALESCE(SUM(t.cost), 0) as cost, "
+            "COALESCE(SUM(t.char_count), 0) as chars "
+            "FROM tts_calls t JOIN sessions s ON t.session_id = s.id "
+            "WHERE s.started_at >= ? GROUP BY t.provider ORDER BY cost DESC",
+            [start]
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT provider, COUNT(*) as calls, COALESCE(SUM(cost), 0) as cost, "
+            "COALESCE(SUM(char_count), 0) as chars "
+            "FROM tts_calls GROUP BY provider ORDER BY cost DESC"
+        ).fetchall()
+    return [{"provider": r["provider"], "calls": r["calls"],
+             "cost": round(r["cost"], 4), "chars": r["chars"]} for r in rows]
+
+
 def get_expensive_calls(period: str = "all", limit: int = 20) -> list[dict]:
     conn = get_db()
     start = _period_filter(period)

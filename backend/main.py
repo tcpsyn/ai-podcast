@@ -10354,6 +10354,11 @@ async def get_cost_expensive_calls(period: str = "all", limit: int = 10):
     return cost_db.get_expensive_calls(period, limit)
 
 
+@app.get("/api/costs/tts")
+async def get_cost_tts_providers(period: str = "all"):
+    return cost_db.get_tts_providers(period)
+
+
 # --- Caller Screening ---
 
 SCREENING_PROMPT = """You are a friendly, brief phone screener for "Luke at the Roost" radio show.
