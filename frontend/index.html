@@ -15,7 +15,6 @@
                 <button id="rec-btn" class="rec-btn" title="Record stems for post-production">REC</button>
                 <button id="new-session-btn" class="new-session-btn">New Session</button>
                 <button id="export-session-btn">Export</button>
-                <button id="preflight-btn" class="preflight-btn">Preflight</button>
                 <button id="settings-btn">Settings</button>
                 <a href="/costs" class="header-link-btn" title="Cost Dashboard">Costs</a>
             </div>
@@ -73,15 +72,10 @@
                 </div>
                 <div id="call-status" class="call-status">No active call</div>
                 <div id="caller-info-panel" class="caller-info-panel hidden">
-                    <div class="caller-info-row">
-                        <span id="caller-shape-badge" class="info-badge shape"></span>
-                        <span id="caller-energy-badge" class="info-badge energy"></span>
-                        <span id="caller-emotion" class="info-badge emotion"></span>
-                        <span id="caller-model-badge" class="info-badge model"></span>
-                        <select id="caller-model-override" class="caller-model-override hidden"></select>
-                    </div>
-                    <div id="caller-signature" class="caller-signature"></div>
+                    <div id="caller-identity" class="caller-identity"></div>
                     <div id="caller-situation" class="caller-situation"></div>
+                    <div id="caller-signature" class="caller-signature"></div>
+                    <div id="caller-secret-want" class="caller-secret-want"></div>
                     <details id="caller-background-details" class="caller-background-full">
                         <summary>Full Background</summary>
                         <div id="caller-background"></div>
@@ -289,36 +283,6 @@
                     </div>
                 </div>
 
-                <!-- Caller Model Routing -->
-                <div class="settings-group">
-                    <h3>Caller Models</h3>
-                    <div class="caller-model-row">
-                        <label>
-                            Strategy
-                            <select id="cm-strategy">
-                                <option value="single">Single Model</option>
-                                <option value="cycle">Cycle Models</option>
-                                <option value="style_matched">Style-Matched</option>
-                            </select>
-                        </label>
-                    </div>
-                    <div id="cm-pool-section" class="hidden">
-                        <label>
-                            Model Pool
-                            <input type="text" id="cm-pool" class="cm-pool-input" placeholder="x-ai/grok-4, deepseek/deepseek-v3.2, ...">
-                        </label>
-                    </div>
-                    <div id="cm-style-map" class="hidden">
-                        <div class="cm-style-grid" id="cm-style-grid"></div>
-                    </div>
-                    <div class="caller-model-row">
-                        <label>
-                            Fallback Model
-                            <select id="cm-fallback" class="model-select"></select>
-                        </label>
-                    </div>
-                </div>
-
                 <!-- TTS Settings -->
                 <div class="settings-group">
                     <h3>TTS Provider</h3>
@@ -359,24 +323,8 @@
                 </div>
             </div>
         </div>
-        <!-- Preflight Modal -->
-        <div id="preflight-modal" class="modal hidden">
-            <div class="modal-content preflight-content">
-                <h2>Show Preflight</h2>
-                <div id="preflight-status" class="preflight-status loading">
-                    <span class="preflight-status-icon">...</span>
-                    <span class="preflight-status-text">Running checks...</span>
-                </div>
-                <div id="preflight-checks" class="preflight-checks"></div>
-                <div class="modal-buttons">
-                    <button id="preflight-test-btn" class="preflight-test-btn">Test Responses</button>
-                    <button id="preflight-rerun-btn">Re-run</button>
-                    <button id="close-preflight">Close</button>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <script src="/js/app.js?v=27"></script>
+    <script src="/js/app.js?v=28"></script>
 </body>
 </html>
