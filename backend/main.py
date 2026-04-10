@@ -822,22 +822,16 @@ class Session:
             "recent_caller_summaries": self._get_recent_summaries(),
             "voice_roster": voice_roster,
         }
-        # Split into two parallel calls: call 1 includes regulars + 5 walk-ins,
-        # call 2 is 6 pure walk-ins. Halves generation time by parallelizing.
-        ctx_a = {**base_ctx, "regulars_included": regulars_for_tonight, "caller_count": 6}
-        ctx_b = {**base_ctx, "regulars_included": [], "caller_count": 6}
-
-        batches = await asyncio.gather(
-            caller_gen.generate_batch(ctx_a),
-            caller_gen.generate_batch(ctx_b),
-            return_exceptions=True,
-        )
-        identities: list = []
-        for i, result in enumerate(batches):
-            if isinstance(result, Exception):
-                print(f"[Background] Batch {i+1} failed: {result}")
-                continue
-            identities.extend(result)
+        # Single batch of 10 so sonnet sees the full roster and can enforce
+        # the anti-collision rule across all callers. Previously two parallel
+        # batches of 6 were generated blind to each other, which produced
+        # recurring archetype clusters (e.g. two BBQ callers, two taxidermists).
+        ctx = {**base_ctx, "regulars_included": regulars_for_tonight, "caller_count": 10}
+        try:
+            identities = await caller_gen.generate_batch(ctx)
+        except Exception as e:
+            print(f"[Background] Batch failed: {e}")
+            identities = []
 
         # Build regular lookup tables
         regular_names = {r["name"] for r in regulars_for_tonight}

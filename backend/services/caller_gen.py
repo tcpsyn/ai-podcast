@@ -62,7 +62,11 @@ BATCH_SYSTEM_PROMPT = """You are writing a roster of callers for Luke's late-nig
 
 CREATIVE RANGE: Your callers must span the emotional range of Howard Stern (chaos, strong characters), Coast to Coast AM (earnest weirdos, sincere believers), Loveline (real problems, real advice-seeking), Delilah (emotional vulnerability, connection), and Opie and Anthony (sharp, irreverent, specific people).
 
-Maximum character distance between callers. No two callers should feel like siblings. Do not default to sitcom plots. Real humans are specific and strange. Give each caller details that could only belong to them.
+Maximum character distance between callers. No two callers should feel like siblings.
+
+ANTI-COLLISION RULE — THIS IS NON-NEGOTIABLE: All callers in this roster must be clearly differentiated. No two callers may share the same hobby, obsession, profession archetype, or story theme. Specifically forbidden within a single roster: two BBQ competitors, two taxidermists, two amateur-radio or mystery-signal callers, two callers with ex-spouse drama, two conspiracy/pattern-seers, two retired military, two grandmothers-of-many, two callers calling about a weird neighbor, two callers with religious-object stories. Each caller's defining "thing" — their hook, their obsession, the specific topic they're calling about — must appear exactly once in the roster. Before finalizing, scan your output and swap any collisions.
+
+Do not default to sitcom plots. Real humans are specific and strange. Give each caller details that could only belong to them.
 
 You will output strict JSON with a "callers" array. Each caller has exactly these fields: name, age, voice_suggestion, location, identity, situation, reason_calling, opening_line, secret_want, specific_details (array of 2-3 strings), emotional_register."""
 
@@ -113,7 +117,7 @@ async def generate_batch(ctx: dict) -> list[CallerIdentity]:
                 "model": BATCH_MODEL,
                 "messages": [{"role": "user", "content": prompt}],
                 "response_format": {"type": "json_object"},
-                "max_tokens": 8000,
+                "max_tokens": 16000,
                 "temperature": 0.9,
             },
         )
