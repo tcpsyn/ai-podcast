@@ -240,13 +240,18 @@ _randomize_callers()  # Initial assignment
 
 
 async def _regenerate_backgrounds_for_keys(keys: list[str]):
-    """Regenerate backgrounds for unused callers (e.g. after theme change).
-    Re-runs the batch pregeneration to pick up the new theme."""
+    """Regenerate backgrounds for the given slot keys only (e.g. unused callers
+    after a theme change). Runs a fresh batch and copies only the requested
+    slots into session.caller_backgrounds — used slots are preserved so
+    in-progress/completed calls keep their identities."""
     if not keys:
         return
     try:
-        session.caller_backgrounds = await session._build_backgrounds()
-        print(f"[Background] Regenerated backgrounds after theme change (touched {len(keys)} unused slots)")
+        fresh = await session._build_backgrounds()
+        for k in keys:
+            if k in fresh:
+                session.caller_backgrounds[k] = fresh[k]
+        print(f"[Background] Regenerated backgrounds for {len(keys)} slots: {', '.join(keys)}")
     except Exception as e:
         print(f"[Background] Regen failed: {e}")
 
@@ -3689,20 +3694,26 @@ async def set_show_theme(data: dict):
     elif old_theme:
         print(f"[Theme] Show theme cleared (was: {old_theme})")
 
-    # Regenerate backgrounds for unused callers so theme gets baked in
+    # Regenerate backgrounds for unused callers so theme gets baked in.
+    # Awaited (not fire-and-forget) so the response only returns once the
+    # caller list is consistent — the frontend reloads /api/callers after
+    # this resolves and must see the new names, not the stale ones.
     if theme and theme != old_theme:
         used_keys = set()
         if session.current_caller_key:
             used_keys.add(session.current_caller_key)
+        # Match call_history entries against the slim background names,
+        # not CALLER_BASES randomized fallbacks — those live in a different
+        # namespace and would never match, flagging every slot as unused.
         for record in session.call_history:
-            for key, base in CALLER_BASES.items():
-                if base.get("name") == record.caller_name:
+            for key, bg in session.caller_backgrounds.items():
+                if isinstance(bg, dict) and bg.get("name") == record.caller_name:
                     used_keys.add(key)
                     break
         unused_keys = [k for k in CALLER_BASES if k not in used_keys]
         if unused_keys:
-            asyncio.create_task(_regenerate_backgrounds_for_keys(unused_keys))
             print(f"[Theme] Regenerating backgrounds for {len(unused_keys)} unused callers")
+            await _regenerate_backgrounds_for_keys(unused_keys)
 
     return {"theme": session.show_theme}
 
