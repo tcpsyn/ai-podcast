@@ -1,20 +1,5 @@
 # AI Podcast - Project Instructions
 
-## Git Remote (Gitea)
-- **Repo**: `git@gitea-nas:luke/ai-podcast.git`
-- **Web**: http://mmgnas:3000/luke/ai-podcast
-- **SSH Host**: `gitea-nas` (configured in ~/.ssh/config)
-  - HostName: `mmgnas` (use `mmgnas-10g` if wired connection issues)
-  - Port: `2222`
-  - User: `git`
-  - IdentityFile: `~/.ssh/gitea_mmgnas`
-
-## NAS Access
-- **Hostname**: `mmgnas` (wireless) or `mmgnas-10g` (wired/10G)
-- **SSH Port**: 8001
-- **User**: luke
-- **Docker path**: `/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker`
-
 ## Castopod (Podcast Publishing)
 - **URL**: https://podcast.macneilmediagroup.com
 - **Podcast handle**: `@LukeAtTheRoost`
@@ -42,8 +27,7 @@ Required in `.env`:
 - ELEVENLABS_API_KEY (optional)
 - INWORLD_API_KEY (for Inworld TTS)
 
-## Post-Production Pipeline (added Feb 2026)
-- **Branch**: `feature/real-callers` — all current work is here, pushed to gitea
+## Post-Production Pipeline
 - **Stem Recorder** (`backend/services/stem_recorder.py`): Records 5 WAV stems (host, caller, music, sfx, ads) during live shows. Uses lock-free deque architecture — audio callbacks just append to deques, a background writer thread drains to disk. `write()` for continuous streams (host mic, music, ads), `write_sporadic()` for burst sources (caller TTS, SFX) with time-aligned silence padding.
 - **Audio hooks** in `backend/services/audio.py`: 7 tap points guarded by `if self.stem_recorder:`. Persistent mic stream (`start_stem_mic`/`stop_stem_mic`) runs during recording to capture host voice continuously, not just during push-to-talk.
 - **API endpoints**: `POST /api/recording/start`, `POST /api/recording/stop` (auto-runs postprod in background thread), `POST /api/recording/process`
@@ -88,24 +72,44 @@ Required in `.env`:
 - **Analytics**: Cloudflare Web Analytics (enable in Cloudflare dashboard, no code changes needed)
 - **Deploy**: `npx wrangler pages deploy website/ --project-name=lukeattheroost --branch=main`
 
-## Git Push
-- If `mmgnas` times out, use the 10g hostname:
-  ```bash
-  GIT_SSH_COMMAND="ssh -o HostName=mmgnas-10g -p 2222 -i ~/.ssh/gitea_mmgnas" git push origin main
-  ```
-
-## Hetzner VPS
-- **IP**: `REDACTED_VPS_IP`
-- **SSH**: `ssh root@REDACTED_VPS_IP` (uses default key `~/.ssh/id_rsa`)
-- **Specs**: 2 CPU, 4GB RAM, 38GB disk (~33GB free)
-- **Mail**: `docker-mailserver` at `/opt/mailserver/`
-- **Manage accounts**: `docker exec mailserver setup email add/del/list`
-- **Available for future services** — has headroom for lightweight containers. Not suitable for storage-heavy services (e.g. Castopod with daily episodes) without a disk upgrade or attached volume.
-
 ## Podcast Workflow
 - Publishing pipeline: episodes go through Castopod, CDN, website, YouTube, and social
 - Always check Python venv is active and packages are installed before running publish scripts
-- Episode numbering must be verified against existing episodes
+- Episode numbering: check Castopod for the latest episode number, don't hardcode
 
-## Episodes Published
-- Episode 6 published 2026-02-08 (podcast6.mp3, ~31 min)
+## Scripts
+- `publish_episode.py` — Transcribes audio, generates metadata (title, description, cover art), publishes to Castopod. Usage: `python publish_episode.py ~/Desktop/episode.mp3`
+- `make_clips.py` — Two-pass clip extraction: fast Whisper transcription → LLM selects best moments → quality Whisper re-transcription for precise timestamps. Usage: `python make_clips.py ~/Desktop/episode.mp3 --count 3`
+- `generate_milestone_images.py` — Generates social milestone images via Gemini Flash (requires GOOGLE_API_KEY)
+- `post_milestone.py` — Posts milestone announcements to social platforms via Postiz
+- `make_x_launch_assets.py` — Generates branded visual assets for X/Twitter (header, quote cards, intro/review graphics)
+- `schedule_x_launch.py` — Schedules X/Twitter launch campaign posts via Postiz API
+
+## Reaper Scripts
+- `reaper/dialog_regions.lua` — Background script that polls `/tmp/reaper_state.txt` and creates colored regions (green=DIALOG, red=AD, blue=IDENT) as the backend writes state changes during recording
+- `reaper/strip_silence_dialog.lua` — Post-production script: strips long silences from dialog regions, normalizes AD/IDENT/music volume, trims music to voice length with fade-out, mutes music during AD/IDENT regions
+
+## Cost Dashboard
+- **Route**: `/costs` — standalone analytics page, linked from control panel header
+- **Database**: `data/costs.db` (SQLite) — aggregates all session cost data for cross-session queries
+- **Data layer**: `backend/services/cost_db.py` — schema, JSON import, all query functions
+- **Dual-write**: `cost_tracker.py` writes to both JSON (`data/cost_reports/`) and SQLite on every LLM/TTS call
+- **API**: 8 endpoints under `/api/costs/` — summary, timeline, models, categories, sessions, session detail, expensive calls, TTS providers
+- **Frontend**: `frontend/costs.html`, `frontend/css/costs.css`, `frontend/js/costs.js` — Chart.js for visualizations
+- **Pricing**: Hardcoded in `cost_tracker.py` (`OPENROUTER_PRICING`, `TTS_PRICING`) — update when provider prices change
+- **Not tracked yet**: SignalWire call costs
+
+## Data Directory
+State files (not config — these are written at runtime):
+- `regulars.json` — Returning caller profiles (backgrounds, key moments, arc status, relationships)
+- `used_topics_history.json` — Previously used caller topics to avoid repeats
+- `session_checkpoint.json` — Current show session state (call history, caller queue)
+- `publish_state.json` — Publishing pipeline progress per episode
+- `intern.json` — Devon's lookup history
+- `emails.json` — Listener email submissions
+- `voicemails.json` — Listener voicemail submissions
+
+## Personal
+- Don't build anything until you have 95% clarity on what I want you to do. Ask clarifying questions until you reach 95% understanding of what I'm asking
+- When working as a team, propose the plan before executing — don't just start building
+- Flag trade-offs that affect show quality or listener experience rather than silently resolving them

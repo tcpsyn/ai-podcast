@@ -24,7 +24,8 @@ local last_state = ""
 local transport_active = false
 
 local function log(msg)
-  reaper.ShowConsoleMsg("[Regions] " .. msg .. "\n")
+  -- Silent by default — uncomment for debugging:
+  -- reaper.ShowConsoleMsg("[Regions] " .. msg .. "\n")
 end
 
 local function is_playing_or_recording()

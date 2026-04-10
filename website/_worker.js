@@ -58,9 +58,26 @@ export default {
       return new Response("Feed unavailable", { status: 502 });
     }
 
-    // Plausible analytics proxy (bypass ad blockers)
+    // Umami analytics proxy (bypass ad blockers)
+    if (url.pathname === "/api/send" && request.method === "POST") {
+      const body = await request.text();
+      const resp = await fetch("https://plausible.macneilmediagroup.com/api/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": request.headers.get("User-Agent") || "",
+          "X-Forwarded-For": request.headers.get("CF-Connecting-IP") || request.headers.get("X-Forwarded-For") || "",
+        },
+        body,
+      });
+      return new Response(resp.body, {
+        status: resp.status,
+        headers: { "Content-Type": resp.headers.get("Content-Type") || "text/plain" },
+      });
+    }
+
     if (url.pathname === "/p/script") {
-      const resp = await fetch("https://plausible.macneilmediagroup.com/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js");
+      const resp = await fetch("https://plausible.macneilmediagroup.com/script.js");
       return new Response(await resp.text(), {
         headers: {
           "Content-Type": "application/javascript",
@@ -71,7 +88,7 @@ export default {
 
     if (url.pathname === "/p/event" && request.method === "POST") {
       const body = await request.text();
-      const resp = await fetch("https://plausible.macneilmediagroup.com/api/event", {
+      const resp = await fetch("https://plausible.macneilmediagroup.com/api/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
