@@ -1356,8 +1356,14 @@ async function loadShowTheme() {
 
 async function setShowTheme() {
     const input = document.getElementById('show-theme-input');
+    const setBtn = document.getElementById('set-theme-btn');
     const theme = input.value.trim();
     if (!theme) return;
+    const originalText = setBtn?.textContent;
+    if (setBtn) {
+        setBtn.disabled = true;
+        setBtn.textContent = 'Regenerating...';
+    }
     try {
         const res = await fetch('/api/show-theme', {
             method: 'POST',
@@ -1367,11 +1373,19 @@ async function setShowTheme() {
         const data = await res.json();
         if (data.theme) {
             input.classList.add('active');
-            document.getElementById('set-theme-btn').classList.add('hidden');
+            setBtn?.classList.add('hidden');
             document.getElementById('clear-theme-btn').classList.remove('hidden');
         }
+        // Backend regenerated backgrounds for unused callers — refresh the
+        // button list so we show the new names, not the pre-theme cache.
+        await loadCallers();
     } catch (e) {
         console.error('Failed to set show theme:', e);
+    } finally {
+        if (setBtn) {
+            setBtn.disabled = false;
+            setBtn.textContent = originalText || 'Set';
+        }
     }
 }
 
@@ -1387,6 +1401,7 @@ async function clearShowTheme() {
         input.classList.remove('active');
         document.getElementById('set-theme-btn').classList.remove('hidden');
         document.getElementById('clear-theme-btn').classList.add('hidden');
+        await loadCallers();
     } catch (e) {
         console.error('Failed to clear show theme:', e);
     }
