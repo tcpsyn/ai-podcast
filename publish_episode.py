@@ -974,34 +974,6 @@ def sync_episode_media_to_bunny(episode_id: int, already_uploaded: set):
             Path(tmp_path).unlink(missing_ok=True)
 
 
-def add_episode_to_sitemap(slug: str):
-    """Add episode transcript page to sitemap.xml."""
-    sitemap_path = Path(__file__).parent / "website" / "sitemap.xml"
-    if not sitemap_path.exists():
-        return
-
-    url = f"https://lukeattheroost.com/episode.html?slug={slug}"
-    content = sitemap_path.read_text()
-
-    if url in content:
-        print(f"    Episode already in sitemap")
-        return
-
-    today = datetime.now().strftime("%Y-%m-%d")
-    new_entry = f"""  <url>
-    <loc>{url}</loc>
-    <lastmod>{today}</lastmod>
-    <changefreq>never</changefreq>
-    <priority>0.7</priority>
-  </url>
-</urlset>"""
-
-    content = content.replace("</urlset>", new_entry)
-    sitemap_path.write_text(content)
-    print(f"    Added episode to sitemap.xml")
-
-
-
 def generate_social_image(episode_number: int, description: str, output_path: str) -> str:
     """Generate a social media image with cover art, episode number, and description."""
     from PIL import Image, ImageDraw, ImageFont
@@ -1266,7 +1238,7 @@ def post_to_social(metadata: dict, episode_slug: str, image_path: str = None,
         if media and media.get("id"):
             image_ids = [{"id": media["id"], "path": media.get("path", "")}]
 
-    episode_url = f"https://lukeattheroost.com/episode.html?slug={episode_slug}"
+    episode_url = f"https://lukeattheroost.com/episode/{episode_slug}/"
     yt_url = f"https://youtube.com/watch?v={yt_video_id}" if yt_video_id else None
     now = datetime.now(timezone.utc)
 
@@ -1468,7 +1440,7 @@ def upload_to_youtube(audio_path: str, metadata: dict, chapters: list,
         ts = f"{h}:{m:02d}:{s:02d}" if h > 0 else f"{m}:{s:02d}"
         chapter_lines.append(f"{ts} {ch['title']}")
 
-    episode_url = f"https://lukeattheroost.com/episode.html?slug={episode_slug}"
+    episode_url = f"https://lukeattheroost.com/episode/{episode_slug}/"
     description = (
         f"{metadata['description']}\n\n"
         + "\n".join(chapter_lines) + "\n\n"
@@ -1845,8 +1817,7 @@ def main():
     shutil.copy2(str(transcript_path), str(website_transcript_path))
     print(f"    Transcript copied to website/transcripts/")
 
-    # Add to sitemap
-    add_episode_to_sitemap(episode["slug"])
+    # Sitemap is regenerated wholesale by generate_episode_pages.py --sitemap
 
     # Sync any remaining episode media to BunnyCDN (cover art, etc.)
     print("    Syncing remaining episode media to CDN...")
