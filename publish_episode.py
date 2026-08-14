@@ -974,6 +974,31 @@ def sync_episode_media_to_bunny(episode_id: int, already_uploaded: set):
             Path(tmp_path).unlink(missing_ok=True)
 
 
+def regenerate_website_pages() -> bool:
+    """Rebuild the static episode pages and sitemap after a publish.
+
+    Never fatal. By the time this runs the audio is already live on Castopod
+    and the RSS feed has been rebuilt, so a generator failure must not abort
+    the publish — it just means the new episode's page lands on the next run.
+    """
+    script = Path(__file__).parent / "generate_episode_pages.py"
+    try:
+        result = subprocess.run(
+            [sys.executable, str(script), "--sitemap"],
+            capture_output=True, text=True, timeout=300,
+        )
+    except (subprocess.TimeoutExpired, OSError) as e:
+        print(f"    Warning: could not run episode page generation: {e}")
+        return False
+
+    if result.returncode != 0:
+        print(f"    Warning: episode page generation failed: {result.stderr[-300:]}")
+        return False
+
+    print("    Episode pages and sitemap regenerated")
+    return True
+
+
 def generate_social_image(episode_number: int, description: str, output_path: str) -> str:
     """Generate a social media image with cover art, episode number, and description."""
     from PIL import Image, ImageDraw, ImageFont
@@ -1817,7 +1842,9 @@ def main():
     shutil.copy2(str(transcript_path), str(website_transcript_path))
     print(f"    Transcript copied to website/transcripts/")
 
-    # Sitemap is regenerated wholesale by generate_episode_pages.py --sitemap
+    # Build this episode's static page and regenerate the sitemap wholesale.
+    # generate_episode_pages.py is the only writer of sitemap.xml.
+    regenerate_website_pages()
 
     # Sync any remaining episode media to BunnyCDN (cover art, etc.)
     print("    Syncing remaining episode media to CDN...")
