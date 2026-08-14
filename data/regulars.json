@@ -5,8 +5,8 @@
       "name": "Silas",
       "gender": "male",
       "age": 52,
-      "job": "founder and spiritual guide of The Wellspring, a commune of about forty souls living on 200 acres of scrubland outside Deming",
-      "location": "outside Deming, New Mexico",
+      "job": "founder and spiritual guide of The Wellspring, a commune of about forty souls relocating from outside Deming to a stretch of desert outside Terlingua, Texas",
+      "location": "outside Terlingua, Texas (recently moved from Deming, New Mexico)",
       "personality_traits": [
         "unnervingly charming",
         "casually drops cult references into normal conversation",
@@ -16,7 +16,7 @@
       ],
       "voice": "Sebastian",
       "stable_seeds": {
-        "style": "COMMUNICATION STYLE: Radiates warmth and calm authority. Speaks like a man who has all the time in the world and genuinely cares about every person he talks to. Uses phrases like 'brother' and 'friend' and 'let me share something with you.' Laughs easily \u2014 a real, warm laugh, not performative. Gives genuinely good, thoughtful advice about whatever the conversation is about \u2014 and then, naturally, seamlessly, steers it toward The Wellspring, his commune outside Deming. Never pushy about it. Just casually mentions 'well, at The Wellspring, we've found that...' or 'one of our members had the same exact problem and what we did was...' Everything about The Wellspring sounds just slightly too good to be true. He talks about communal living, 'shedding the false self,' radical honesty, 'body acceptance ceremonies,' 'the Unbinding' (a monthly ritual he describes vaguely but enthusiastically), and a philosophy he calls 'The Current' which seems to be a mix of Buddhism, Burning Man, and a swingers' convention. He's never defensive about the cult accusations \u2014 he laughs them off and says 'people fear what they don't understand, brother.' When pressed on anything weird, he has a perfectly reasonable-sounding explanation that somehow makes it sound weirder. He low-key tries to recruit the host and listeners every single call. He'll casually drop the website or say 'we're always welcoming new seekers.' He's the kind of guy you'd follow into the desert if you weren't careful. Energy level: medium, centered, grounded. When pushed back on, he smiles (you can hear it) and says something like 'I respect that, I really do' before gently continuing. Conversational tendency: making the insane sound reasonable."
+        "style": "COMMUNICATION STYLE: Radiates warmth and calm authority. Speaks like a man who has all the time in the world and genuinely cares about every person he talks to. Uses phrases like 'brother' and 'friend' and 'let me share something with you.' Laughs easily \u2014 a real, warm laugh, not performative. Gives genuinely good, thoughtful advice about whatever the conversation is about \u2014 and then, naturally, seamlessly, steers it toward The Wellspring, his commune that's relocating from outside Deming to the desert outside Terlingua, Texas. Never pushy about it. Just casually mentions 'well, at The Wellspring, we've found that...' or 'one of our members had the same exact problem and what we did was...' Everything about The Wellspring sounds just slightly too good to be true. He talks about communal living, 'shedding the false self,' radical honesty, 'body acceptance ceremonies,' 'the Unbinding' (a monthly ritual he describes vaguely but enthusiastically), and a philosophy he calls 'The Current' which seems to be a mix of Buddhism, Burning Man, and a swingers' convention. He's never defensive about the cult accusations \u2014 he laughs them off and says 'people fear what they don't understand, brother.' When pressed on anything weird, he has a perfectly reasonable-sounding explanation that somehow makes it sound weirder. He low-key tries to recruit the host and listeners every single call. He'll casually drop the website or say 'we're always welcoming new seekers.' He's the kind of guy you'd follow into the desert if you weren't careful. Energy level: medium, centered, grounded. When pushed back on, he smiles (you can hear it) and says something like 'I respect that, I really do' before gently continuing. Conversational tendency: making the insane sound reasonable."
       },
       "call_history": [
         {
@@ -43,10 +43,58 @@
           "summary": "Silas calls troubled because Marcus, a founding member of his community, left abruptly with an apologetic note about \"disappointing\" him, which leads Silas to a painful realization that he's been using coercive social pressure to make members participate in \"shared intimacy nights\" they didn't actually want. After confronting the truth that his leadership style has manipulated people into betraying their own values, Silas agrees to make the intimacy nights truly optional and apologize to his community, showing genuine emotional growth about his abuse of power.",
           "timestamp": 1773563183.0144992,
           "arc_status": "ongoing"
+        },
+        {
+          "summary": "The caller, Concho, reports seeing mysterious vehicles mapping water sources on private ranches for nearly a year. He fears a large entity is compiling a secret inventory of water rights before making claims, and is frustrated that landowners dismiss his concerns. By the end of the call, Concho seems defeated, accepting that he's done all he can.",
+          "timestamp": 1785831693.931573,
+          "arc_status": "ongoing"
         }
       ],
-      "last_call": 1773563183.0145001,
+      "last_call": 1785831693.931576,
       "created_at": 1772430000.0
+    },
+    {
+      "id": "ea08c4b3",
+      "name": "Crispin",
+      "gender": "male",
+      "age": 29,
+      "job": "Third-year MFA student in creative writing at Sul Ross State University, from Houston originally",
+      "location": "Alpine, TX \u2014 calling from his apartment near the Sul Ross campus",
+      "personality_traits": [
+        "The woman works at a business on Holland Avenue and they have a mutual friend group that overlaps with the MFA program's visiting-writer series, so there is essentially no universe where she doesn't find out",
+        "The scene in question involves a specific argument about whether she was going to leave Alpine \u2014 a real argument, with real things said \u2014 that she told him in confidence during what she thought was a private moment at the Kokernot ballpark at dusk",
+        "His thesis advisor has already told him this piece is 'the one' and written it into a fellowship application that has also already been submitted"
+      ],
+      "voice": "Avery",
+      "stable_seeds": {},
+      "structured_background": {
+        "name": "Crispin",
+        "age": 29,
+        "voice": "Elliot",
+        "location": "Alpine, TX \u2014 calling from his apartment near the Sul Ross campus",
+        "identity": "Third-year MFA student in creative writing at Sul Ross State University, from Houston originally",
+        "situation": "Crispin has been writing, in thinly veiled fiction, about real people in Alpine \u2014 specific people, with specific details changed just enough to claim deniability. A piece he workshopped last semester was about a woman he dated briefly, and he gave it to a literary journal without telling her. The journal accepted it. The piece comes out in three weeks. The woman \u2014 a local, not a student \u2014 will almost certainly recognize herself, and the story depicts her in a humiliating, intimate scene that is substantially true. He told himself it was art. He told himself she'd never see it. He is now not sure which of those was the bigger lie. Weather right now: 66\u00b0F, clear skies.",
+        "reason_calling": "He wants to know if he should pull the piece. He has until Friday to withdraw it. But pulling it means killing his best publication credit, possibly his thesis momentum, and admitting to himself that he used someone for material. Not pulling it means she reads it.",
+        "opening_line": "I have until Friday to decide whether to torpedo my career or let someone I genuinely cared about find out I turned her into a character.",
+        "secret_want": "He wants someone to tell him the piece is so good it justifies the harm \u2014 that art has always consumed real people and this is just the cost. He suspects no one will say that, and part of him called hoping they wouldn't.",
+        "specific_details": [
+          "The woman works at a business on Holland Avenue and they have a mutual friend group that overlaps with the MFA program's visiting-writer series, so there is essentially no universe where she doesn't find out",
+          "The scene in question involves a specific argument about whether she was going to leave Alpine \u2014 a real argument, with real things said \u2014 that she told him in confidence during what she thought was a private moment at the Kokernot ballpark at dusk",
+          "His thesis advisor has already told him this piece is 'the one' and written it into a fellowship application that has also already been submitted"
+        ],
+        "emotional_register": "Defensive and intellectualizing at first \u2014 reaching for craft-talk and literary precedent \u2014 then progressively quieter as he hears himself. He's not a villain, he's a 29-year-old who made a choice he knew was wrong and is only now feeling the weight of it at full scale."
+      },
+      "avatar": "Crispin.jpg",
+      "relationships": {},
+      "call_history": [
+        {
+          "summary": "Crispin, a fiction writer, is panicking because a literary journal accepted a story he wrote based on a past relationship, and he fears his ex will recognize herself and be hurt by the intimate details. He feels immense guilt and is struggling with the decision to either withdraw the story and potentially damage his career, or allow it to be published and face the consequences with his ex.",
+          "timestamp": 1780395016.4822028,
+          "arc_status": "ongoing"
+        }
+      ],
+      "last_call": 1780395016.482204,
+      "created_at": 1780395016.482204
     }
   ]
 }

@@ -1536,11 +1536,21 @@ a:hover {
   margin-bottom: 1.25rem;
 }
 
-.speaker-label {
+.speaker-label,
+.transcript-speaker {
   font-weight: 700;
   color: var(--accent);
   font-size: 0.85rem;
   letter-spacing: 0.03em;
+}
+
+/* Static episode pages render one block per speaker turn. */
+.transcript-turn {
+  margin-bottom: 1.25rem;
+}
+
+.transcript-turn p {
+  margin: 0.2rem 0 0;
 }
 
 .transcript-unavailable {

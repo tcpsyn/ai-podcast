@@ -244,6 +244,34 @@ TRANSCRIPT:
     return result
 
 
+# Recurring show names Whisper reliably mishears. LightningWhisperMLX takes no
+# initial_prompt (its transcribe() signature is just audio_path + language), so
+# unlike make_clips.py we cannot condition the model on these up front — they
+# have to be corrected afterwards. "Devin" reached 21 of 58 published
+# transcripts before this existed.
+PROPER_NOUN_FIXES = {
+    "devin": "Devon",
+}
+
+
+def fix_proper_nouns(text: str) -> str:
+    """Correct known Whisper mishearings, preserving the original casing style."""
+    if not text:
+        return ""
+
+    def _sub(match):
+        word = match.group(0)
+        correct = PROPER_NOUN_FIXES[word.lower()]
+        if word.isupper():
+            return correct.upper()
+        if word.islower():
+            return correct.lower()
+        return correct
+
+    pattern = r"\b(" + "|".join(PROPER_NOUN_FIXES) + r")\b"
+    return re.sub(pattern, _sub, text, flags=re.IGNORECASE)
+
+
 def transcribe_audio(audio_path: str) -> dict:
     """Transcribe audio using Lightning Whisper MLX (Apple Silicon GPU)."""
     print(f"[1/5] Transcribing {audio_path} (MLX GPU)...")
@@ -268,12 +296,13 @@ def transcribe_audio(audio_path: str) -> dict:
 
     for segment in result.get("segments", []):
         start_ms, end_ms, text = segment[0], segment[1], segment[2]
+        text = fix_proper_nouns(text.strip())
         transcript_segments.append({
             "start": start_ms / 1000.0,
             "end": end_ms / 1000.0,
-            "text": text.strip()
+            "text": text
         })
-        full_text.append(text.strip())
+        full_text.append(text)
     print(f"    Transcribed {duration} seconds of audio ({len(transcript_segments)} segments)")
 
     return {
@@ -974,32 +1003,29 @@ def sync_episode_media_to_bunny(episode_id: int, already_uploaded: set):
             Path(tmp_path).unlink(missing_ok=True)
 
 
-def add_episode_to_sitemap(slug: str):
-    """Add episode transcript page to sitemap.xml."""
-    sitemap_path = Path(__file__).parent / "website" / "sitemap.xml"
-    if not sitemap_path.exists():
-        return
+def regenerate_website_pages() -> bool:
+    """Rebuild the static episode pages and sitemap after a publish.
 
-    url = f"https://lukeattheroost.com/episode.html?slug={slug}"
-    content = sitemap_path.read_text()
+    Never fatal. By the time this runs the audio is already live on Castopod
+    and the RSS feed has been rebuilt, so a generator failure must not abort
+    the publish — it just means the new episode's page lands on the next run.
+    """
+    script = Path(__file__).parent / "generate_episode_pages.py"
+    try:
+        result = subprocess.run(
+            [sys.executable, str(script), "--sitemap"],
+            capture_output=True, text=True, timeout=300,
+        )
+    except (subprocess.TimeoutExpired, OSError) as e:
+        print(f"    Warning: could not run episode page generation: {e}")
+        return False
 
-    if url in content:
-        print(f"    Episode already in sitemap")
-        return
+    if result.returncode != 0:
+        print(f"    Warning: episode page generation failed: {result.stderr[-300:]}")
+        return False
 
-    today = datetime.now().strftime("%Y-%m-%d")
-    new_entry = f"""  <url>
-    <loc>{url}</loc>
-    <lastmod>{today}</lastmod>
-    <changefreq>never</changefreq>
-    <priority>0.7</priority>
-  </url>
-</urlset>"""
-
-    content = content.replace("</urlset>", new_entry)
-    sitemap_path.write_text(content)
-    print(f"    Added episode to sitemap.xml")
-
+    print("    Episode pages and sitemap regenerated")
+    return True
 
 
 def generate_social_image(episode_number: int, description: str, output_path: str) -> str:
@@ -1266,7 +1292,7 @@ def post_to_social(metadata: dict, episode_slug: str, image_path: str = None,
         if media and media.get("id"):
             image_ids = [{"id": media["id"], "path": media.get("path", "")}]
 
-    episode_url = f"https://lukeattheroost.com/episode.html?slug={episode_slug}"
+    episode_url = f"https://lukeattheroost.com/episode/{episode_slug}/"
     yt_url = f"https://youtube.com/watch?v={yt_video_id}" if yt_video_id else None
     now = datetime.now(timezone.utc)
 
@@ -1468,7 +1494,7 @@ def upload_to_youtube(audio_path: str, metadata: dict, chapters: list,
         ts = f"{h}:{m:02d}:{s:02d}" if h > 0 else f"{m}:{s:02d}"
         chapter_lines.append(f"{ts} {ch['title']}")
 
-    episode_url = f"https://lukeattheroost.com/episode.html?slug={episode_slug}"
+    episode_url = f"https://lukeattheroost.com/episode/{episode_slug}/"
     description = (
         f"{metadata['description']}\n\n"
         + "\n".join(chapter_lines) + "\n\n"
@@ -1845,8 +1871,9 @@ def main():
     shutil.copy2(str(transcript_path), str(website_transcript_path))
     print(f"    Transcript copied to website/transcripts/")
 
-    # Add to sitemap
-    add_episode_to_sitemap(episode["slug"])
+    # Build this episode's static page and regenerate the sitemap wholesale.
+    # generate_episode_pages.py is the only writer of sitemap.xml.
+    regenerate_website_pages()
 
     # Sync any remaining episode media to BunnyCDN (cover art, etc.)
     print("    Syncing remaining episode media to CDN...")

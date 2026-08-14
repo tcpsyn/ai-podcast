@@ -1993,18 +1993,24 @@ function renderVoicemails(voicemails) {
         const secs = v.duration % 60;
         const durStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
         const unlistenedCls = v.listened ? '' : ' vm-unlistened';
+        const transcript = v.transcript
+            ? `<div class="vm-transcript">${escapeHtml(v.transcript)}</div>`
+            : `<div class="vm-transcript vm-transcript-pending">Transcribing…</div>`;
         return `<div class="vm-item${unlistenedCls}" data-id="${v.id}">
-            <div class="vm-info">
-                <span class="vm-phone">${v.phone}</span>
-                <span class="vm-time">${timeStr}</span>
-                <span class="vm-dur">${durStr}</span>
+            <div class="vm-row">
+                <div class="vm-info">
+                    <span class="vm-phone">${v.phone}</span>
+                    <span class="vm-time">${timeStr}</span>
+                    <span class="vm-dur">${durStr}</span>
+                </div>
+                <div class="vm-actions">
+                    <button class="vm-btn listen" onclick="listenVoicemail('${v.id}')">Listen</button>
+                    <button class="vm-btn on-air" onclick="playVoicemailOnAir('${v.id}')">On Air</button>
+                    <button class="vm-btn save" onclick="saveVoicemail('${v.id}')">Save</button>
+                    <button class="vm-btn delete" onclick="deleteVoicemail('${v.id}')">Del</button>
+                </div>
             </div>
-            <div class="vm-actions">
-                <button class="vm-btn listen" onclick="listenVoicemail('${v.id}')">Listen</button>
-                <button class="vm-btn on-air" onclick="playVoicemailOnAir('${v.id}')">On Air</button>
-                <button class="vm-btn save" onclick="saveVoicemail('${v.id}')">Save</button>
-                <button class="vm-btn delete" onclick="deleteVoicemail('${v.id}')">Del</button>
-            </div>
+            ${transcript}
         </div>`;
     }).join('');
 }

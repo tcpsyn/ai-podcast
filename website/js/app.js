@@ -107,7 +107,7 @@ function createFeaturedCard(ep) {
       <button class="episode-play-btn featured-play-btn" aria-label="Play ${escapeAttr(ep.title)}">
         ${playSVG}
       </button>
-      ${epSlug ? `<a href="/episode.html?slug=${encodeURIComponent(epSlug)}" class="episode-transcript-link">Read Transcript</a>` : ''}
+      ${epSlug ? `<a href="/episode/${encodeURIComponent(epSlug)}/" class="episode-transcript-link">Read Transcript</a>` : ''}
       <button class="episode-share-btn" aria-label="Share episode">${shareSVG}</button>
     </div>
   `;
@@ -117,7 +117,7 @@ function createFeaturedCard(ep) {
 
   const shareBtn = card.querySelector('.episode-share-btn');
   const shareUrl = epSlug
-    ? `${window.location.origin}/episode.html?slug=${encodeURIComponent(epSlug)}`
+    ? `${window.location.origin}/episode/${encodeURIComponent(epSlug)}/`
     : window.location.origin;
   shareBtn.addEventListener('click', () => shareContent(ep.title, shareUrl, shareBtn));
 
@@ -207,7 +207,7 @@ function createEpisodeCard(ep) {
       <div class="episode-meta">${metaParts}</div>
       <div class="episode-title">${escapeAttr(ep.title)}</div>
       <div class="episode-desc">${truncate(ep.description, 150)}</div>
-      ${epSlug ? `<a href="/episode.html?slug=${encodeURIComponent(epSlug)}" class="episode-transcript-link">Read Transcript</a>` : ''}
+      ${epSlug ? `<a href="/episode/${encodeURIComponent(epSlug)}/" class="episode-transcript-link">Read Transcript</a>` : ''}
       <button class="episode-share-btn" aria-label="Share episode">${shareSVG}</button>
     </div>
   `;
@@ -217,7 +217,7 @@ function createEpisodeCard(ep) {
 
   const shareBtn = card.querySelector('.episode-share-btn');
   const shareUrl = epSlug
-    ? `${window.location.origin}/episode.html?slug=${encodeURIComponent(epSlug)}`
+    ? `${window.location.origin}/episode/${encodeURIComponent(epSlug)}/`
     : window.location.origin;
   shareBtn.addEventListener('click', () => shareContent(ep.title, shareUrl, shareBtn));
 

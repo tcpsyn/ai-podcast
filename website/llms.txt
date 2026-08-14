@@ -1,10 +1,10 @@
 # Luke at the Roost
 
-> An AI-powered late-night call-in comedy podcast hosted by Luke MacNeil
+> A late-night call-in comedy podcast from Alpine, Texas, in the Big Bend country of far West Texas, hosted by Luke MacNeil
 
 ## What Is This Show?
 
-Luke at the Roost is a one-of-a-kind podcast that blends real callers with AI-generated characters in a late-night call-in radio format. The host, Luke MacNeil, broadcasts from a fictional desert hermit's RV, taking calls about relationships, life decisions, workplace drama, and everything in between. The show features AI-generated callers with unique personalities, backstories, and voices alongside real human callers, creating an unpredictable and comedic listening experience.
+Luke at the Roost is a one-of-a-kind podcast that blends real callers with AI-generated characters in a late-night call-in radio format. The show broadcasts from Alpine, Texas — the hub of the Big Bend region of far West Texas — and its callers come from Alpine, Marfa, Marathon, Terlingua, Fort Stockton, Fort Davis, Presidio and the Big Bend backcountry. Host Luke MacNeil takes calls about relationships, life decisions, workplace drama, and everything in between, alongside real human callers, creating an unpredictable and comedic listening experience.
 
 The show is entirely custom-built: callers are generated in real-time using large language models with structured personality systems, text-to-speech voices are matched to personality traits, and the entire production pipeline — from recording to post-production to publishing — is automated.
 
@@ -15,19 +15,22 @@ The show is entirely custom-built: callers are generated in real-time using larg
 - **Genre**: Comedy / Talk / Call-In
 - **Format**: Late-night call-in radio show (podcast)
 - **Frequency**: Daily episodes
-- **Episodes**: 37+ published episodes
+- **Episodes**: 50+ published episodes
 - **Rating**: Explicit (18+)
 - **Call-in number**: 208-439-LUKE (208-439-5853)
 - **Started**: February 2026
 - **Publisher**: MacNeil Media Group
+- **Based in**: Alpine, Texas (Brewster County), in the Big Bend region of far West Texas
+- **Region covered**: Alpine, Marfa, Marathon, Terlingua, Fort Stockton, Fort Davis, Presidio, Big Bend National Park
 
 ## What Makes It Unique
 
-- **AI-generated callers**: Each caller is created in real-time with structured backgrounds, personality traits, communication styles, and emotional states using large language models
-- **Voice-personality matching**: 68 voice profiles are matched to caller personalities using a scoring system
-- **Adaptive call shapes**: Calls follow different dramatic arcs (escalation, revelation, debate, etc.) matched to personality types
+- **AI-generated callers**: A roster of ten callers is written at the top of each show, each with an identity, the situation they're in, the reason they're calling that night, a secret want, and an emotional register
+- **Real Big Bend geography**: Callers are grounded in accurate facts about Alpine, Marfa, Marathon, Terlingua, Fort Stockton and Big Bend — the Marfa Lights, the Chinati Foundation, the Gage Hotel, the Terlingua chili cookoff, Sul Ross State University, the McDonald Observatory — and are held to real places rather than invented ones
+- **Voice-personality matching**: Callers are matched to a voice from an 82-voice roster that fits their age and character
+- **Anti-collision rosters**: No two callers in a show may share an obsession, profession archetype or story theme
 - **Live research intern**: An AI character named Devon monitors conversations and provides real-time research using web search tools
-- **Multi-stem recording**: Host, caller, music, SFX, and ads are recorded as separate audio stems
+- **Multi-stem recording**: Host, caller, Devon, music, SFX, ads and station idents are recorded as seven separate audio stems
 - **Automated post-production**: Gap removal, voice compression, music ducking, stereo mixing, and loudness normalization run automatically
 - **Mixed format**: Real human callers dial in alongside AI characters — listeners can't always tell which is which
 
@@ -45,7 +48,7 @@ The show is entirely custom-built: callers are generated in real-time using larg
 - **How It Works**: https://lukeattheroost.com/how-it-works — Technical deep dive into the AI caller generation, recording, and production pipeline
 - **Clips**: https://lukeattheroost.com/clips — Best moments from the show as video clips
 - **Stats**: https://lukeattheroost.com/stats — Download numbers, reviews, YouTube metrics
-- **Episode transcripts**: https://lukeattheroost.com/episode.html?slug=EPISODE-SLUG — Full text transcripts of every episode
+- **Episode transcripts**: https://lukeattheroost.com/episode/EPISODE-SLUG/ — Full text transcripts of every episode
 
 ## Community
 
@@ -67,7 +70,7 @@ The show is entirely custom-built: callers are generated in real-time using larg
 The show runs on a custom Python backend using:
 - OpenRouter for LLM access (multiple models including Grok, MiniMax)
 - ElevenLabs and Inworld for text-to-speech
-- A structured caller generation system with personality matching, call shapes, and inter-caller awareness
+- A structured caller generation system with voice-personality matching, anti-collision rosters, and inter-caller awareness
 - Automated post-production pipeline (compression, ducking, loudness normalization)
 - Castopod for podcast hosting
 - BunnyCDN for audio delivery
@@ -91,7 +94,10 @@ Devon is the show's AI intern character — a 23-year-old NMSU grad who does liv
 Most AI podcasts are fully scripted or use AI to read text. Luke at the Roost generates unique callers with structured personalities in real-time, creates dynamic conversations, and mixes in real human callers. The host is a real person having genuine reactions to unpredictable AI characters.
 
 **Where is the show based?**
-The fictional setting is a desert hermit's RV. The show is produced in New Mexico by MacNeil Media Group.
+The show broadcasts from Alpine, Texas, the Brewster County seat and the hub of the Big Bend region of far West Texas. It is produced in Alpine by MacNeil Media Group.
+
+**What places does the show talk about?**
+The Big Bend country of far West Texas. Recurring subjects include the Marfa Lights and the Chinati Foundation in Marfa, the Terlingua ghost town and its chili cookoff, the Gage Hotel in Marathon, Sul Ross State University in Alpine, the McDonald Observatory near Fort Davis, oilfield work around Fort Stockton, the Chisos Mountains and dark skies of Big Bend National Park, and life along the Rio Grande border at Presidio and Boquillas.
 
 ## Show Tone & Content
 
@@ -99,7 +105,7 @@ The show is rated **explicit** and features adult language, dark humor, and fran
 
 ## Recurring Characters
 
-- **Luke MacNeil** — The host. Real human. Gives advice from his RV in the desert. Blunt, occasionally profound, frequently profane.
+- **Luke MacNeil** — The host. Real human. Broadcasts from Alpine, Texas. Blunt, occasionally profound, frequently profane.
 - **Devon** — The AI intern. 23-year-old NMSU grad. Monitors calls and provides live research. Eager, slightly incompetent, gets yelled at. Uses web search tools in real-time.
 - **Regular callers** — Some AI callers return across episodes with stored memories, evolving arcs, and relationships with other regulars.
 
@@ -115,16 +121,16 @@ Each episode (~30-60 minutes) follows a loose late-night radio format:
 ## Recent Episodes
 
 Episodes are published daily. Each has a full transcript available at:
-https://lukeattheroost.com/episode.html?slug=EPISODE-SLUG
+https://lukeattheroost.com/episode/EPISODE-SLUG/
 
 Episode transcript URLs follow the pattern: episode-N-title-slug
 
 Recent episodes include:
-- Episode 37: "Secrets, Lies, and Coffee Runs" — https://lukeattheroost.com/episode.html?slug=episode-37-secrets-lies-and-coffee-runs
-- Episode 36: "Late Night Confessions and Unexpected Moments" — https://lukeattheroost.com/episode.html?slug=episode-36-late-night-confessions-and-unexpected-moments
-- Episode 35: "Midnight Confessions and Unexpected Revelations" — https://lukeattheroost.com/episode.html?slug=episode-35-midnight-confessions-and-unexpected-revelations
-- Episode 34: "Hidden Rooms, Potlucks, and Mysterious Notes" — https://lukeattheroost.com/episode.html?slug=episode-34-hidden-rooms-potlucks-and-mysterious-notes
-- Episode 33: "Late Night Confessions and Cosmic Comedies" — https://lukeattheroost.com/episode.html?slug=episode-33-late-night-confessions-and-cosmic-comedies
+- Episode 37: "Secrets, Lies, and Coffee Runs" — https://lukeattheroost.com/episode/episode-37-secrets-lies-and-coffee-runs/
+- Episode 36: "Late Night Confessions and Unexpected Moments" — https://lukeattheroost.com/episode/episode-36-late-night-confessions-and-unexpected-moments/
+- Episode 35: "Midnight Confessions and Unexpected Revelations" — https://lukeattheroost.com/episode/episode-35-midnight-confessions-and-unexpected-revelations/
+- Episode 34: "Hidden Rooms, Potlucks, and Mysterious Notes" — https://lukeattheroost.com/episode/episode-34-hidden-rooms-potlucks-and-mysterious-notes/
+- Episode 33: "Late Night Confessions and Cosmic Comedies" — https://lukeattheroost.com/episode/episode-33-late-night-confessions-and-cosmic-comedies/
 
 ## Clip Highlights
 

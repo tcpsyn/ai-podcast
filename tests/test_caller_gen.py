@@ -63,8 +63,15 @@ def test_resolve_voice_case_insensitive():
 def test_resolve_voice_falls_back_when_no_match():
     from backend.services.caller_gen import resolve_voice
     roster = ["Marcus", "Dennis"]
-    # Deterministic fallback: return first from roster
-    assert resolve_voice("Santiago", roster) == "Marcus"
+    # Random fallback, so hallucinated voices don't all collapse onto roster[0]
+    assert resolve_voice("Santiago", roster) in roster
+
+
+def test_resolve_voice_fallback_spreads_across_roster():
+    from backend.services.caller_gen import resolve_voice
+    roster = ["Marcus", "Dennis", "Priya", "Edward"]
+    picked = {resolve_voice("Santiago", roster) for _ in range(60)}
+    assert len(picked) > 1, "fallback collapsed onto a single voice"
 
 
 def test_resolve_voice_empty_suggestion_falls_back():
@@ -103,7 +110,7 @@ def test_build_batch_prompt_includes_silas_lore_when_present():
         "weather": "...",
         "headlines": [],
         "recent_caller_summaries": [],
-        "regulars_included": [{"name": "Silas", "lore": "Silas leads a small desert cult...", "arc_state": "seeking new members"}],
+        "regulars_included": [{"name": "Silas", "voice": "Sebastian", "age": 52, "lore": "Silas leads a small desert cult...", "arc_state": "seeking new members"}],
         "caller_count": 12,
         "voice_roster": ["Marcus"],
     }

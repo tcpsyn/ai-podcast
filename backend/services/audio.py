@@ -1344,14 +1344,26 @@ class AudioService:
             if self._monitor_write:
                 self._monitor_write(indata[:, record_channel].copy())
 
-        self._stem_mic_stream = sd.InputStream(
-            device=self.input_device,
-            channels=max_channels,
-            samplerate=device_sr,
-            dtype=np.float32,
-            blocksize=1024,
-            callback=callback,
-        )
+        def _open():
+            return sd.InputStream(
+                device=self.input_device,
+                channels=max_channels,
+                samplerate=device_sr,
+                dtype=np.float32,
+                blocksize=1024,
+                callback=callback,
+            )
+
+        try:
+            self._stem_mic_stream = _open()
+        except Exception as first_err:
+            print(f"[StemRecorder] InputStream open failed ({first_err}), refreshing PortAudio and retrying...")
+            self._refresh_devices()
+            device_info = sd.query_devices(self.input_device)
+            max_channels = device_info['max_input_channels']
+            device_sr = int(device_info['default_samplerate'])
+            self._stem_mic_stream = _open()
+
         self._stem_mic_stream.start()
         print(f"[StemRecorder] Host mic capture started (device {self.input_device} ch {self.input_channel} @ {device_sr}Hz)")
 

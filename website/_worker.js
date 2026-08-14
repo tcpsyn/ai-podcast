@@ -103,64 +103,23 @@ export default {
       });
     }
 
-    // Social crawler meta injection for episode pages
+    // Legacy query-param episode URLs -> clean static paths.
+    //
+    // This replaces the old user-agent-gated meta injection, which rewrote
+    // <title>/og: tags only for a hardcoded list of social crawlers. Googlebot
+    // was never on that list, so search engines only ever saw the generic
+    // shell — and serving crawlers different HTML than users is cloaking.
+    // Episode pages are static now, so nothing needs UA sniffing.
+    //
+    // Published YouTube descriptions and social posts still point at the old
+    // form, so this redirect has to stay indefinitely.
     if (url.pathname === "/episode.html" && url.searchParams.get("slug")) {
-      const ua = (request.headers.get("User-Agent") || "").toLowerCase();
-      const isCrawler = /facebookexternalhit|twitterbot|linkedinbot|slackbot|discordbot|telegrambot|whatsapp|pinterest|redditbot/i.test(ua);
-
-      if (isCrawler) {
-        const slug = url.searchParams.get("slug");
-        try {
-          const feedResp = await fetch("https://podcast.macneilmediagroup.com/@LukeAtTheRoost/feed.xml", {
-            signal: AbortSignal.timeout(5000),
-          });
-          if (feedResp.ok) {
-            const feedXml = await feedResp.text();
-            const items = feedXml.split("<item>");
-            let title = "";
-            let description = "";
-
-            for (let i = 1; i < items.length; i++) {
-              const item = items[i];
-              const linkMatch = item.match(/<link>(.*?)<\/link>/);
-              if (linkMatch) {
-                const itemSlug = linkMatch[1].split("/episodes/").pop()?.replace(/\/$/, "");
-                if (itemSlug === slug) {
-                  const titleMatch = item.match(/<title>(.*?)<\/title>/);
-                  title = titleMatch ? titleMatch[1].replace(/<!\[CDATA\[|\]\]>/g, "").trim() : "";
-                  const descMatch = item.match(/<description>([\s\S]*?)<\/description>/);
-                  description = descMatch
-                    ? descMatch[1].replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").trim().slice(0, 200)
-                    : "";
-                  break;
-                }
-              }
-            }
-
-            if (title) {
-              const pageResp = await env.ASSETS.fetch(request);
-              let html = await pageResp.text();
-
-              const escTitle = title.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-              const escDesc = description.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-              const canonicalUrl = `https://lukeattheroost.com/episode.html?slug=${slug}`;
-
-              html = html.replace(/<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${escTitle}">`);
-              html = html.replace(/<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${escDesc}">`);
-              html = html.replace(/<meta property="og:url"[^>]*>/, `<meta property="og:url" content="${canonicalUrl}">`);
-              html = html.replace(/<meta name="twitter:title"[^>]*>/, `<meta name="twitter:title" content="${escTitle}">`);
-              html = html.replace(/<meta name="twitter:description"[^>]*>/, `<meta name="twitter:description" content="${escDesc}">`);
-              html = html.replace(/<title[^>]*>.*?<\/title>/, `<title>${escTitle} — Luke at the Roost</title>`);
-
-              return new Response(html, {
-                status: 200,
-                headers: { "Content-Type": "text/html;charset=UTF-8" },
-              });
-            }
-          }
-        } catch (e) {
-          // Fall through to static page
-        }
+      // The slug lands in a Location header. Restricting it to the character
+      // set real slugs use prevents CRLF injection and open-redirect via a
+      // crafted ?slug= (e.g. "//evil.com" or a value containing %0d%0a).
+      const slug = url.searchParams.get("slug").replace(/[^a-z0-9-]/gi, "");
+      if (slug) {
+        return Response.redirect(`https://lukeattheroost.com/episode/${slug}/`, 301);
       }
     }
 

@@ -38,13 +38,13 @@ Required in `.env`:
 ## LLM Settings
 - `_pick_response_budget()` in main.py controls caller dialog token limits (150-450 tokens). MiniMax respects limits strictly — if responses seem short, check these values.
 - Default max_tokens in llm.py is 300 (for non-caller uses)
-- Grok (`x-ai/grok-4-fast`) works well for natural dialog; MiniMax tends toward terse responses
+- Grok (`x-ai/grok-4.3`) works well for natural dialog; MiniMax tends toward terse responses. Note `grok-4`, `grok-4-fast` and `grok-4.1-fast` were retired from OpenRouter — a retired id 404s, and `llm.py` swallows the error and returns empty text, so callers go silent with nothing in the logs. `tests/test_model_config.py` guards against reintroducing them.
 - `generate_with_tools()` in llm.py supports OpenRouter function calling for the intern feature
 
 ## Caller Generation System
-- **Two-stage pipeline**: (1) batch identity pregen via Sonnet 4.6 at session start, (2) live dialog via Haiku 4.5 per turn. Cost ~$1/show.
+- **Two-stage pipeline**: (1) batch identity pregen via Sonnet 4.6 at session start, (2) live dialog via Sonnet 4.6 per turn. Cost ~$3-4/show.
 - **Slim caller dict**: Populated once at `Session._pregenerate_backgrounds()` via `caller_gen.generate_batch()`. Keys: `name`, `age`, `voice`, `location`, `identity`, `situation`, `reason_calling`, `opening_line`, `secret_want`, `specific_details`, `emotional_register`. Stored in `session.caller_backgrounds[caller_key]`.
-- **Dialog model**: Always Haiku 4.5 via the `caller_dialog` category in `config.category_models`. No per-caller model routing — deleted in Phase 5B.
+- **Dialog model**: Always Sonnet 4.6 via the `caller_dialog` category in `config.category_models`. No per-caller model routing — deleted in Phase 5B.
 - **Prompt builder**: `get_caller_prompt(caller)` in main.py builds the slim system prompt from the dict; see `tests/test_caller_prompt.py` for the contract.
 - **Regulars**: `backend/services/regulars_v2.py` loads lore from Obsidian markdown files for named recurring callers (e.g. Silas). The batch prompt optionally includes 2-3 active regulars per session.
 - **Inter-caller awareness**: `get_show_history()` scores previous callers by keyword overlap with the current caller's `situation`/`reason_calling`. Reaction frequency scales with match strength (60%/35%/15%).
@@ -55,6 +55,7 @@ Required in `.env`:
 - **Service**: `backend/services/intern.py` — persistent show character, not a caller
 - **Personality**: 23-year-old NMSU grad, eager, slightly incompetent, gets yelled at. Voice: "Nate" (Inworld), no phone filter.
 - **Tools**: web_search (SearXNG), get_headlines, fetch_webpage, wikipedia_lookup — via `generate_with_tools()` function calling
+- **SearXNG**: runs on the NAS (`http://mmgnas:8888`), deployed via `deploy_searxng.sh`. URL is `settings.searxng_url` (env `SEARXNG_URL`). If Devon's web_search returns "Search failed", check the `searxng` container on mmgnas is Up. The config enables the JSON API + disables the bot limiter — both required for programmatic queries.
 - **Endpoints**: `POST /api/intern/ask`, `/interject`, `/monitor`, `GET /api/intern/suggestion`, `POST /api/intern/suggestion/play`, `/dismiss`
 - **Auto-monitoring**: Watches conversation every 15s during calls, buffers suggestions for host approval
 - **Persistence**: `data/intern.json` stores lookup history
