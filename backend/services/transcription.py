@@ -103,7 +103,7 @@ async def transcribe_audio(audio_data: bytes, source_sample_rate: int = None,
         audio_16k = audio
 
     # Build initial prompt — context helps Whisper with names and topic-specific words
-    initial_prompt = "Luke at the Roost, a late-night radio talk show in New Mexico. The host Luke talks to callers about life, relationships, sports, politics, and pop culture."
+    initial_prompt = "Luke at the Roost, a late-night radio talk show in Alpine, Texas, in the Big Bend region. The host Luke talks to callers about life, relationships, sports, politics, and pop culture, with his intern Devon. Callers reference Alpine, Marfa, Marathon, Terlingua, Fort Stockton, and Big Bend."
     if context_hint:
         initial_prompt += f" {context_hint}"
 
