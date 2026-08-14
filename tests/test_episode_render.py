@@ -102,7 +102,7 @@ def test_all_asset_paths_are_root_absolute(sample_episode):
     html = render_episode_page(sample_episode, turns=[])
     assert 'href="css/' not in html
     assert 'src="js/' not in html
-    assert 'href="/css/style.css?v=6"' in html
+    assert re.search(r'href="/css/style\.css\?v=\d+"', html)
     assert 'src="/js/footer.js"' in html
 
 
