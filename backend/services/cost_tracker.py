@@ -37,10 +37,15 @@ class TTSCallRecord:
 OPENROUTER_PRICING = {
     # Claude
     "anthropic/claude-sonnet-4.6":      {"prompt": 3.00,  "completion": 15.00},
-    "anthropic/claude-sonnet-4-5":      {"prompt": 3.00,  "completion": 15.00},
+    "anthropic/claude-sonnet-4.5":      {"prompt": 3.00,  "completion": 15.00},
+    "anthropic/claude-sonnet-4-5":      {"prompt": 3.00,  "completion": 15.00},  # retired id, historical
     "anthropic/claude-haiku-4.5":       {"prompt": 0.80,  "completion": 4.00},
     "anthropic/claude-3-haiku":         {"prompt": 0.25,  "completion": 1.25},
     # Grok
+    "x-ai/grok-4.3":                   {"prompt": 1.25,  "completion": 2.50},
+    "x-ai/grok-4.5":                   {"prompt": 2.00,  "completion": 6.00},
+    "x-ai/grok-4.20":                  {"prompt": 1.25,  "completion": 2.50},
+    # Retired on OpenRouter — kept so historical records stay costable
     "x-ai/grok-4.1-fast":             {"prompt": 0.20,  "completion": 0.50},
     "x-ai/grok-4":                     {"prompt": 3.00,  "completion": 15.00},
     "x-ai/grok-4-fast":                {"prompt": 5.00,  "completion": 15.00},
@@ -60,6 +65,7 @@ OPENROUTER_PRICING = {
     "google/gemini-flash-1.5":          {"prompt": 0.075, "completion": 0.30},
     # Meta
     "meta-llama/llama-3.3-70b-instruct": {"prompt": 0.10, "completion": 0.32},
+    "meta-llama/llama-3.1-8b-instruct": {"prompt": 0.05, "completion": 0.08},
     "meta-llama/llama-4-maverick":     {"prompt": 0.20,  "completion": 0.60},
     # Other
     "moonshotai/kimi-k2":              {"prompt": 0.60,  "completion": 2.00},

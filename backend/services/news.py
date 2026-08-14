@@ -7,7 +7,9 @@ from dataclasses import dataclass
 
 import httpx
 
-SEARXNG_URL = "http://localhost:8888"
+from ..config import settings
+
+SEARXNG_URL = settings.searxng_url
 
 
 @dataclass

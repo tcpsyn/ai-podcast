@@ -60,7 +60,7 @@ def _llm_request(prompt: str, max_tokens: int = 2048, temperature: float = 0.3,
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "anthropic/claude-sonnet-4-5",
+                    "model": "anthropic/claude-sonnet-4.6",
                     "messages": [{"role": "user", "content": prompt}],
                     "max_tokens": max_tokens,
                     "temperature": temperature,

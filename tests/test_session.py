@@ -64,6 +64,49 @@ def test_session_get_show_history_summary():
     assert "EARLIER IN THE SHOW" in summary
 
 
+def test_show_history_reactions_constant_is_usable():
+    from backend.main import SHOW_HISTORY_REACTIONS
+
+    assert SHOW_HISTORY_REACTIONS, "generic reaction pool must not be empty"
+    assert all(isinstance(r, str) and r.strip() for r in SHOW_HISTORY_REACTIONS)
+    # Each one is interpolated as "...and you {reaction}." so it must not
+    # carry its own leading/trailing punctuation or an unfilled placeholder.
+    for r in SHOW_HISTORY_REACTIONS:
+        assert not r.endswith("."), r
+        assert "{" not in r, r
+
+
+def test_build_specific_reaction_falls_back_when_record_has_no_details():
+    """A CallRecord with neither key_details nor situation_summary hits the
+    generic branch — this used to raise NameError mid-show."""
+    from backend.main import SHOW_HISTORY_REACTIONS
+
+    s = Session()
+    bare = CallRecord(
+        caller_type="ai", caller_name="Jasmine",
+        summary="Talked about her boss", transcript=[],
+    )
+    reaction = s._build_specific_reaction({}, bare)
+    assert reaction in SHOW_HISTORY_REACTIONS
+
+
+def test_get_show_history_never_raises_when_reaction_branch_fires(monkeypatch):
+    """Force the reaction branch every time so the fallback path is covered
+    deterministically rather than at its ~15% random rate."""
+    import backend.main as main
+
+    monkeypatch.setattr(main.random, "random", lambda: 0.0)
+
+    s = Session()
+    s.call_history.append(CallRecord(
+        caller_type="real", caller_name="Dave",
+        summary="Called about his wife leaving", transcript=[],
+    ))
+    summary = s.get_show_history()
+    assert "DAVE" in summary
+    assert "and you " in summary
+
+
 def test_session_reset_clears_history():
     s = Session()
     s.call_history.append(CallRecord(

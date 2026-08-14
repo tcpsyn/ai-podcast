@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     submissions_imap_user: str = os.getenv("SUBMISSIONS_IMAP_USER", "")
     submissions_imap_pass: str = os.getenv("SUBMISSIONS_IMAP_PASS", "")
 
+    # SearXNG (Devon's web search + caller news grounding) — runs on the NAS.
+    # Override with SEARXNG_URL in .env (e.g. http://localhost:8888 for a local container).
+    searxng_url: str = os.getenv("SEARXNG_URL", "http://mmgnas:8888")
+
     # LLM Settings
     llm_provider: str = "openrouter"  # "openrouter" or "ollama"
     openrouter_model: str = "anthropic/claude-sonnet-4.6"  # primary/default model
@@ -35,8 +39,8 @@ class Settings(BaseSettings):
 
     # Per-category model routing
     category_models: dict = {
-        "caller_dialog": "anthropic/claude-haiku-4.5",       # live caller dialog ($0.80/$4)
-        "devon_ask": "x-ai/grok-4.1-fast",                   # Devon matches show energy, cheap ($0.20/$0.50)
+        "caller_dialog": "anthropic/claude-sonnet-4.6",       # live caller dialog — quality matters ($3/$15)
+        "devon_ask": "x-ai/grok-4.3",                        # Devon matches show energy (grok-4.1-fast deprecated 2026-05)
         "devon_monitor": "google/gemini-2.5-flash",          # just yes/no decisions, keep cheap ($0.15/$0.60)
         "background_gen": "anthropic/claude-sonnet-4.6",       # backgrounds drive the whole call — worth the quality ($3/$15, ~$0.30/show)
         "call_summary": "google/gemini-2.5-flash",           # post-call, no personality needed ($0.15/$0.60)

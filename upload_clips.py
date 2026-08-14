@@ -774,7 +774,7 @@ def sync_clips_to_website():
     deploy = subprocess.run(
         ["npx", "wrangler", "pages", "deploy", "website/",
          "--project-name=lukeattheroost", "--branch=main", "--commit-dirty=true"],
-        capture_output=True, text=True, timeout=120,
+        capture_output=True, text=True,
         cwd=str(Path(__file__).parent),
     )
     if "Deployment complete" in deploy.stdout:
