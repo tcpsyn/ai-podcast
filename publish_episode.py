@@ -244,6 +244,34 @@ TRANSCRIPT:
     return result
 
 
+# Recurring show names Whisper reliably mishears. LightningWhisperMLX takes no
+# initial_prompt (its transcribe() signature is just audio_path + language), so
+# unlike make_clips.py we cannot condition the model on these up front — they
+# have to be corrected afterwards. "Devin" reached 21 of 58 published
+# transcripts before this existed.
+PROPER_NOUN_FIXES = {
+    "devin": "Devon",
+}
+
+
+def fix_proper_nouns(text: str) -> str:
+    """Correct known Whisper mishearings, preserving the original casing style."""
+    if not text:
+        return ""
+
+    def _sub(match):
+        word = match.group(0)
+        correct = PROPER_NOUN_FIXES[word.lower()]
+        if word.isupper():
+            return correct.upper()
+        if word.islower():
+            return correct.lower()
+        return correct
+
+    pattern = r"\b(" + "|".join(PROPER_NOUN_FIXES) + r")\b"
+    return re.sub(pattern, _sub, text, flags=re.IGNORECASE)
+
+
 def transcribe_audio(audio_path: str) -> dict:
     """Transcribe audio using Lightning Whisper MLX (Apple Silicon GPU)."""
     print(f"[1/5] Transcribing {audio_path} (MLX GPU)...")
@@ -268,12 +296,13 @@ def transcribe_audio(audio_path: str) -> dict:
 
     for segment in result.get("segments", []):
         start_ms, end_ms, text = segment[0], segment[1], segment[2]
+        text = fix_proper_nouns(text.strip())
         transcript_segments.append({
             "start": start_ms / 1000.0,
             "end": end_ms / 1000.0,
-            "text": text.strip()
+            "text": text
         })
-        full_text.append(text.strip())
+        full_text.append(text)
     print(f"    Transcribed {duration} seconds of audio ({len(transcript_segments)} segments)")
 
     return {
