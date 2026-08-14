@@ -65,3 +65,20 @@ upload-history.json
 
 # Scratch/smoke tests (not committed)
 scratch/
+
+# Generated media and model weights (~13GB — never commit)
+clips/
+music/
+mlx_models/
+remotion-demo/
+social_posts/
+
+# Generated analytics artifacts (rebuilt from cost_tracker)
+data/costs.db
+data/cost_reports/
+
+# Generated caller avatars
+data/avatars/
+
+# Reaper waveform peak cache
+reaper/peaks/
