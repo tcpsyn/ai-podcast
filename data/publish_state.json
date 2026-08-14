@@ -127,5 +127,328 @@
       }
     },
     "started_at": "2026-03-16T10:08:51.466898+00:00"
+  },
+  "39": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-18T09:44:16.826717+00:00",
+        "episode_id": "42",
+        "slug": "episode-39-st-patrick-s-day-chaos-and-caller-confessions"
+      },
+      "youtube": {
+        "completed_at": "2026-03-18T10:00:28.370475+00:00",
+        "video_id": "iSI1NXW2y9g"
+      },
+      "social": {
+        "completed_at": "2026-03-18T10:00:35.226643+00:00"
+      }
+    },
+    "started_at": "2026-03-18T09:44:16.826690+00:00"
+  },
+  "40": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-19T08:07:35.720887+00:00",
+        "episode_id": 43,
+        "slug": "episode-40-prostate-cancer-christmas-lights-and-potato-salad-betrayals"
+      },
+      "youtube": {
+        "completed_at": "2026-03-19T08:30:25.222815+00:00",
+        "video_id": "TS06OLz6SPo"
+      },
+      "social": {
+        "completed_at": "2026-03-19T08:30:33.446060+00:00"
+      }
+    },
+    "started_at": "2026-03-19T08:07:35.720850+00:00"
+  },
+  "41": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-20T08:18:04.128449+00:00",
+        "episode_id": 44,
+        "slug": "episode-41-benny-s-creepy-vhs-tape-from-nowhere"
+      },
+      "youtube": {
+        "completed_at": "2026-03-20T08:39:36.047901+00:00",
+        "video_id": "XKRWldOh6JM"
+      },
+      "social": {
+        "completed_at": "2026-03-20T08:39:42.538777+00:00"
+      }
+    },
+    "started_at": "2026-03-20T08:18:04.128412+00:00"
+  },
+  "42": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-21T11:50:48.656769+00:00",
+        "episode_id": "45",
+        "slug": "episode-42-peggy-s-day-trading-disaster-and-the-nonprofit-yacht"
+      },
+      "youtube": {
+        "completed_at": "2026-03-21T12:07:10.326330+00:00",
+        "video_id": "x8b4SpkxQZ4"
+      },
+      "social": {
+        "completed_at": "2026-03-21T12:07:16.614504+00:00"
+      }
+    },
+    "started_at": "2026-03-21T11:50:48.656724+00:00"
+  },
+  "43": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-23T06:32:55.148064+00:00",
+        "episode_id": "46",
+        "slug": "episode-43-cousin-rufus-and-the-locksmith-s-wild-weekend"
+      },
+      "youtube": {
+        "completed_at": "2026-03-23T06:56:08.969398+00:00",
+        "video_id": "JI4vgl7Oa0A"
+      },
+      "social": {
+        "completed_at": "2026-03-23T06:56:36.930530+00:00"
+      }
+    },
+    "started_at": "2026-03-23T06:32:55.147339+00:00"
+  },
+  "44": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-24T07:06:50.998787+00:00",
+        "episode_id": "47",
+        "slug": "episode-44-floyd-s-fence-and-the-cattle-conspiracy"
+      },
+      "youtube": {
+        "completed_at": "2026-03-24T07:25:09.652339+00:00",
+        "video_id": "Ol6lwe40YwA"
+      },
+      "social": {
+        "completed_at": "2026-03-24T07:25:16.820530+00:00"
+      }
+    },
+    "started_at": "2026-03-24T07:06:50.998433+00:00"
+  },
+  "45": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-26T08:21:30.254496+00:00",
+        "episode_id": "48",
+        "slug": "episode-45-potato-salad-aliens-and-the-dripping-faucet-of-doom"
+      },
+      "youtube": {
+        "completed_at": "2026-03-26T08:39:45.353948+00:00",
+        "video_id": "YZeERny3WrE"
+      },
+      "social": {
+        "completed_at": "2026-03-26T08:39:52.864007+00:00"
+      }
+    },
+    "started_at": "2026-03-26T08:21:30.254466+00:00"
+  },
+  "46": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-30T09:13:10.855462+00:00",
+        "episode_id": "49",
+        "slug": "episode-46-butchers-wreak-forever-and-other-late-night-confessions"
+      },
+      "youtube": {
+        "completed_at": "2026-03-30T09:35:27.776133+00:00",
+        "video_id": "iXf5MmEO7P0"
+      },
+      "social": {
+        "completed_at": "2026-03-30T09:35:40.601815+00:00"
+      }
+    },
+    "started_at": "2026-03-30T09:13:10.855432+00:00"
+  },
+  "47": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-03-31T05:25:29.165685+00:00",
+        "episode_id": "50",
+        "slug": "episode-47-clarence-randy-and-the-onlyfans-daughter"
+      },
+      "youtube": {
+        "completed_at": "2026-03-31T05:46:35.296876+00:00",
+        "video_id": "Z2dPvt28HYg"
+      },
+      "social": {
+        "completed_at": "2026-03-31T05:46:42.153090+00:00"
+      }
+    },
+    "started_at": "2026-03-31T05:25:29.165641+00:00"
+  },
+  "48": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-04-02T04:37:08.410107+00:00",
+        "episode_id": "51",
+        "slug": "episode-48-potato-salad-legacy-and-the-april-fool-s-apocalypse"
+      },
+      "youtube": {
+        "completed_at": "2026-04-02T04:54:42.078977+00:00",
+        "video_id": "CyJP_QYEDj4"
+      },
+      "social": {
+        "completed_at": "2026-04-02T04:54:48.249952+00:00"
+      }
+    },
+    "started_at": "2026-04-02T04:37:08.410056+00:00"
+  },
+  "49": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-04-06T01:14:33.342179+00:00",
+        "episode_id": 52,
+        "slug": "episode-49-silas-s-shared-intimacy-night-and-four-brave-souls"
+      },
+      "youtube": {
+        "completed_at": "2026-04-06T03:38:50.148563+00:00",
+        "video_id": "-3zf-gw-6gA"
+      },
+      "social": {
+        "completed_at": "2026-04-06T17:29:46.487867+00:00"
+      }
+    },
+    "started_at": "2026-04-06T01:14:33.342137+00:00"
+  },
+  "50": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-04-10T07:57:35.570851+00:00",
+        "episode_id": "53",
+        "slug": "episode-50-deb-s-mounted-jackrabbit-and-seven-years-of-silence"
+      },
+      "youtube": {
+        "completed_at": "2026-04-10T08:16:37.495030+00:00",
+        "video_id": "V18y85BxuZI"
+      },
+      "social": {
+        "completed_at": "2026-04-10T08:16:45.539848+00:00"
+      }
+    },
+    "started_at": "2026-04-10T07:57:35.570779+00:00"
+  },
+  "52": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-04-16T09:18:45.701330+00:00",
+        "episode_id": "55",
+        "slug": "episode-52-dexter-s-construction-corner-and-the-whistleblower-s-dilemma"
+      },
+      "youtube": {
+        "completed_at": "2026-04-16T09:22:31.402285+00:00",
+        "video_id": "G4_hyAdODfc"
+      },
+      "social": {
+        "completed_at": "2026-04-16T09:22:39.384918+00:00"
+      }
+    },
+    "started_at": "2026-04-16T09:18:45.701295+00:00"
+  },
+  "53": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-04-28T08:18:23.512676+00:00",
+        "episode_id": "56",
+        "slug": "episode-53-the-hospice-nurse-s-impossible-choice"
+      },
+      "youtube": {
+        "completed_at": "2026-04-28T08:36:05.701557+00:00",
+        "video_id": "pRZ9T1xHh8Y"
+      },
+      "social": {
+        "completed_at": "2026-04-28T08:36:13.386695+00:00"
+      }
+    },
+    "started_at": "2026-04-28T08:18:23.512621+00:00"
+  },
+  "54": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-05-06T07:01:50.674724+00:00",
+        "episode_id": "57",
+        "slug": "episode-54-deb-s-roadrunner-and-the-hospice-nurse-s-dilemma"
+      },
+      "youtube": {
+        "completed_at": "2026-05-06T07:19:49.840084+00:00",
+        "video_id": "4uGCi4XcLLw"
+      },
+      "social": {
+        "completed_at": "2026-05-06T07:19:57.484472+00:00"
+      }
+    },
+    "started_at": "2026-05-06T07:01:50.674667+00:00"
+  },
+  "55": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-05-12T06:49:28.626817+00:00",
+        "episode_id": 58,
+        "slug": "episode-55-the-wellspring-s-haunting-social-architecture"
+      },
+      "youtube": {
+        "completed_at": "2026-05-12T07:10:52.080949+00:00",
+        "video_id": "K31eXqjFChM"
+      },
+      "social": {
+        "completed_at": "2026-05-12T07:11:01.134597+00:00"
+      }
+    },
+    "started_at": "2026-05-12T06:49:28.626772+00:00"
+  },
+  "56": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-05-21T08:50:34.758443+00:00",
+        "episode_id": "59",
+        "slug": "episode-56-the-tattoo-that-saved-a-life"
+      },
+      "youtube": {
+        "completed_at": "2026-05-21T09:09:08.740298+00:00",
+        "video_id": "EDY2Srb778E"
+      },
+      "social": {
+        "completed_at": "2026-05-21T09:09:17.569025+00:00"
+      }
+    },
+    "started_at": "2026-05-21T08:50:34.758386+00:00"
+  },
+  "57": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-06-02T11:32:44.749492+00:00",
+        "episode_id": "60",
+        "slug": "episode-57-trace-s-box-of-family-secrets"
+      },
+      "youtube": {
+        "completed_at": "2026-06-02T11:45:50.938869+00:00",
+        "video_id": "yAMz7Yy5_2k"
+      },
+      "social": {
+        "completed_at": "2026-06-02T12:16:42.059793+00:00"
+      }
+    },
+    "started_at": "2026-06-02T11:32:44.749472+00:00"
+  },
+  "58": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-08-04T09:22:36.468634+00:00",
+        "episode_id": 61,
+        "slug": "episode-58-rayfield-s-nephew-the-marfa-lights-and-why-nobody-believes-concho"
+      },
+      "social": {
+        "completed_at": "2026-08-04T09:37:08.440981+00:00"
+      },
+      "youtube": {
+        "completed_at": "2026-08-04T09:57:26.006045+00:00",
+        "video_id": "NX6ZUWnnUVQ"
+      }
+    },
+    "started_at": "2026-08-04T09:22:36.468552+00:00"
   }
 }
