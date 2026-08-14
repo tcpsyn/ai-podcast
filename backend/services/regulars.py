@@ -39,6 +39,16 @@ class RegularCallerService:
     def get_regulars(self) -> list[dict]:
         return list(self._regulars)
 
+    def get_by_name(self, name: str) -> Optional[dict]:
+        """Find a regular by name (case-insensitive)."""
+        if not name:
+            return None
+        target = name.lower()
+        for r in self._regulars:
+            if r.get("name", "").lower() == target:
+                return r
+        return None
+
     def get_returning_callers(self, count: int = 2) -> list[dict]:
         """Get up to `count` regulars for returning caller slots"""
         import random

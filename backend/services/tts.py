@@ -83,14 +83,18 @@ VITS_SPEAKERS = {
 DEFAULT_VITS_SPEAKER = "p225"
 
 # Inworld voice mapping - maps ElevenLabs voice IDs to Inworld voices
-# Full voice list from API (English): Abby, Alex, Amina, Anjali, Arjun, Ashley,
-# Blake, Brian, Callum, Carter, Celeste, Chloe, Claire, Clive, Craig, Darlene,
-# Deborah, Dennis, Derek, Dominus, Edward, Elizabeth, Elliot, Ethan, Evan, Evelyn,
-# Gareth, Graham, Grant, Hades, Hamish, Hana, Hank, Jake, James, Jason, Jessica,
-# Julia, Kayla, Kelsey, Lauren, Liam, Loretta, Luna, Malcolm, Mark, Marlene,
-# Miranda, Mortimer, Nate, Oliver, Olivia, Pippa, Pixie, Priya, Ronald, Rupert,
-# Saanvi, Sarah, Sebastian, Serena, Shaun, Simon, Snik, Tessa, Theodore, Timothy,
-# Tyler, Veronica, Victor, Victoria, Vinny, Wendy
+# Full voice list from API (English, as of 2026-05): Abby, Alex, Amina, Anjali,
+# Arjun, Ashley, Avery, Bianca, Blake, Brandon, Brian, Callum, Carter, Cedric,
+# Celeste, Chloe, Claire, Clive, Conrad, Craig, Damon, Darlene, Deborah, Dennis,
+# Derek, Dominus, Duncan, Edward, Eleanor, Elizabeth, Elliot, Ethan, Evan,
+# Evelyn, Felix, Gareth, Graham, Grant, Hades, Hamish, Hana, Hank, Jake, James,
+# Jason, Jessica, Jonah, Julia, Kayla, Kelsey, Lauren, Levi, Liam, Loretta,
+# Lucian, Luna, Malcolm, Marcus, Mark, Marlene, Mia, Miranda, Mortimer, Nadia,
+# Naomi, Nate, Oliver, Olivia, Pippa, Pixie, Priya, Reed, Riley, Ronald, Rupert,
+# Saanvi, Sarah, Sebastian, Selene, Serena, Shaun, Simon, Snik, Sophie, Tessa,
+# Theodore, Timothy, Trevor, Tristan, Tyler, Veronica, Victor, Victoria, Vinny,
+# Wendy. Not in our caller pool: Abby/Mia/Pixie/Riley (child voices), Dominus/
+# Lucian/Selene/Snik (theatrical), Dominus/Hades blacklisted.
 INWORLD_VOICES = {
     # Original voice IDs
     "VR6AewLTigWG4xSOukaG": "Edward",    # Tony - fast-talking, emphatic, streetwise
@@ -161,11 +165,18 @@ VOICE_PROFILES = {
     "Elliot":    {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": "young"},    # used by Otis (comedian)
     # Remaining male pool voices
     "Arjun":     {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},
+    "Avery":     {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},     # youthful, performative, gameshow host
+    "Brandon":   {"weight": "medium", "energy": "high",   "warmth": "neutral", "age_feel": "middle"},   # bold, strident, news-style
     "Brian":     {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},
     "Callum":    {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "young"},
+    "Cedric":    {"weight": "medium", "energy": "low",    "warmth": "cool",    "age_feel": "mature"},   # crisp, measured, formal announcements
+    "Conrad":    {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "mature"},   # gruff, weathered detective
+    "Damon":     {"weight": "medium", "energy": "low",    "warmth": "cool",    "age_feel": "middle"},   # calm, raspy, atmospheric
     "Derek":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Duncan":    {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},   # warm, articulate British
     "Ethan":     {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "young"},
     "Evan":      {"weight": "light",  "energy": "medium", "warmth": "neutral", "age_feel": "young"},
+    "Felix":     {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},   # calm, friendly British
     "Gareth":    {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
     "Graham":    {"weight": "heavy",  "energy": "low",    "warmth": "neutral", "age_feel": "mature"},
     "Grant":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
@@ -175,13 +186,19 @@ VOICE_PROFILES = {
     "Jake":      {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": "young"},
     "James":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
     "Jason":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Jonah":     {"weight": "medium", "energy": "low",    "warmth": "warm",    "age_feel": "middle"},   # soothing, calm, reassuring
+    "Levi":      {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "middle"},   # measured, ominous suspense
     "Liam":      {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": "young"},
     "Malcolm":   {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
+    "Marcus":    {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},   # authoritative, empathetic
     "Mortimer":  {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
     "Nate":      {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},
     "Oliver":    {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},
+    "Reed":      {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},   # clear, professional American
     "Rupert":    {"weight": "medium", "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
     "Simon":     {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
+    "Trevor":    {"weight": "medium", "energy": "high",   "warmth": "neutral", "age_feel": "middle"},   # punchy, expressive, energetic promos
+    "Tristan":   {"weight": "medium", "energy": "low",    "warmth": "neutral", "age_feel": "middle"},   # deliberate, controlled, documentary
     "Tyler":     {"weight": "light",  "energy": "high",   "warmth": "neutral", "age_feel": "young"},
     "Victor":    {"weight": "heavy",  "energy": "medium", "warmth": "cool",    "age_feel": "mature"},
     "Vinny":     {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": "middle"},
@@ -200,10 +217,12 @@ VOICE_PROFILES = {
     "Kelsey":    {"weight": "light",  "energy": "medium", "warmth": "neutral", "age_feel": "young"},    # used by Maxine (quiet/nervous)
     # Remaining female pool voices
     "Anjali":    {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": "young"},
+    "Bianca":    {"weight": "medium", "energy": "low",    "warmth": "cool",    "age_feel": "middle"},   # deep, controlled corporate
     "Celeste":   {"weight": "light",  "energy": "medium", "warmth": "cool",    "age_feel": "middle"},
     "Chloe":     {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},
     "Claire":    {"weight": "medium", "energy": "medium", "warmth": "neutral", "age_feel": "middle"},
     "Darlene":   {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "mature"},
+    "Eleanor":   {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},   # polished, approachable British
     "Elizabeth":  {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "mature"},
     "Jessica":   {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},
     "Kayla":     {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},
@@ -212,9 +231,12 @@ VOICE_PROFILES = {
     "Luna":      {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": "young"},
     "Marlene":   {"weight": "medium", "energy": "low",    "warmth": "neutral", "age_feel": "mature"},
     "Miranda":   {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "middle"},
+    "Nadia":     {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},   # personable, lively
+    "Naomi":     {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},   # warm, grounded narrative
     "Pippa":     {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},
     "Saanvi":    {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": "young"},
     "Serena":    {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "middle"},
+    "Sophie":    {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},   # friendly British
     "Veronica":  {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "middle"},
     "Victoria":  {"weight": "medium", "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
 }
@@ -771,7 +793,7 @@ async def generate_speech_inworld(text: str, voice_id: str, emotional_register: 
     payload = {
         "text": text,
         "voiceId": voice,
-        "modelId": "inworld-tts-1.5-max",
+        "modelId": "inworld-tts-2",
         "temperature": temperature,
         "applyTextNormalization": "ON",
         "audioConfig": {

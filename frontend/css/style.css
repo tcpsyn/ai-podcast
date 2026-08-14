@@ -1434,10 +1434,30 @@ section h2 {
 
 .vm-item {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 4px;
     padding: 6px 8px;
     border-bottom: 1px solid rgba(232, 121, 29, 0.08);
+}
+
+.vm-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.vm-transcript {
+    font-size: 0.8rem;
+    line-height: 1.35;
+    color: var(--text-muted);
+    border-left: 2px solid rgba(232, 121, 29, 0.25);
+    padding-left: 8px;
+}
+
+.vm-transcript-pending {
+    font-style: italic;
+    opacity: 0.6;
 }
 
 .vm-item:last-child {
