@@ -48,7 +48,7 @@ The show is entirely custom-built: callers are generated in real-time using larg
 - **How It Works**: https://lukeattheroost.com/how-it-works — Technical deep dive into the AI caller generation, recording, and production pipeline
 - **Clips**: https://lukeattheroost.com/clips — Best moments from the show as video clips
 - **Stats**: https://lukeattheroost.com/stats — Download numbers, reviews, YouTube metrics
-- **Episode transcripts**: https://lukeattheroost.com/episode.html?slug=EPISODE-SLUG — Full text transcripts of every episode
+- **Episode transcripts**: https://lukeattheroost.com/episode/EPISODE-SLUG/ — Full text transcripts of every episode
 
 ## Community
 
@@ -121,16 +121,16 @@ Each episode (~30-60 minutes) follows a loose late-night radio format:
 ## Recent Episodes
 
 Episodes are published daily. Each has a full transcript available at:
-https://lukeattheroost.com/episode.html?slug=EPISODE-SLUG
+https://lukeattheroost.com/episode/EPISODE-SLUG/
 
 Episode transcript URLs follow the pattern: episode-N-title-slug
 
 Recent episodes include:
-- Episode 37: "Secrets, Lies, and Coffee Runs" — https://lukeattheroost.com/episode.html?slug=episode-37-secrets-lies-and-coffee-runs
-- Episode 36: "Late Night Confessions and Unexpected Moments" — https://lukeattheroost.com/episode.html?slug=episode-36-late-night-confessions-and-unexpected-moments
-- Episode 35: "Midnight Confessions and Unexpected Revelations" — https://lukeattheroost.com/episode.html?slug=episode-35-midnight-confessions-and-unexpected-revelations
-- Episode 34: "Hidden Rooms, Potlucks, and Mysterious Notes" — https://lukeattheroost.com/episode.html?slug=episode-34-hidden-rooms-potlucks-and-mysterious-notes
-- Episode 33: "Late Night Confessions and Cosmic Comedies" — https://lukeattheroost.com/episode.html?slug=episode-33-late-night-confessions-and-cosmic-comedies
+- Episode 37: "Secrets, Lies, and Coffee Runs" — https://lukeattheroost.com/episode/episode-37-secrets-lies-and-coffee-runs/
+- Episode 36: "Late Night Confessions and Unexpected Moments" — https://lukeattheroost.com/episode/episode-36-late-night-confessions-and-unexpected-moments/
+- Episode 35: "Midnight Confessions and Unexpected Revelations" — https://lukeattheroost.com/episode/episode-35-midnight-confessions-and-unexpected-revelations/
+- Episode 34: "Hidden Rooms, Potlucks, and Mysterious Notes" — https://lukeattheroost.com/episode/episode-34-hidden-rooms-potlucks-and-mysterious-notes/
+- Episode 33: "Late Night Confessions and Cosmic Comedies" — https://lukeattheroost.com/episode/episode-33-late-night-confessions-and-cosmic-comedies/
 
 ## Clip Highlights
 
