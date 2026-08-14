@@ -321,7 +321,7 @@ Respond with ONLY valid JSON, no markdown or explanation."""
             "Content-Type": "application/json"
         },
         json={
-            "model": "anthropic/claude-3.5-haiku",
+            "model": "anthropic/claude-haiku-4.5",
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.7
         },
@@ -569,6 +569,107 @@ def save_chapters(metadata: dict, output_path: str):
         json.dump(chapters_data, f, indent=2)
 
     print(f"    Chapters saved to: {output_path}")
+
+
+def save_metadata(metadata: dict, output_path: str):
+    """Persist generated metadata so a --resume run can recover it losslessly.
+
+    The slug is not a safe source to rebuild a title from: it is lowercased and
+    stripped of punctuation, so apostrophes and commas cannot be recovered.
+    """
+    keep = {k: metadata.get(k) for k in
+            ("title", "description", "thumbnail_text", "chapters")}
+    with open(output_path, "w") as f:
+        json.dump(keep, f, indent=2)
+
+    print(f"    Metadata saved to: {output_path}")
+
+
+def _decode_db_row(output: str) -> dict | None:
+    """Decode a TO_BASE64 payload from mysql batch output.
+
+    TO_BASE64 wraps every 76 characters and mysql renders those breaks as a
+    literal backslash-n, so the raw output is not directly decodable.
+    """
+    cleaned = re.sub(r"\\n|\s", "", output or "")
+    if not cleaned:
+        return None
+    try:
+        return json.loads(base64.b64decode(cleaned).decode())
+    except Exception:
+        return None
+
+
+def _fetch_episode_metadata_from_db(episode_number: int) -> dict | None:
+    """Read back the title/description Castopod already stored for this episode.
+
+    Base64 keeps the round trip safe — descriptions contain newlines and quotes
+    that mysql's batch output would otherwise escape.
+    """
+    cmd = (f'{DOCKER_PATH} exec {MARIADB_CONTAINER} mysql --defaults-extra-file=/tmp/.my.cnf '
+           f'-u {DB_USER} {DB_NAME} -N -e '
+           f'''"SELECT TO_BASE64(JSON_OBJECT('title', title, 'description', description_markdown)) '''
+           f'FROM cp_episodes WHERE number = {episode_number} LIMIT 1;"')
+    success, output = run_ssh_command(cmd)
+    if not success:
+        return None
+    row = _decode_db_row(output)
+    return row if row and row.get("title") else None
+
+
+def recover_metadata(episode_number: int, slug: str, metadata_path, chapters: list,
+                     db_lookup=None) -> dict:
+    """Rebuild metadata for a --resume run, preferring lossless sources.
+
+    1. the metadata file written by the original run
+    2. the title/description Castopod already stored
+    3. the slug — which cannot round-trip punctuation or capitalization
+    """
+    metadata_path = Path(metadata_path)
+    title = description = thumbnail_text = None
+    reconstructed = False
+
+    if metadata_path.exists():
+        try:
+            saved = json.loads(metadata_path.read_text())
+            title = saved.get("title")
+            description = saved.get("description")
+            thumbnail_text = saved.get("thumbnail_text")
+            if title:
+                print(f"    Recovered metadata from {metadata_path.name}")
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"    Warning: could not read {metadata_path.name}: {e}")
+
+    if not title:
+        lookup = db_lookup or _fetch_episode_metadata_from_db
+        row = lookup(episode_number)
+        if row and row.get("title"):
+            title = row["title"]
+            description = description or row.get("description")
+            print("    Recovered title/description from Castopod")
+
+    if not title:
+        title_part = re.sub(rf"^episode-{episode_number}-", "", slug).replace("-", " ").title()
+        title = f"Episode {episode_number}: {title_part}"
+        reconstructed = True
+        print("    WARNING: rebuilding the title from the slug is lossy — "
+              "apostrophes, commas and capitalization cannot be recovered.")
+        print(f'    WARNING: got "{title}" — pass --title to override.')
+
+    if not description:
+        description = f"Episode {episode_number} of Luke at the Roost."
+    if not thumbnail_text:
+        thumbnail_text = re.sub(rf"^Episode {episode_number}:\s*", "", title).upper()[:30]
+
+    meta = {
+        "title": title,
+        "description": description,
+        "chapters": chapters,
+        "thumbnail_text": thumbnail_text,
+    }
+    if reconstructed:
+        meta["title_is_reconstructed"] = True
+    return meta
 
 
 def run_ssh_command(command: str, timeout: int = 30) -> tuple[bool, str]:
@@ -1272,8 +1373,24 @@ def _check_youtube_duplicate(youtube, title: str) -> str | None:
     return None
 
 
+# YouTube rejects the entire upload with `invalidTags` if the combined tag
+# string exceeds 500 chars. Tags containing a space are quoted by YouTube and
+# those quotes count, so budget conservatively and leave a small margin.
+YOUTUBE_TAG_BUDGET = 480
+YOUTUBE_MAX_TAGS = 25
+
+
+def _youtube_tag_cost(tag: str) -> int:
+    return len(tag) + (2 if " " in tag else 0)
+
+
 def _extract_youtube_tags(metadata: dict) -> list[str]:
-    """Extract dynamic tags from episode metadata for YouTube SEO."""
+    """Extract dynamic tags from episode metadata for YouTube SEO.
+
+    Base tags come first so they survive trimming; chapter titles fill whatever
+    budget is left. Anything that would bust the budget is skipped rather than
+    truncated, so no tag is ever emitted half-formed.
+    """
     base_tags = ["podcast", "Luke at the Roost", "talk radio", "call-in show",
                  "talk show", "comedy", "AI podcast", "late night radio", "advice"]
     skip = {"intro", "outro", "opening", "closing", "wrap up", "wrap-up"}
@@ -1284,7 +1401,21 @@ def _extract_youtube_tags(metadata: dict) -> list[str]:
             continue
         if len(title) <= 50:
             dynamic.append(title)
-    return (base_tags + dynamic)[:25]
+
+    tags: list[str] = []
+    used = 0
+    for tag in base_tags + dynamic:
+        tag = tag.replace("<", "").replace(">", "").strip()
+        if len(tag) < 3 or tag in tags:
+            continue
+        cost = _youtube_tag_cost(tag) + (1 if tags else 0)  # +1 for the comma
+        if used + cost > YOUTUBE_TAG_BUDGET:
+            continue
+        tags.append(tag)
+        used += cost
+        if len(tags) >= YOUTUBE_MAX_TAGS:
+            break
+    return tags
 
 
 def upload_to_youtube(audio_path: str, metadata: dict, chapters: list,
@@ -1513,6 +1644,7 @@ def main():
         # Load existing metadata from files saved during first run
         transcript_path = audio_path.with_suffix(".transcript.txt")
         chapters_path = audio_path.with_suffix(".chapters.json")
+        metadata_path = audio_path.with_suffix(".metadata.json")
         srt_path = audio_path.with_suffix(".srt")
 
         # Build metadata from existing files; re-transcribe + gen only if missing
@@ -1520,21 +1652,16 @@ def main():
             print("    Loading existing chapters and metadata files")
             with open(chapters_path) as f:
                 chapters_data = json.load(f)
-            # Reconstruct metadata from slug and chapters
-            slug = episode["slug"]
-            # Convert slug to title: "episode-49-foo-bar" -> "Episode 49: Foo Bar"
-            title_part = slug.replace(f"episode-{episode_number}-", "").replace("-", " ").title()
-            metadata = {
-                "title": f"Episode {episode_number}: {title_part}",
-                "description": f"Episode {episode_number} of Luke at the Roost.",
-                "chapters": chapters_data if isinstance(chapters_data, list) else chapters_data.get("chapters", []),
-                "thumbnail_text": title_part.upper()[:30],
-            }
+            chapters = (chapters_data if isinstance(chapters_data, list)
+                        else chapters_data.get("chapters", []))
+            metadata = recover_metadata(episode_number, episode["slug"],
+                                        metadata_path, chapters)
         else:
             print("[1/5] Re-transcribing audio for metadata...")
             transcript = transcribe_audio(str(audio_path))
             metadata = generate_metadata(transcript, episode_number)
             save_chapters(metadata, str(chapters_path))
+            save_metadata(metadata, str(metadata_path))
             if not transcript_path.exists():
                 labeled_text = label_transcript_speakers(transcript["full_text"])
                 with open(transcript_path, "w") as f:
@@ -1607,6 +1734,10 @@ def main():
         # Save chapters file
         chapters_path = audio_path.with_suffix(".chapters.json")
         save_chapters(metadata, str(chapters_path))
+
+        # Save metadata so --resume recovers the real title, not a slug rebuild
+        metadata_path = audio_path.with_suffix(".metadata.json")
+        save_metadata(metadata, str(metadata_path))
 
         # Save transcript text file with LUKE:/CALLER: speaker labels
         transcript_path = audio_path.with_suffix(".transcript.txt")
