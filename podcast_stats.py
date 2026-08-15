@@ -29,8 +29,42 @@ YOUTUBE_PLAYLIST = "PLGq4uZyNV1yYH_rcitTTPVysPbC6-7pe-"
 APPLE_PODCAST_ID = "1875205848"
 APPLE_STOREFRONTS = ["us", "gb", "ca", "au"]
 SPOTIFY_SHOW_ID = "0ZrpMigG1fo0CCN7F4YmuF"
-NAS_SSH = "luke@mmgnas-10g"
 NAS_SSH_PORT = "8001"
+NAS_USER = "luke"
+NAS_HOST_WIRED = "mmgnas-10g"    # only reachable when the 10G cable is plugged in
+NAS_HOST_DEFAULT = "mmgnas"      # wireless/1G — always available
+_nas_host_cache = None
+
+
+def resolve_nas_host():
+    """Prefer the 10G wired host, fall back to the always-available one.
+
+    mmgnas-10g is only up when the cable is physically connected, so pinning it
+    made every NAS read fail silently on wifi — gather_castopod() returned zeros
+    that looked like real download numbers. Probed once per process and cached.
+    Set NAS_HOST to skip detection entirely.
+    """
+    global _nas_host_cache
+    override = os.getenv("NAS_HOST")
+    if override:
+        return override
+    if _nas_host_cache:
+        return _nas_host_cache
+    try:
+        probe = subprocess.run(
+            ["ssh", "-p", NAS_SSH_PORT, "-o", "ConnectTimeout=2", "-o", "BatchMode=yes",
+             f"{NAS_USER}@{NAS_HOST_WIRED}", "true"],
+            capture_output=True, timeout=10,
+        )
+        reachable = probe.returncode == 0
+    except (subprocess.TimeoutExpired, OSError):
+        reachable = False
+    _nas_host_cache = NAS_HOST_WIRED if reachable else NAS_HOST_DEFAULT
+    return _nas_host_cache
+
+
+def nas_ssh_target():
+    return f"{NAS_USER}@{resolve_nas_host()}"
 DOCKER_BIN = "/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker"
 CASTOPOD_DB_CONTAINER = "castopod-mariadb-1"
 
@@ -239,11 +273,12 @@ def gather_youtube(include_comments=False):
 
 def _run_db_query(sql):
     # If running on NAS (docker socket available), exec directly
-    docker_bin = None
-    for path in [DOCKER_BIN, "/usr/bin/docker", "/usr/local/bin/docker"]:
-        if os.path.exists(path):
-            docker_bin = path
-            break
+    # Only the QNAP container-station path means "we are running ON the NAS".
+    # Probing generic docker paths broke this on any dev machine with Docker
+    # Desktop installed: /usr/local/bin/docker exists, so this took the local
+    # branch, queried the wrong daemon, and returned zeros that looked like real
+    # download numbers instead of falling back to SSH.
+    docker_bin = DOCKER_BIN if os.path.exists(DOCKER_BIN) else None
 
     db_pass = os.getenv("CASTOPOD_DB_PASS", "")
     if docker_bin:
@@ -253,7 +288,7 @@ def _run_db_query(sql):
                "mysql", "-u", "castopod", "castopod", "-N"]
     else:
         cmd = [
-            "ssh", "-p", NAS_SSH_PORT, NAS_SSH,
+            "ssh", "-p", NAS_SSH_PORT, nas_ssh_target(),
             f"{DOCKER_BIN} exec -i -e MYSQL_PWD={db_pass} {CASTOPOD_DB_CONTAINER} mysql -u castopod castopod -N"
         ]
     try:
