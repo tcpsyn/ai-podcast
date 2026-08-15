@@ -78,3 +78,39 @@ def test_publish_flow_calls_it_after_copying_the_transcript():
     copy_at = source.index("Transcript copied to website/transcripts/")
     call_at = source.index("regenerate_website_pages()", copy_at)
     assert call_at > copy_at
+
+
+def test_generator_runs_after_the_publish_call():
+    """Ordering regression guard.
+
+    generate_episode_pages.py is driven entirely by the RSS feed, so it only
+    sees an episode once Castopod has published it. For 58 episodes the
+    regenerate call sat at step 3.7 — before the step-4 publish — so the
+    episode being published was silently absent from its own run and its page
+    only appeared on the NEXT publish. Social posts link to /episode/<slug>/,
+    so every launch-day link 404'd.
+
+    Asserted on source order because the surrounding publish flow does network
+    and filesystem work that isn't practical to drive end to end here.
+    """
+    src = Path(publish_episode.__file__).read_text()
+    body = src[src.index("def main("):]
+
+    publish_call = body.index("published = publish_episode(")
+    regen_call = body.index("regenerate_website_pages()")
+    deploy_call = body.index("wrangler")
+
+    assert publish_call < regen_call, (
+        "regenerate_website_pages() must run AFTER publish_episode(), or the new "
+        "episode is missing from the feed the generator reads"
+    )
+    assert regen_call < deploy_call, (
+        "regenerate_website_pages() must run BEFORE the wrangler deploy, or the "
+        "freshly built page never ships"
+    )
+
+
+def test_regenerate_is_called_exactly_once_in_main():
+    src = Path(publish_episode.__file__).read_text()
+    body = src[src.index("def main("):]
+    assert body.count("regenerate_website_pages()") == 1
