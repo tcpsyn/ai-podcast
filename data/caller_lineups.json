@@ -1,61 +1,6 @@
 {
   "lineups": [
     {
-      "timestamp": 1785804183.5018802,
-      "lineup": [
-        {
-          "name": "Silas",
-          "situation": "The Wellspring's first week on the new Terlingua land has hit a concrete crisis: their artisanal soap operation shipped three pallets of inventory to a freight depot in Odessa \u2014 the nearest hub \u2014 and the driver refuses to make the final leg to Terlingua without a paved-road guarantee Silas cannot give. Meanwhile, eleven members stayed behind in Deming, and two of those who did make the move left after three days, citing the heat and the lack of cell service. Tonight a member named Petra \u2014 one of Silas's longest-tenured people, a ceramicist who has been with The Wellspring for six years \u2014 told him she's leaving at sunrise because she can't live somewhere without a postal address. The soap pallets are sitting in Odessa. Petra is sleeping in her car. And Silas, standing on raw desert under a sky so dark he says it looks like a wound in the ceiling, is genuinely uncertain for the first time whether he made the right call moving everyone out here.",
-          "voice": "Sebastian"
-        },
-        {
-          "name": "Darlene",
-          "situation": "Darlene spent thirty-one years handling deed transfers, liens, and title searches for Pecos County. She retired four years ago. Last week her nephew \u2014 who works for a land-acquisition company out of Midland \u2014 let it slip at a family barbecue that his company has been buying up surface rights in a specific forty-square-mile corridor north of Fort Stockton using a web of LLCs with different registered agents so the pattern doesn't show up in any single county search. Darlene knows how to read those records. She spent two days at the courthouse pulling filings and confirmed it: nine separate LLCs, all registered in Delaware, all with the same notary stamp on the original formation docs. She doesn't know what they're positioning for \u2014 pipeline easement, a solar corridor, something else \u2014 but she knows the ranching families selling don't know they're all selling to the same buyer. Her nephew doesn't know she figured it out. She hasn't told anyone.",
-          "voice": "Loretta"
-        },
-        {
-          "name": "Trace",
-          "situation": "Trace has no moral crisis. He is calling because forty minutes ago, while doing his rounds at the Sul Ross livestock barn complex on the east side of campus, he found a full-grown pronghorn antelope standing completely still in the center aisle between the horse stalls. Not injured. Not panicked. Just standing there in the fluorescent light looking at him like it had somewhere to be. He has no idea how it got in \u2014 the barn doors were latched. The horses are losing their minds. The pronghorn is still there. He called animal control and got a voicemail. He called his supervisor and got told to 'use your judgment, son.' He is using the radio.",
-          "voice": "Levi"
-        },
-        {
-          "name": "Mireille",
-          "situation": "Mireille has been having an affair for eight months with a married man \u2014 Gil, a Marfa old-timer, third-generation ranching family, the kind of man whose grandfather's name is on a road. She knew it was wrong and she was ending it anyway. Then two weeks ago Gil had a stroke. He is alive, recovering at a hospital in Odessa, but his speech is affected and his wife \u2014 a woman named Sandra who has always been perfectly cold to Mireille at community events \u2014 has moved into full caretaker mode. Gil's adult daughter, who is running the ranch now, came to Mireille's studio last Thursday and handed her a handwritten note. It was in Gil's handwriting, clearly written before the stroke, and it said only: 'If something happens to me, tell Mireille I meant it.' Mireille does not know what he meant. She does not know if Sandra knows about her. She does not know what 'I meant it' refers to \u2014 whether it is a declaration of love, a reference to a specific conversation, or something else entirely. She has been holding this note for a week.",
-          "voice": "Naomi"
-        },
-        {
-          "name": "Cutter",
-          "situation": "Cutter has been building and repairing fence lines across Big Bend country his whole adult life \u2014 it's solitary work, days alone on a ranch road with a post-pounder and a roll of barbed wire. Three weeks ago on a job on a large private ranch north of Marathon, he found a section of fence that had been cut cleanly \u2014 not broken, cut, with wire cutters \u2014 on both sides of a buried metal box about the size of a shoebox that someone had sunk into the caliche. The box had a combination lock on it. He didn't open it. He reset the fence, finished the job, and said nothing to the ranch manager because he told himself it was none of his business. He's been on that same ranch twice since for other fence work and checked the spot both times. The box is still there. Tonight he drove past the turnoff on his way back to Marathon and sat on the road for twenty minutes trying to decide if he should go back. He didn't.",
-          "voice": "Hank"
-        },
-        {
-          "name": "Bexley",
-          "situation": "Bexley's best friend since high school is a woman named Tatum who moved to Alpine two years ago to be with her boyfriend, Cord \u2014 a Sul Ross graduate student in geology. Bexley thinks Cord is controlling: he monitors Tatum's location on her phone, calls during Bexley's visits until Tatum leaves the room, and has slowly isolated Tatum from her Odessa friendships. Bexley has said all of this to Tatum directly, twice. Tatum has defended Cord both times and told Bexley she's projecting. Last week Bexley processed an ER intake \u2014 she cannot say who, HIPAA \u2014 and the details of the intake, which she is not going to share, made her believe with near-certainty that Tatum had been in that ER without telling her. Bexley cannot ask Tatum directly without revealing that she works intake. She cannot confirm what she thinks she knows. And if she's wrong, she will have accused her best friend's boyfriend of something serious based on a records inference she was never supposed to make.",
-          "voice": "Wendy"
-        },
-        {
-          "name": "Prentiss",
-          "situation": "Prentiss has no crisis. He is calling because last Thursday, on a solo paddle through Santa Elena Canyon \u2014 the sheer limestone walls rising 1,500 feet on both sides, the Rio Grande running low and green in August \u2014 he had an experience he has been trying to describe accurately to people ever since and failing. At a particular bend where the canyon walls narrow and the river doubles back on itself, the sound went strange: his paddle strokes came back to him delayed, the echo timing was wrong in a way he couldn't explain, and for approximately ninety seconds he heard what he can only describe as a second river \u2014 same water sounds, same rhythm, but offset, like an audio track slightly out of sync with itself. He's run Santa Elena Canyon over four hundred times. He's never heard anything like it. He's not saying it was supernatural. He's saying it was acoustically real and he can't explain it and he wants to know if anyone else has heard it.",
-          "voice": "Conrad"
-        },
-        {
-          "name": "Odette",
-          "situation": "Odette's seventeen-year-old son, Jerome, has been accepted \u2014 informally, pending a formal offer \u2014 to a pre-architecture program at UT Austin that starts in January. It is a genuine opportunity: a full scholarship pipeline, small cohort, real mentorship. Jerome wants to go. Odette wants him to go. The problem is Jerome's grandfather \u2014 Odette's father, Hector, 74, who runs a small but still-operating cattle operation outside Marfa and who has been deteriorating physically for the past year. Jerome is the only grandchild who shows up. He fixes fences on weekends. He drives Hector to Presidio for doctor's appointments because Odette works. If Jerome leaves in January, Odette does not know who takes the grandfather calls. She cannot afford in-home help. Her brother in El Paso has made it clear he will not be coming back. She has not told Jerome that any of this is a factor \u2014 she has only told him she's proud of him \u2014 because she refuses to be the person who chains her son to this town by guilt.",
-          "voice": "Veronica"
-        },
-        {
-          "name": "Wendell",
-          "situation": "Wendell is not calling about a moral dilemma. He is calling because he has become mildly obsessed with something he calls 'ghost water' \u2014 his term for the phenomenon of ancient aquifer pockets in the Chihuahuan Desert bedrock that don't connect to the regional water table and have been sealed since the Pleistocene. In his thirty-five years of drilling, he has hit three of them: water under pressure, slightly warm, with a mineral profile completely unlike the surrounding aquifer. The water comes up, depletes in hours or days, and the pocket is gone. He's had the water from his most recent find \u2014 hit last spring on a private job near the Glass Mountains \u2014 analyzed by a lab in San Angelo. The mineral signature doesn't match any catalogued aquifer in the Trans-Pecos basin. He's been emailing a hydrogeologist at UTEP about it for four months and getting increasingly interested responses. He is calling tonight because he just got an email while driving that the UTEP researcher wants to come out and look at the site.",
-          "voice": "Duncan"
-        },
-        {
-          "name": "Joaquin",
-          "situation": "Joaquin has been covering weekend shifts for a coworker named Danny for three months \u2014 Danny said he was dealing with a family situation. Joaquin did it because Danny covered for him twice last year and because that's how it works. Two weeks ago Joaquin found out through a mutual friend that Danny has been spending those weekends doing paid catering gigs under the table \u2014 using a connection he made through their restaurant \u2014 and telling the restaurant owner that he has a family emergency standing arrangement. Danny is making good money. Joaquin has missed two of his band's gigs because he was covering those Saturdays. The band has a paying show booked at the Marfa Lights Festival in October \u2014 their first real booking \u2014 and it falls on a Saturday Danny has already asked Joaquin to cover again. Joaquin hasn't confronted Danny. He hasn't told the owner. He's just been doing the shifts and getting angrier.",
-          "voice": "Felix"
-        }
-      ]
-    },
-    {
       "timestamp": 1785806090.001651,
       "lineup": [
         {
@@ -547,6 +492,281 @@
           "name": "Cassander",
           "situation": "Cassander's dilemma is seven months old and has been slowly poisoning his sleep. He was hired to do the electrical rough-in on a major renovation of a historic adobe property on the edge of Marfa \u2014 a project backed by an out-of-town buyer who is converting it into a high-end short-term rental. During the work, Cassander found, inside a sealed wall cavity, a tin box containing what appears to be a handwritten ledger and several photographs dating to approximately the 1940s. The ledger records, in careful columns, what Cassander \u2014 after considerable research \u2014 believes are payments made to a Presidio County sheriff's deputy over several years, consistent with protection payments for a smuggling operation across the Rio Grande. The names in the ledger include surnames still prominent in Marfa and Presidio County today.",
           "voice": "Callum"
+        }
+      ]
+    },
+    {
+      "timestamp": 1786771164.690101,
+      "lineup": [
+        {
+          "name": "Silas",
+          "situation": "The convoy stopped two hours ago because Priscilla \u2014 one of the founding members, a woman who has been with The Wellspring for nine years \u2014 refused to go any further. She is sitting in the livestock trailer with the goats and will not come out. Silas says it's about the move, but the real crack is deeper: Priscilla quietly told him last week that she never believed in The Current, that she stayed all these years because she was in love with him, and that she is not interested in starting over in a ghost town for a man who will never love her back the way she needs. He gave her a beautiful speech about how The Wellspring holds everyone. She told him that was exactly the problem. Now the whole caravan is waiting on the shoulder of 118 in the dark and Silas is calling Luke, he says, for advice \u2014 but what he actually needs is for someone to tell him he's not the reason Priscilla is broken.",
+          "voice": "Sebastian"
+        },
+        {
+          "name": "Vondell",
+          "situation": "Four months ago Vondell ran the plates on a truck parked suspiciously long outside a house on the east side of town and found it came back to a man he grew up with \u2014 Garrett Sipes, who did eighteen months in Huntsville a decade ago for aggravated assault and moved away. Vondell ran the name deeper out of instinct and found an active warrant out of Reeves County \u2014 nothing violent, a failure to appear on a drug charge, but a warrant. He had every legal and professional reason to call it in immediately. He didn't. He knocked on the door instead, saw Garrett, and Garrett told him he'd come back because his mother had maybe three months left and he just needed to be with her until she passed. He wasn't using, wasn't dealing. Vondell let him go with a warning to handle the warrant after the funeral. Garrett's mother died six weeks ago. Garrett is still in Fort Stockton. He's coaching the other junior high team's defensive line. He has not handled the warrant. And now Vondell is in the position of either reporting a man who trusted him or continuing to cover for someone who played him.",
+          "voice": "Malcolm"
+        },
+        {
+          "name": "Wrenley",
+          "situation": "Wrenley is not calling about a crisis. She is calling because three weeks ago she discovered something about the Marfa Lights that she cannot find any record of anywhere and it is eating her alive with excitement. She was driving back from Presidio late on a Tuesday \u2014 Highway 67, the stretch before you hit town \u2014 and she saw the lights behaving in a way that is documented in the viewing literature: the splitting, the merging, the slow drift. She's seen them before, everybody out here has. But this time she had her phone out and was filming, and when she reviewed the footage at home she noticed something in the background of three consecutive frames that she has since frame-analyzed obsessively: a second, much smaller, stationary light source at a completely different elevation that does not appear in any of the documented Lights literature she can find, does not match car headlights on 67, and was not visible to her naked eye while she was filming. She's not claiming aliens. She's claiming there's a second phenomenon that nobody's catalogued.",
+          "voice": "Brooke"
+        },
+        {
+          "name": "Cordell",
+          "situation": "Cordell's dilemma is three weeks old and involves his younger brother, Ray, who is fifty-four and has ranched the same land outside Sanderson their father left them both since their dad died in 2009. The land was split in the will \u2014 Cordell got the northern parcel, Ray got the south. Cordell never worked his parcel; he was railroading and had no use for it. Eighteen years ago he let Ray run cattle on the northern parcel too, no paperwork, just a handshake because they're brothers. Three weeks ago a man from a wind-energy company came to Cordell's door with an easement offer for the northern parcel \u2014 a legitimate offer, good money, a lease for a met tower and potential turbine placement. Cordell wants to take it. Ray went silent and then sent a text that said: 'You do that, I lose the grazing on the north section and I'm underwater by spring.' Cordell didn't know Ray had borrowed against his own parcel to replace his well system last year. The wind money would save Cordell's retirement. Taking it would end Ray's ranch. They have not spoken in three weeks.",
+          "voice": "Hank"
+        },
+        {
+          "name": "Luz",
+          "situation": "Luz is not calling about a crisis. She is calling because she has discovered, in her first semester of range management coursework, that she has a talent she cannot fully explain \u2014 she can look at a stretch of Chihuahuan Desert caliche and tell you, with what her professor calls 'unsettling accuracy,' what the soil horizon looks like eighteen inches down, what grass species are suppressed under it, and whether it's been overgrazed in the last decade, just from the surface reads: plant spacing, cryptobiotic crust condition, the way certain indicator species colonize the margins. Her professor, Dr. Villareal, had her repeat the assessment blind twice and both times she was right. He told her quietly after class that in thirty years of range science he'd seen maybe two or three people who could read land like that without instrumentation. She grew up walking her grandfather's pastures in Maverick County. She thought everyone could see this.",
+          "voice": "Kayla"
+        },
+        {
+          "name": "Birch",
+          "situation": "Birch's dilemma is about his outfitter boss, a man named Denny who owns the operation and has run it for twenty years and is the closest thing Birch has to a father figure. Six weeks ago Birch found out \u2014 through a client who works in state water resources and let something slip over a campfire on a three-day float \u2014 that Denny has been falsifying the permit compliance logs for the Rio Grande outfitter license: overstating group sizes as under the NPS limit for Santa Elena Canyon while actually running groups two to four people over on high-demand weekends in spring. It's not catastrophic \u2014 the canyon doesn't get destroyed by four extra people \u2014 but the NPS permit is the entire business. If it comes out, Denny loses the license. Birch has spent six weeks telling himself it's minor. Then last week a group of eight came through on a permit logged as six, and one of them \u2014 a woman in her fifties who'd never been on a river \u2014 flipped in the Rockslide rapid and had to be pulled. She was fine. But Birch knows the safety ratios exist because of moments exactly like that.",
+          "voice": "Elliot"
+        },
+        {
+          "name": "Odessa",
+          "situation": "Odessa is not calling about a crisis. She is calling because she has been doing something for the past six years that she has never told anyone and it has become the most quietly important thing in her life: she has been teaching herself Jumano. Not Spanish, not the Tex-Mex border Spanish she grew up with \u2014 Jumano, the language of the people who lived in this basin before any of the categories that define the region existed. The Jumano were traders, river people, connected to the Rio Grande and the Conchos; their language is not fully reconstructed, it's not spoken conversationally anywhere, but there are colonial-era vocabularies, mission records, and she has been working through everything she can find with a linguistics professor at UT El Paso she found through interlibrary loan correspondence. She has maybe four hundred words. She uses them when she's alone on the land \u2014 names for landforms, weather conditions, animals. Tonight she was checking the water in the far pasture and she said the Jumano word for 'overcast sky at night' and something in her chest opened up.",
+          "voice": "Veronica"
+        },
+        {
+          "name": "Terp",
+          "situation": "Terp's dilemma is nine days old and involves a decision he cannot decide if he is proud of or not. He was at a bar in Pecos after a shift \u2014 not a place he goes regularly, just stopped because he was too tired to drive the rest of the way home \u2014 and he ended up next to a man who was loudly, happily telling the bartender about a business deal he'd just closed: a land lease for a surface rights agreement on a family's ranch outside Imperial that the family didn't know fully covered their water rights too. The man was not trying to hide this. He thought it was just good business. Terp \u2014 who grew up watching his own family lose a mineral-rights argument that cost them their land \u2014 asked to see the document the man had on his phone, said he was in the industry and could give it a read. The man showed him. Terp took a picture of the relevant clause. The next morning he drove to the family's ranch outside Imperial and knocked on the door and showed the rancher what the clause said. The rancher called a lawyer. The deal is now in dispute. The man from the bar has since figured out what happened and has filed a complaint with Terp's employer, alleging that Terp misrepresented himself as a legal professional.",
+          "voice": "Jason"
+        },
+        {
+          "name": "Constance",
+          "situation": "Constance is a true believer and she is calling dead serious. For the past three years she has been documenting what she believes is a pattern in the Brewster County property deed records that she spent thirty years maintaining: specifically, she believes that a series of land transfers in the Big Bend foothills between 1987 and 1994 were part of a coordinated effort \u2014 not by the government, she is careful to say, but by a private entity she has not been able to identify \u2014 to acquire a contiguous corridor of land running from just south of Alpine to within twelve miles of the Rio Grande. The transfers involved eleven different buyers, none of them connected on paper, over seven years. She has plotted them on a USGS topo map. The corridor aligns, she says, with no road, no pipeline easement, no utility right-of-way she can find. She has been to the county courthouse, the GLO archives in Austin, and the Permian Basin Petroleum Museum in Midland looking for the answer. She does not know what the corridor was for. She knows it was deliberate.",
+          "voice": "Elizabeth"
+        },
+        {
+          "name": "Farrell",
+          "situation": "Farrell's dilemma began two months ago and cracked open completely this past Thursday. He has a senior linebacker, a kid named Esteban, who is the best player Farrell has ever coached in fourteen years \u2014 full stop. Division II programs have been looking. There is a real possibility of a scholarship. Farrell has known for six weeks that Esteban is working nights at a warehouse in Presidio to help his family and is sleeping through first period every day. Farrell has been covering for him with the attendance office \u2014 marking him present when he's not \u2014 because missing that many classes threatens eligibility and Farrell convinced himself it was temporary and he was protecting the kid's future. On Thursday the principal called Farrell in and told him there's a discrepancy in the attendance records and that an audit is starting Monday. If the audit finds what Farrell did, it's falsification of school records. It ends his coaching career. It may also \u2014 and this is the thing that keeps him on the highway at midnight \u2014 void Esteban's eligibility retroactively and kill the scholarship anyway.",
+          "voice": "Timothy"
+        }
+      ]
+    },
+    {
+      "timestamp": 1786775456.3647301,
+      "lineup": [
+        {
+          "name": "Silas",
+          "situation": "The Wellspring convoy arrived on their new Terlingua land four days ago to find that a neighboring property owner \u2014 a retired Border Patrol agent named Craddock \u2014 has already filed a noise complaint with Brewster County about 'nighttime ceremonial activity,' and posted a hand-painted sign on the shared fence line that reads 'NO TRESPASSING \u2014 THIS MEANS THE NAKED ONES.' More pressingly, two of Silas's most practically skilled members \u2014 a couple named Theo and Margit who ran all the soap-curing logistics \u2014 announced this afternoon they're not staying. They love Silas, they support the community, but Terlingua is too remote from the fulfillment infrastructure they need, and they're driving back to Deming tomorrow morning. Without Theo and Margit the soap operation functionally collapses. Silas is sitting in his truck in the dark, genuinely unsettled, and called the show because he needs to think out loud.",
+          "voice": "Sebastian"
+        },
+        {
+          "name": "Clemmie",
+          "situation": "Three weeks ago Clemmie was going through her late grandmother's papers and discovered that the mineral rights to 800 acres of family land outside Marathon \u2014 rights everyone assumed had been sold off decades ago \u2014 are still in the family's name. The land itself was sold in 1987 but the mineral rights were severed and retained, and the paperwork is sitting right there in Clemmie's own office, filed under a name variant she never thought to search. She works in the county records office. She has looked at this paperwork ten thousand times in her career and never noticed it was hers. A landman from a Midland company called her grandmother's house \u2014 Clemmie's house now \u2014 six days ago. He was friendly, not pushy, offered a lease signing bonus that would pay off Clemmie's truck and her mother's medical debt in a single check. She hasn't called him back. She knows enough about how this works to know the first number is never the real number. But she also knows she doesn't know enough to negotiate this alone, and the people who do know enough are the same people who work for the companies doing the leasing.",
+          "voice": "Naomi"
+        },
+        {
+          "name": "Boone",
+          "situation": "Last Monday Boone drove a group of four park visitors \u2014 two couples from Austin, late thirties, fit, the kind of people who use the word 'intentional' \u2014 from Panther Junction out to the Chisos Basin trailhead. Standard run. On the way back, alone in the van, he found a dry bag wedged under the rear seat. Inside: a Ziploc of what he's nearly certain is psilocybin mushrooms, a handwritten note that reads 'for the summit \u2014 take at the saddle,' and a folded piece of paper with what looks like a hand-drawn map of a trail junction he doesn't recognize. He's a retired cop. He knows what he found. He also knows the Park Service lost three rangers in the last staffing cuts, the visitors are long gone back to Austin, and he spent thirty years watching the criminal justice system do things he didn't always agree with. He hasn't turned it in. He hasn't thrown it away. It's in his glove box and it's been there for five days.",
+          "voice": "Grant"
+        },
+        {
+          "name": "Reva",
+          "situation": "Reva has no moral crisis. She is calling because eight months ago, while cutting rebar at the fabrication shop, she accidentally discovered that if you run a specific gauge of galvanized rebar through the shop's old plasma cutter at a particular feed speed, it produces a tone \u2014 a sustained, resonant hum \u2014 that she has been unable to find described anywhere in any acoustic or materials literature she can access. She has since built a series of instruments from scrap rebar and the shop's cast-off metal stock that produce a scale of tones she's calling the 'rust register.' She's been performing solo concerts in the desert at night, alone, for an audience of no one, for five months. Tonight she played for the first time in front of another human being \u2014 her roommate, who cried without knowing why \u2014 and she needs to talk about what that means.",
+          "voice": "Chloe"
+        },
+        {
+          "name": "Harbert",
+          "situation": "Two months ago Harbert's fourteen-year-old son, Cody, came to him with a business plan \u2014 a written, printed, stapled business plan, six pages, with a market analysis and projected revenue \u2014 for a small-engine repair operation he wants to run out of the garage. Harbert's first instinct was pride. His second instinct, which arrived about twenty minutes later while actually reading the plan, was alarm: the projected revenue in year two assumes Cody will be doing thirty hours of billable work a week. Cody is in eighth grade. Harbert grew up poor, worked his first real job at twelve, missed everything, and has spent sixteen years of parenting specifically trying to make sure his kids don't have to do what he did. He doesn't know how to tell his son that his ambition is beautiful and also that Harbert will not allow it \u2014 that the plan is good enough that saying no feels like crushing something real, but saying yes feels like handing his kid the same trap Harbert climbed out of.",
+          "voice": "Clive"
+        },
+        {
+          "name": "Soledad",
+          "situation": "Soledad's dilemma is eleven days old and involves a single sentence. She was interpreting a deposition \u2014 civil matter, property dispute, nothing dramatic \u2014 when the opposing party's witness, an older man she'd never met, said something in Spanish that she interpreted accurately but that she now believes she may have rendered in a way that, while technically correct, removed an ambiguity that was present in the original and that the ambiguity itself may have been legally meaningful. The Spanish phrase carried a conditional inflection \u2014 'podr\u00eda haber sabido' \u2014 that in context could mean either 'I could have known' or 'I might have known,' and she chose the more definitive rendering because it was cleaner, and the deposition moved on, and the case settled four days later. She doesn't know if it mattered. She doesn't know if it didn't. She has looked at her own transcript twelve times.",
+          "voice": "Serena"
+        },
+        {
+          "name": "Whitmore",
+          "situation": "Whitmore has no moral crisis. He is calling because this afternoon, while cleaning out the last of his office at Sul Ross \u2014 he retired in May, delayed clearing it all summer \u2014 he found a box of field samples from a 1987 survey he ran in the Santiago Mountains northeast of Big Bend that he had completely forgotten existed. He ran the samples through a portable XRF analyzer his former graduate student left him as a retirement gift, out of curiosity, and got elemental readings that don't match anything in the published literature for that formation. He's not saying what he thinks it might be \u2014 he's been in geology long enough to know the distance between an anomalous reading and a discovery \u2014 but he is saying he spent thirty-one years teaching students to follow anomalies and he is now seventy-two hours from driving back out to the Santiago Mountains alone to look at a rock formation he surveyed thirty-nine years ago.",
+          "voice": "Rupert"
+        },
+        {
+          "name": "Tremont",
+          "situation": "Tremont is a true believer and he is calling dead serious. For the past four months he has been documenting what he is absolutely convinced is a pattern of infrasound \u2014 low-frequency sound below the threshold of human hearing \u2014 emanating from a specific stretch of canyon wall in Santa Elena Canyon on the Rio Grande. He has not heard it. He has felt it. He first noticed it on a solo scout paddle in April when his chest cavity began vibrating at a specific bend in the canyon and his vision went briefly strange and he felt what he describes as 'borrowed dread' \u2014 not his own fear, but fear arriving from outside him. He has since taken a group through that same bend nine times, tracking who reports unease, nausea, visual disturbance, or sudden unexplained emotion. His data: seven of nine groups had at least one member report an anomalous physical sensation at the same GPS coordinate. He has a theory about the canyon geometry acting as a resonant chamber and he has read every paper he can find on infrasound and geological acoustics. He is not saying it's supernatural. He is saying the canyon is doing something to human bodies at that location and nobody is studying it.",
+          "voice": "Ethan"
+        },
+        {
+          "name": "Petra",
+          "situation": "Petra's dilemma is about her hired hand, a man named Gilberto who has worked her ranch for fourteen years and who she considers, without any sentimentality about it, the most competent and reliable person she has ever employed. Last week Gilberto told her quietly that his son \u2014 twenty, currently in Odessa on a construction crew \u2014 had gotten into serious trouble and needed bail money and a lawyer, and asked if Petra could advance him three months' pay. She said yes immediately, wrote the check that afternoon, didn't ask details. Two days later she found out from a neighbor that Gilberto's son's trouble involves a felony charge for assault. She doesn't want the money back. She doesn't want Gilberto to leave. She is not questioning her decision. What she is sitting with is that she wrote that check for Gilberto without a thought, and six months ago she had an employee \u2014 a younger man named Travis \u2014 ask her for a two-week advance for a family emergency, and she asked questions, and waited two days, and said no. The difference between how she treated those two requests is something she cannot explain away.",
+          "voice": "Eleanor"
+        },
+        {
+          "name": "Odell",
+          "situation": "Odell has no moral crisis. He is calling because this evening his great-niece \u2014 visiting from El Paso, twenty-two, a nursing student \u2014 sat with him for three hours going through a box of photographs he's been meaning to sort for fifteen years, and they found a photograph he has never been able to explain and never showed anyone. It was taken in 1963 by his father \u2014 a Kodak Brownie shot \u2014 on the platform of the Southern Pacific depot in Alpine. The photograph shows his father and two other men standing in front of a locomotive. One of the men, on the left, is wearing a Southern Pacific uniform and is looking at the camera. The third man, on the right, is a stranger \u2014 no uniform, civilian clothes, hat brim down \u2014 and has no face. Not blurred. Not overexposed. The face is simply absent, replaced by an area of the photograph that is the same color and texture as the background sky behind him. His father never explained it. Odell has looked at this photograph for sixty years and never shown it to a soul because he didn't want people to think he was touched. His great-niece said, very calmly, 'Uncle Odell, you need to tell somebody about this,' and handed him the phone.",
+          "voice": "James"
+        }
+      ]
+    },
+    {
+      "timestamp": 1786776545.7279181,
+      "lineup": [
+        {
+          "name": "Marguerite",
+          "situation": "This afternoon Silas announced that the commune is restructuring its internal 'gift economy' \u2014 meaning members who want to leave must formally petition to reclaim any personal property they brought in, which is now considered 'collectively held.' Marguerite brought in a 2019 Subaru Forester when she joined. The car has been driven communally for years and Silas is now saying it belongs to the collective. It is the one asset she has. She looked up the title this afternoon \u2014 it is still in her name. But the keys are on a communal hook and she does not know if she can just take it without it becoming a thing, and she does not know if she can afford the fallout of it becoming a thing while she is still living here.",
+          "voice": "Marlene"
+        },
+        {
+          "name": "Delphine",
+          "situation": "Four days ago Delphine was doing a routine chest X-ray on a patient \u2014 an older rancher, not from Alpine, she had never seen him before. Standard intake. While she was positioning him she noticed a tattoo on his forearm: a very specific design, a running horse over a compass rose, that she has only ever seen once before, on her biological father, who she has not seen since she was nine years old. The patient's last name on the chart was different from her father's name. She did not say anything. She finished the scan. She has his date of birth from the chart. He would be 61. Her father would be 61. She does not know what to do with this and cannot ask anyone at work without it becoming a HIPAA situation.",
+          "voice": "Zadie"
+        },
+        {
+          "name": "Crockett",
+          "situation": "Crockett is not calling about a crisis. He is calling because he has just returned from a 31-mile walk \u2014 he left Fort Stockton at 3 a.m. this morning, walked to the base of the Glass Mountains and back, finished at dusk \u2014 and he is still buzzing and there is nobody awake to tell. He has been doing these extreme desert walks for two years, has logged over 1,400 miles in the Trans-Pecos, and has developed a body of specific, granular knowledge about what the desert does to a human body in August that he considers genuinely interesting and has never seen written down anywhere. Tonight he walked through the heat of the afternoon and has opinions about it.",
+          "voice": "Carter"
+        },
+        {
+          "name": "Sybil",
+          "situation": "Sybil's dilemma is about something she did last Tuesday and has been reconstructing ever since. She was hired six months ago to write grants for a small Marfa arts residency \u2014 legitimate work, good client. In reviewing their financials to write a foundation letter, she found what looked like the residency director double-billing a donor: the same $4,000 studio renovation billed to two separate grants in the same fiscal year. She finished the grant, submitted it, took her fee. She did not say anything. The new grant she just submitted was for $18,000. She does not know if she just helped someone commit grant fraud, whether what she saw was actually fraud or just sloppy bookkeeping, or whether saying something now \u2014 after taking the money \u2014 makes her more complicit or less.",
+          "voice": "Kelsey"
+        },
+        {
+          "name": "Absalom",
+          "situation": "Absalom is not calling about a crisis. He is calling because tonight, with the overcast and the specific barometric pressure, the fence line along his property is producing a tone he has never heard in forty years \u2014 a clean, sustained E-flat, not a harmonic, not a whistle, a pure tone \u2014 and he has been outside for two hours with a chromatic tuner and a notebook and he cannot explain it and he is delighted. He has spent years cataloguing the sounds the desert makes through wire and wood and tonight the desert has given him something new.",
+          "voice": "Dennis"
+        },
+        {
+          "name": "Vestina",
+          "situation": "Vestina's dilemma is about her sixteen-year-old son, Marcus, and a thing she found on his phone three days ago that she was not snooping for \u2014 she was looking for a photo of a receipt he said he'd taken. What she found was a months-long text thread with a man who Marcus calls 'Coach V,' who is not any coach at Alpine High School. The messages are not sexual. But they are \u2014 she keeps coming back to this word \u2014 grooming-adjacent. The man is teaching Marcus about 'real masculinity,' sending him podcasts, calling the boy's teachers 'feminized,' telling him his mother 'means well but doesn't understand what you need to become.' Marcus does not know she saw it. She does not know who this man is. She does not know if she confronts Marcus, goes to the school, calls the police, or just takes the phone \u2014 and she is terrified that any of those moves pushes Marcus toward this person harder.",
+          "voice": "Amina"
+        },
+        {
+          "name": "Fen",
+          "situation": "Fen is not calling about a crisis. He is calling because today he made a navigational decision on a float trip that he is almost certain saved his clients' lives and nobody will ever know, and the anonymity of it is making him feel something he cannot name. A solo client \u2014 retired professor, late sixties, rented a solo kayak for a half-day on a calm stretch \u2014 got into trouble in a hydraulic near the mouth of a side canyon that forms in high water. Fen read the water from upstream, repositioned his safety throw bag, and was exactly where he needed to be. The client barely knew anything had happened. Fen never told him how close it was. Tonight he is sitting outside the Starlight with a beer and the whole thing keeps replaying \u2014 not with pride, but with a strange, vertiginous feeling about how thin the margin was.",
+          "voice": "Jonah"
+        },
+        {
+          "name": "Lurleen",
+          "situation": "Lurleen's dilemma is about her own body and a decision she made without telling anyone. Six weeks ago a doctor in Midland told her she has a benign but symptomatic uterine fibroid that can be managed with medication or removed with a procedure \u2014 her choice, no emergency. She chose the procedure, scheduled it for three weeks from now, and has told no one: not her kids, not her ex-husband, not her sister. She has been driving herself to all the pre-op appointments. She is not scared of the procedure. She is increasingly unsettled by how easy it has been to keep this secret \u2014 how little anyone in her life has noticed she has been preoccupied \u2014 and tonight she realized that if something went wrong on the table, no one would know to come.",
+          "voice": "Victoria"
+        },
+        {
+          "name": "Prospero",
+          "situation": "Prospero has spent the past eighteen months documenting what he is completely convinced is a deliberate, systematic distortion of historical property survey lines in Presidio County \u2014 not errors, not drift, not equipment failure, but a coordinated pattern of falsified baseline monuments going back to the 1930s that he believes was used to quietly absorb water rights from smaller landowners, primarily Mexican-American families, over several decades. He has 400 pages of cross-referenced survey records, GLO plats, and field measurements he has taken himself. He knows exactly how this sounds. He has a surveyor's license and knows exactly what the discrepancies mean technically. Tonight he called because he found a monument this afternoon \u2014 a brass cap set in concrete on a ranch road east of Presidio \u2014 that matches a false baseline he has been tracking for a year and a half, and it has a date stamp that is fifteen years earlier than the GLO record says it was set.",
+          "voice": "Oliver"
+        },
+        {
+          "name": "Colette",
+          "situation": "Colette's dilemma happened last night and she has not slept. She has been in a casual, explicitly non-serious sexual relationship for four months with another graduate student \u2014 a man named Garrett, in the geology program \u2014 that both of them agreed was low-stakes and fine. Last night, after sleeping together, Garrett told her, in what she believes was genuine good faith and not manipulation, that he has been offered a postdoc at University of Montana starting in January and that he has also been quietly falling in love with her for two months and did not know how to say so and is now saying so because he is leaving. He did not ask her anything. He just told her. She did not respond. She got up and went home. She has been lying in her bed since midnight processing the fact that she might also be in love with him and has successfully hidden this from herself for eight weeks, and that in five months he will be in Montana, and that she has fourteen months left on her dissertation.",
+          "voice": "Julia"
+        }
+      ]
+    },
+    {
+      "timestamp": 1786776933.956095,
+      "lineup": [
+        {
+          "name": "Doyle",
+          "situation": "Three days ago a new member \u2014 a woman named Priscilla who joined in June \u2014 came to Doyle and asked him to co-sign a document she described as a 'community stewardship transfer.' He read it. It was a limited power of attorney assigning Silas authority over personal financial accounts in the event of a member's 'spiritual incapacity.' Doyle recognized the language because he had signed something similar himself, eleven months ago, and had been told it was a liability waiver for the soap equipment. He went back to his truck and found his copy. It is the same document with different blanks filled in.",
+          "voice": "Grant"
+        },
+        {
+          "name": "Rhett",
+          "situation": "Rhett has been managing a quiet, five-year entanglement with a woman named Deb \u2014 married, husband works a two-week rotation in the Delaware Basin. The arrangement has been stable, both parties clear-eyed, nobody asking for more than it is. Last Thursday Deb told Rhett that her husband has been diagnosed with early Parkinson's and she is ending things \u2014 not because of guilt, she said, but because she is going to need to be fully present for what comes next. Rhett said all the right things. He meant them. He drove home, sat in his driveway for an hour, and realized the thing he is most ashamed of: his first feeling, before the sympathy, was relief. He has been turning that over ever since.",
+          "voice": "Conrad"
+        },
+        {
+          "name": "Colquitt",
+          "situation": "Colquitt has no moral crisis. He is calling because this past Tuesday he harvested the first ripe pods from a chile plant he grew from a seed he pulled out of a dried pepper his grandmother brought from M\u00fazquiz, Coahuila, in 1971 \u2014 a variety he has never been able to identify, that no extension agent or seed bank has been able to name, that produces a small, nearly black pod with a smell he describes as 'like smoke and citrus and something that doesn't have a word.' He ate one raw, standing in the dirt at 7 a.m., and it was the best thing he has ever put in his mouth. He has been trying to tell this to people for four days and nobody will let him finish.",
+          "voice": "Arthur"
+        },
+        {
+          "name": "Waverly",
+          "situation": "Waverly's dilemma happened six days ago and she has told no one. She is TAing an undergraduate field ecology course. One of her students \u2014 a junior named Cord, quiet, works a part-time ranch job, genuinely good at field identification \u2014 submitted a GPS track log and field notes from a solo transect that she recognized immediately, because she had walked the same transect herself two years ago and taken photos. His coordinates were real. His species list was accurate. But his written observations were word-for-word identical to a blog post she found in twenty minutes of searching \u2014 a post by a birder from Tucson who had visited the same drainage in 2021. The student does not know she found it. She has not reported it. She has been trying to decide whether to.",
+          "voice": "Tessa"
+        },
+        {
+          "name": "Beto",
+          "situation": "Beto is a true believer and he is calling dead serious. For the past fourteen months he has been documenting what he is completely convinced is a pattern of deliberate, coordinated interference with the FM broadcast signal in the Presidio-Ojinaga corridor \u2014 specifically, a carrier wave that appears on 91.3 MHz between 11 p.m. and 2 a.m. on nights when the wind is below ten miles per hour and the temperature drops past a certain threshold. He has logged forty-one occurrences. The signal carries no audio \u2014 just a pure tone that sweeps from 300 Hz to 900 Hz over exactly ninety seconds and then stops. He has three neighbors who have heard it on their radios. His theory is not extraterrestrial. His theory is that it is a ranging signal \u2014 something measuring distance or depth \u2014 and that whoever is sending it does not know or does not care that it bleeds into the FM band.",
+          "voice": "Timothy"
+        },
+        {
+          "name": "Linden",
+          "situation": "Four months ago Linden was hired to rewire a historic adobe on San Antonio Street that a buyer from Portland had purchased and was converting into a short-term rental. Standard job \u2014 he has done fifty of them since the money started coming into Marfa. On the last day of the job, while pulling old knob-and-tube from inside a wall cavity, he found a metal tin, soldered shut, with a name stamped on the lid that he recognized: his mother's maiden name, Ronquillo. He pried it open. Inside were forty-seven photographs \u2014 formal portraits, family groups, one wedding photo \u2014 and a folded paper in Spanish that he had partially translated by a woman at the post office. The paper appears to be a record of land \u2014 varas, boundaries, a family name \u2014 predating the current deed by at least sixty years. He has not told the Portland buyer. He has not told his mother, who is 74 and lives in a care facility in Alpine. He has been sitting with the tin in his truck for four months.",
+          "voice": "Blake"
+        },
+        {
+          "name": "Calla",
+          "situation": "Calla has no moral crisis. She is calling because this past spring she discovered, entirely by accident, that the clay in a specific arroyo drainage two miles from her property fires to a color she has never seen in any reference \u2014 a deep, warm black with an iridescent surface quality that appears under certain light conditions and disappears under others. She has been mining it in small quantities, testing it, and has now produced thirty-seven pieces. A ceramicist she respects, a woman who teaches at UT, saw photos and told her she had never seen anything like it and asked where it came from. Calla has not told her. She has not told anyone. She is calling tonight because she sold her first piece from this clay two weeks ago \u2014 to a gallery in Santa Fe, for $1,400 \u2014 and the gallery has asked for more, and she is now facing the question of how much of the arroyo she is willing to excavate before it's gone.",
+          "voice": "Veronica"
+        },
+        {
+          "name": "Talmadge",
+          "situation": "Talmadge's dilemma is three weeks old and involves his only neighbor within ten miles \u2014 a man named Clifford who ranches the adjoining section and whose family has been on that land as long as Talmadge's. Three weeks ago Talmadge found a section of his fence cut \u2014 not broken, cut, with wire cutters, three strands, in a spot where his Angoras had gotten through and onto Clifford's property. He gathered his animals, repaired the fence, and said nothing. Last week he found another cut section, different location, same clean cuts. He checked his water records and realized that in both locations, the cuts were within fifty yards of underground water easements \u2014 old ones, hand-recorded in the county seat, that would give a third-party buyer access to drill. He looked up the Terrell County deed records. Clifford sold a subsurface water option to a Midland LLC six months ago. Talmadge and Clifford have not had a cross word in thirty-one years.",
+          "voice": "Duncan"
+        },
+        {
+          "name": "Imogen",
+          "situation": "Imogen is not calling about a crisis. She is calling because this afternoon in her structural geology lab she learned something that she cannot stop thinking about and that she has been trying to explain to her roommate for two hours without success. The thing is this: the Ouachita fold belt \u2014 an ancient mountain range that collided with North America roughly 300 million years ago \u2014 runs directly under the Big Bend region, buried under thousands of feet of younger rock, invisible from the surface. The mountains she can see from her window are not those mountains. Those mountains are gone. What she is standing on is the grave of a mountain range larger than the Himalayas, and nobody walking around out here knows it is under their feet, and she finds this overwhelming in a way she cannot fully explain.",
+          "voice": "Anjali"
+        },
+        {
+          "name": "Pruett",
+          "situation": "Pruett's dilemma is eleven days old and involves a thing he did that he believes was right and cannot stop second-guessing. A Midland energy company submitted a valuation appeal on a 4,000-acre parcel they had purchased and were listing for ag-use exemption \u2014 standard procedure, he has processed hundreds. While reviewing the file he found that the parcel had been divided from a larger holding eighteen months earlier in a way that appeared designed specifically to qualify for the exemption \u2014 a tax savings of roughly $180,000 per year. He researched the parent parcel. The division was legal. The exemption was technically valid. He approved it, because it was his job to approve valid exemptions. He drove home and has not slept more than four hours since.",
+          "voice": "Shaun"
+        }
+      ]
+    },
+    {
+      "timestamp": 1786777096.6433768,
+      "lineup": [
+        {
+          "name": "Silas",
+          "situation": "The Wellspring arrived on the Terlingua land six days ago. The physical move is done \u2014 the bus is parked, the goats are adjusting, three members who refused to come have formally left, and Silas has been trying to frame this as a rebirth. But tonight a specific, concrete problem surfaced: the Terlingua Ghost Town community Facebook group has been going after the commune hard, and someone \u2014 he suspects a local \u2014 tipped off a journalist at the Alpine Avalanche about the 'shared intimacy nights.' The reporter left a voicemail asking for comment. Silas is genuinely unsettled, not because he's ashamed of anything the community does, but because he knows how this story will be written and he's worried it will terrify the remaining members who are already exhausted and disoriented. He's calling Luke partly for media advice, partly because Luke has a platform in this region and Silas wants to get ahead of it.",
+          "voice": "Sebastian"
+        },
+        {
+          "name": "Clem",
+          "situation": "Three weeks ago a guest checked into the Gage \u2014 a man from Dallas, early sixties, in town for a week \u2014 who struck up a conversation with Clem during a slow night and eventually admitted he was a land broker scouting the Marathon Basin for a solar energy company. He showed Clem a map. The map had Clem's family's 4,200 acres highlighted. The broker wasn't there to approach Clem \u2014 he didn't even know who Clem was at first \u2014 but once he figured it out, he made an informal offer so large that Clem has been unable to sleep since. It's enough to pay off the ranch debt, his mother's medical bills, and have money left over. But it would end 90 years of family ranching. His father is 71 and doesn't know the offer happened. Clem hasn't told him. He's been sitting on it alone for three weeks.",
+          "voice": "Hank"
+        },
+        {
+          "name": "Yvette",
+          "situation": "Yvette is not calling about a crisis. She's calling because today in the campus library she stumbled onto something genuinely strange and wonderful: a box of uncatalogued letters, misfiled in the Sul Ross archives, written between 1962 and 1971 by a Big Bend ranch woman named Opaline Harkey to an unnamed correspondent she calls only 'the one who reads.' The letters are ferociously literary \u2014 descriptions of the Chisos at dusk, of drought, of a marriage going cold \u2014 and whoever Opaline was writing to, she was in love with them. Nobody at the library knows how the letters got there. There's no Opaline Harkey in any local record Yvette can find. She spent five hours reading them today instead of working on her thesis and she is lit up about it.",
+          "voice": "Nadia"
+        },
+        {
+          "name": "Decker",
+          "situation": "Decker's dilemma is nine days old and involves a call he made on the job. He was doing a routine safety inspection on a small independent operation outside Fort Stockton \u2014 a two-well pad, family-owned, run by a man named Prudhomme who has been drilling in Pecos County for thirty years. Decker found a real violation \u2014 a blowout preventer with a faulty seal, documentation they'd been ignoring for eight weeks. By the book, he should cite it, flag the BLM, shut them down while it's corrected. He's done it dozens of times. But Prudhomme's operation employs eleven people \u2014 guys Decker knows \u2014 and Prudhomme told him, unprompted, that he's already fighting a bank note and a citation right now would trigger a default. Decker gave him a verbal warning and a ten-day window to fix it quietly. He told himself it was a judgment call. He's been telling himself that for nine days and it's not working anymore.",
+          "voice": "Craig"
+        },
+        {
+          "name": "Blythe",
+          "situation": "Blythe is not calling about a crisis. She is calling because last month she was hired to assess a collection of Navajo blankets for a private collector in Marfa \u2014 routine work \u2014 and in the process of documenting the collection she identified one blanket, a late-Classic period piece probably woven between 1860 and 1875, that she believes was looted from a federal collection sometime in the mid-twentieth century. She's been doing provenance research for three weeks. The collector has no idea. The blanket is not obviously famous \u2014 it doesn't appear in any published theft records she can find \u2014 but the archive photo she found, from a 1952 BIA inventory photograph, is a near-certain match. She's almost sure. And tonight she hit the specific thread that makes her almost sure into just sure: a repair on the blanket's corner edge, a distinctive Z-twist reweave, appears in both the 1952 photo and the piece on the collector's wall.",
+          "voice": "Eleanor"
+        },
+        {
+          "name": "Odis",
+          "situation": "Odis is a true believer and he is dead serious. For the past fourteen months he has been documenting what he is completely certain is a pattern of structural road subsidence on a specific twelve-mile stretch of US Highway 90 between Valentine and Marfa \u2014 not random pavement failure, not normal freeze-thaw cycling, but a deliberate, systematic pattern that corresponds precisely to the underground route of a buried fiber-optic trunk line installed by a federal contractor in 2019. His theory: the contractor used a substandard bore-and-case method through a caliche layer, and TxDOT and the federal contractor are quietly patching surface failures rather than admitting the subsidence is ongoing and the line itself may be compromised. He has GPS coordinates of 23 distinct failure points. He has mapped the line from public utility filings. He has photographed every patch. He is absolutely certain someone doesn't want this known because of what that fiber-optic trunk line carries \u2014 he believes it is part of a classified military communications backbone connecting Laughlin Air Force Base to something in the Chinati Mountains.",
+          "voice": "Theodore"
+        },
+        {
+          "name": "Mireille",
+          "situation": "Mireille's dilemma is four days old and involves her closest colleague \u2014 a woman named Patrice who teaches English at the same school and who Mireille has eaten lunch with almost every school day for nine years. Last Tuesday, after a faculty meeting, Patrice told Mireille that she is planning to report their principal, Dale Cortez, to the district for a pattern of behavior that Patrice describes as creating a hostile work environment \u2014 a year of dismissiveness, exclusion from curriculum planning, public undermining in front of parents. Patrice asked Mireille to be a corroborating witness. Mireille was in the room for some of it. But here's what Mireille hasn't told Patrice: Mireille knows \u2014 because Cortez told her in confidence six months ago \u2014 that Patrice was passed over for a department chair position because of two formal parent complaints filed against her in 2023, complaints that were handled quietly and that Patrice apparently doesn't know exist. Mireille doesn't know if the complaints were legitimate. She doesn't know if telling Patrice would help or hurt her. And she doesn't know if staying silent to protect Cortez's confidence makes her complicit in something real.",
+          "voice": "Serena"
+        },
+        {
+          "name": "Sawyer",
+          "situation": "Sawyer is not calling about a crisis. He is calling because he discovered something this week that he cannot stop thinking about: the Rio Grande in the Big Bend \u2014 in certain canyon stretches, in certain light, at certain water levels \u2014 produces a specific acoustic phenomenon where the canyon walls create a standing wave of sound, a low harmonic resonance, that he can hear and feel in his chest while floating silent in an eddy. He's been trying to figure out for three months if this is a known thing or if he's losing his mind. This week he found a 1987 geological survey paper from a UT Austin researcher that documents the same phenomenon in Santa Elena Canyon specifically and calls it 'sub-auditory canyon resonance' \u2014 and the paper was never followed up on and the researcher died in 1994. Sawyer has been recording it on his phone from a kayak and he is absolutely bursting to talk about it.",
+          "voice": "Levi"
+        },
+        {
+          "name": "Bertram",
+          "situation": "Bertram's dilemma is two weeks old and he cannot resolve it no matter how he turns it. He responded to a medical call in early August \u2014 a man found unconscious on a ranch road about twelve miles outside Sanderson, no ID, no vehicle nearby. Bertram and his partner stabilized the man and got him to the Sanderson clinic, and the man eventually came around. The man refused to give his name or any identification, refused to let staff contact anyone, and left the clinic against medical advice the following morning. Bertram would have forgotten the whole thing except: he recognized the man. He's almost certain \u2014 seventy, maybe eighty percent certain \u2014 that it was his ex-wife's brother, a man named Terrel Groves, who Bertram hasn't seen in fifteen years, since the divorce, and who the family cut off years before that over a theft from their mother. Bertram hasn't told anyone. He hasn't tried to contact his ex-wife. He doesn't know if Terrel is in trouble, hiding from something, or just living rough. He keeps thinking about that man walking out of the clinic alone and where he went.",
+          "voice": "Malcolm"
+        },
+        {
+          "name": "Nola",
+          "situation": "Nola's dilemma happened eight days ago and involves a man she has been sleeping with for six weeks \u2014 a visiting ceramics instructor named Griffin, brought in for a summer workshop at the Sul Ross art department, who is from Portland and is supposed to leave for home in eleven days. The sex has been good and she was clear going in that it was temporary and she was fine with that. What she is not fine with, and did not see coming, is that Griffin told her four nights ago that he is thinking about staying \u2014 not forever, just through the fall, maybe longer, he likes it here \u2014 and he said it right after they had sex and she said something warm back without thinking, and now she's been sick about it for four days. She does not want him to stay. She does not want a real relationship with him. She has not told him this. She keeps not telling him. And the longer she doesn't tell him, the more she's letting him rearrange his life around a version of her that said something warm and isn't correcting it.",
+          "voice": "Jessica"
         }
       ]
     }

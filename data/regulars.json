@@ -48,9 +48,19 @@
           "summary": "The caller, Concho, reports seeing mysterious vehicles mapping water sources on private ranches for nearly a year. He fears a large entity is compiling a secret inventory of water rights before making claims, and is frustrated that landowners dismiss his concerns. By the end of the call, Concho seems defeated, accepting that he's done all he can.",
           "timestamp": 1785831693.931573,
           "arc_status": "ongoing"
+        },
+        {
+          "summary": "Silas called in to discuss a land dispute with his new neighbor in Alpine, Texas, which he initially framed as a problem with conflicting surveys and the potential loss of his well. However, through the conversation, he emotionally revealed that this dispute has triggered anxieties from a past failed communal living project in New Mexico, leading him to realize he's been neglecting the spiritual foundation and community-building aspects of his new \"Wellspring\" project, and needs to reconnect with his values and address past relational issues.",
+          "timestamp": 1786774547.786939,
+          "arc_status": "ongoing"
+        },
+        {
+          "summary": "Imogen called to share her fascination with a massive, ancient, and now invisible mountain range buried under West Texas. While the host didn't share her excitement for the \"invisible\" geology, Imogen became emotional as she realized her limited perspective as a geology student and expressed a newfound desire to travel and see exposed geological wonders.",
+          "timestamp": 1786782497.5843341,
+          "arc_status": "ongoing"
         }
       ],
-      "last_call": 1785831693.931576,
+      "last_call": 1786782497.584337,
       "created_at": 1772430000.0
     },
     {
@@ -95,6 +105,49 @@
       ],
       "last_call": 1780395016.482204,
       "created_at": 1780395016.482204
+    },
+    {
+      "id": "1ce9d902",
+      "name": "Linden",
+      "gender": "female",
+      "age": 41,
+      "job": "Electrician and contractor, born in Marfa, one of the dwindling number of working-trades people who actually grew up there rather than arrived for the art scene",
+      "location": "Marfa, Texas",
+      "personality_traits": [
+        "The wedding photograph shows a couple he does not recognize, but the woman is wearing a dress his mother described to him once \u2014 dark fabric, high collar, buttons to the throat \u2014 when she talked about her own grandmother's wedding, which his mother said she had never seen a photo of",
+        "The Portland buyer has texted him twice asking for a referral for a plumber, and Linden has answered both texts normally, and this is the thing that makes him feel worst",
+        "He has not opened the tin again since the first night \u2014 he resealed it with electrical tape and put it under the seat, and he knows where it is in the dark by the sound it makes when he takes a curve"
+      ],
+      "voice": "Sophie",
+      "stable_seeds": {},
+      "structured_background": {
+        "name": "Linden",
+        "age": 41,
+        "voice": "Blake",
+        "location": "Marfa, Texas",
+        "identity": "Electrician and contractor, born in Marfa, one of the dwindling number of working-trades people who actually grew up there rather than arrived for the art scene",
+        "situation": "Four months ago Linden was hired to rewire a historic adobe on San Antonio Street that a buyer from Portland had purchased and was converting into a short-term rental. Standard job \u2014 he has done fifty of them since the money started coming into Marfa. On the last day of the job, while pulling old knob-and-tube from inside a wall cavity, he found a metal tin, soldered shut, with a name stamped on the lid that he recognized: his mother's maiden name, Ronquillo. He pried it open. Inside were forty-seven photographs \u2014 formal portraits, family groups, one wedding photo \u2014 and a folded paper in Spanish that he had partially translated by a woman at the post office. The paper appears to be a record of land \u2014 varas, boundaries, a family name \u2014 predating the current deed by at least sixty years. He has not told the Portland buyer. He has not told his mother, who is 74 and lives in a care facility in Alpine. He has been sitting with the tin in his truck for four months.",
+        "reason_calling": "He is calling because tonight he drove past the house and saw it listed on a rental app \u2014 photos of the freshly renovated interior, the exposed adobe walls he rewired, $385 a night \u2014 and something in him that had been staying still stopped staying still.",
+        "opening_line": "I pulled something out of a wall four months ago that doesn't belong to the man who owns the house, and I've been driving around with it ever since, and tonight I finally looked up what he's charging per night.",
+        "secret_want": "To give the tin to his mother before she is too far gone to understand what she is looking at. That is the whole of it. Everything else \u2014 the buyer, the land record, what it means legally \u2014 is secondary to that one window, which is closing.",
+        "specific_details": [
+          "The wedding photograph shows a couple he does not recognize, but the woman is wearing a dress his mother described to him once \u2014 dark fabric, high collar, buttons to the throat \u2014 when she talked about her own grandmother's wedding, which his mother said she had never seen a photo of",
+          "The Portland buyer has texted him twice asking for a referral for a plumber, and Linden has answered both texts normally, and this is the thing that makes him feel worst",
+          "He has not opened the tin again since the first night \u2014 he resealed it with electrical tape and put it under the seat, and he knows where it is in the dark by the sound it makes when he takes a curve"
+        ],
+        "emotional_register": "Contained, deliberate, the flat affect of a man who handles things alone and always has. Gets quiet when he talks about his mother. Does not ask for advice \u2014 states facts, then goes quiet and waits, as though he is diagnosing a circuit."
+      },
+      "avatar": "Linden.jpg",
+      "relationships": {},
+      "call_history": [
+        {
+          "summary": "Lyndon called in because he found a tin with his mother's maiden name, old photos, and a land record in a wall while working as an electrician. He's been driving around with it, conflicted about returning it to the homeowner, who is renting the house as an Airbnb. The host suggested he explain the situation to the owner and ask to show it to his mother, who is in a care facility and whose memory is fading. Lyndon became emotional when realizing this was the only way to potentially connect his mother to her family history before it's too late.",
+          "timestamp": 1786781199.9054542,
+          "arc_status": "ongoing"
+        }
+      ],
+      "last_call": 1786781199.905455,
+      "created_at": 1786781199.905455
     }
   ]
 }
