@@ -37,7 +37,7 @@ PAGE = """<!DOCTYPE html>
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
   <link rel="alternate" type="application/rss+xml" title="Luke at the Roost RSS Feed" href="{feed}">
-  <link rel="stylesheet" href="/css/style.css?v=7">
+  <link rel="stylesheet" href="/css/style.css?v=8">
 
   <script type="application/ld+json">
 {schema}
