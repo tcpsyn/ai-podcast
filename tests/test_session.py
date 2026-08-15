@@ -130,3 +130,34 @@ def test_session_conversation_summary_three_party():
     summary = s.get_conversation_summary()
     assert "Dave" in summary
     assert "Tony" in summary
+
+
+def test_recent_summaries_uses_wider_dedup_window(monkeypatch):
+    """Phase 5B deleted cross-episode topic dedup, leaving only a 2-show window.
+    The batch generator should now see LINEUP_DEDUP_SHOWS worth of history."""
+    import backend.main as m
+
+    history = [
+        {"lineup": [{"name": f"Caller{i}", "situation": f"situation number {i}"}]}
+        for i in range(m.LINEUP_DEDUP_SHOWS + 5)
+    ]
+    monkeypatch.setattr(m, "_load_lineup_history", lambda: history)
+
+    summaries = Session()._get_recent_summaries()
+    assert len(summaries) == m.LINEUP_DEDUP_SHOWS
+    assert m.LINEUP_DEDUP_SHOWS > 2
+    # Keeps the most recent shows, drops the oldest
+    assert "situation number 4" not in " ".join(summaries)
+    assert f"situation number {m.LINEUP_DEDUP_SHOWS + 4}" in " ".join(summaries)
+
+
+def test_lineup_history_retains_at_least_the_dedup_window():
+    """Truncating the file below the dedup window would silently shrink it."""
+    import backend.main as m
+    assert m.LINEUP_HISTORY_MAX >= m.LINEUP_DEDUP_SHOWS
+
+
+def test_fresh_session_reports_no_lineup():
+    s = Session()
+    assert s.caller_backgrounds == {}
+    assert bool(s.caller_backgrounds) is False

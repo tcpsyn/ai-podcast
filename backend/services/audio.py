@@ -72,7 +72,7 @@ class AudioService:
         self.ident_channel: int = 15   # Channel for idents (stereo: ch 15+16)
         self.monitor_device: Optional[int] = 14  # Babyface Pro (headphone monitoring)
         self.monitor_channel: int = 1  # Channel for mic monitoring on monitor device
-        self.phone_filter: bool = False  # Phone filter on caller voices
+        self.phone_filter: bool = False  # Phone filter on caller voices — applied in post, not baked in
 
         # Ad playback state
         self._ad_stream: Optional[sd.OutputStream] = None

@@ -540,6 +540,15 @@ def detect_host_mood(messages: list[dict], wrapping_up: bool = False) -> str:
 
 
 
+class EmptyCallerBackgroundError(RuntimeError):
+    """Raised when a caller prompt is built from a background with no identity.
+
+    A hollow prompt still generates dialog — the model invents the most generic
+    late-night radio call it can (relationship trouble, every time) and a regular
+    like a named returning caller loses all their lore. That failure is silent and costs a whole show,
+    so refuse to build the prompt instead."""
+
+
 def get_caller_prompt(caller: dict, theme: str = "") -> str:
     """Caller system prompt. Identity carries the weight."""
     name = caller.get("name", "")
@@ -547,6 +556,12 @@ def get_caller_prompt(caller: dict, theme: str = "") -> str:
     situation = caller.get("situation", "")
     reason = caller.get("reason_calling", "")
     want = caller.get("secret_want", "")
+    if not (name or identity or situation):
+        raise EmptyCallerBackgroundError(
+            "Refusing to build a caller prompt with no name, identity, or situation — "
+            "session.caller_backgrounds was never populated. Call populate_backgrounds() "
+            "(POST /api/session/reset) before taking calls."
+        )
     opening = caller.get("opening_line", "")
     details = caller.get("specific_details", []) or []
     detail_str = " | ".join(f"- {d}" for d in details)
@@ -1152,10 +1167,10 @@ class Session:
         self.start_prewarm()
 
     def _get_recent_summaries(self) -> list[str]:
-        """Return caller name+situation strings from the last 2 lineups, so Sonnet
-        can avoid repeating archetypes. Empty list on first run."""
+        """Return caller name+situation strings from the last LINEUP_DEDUP_SHOWS
+        lineups, so Sonnet can avoid repeating archetypes. Empty list on first run."""
         history = _load_lineup_history()
-        recent = history[-2:]
+        recent = history[-LINEUP_DEDUP_SHOWS:]
         summaries: list[str] = []
         for record in recent:
             for caller in record.get("lineup", []):
@@ -1257,8 +1272,11 @@ CHECKPOINT_LINEUP_MAX_AGE = 3600  # 1 hour
 
 # --- Lineup History (for anti-repeat context across sessions) ---
 LINEUP_HISTORY_FILE = Path(__file__).parent.parent / "data" / "caller_lineups.json"
-LINEUP_HISTORY_MAX = 10
-
+LINEUP_HISTORY_MAX = 20
+# How many past lineups to show the batch generator as "don't repeat these".
+# Replaces the cross-episode topic dedup deleted in Phase 5B (commit 83c7f44),
+# which left only a 2-show window and let archetypes recycle.
+LINEUP_DEDUP_SHOWS = 10
 
 def _load_lineup_history() -> list[dict]:
     if not LINEUP_HISTORY_FILE.exists():
@@ -2573,7 +2591,9 @@ async def get_callers():
     return {
         "callers": callers,
         "current": session.current_caller_key,
-        "session_id": session.id
+        "session_id": session.id,
+        "lineup_ready": bool(session.caller_backgrounds),
+        "lineup_count": len(session.caller_backgrounds),
     }
 
 
@@ -2629,6 +2649,13 @@ async def start_call(caller_key: str):
     global _session_epoch
     if caller_key not in CALLER_BASES:
         raise HTTPException(404, "Caller not found")
+
+    # Backgrounds only land in the session via populate_backgrounds(), which used
+    # to be reachable only through POST /api/session/reset. Taking calls without
+    # hitting reset left caller_backgrounds empty for the whole show.
+    if not session.caller_backgrounds:
+        print("[Session] No caller lineup loaded — populating before first call")
+        await session.populate_backgrounds()
 
     # Guard against double-click or rapid switching
     if session.current_caller_key == caller_key:

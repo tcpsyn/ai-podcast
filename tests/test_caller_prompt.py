@@ -1,4 +1,25 @@
-from backend.main import get_caller_prompt
+import pytest
+
+from backend.main import EmptyCallerBackgroundError, get_caller_prompt
+
+
+def test_empty_background_raises_instead_of_hollow_prompt():
+    """A hollow prompt still generates dialog — the model invents generic
+    relationship filler and regulars lose their lore. Fail loudly instead."""
+    with pytest.raises(EmptyCallerBackgroundError):
+        get_caller_prompt({})
+
+
+def test_background_missing_every_identity_field_raises():
+    caller = {"voice": "Sebastian", "age": 52, "location": "Terlingua"}
+    with pytest.raises(EmptyCallerBackgroundError):
+        get_caller_prompt(caller)
+
+
+def test_partial_background_still_builds():
+    """A name alone is enough to reach the regulars lookup, so don't block it."""
+    prompt = get_caller_prompt({"name": "Dale"})
+    assert "Dale" in prompt
 
 
 def test_prompt_includes_identity_and_situation():

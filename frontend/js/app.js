@@ -621,7 +621,22 @@ async function loadCallers() {
             sessionEl.textContent = `(${data.session_id})`;
         }
 
-        console.log('Loaded', data.callers.length, 'callers, session:', data.session_id);
+        // Lineup readiness — an empty lineup means callers have no identity and
+        // every call collapses into generic filler, so make it visible pre-show.
+        const lineupEl = document.getElementById('lineup-status');
+        if (lineupEl) {
+            if (data.lineup_ready) {
+                lineupEl.textContent = `${data.lineup_count} ready`;
+                lineupEl.className = 'lineup-status ready';
+                lineupEl.title = 'Caller identities are loaded';
+            } else {
+                lineupEl.textContent = 'no lineup';
+                lineupEl.className = 'lineup-status empty';
+                lineupEl.title = 'No caller identities loaded — hit Reset Session before going live';
+            }
+        }
+
+        console.log('Loaded', data.callers.length, 'callers, session:', data.session_id, 'lineup:', data.lineup_count);
     } catch (err) {
         console.error('loadCallers error:', err);
     }
