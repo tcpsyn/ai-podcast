@@ -1519,13 +1519,13 @@
   "caller_queue": [],
   "intern_monitoring": true,
   "costs": {
-    "total_cost_usd": 2.3959,
-    "llm_cost_usd": 1.7431,
-    "tts_cost_usd": 0.6528,
-    "total_llm_calls": 439,
-    "total_tokens": 902650,
-    "prompt_tokens": 863167,
-    "completion_tokens": 39483,
+    "total_cost_usd": 2.4247,
+    "llm_cost_usd": 1.7599,
+    "tts_cost_usd": 0.6648,
+    "total_llm_calls": 442,
+    "total_tokens": 914440,
+    "prompt_tokens": 873252,
+    "completion_tokens": 41188,
     "by_category": {
       "background_gen": {
         "cost": 0.2562,
@@ -1533,9 +1533,9 @@
         "tokens": 28957
       },
       "devon_ask": {
-        "cost": 0.0099,
-        "calls": 2,
-        "tokens": 6953
+        "cost": 0.0267,
+        "calls": 5,
+        "tokens": 18743
       },
       "caller_dialog": {
         "cost": 1.3119,
@@ -6828,6 +6828,42 @@
         "caller_name": "Imogen",
         "max_tokens_requested": 500,
         "latency_ms": 1294.9130535125732
+      },
+      {
+        "timestamp": 1786782519.639012,
+        "category": "devon_ask",
+        "model": "x-ai/grok-4.3",
+        "prompt_tokens": 3230,
+        "completion_tokens": 555,
+        "total_tokens": 3785,
+        "cost_usd": 0.005425,
+        "caller_name": "",
+        "max_tokens_requested": 500,
+        "latency_ms": 6290.577173233032
+      },
+      {
+        "timestamp": 1786782567.716974,
+        "category": "devon_ask",
+        "model": "x-ai/grok-4.3",
+        "prompt_tokens": 3386,
+        "completion_tokens": 502,
+        "total_tokens": 3888,
+        "cost_usd": 0.0054875,
+        "caller_name": "",
+        "max_tokens_requested": 500,
+        "latency_ms": 6123.852968215942
+      },
+      {
+        "timestamp": 1786782603.253283,
+        "category": "devon_ask",
+        "model": "x-ai/grok-4.3",
+        "prompt_tokens": 3469,
+        "completion_tokens": 648,
+        "total_tokens": 4117,
+        "cost_usd": 0.00595625,
+        "caller_name": "",
+        "max_tokens_requested": 500,
+        "latency_ms": 6142.5721645355225
       }
     ],
     "tts": [
@@ -7600,8 +7636,29 @@
         "voice": "Anjali",
         "char_count": 361,
         "cost_usd": 0.0054150000000000005
+      },
+      {
+        "timestamp": 1786782522.658439,
+        "provider": "inworld",
+        "voice": "Nate",
+        "char_count": 297,
+        "cost_usd": 0.004455
+      },
+      {
+        "timestamp": 1786782570.0834439,
+        "provider": "inworld",
+        "voice": "Nate",
+        "char_count": 216,
+        "cost_usd": 0.0032400000000000003
+      },
+      {
+        "timestamp": 1786782606.111202,
+        "provider": "inworld",
+        "voice": "Nate",
+        "char_count": 283,
+        "cost_usd": 0.0042450000000000005
       }
     ]
   },
-  "saved_at": 1786782497.6032908
+  "saved_at": 1786783728.742995
 }

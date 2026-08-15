@@ -450,5 +450,22 @@
       }
     },
     "started_at": "2026-08-04T09:22:36.468552+00:00"
+  },
+  "59": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-08-15T08:53:47.130724+00:00",
+        "episode_id": "62",
+        "slug": "episode-59-doyle-s-hidden-llc-and-the-backdated-notary-stamp"
+      },
+      "youtube": {
+        "completed_at": "2026-08-15T09:06:58.164454+00:00",
+        "video_id": "pU63Pg6EZII"
+      },
+      "social": {
+        "completed_at": "2026-08-15T09:07:04.970309+00:00"
+      }
+    },
+    "started_at": "2026-08-15T08:53:47.130692+00:00"
   }
 }
