@@ -1558,6 +1558,78 @@ a:hover {
   font-style: italic;
 }
 
+/* --- Static episode pages -------------------------------------------------
+   These sections had no width constraint at all, so the player and transcript
+   ran edge to edge while .page-header above them sat in the site's usual
+   centred container. */
+
+.episode-player,
+.episode-nav {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.episode-player {
+  padding-top: 0.5rem;
+  padding-bottom: 2rem;
+}
+
+/* Centre the player bar instead of letting it stretch the full column. */
+.episode-player audio {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* Narrower than the 900px container on purpose. A 900px column runs past 100
+   characters per line, and even 780px lands near 90 — both tiring across a
+   full transcript. 680px minus the 1.5rem gutters gives 632px of text, which
+   at 1.05rem is roughly 74 characters: inside the comfortable 60-75 range. */
+.episode-transcript {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3.5rem;
+}
+
+.episode-transcript h2 {
+  margin-bottom: 1.25rem;
+}
+
+.episode-transcript .transcript-turn p {
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.episode-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 3rem;
+}
+
+@media (max-width: 600px) {
+  .episode-player,
+  .episode-nav {
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
+  }
+
+  .episode-transcript {
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
+  }
+
+  .episode-player audio {
+    max-width: 100%;
+  }
+
+  .episode-nav {
+    flex-direction: column;
+  }
+}
+
 .episode-transcript-link {
   font-size: 0.8rem;
   color: var(--accent);
