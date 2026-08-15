@@ -540,6 +540,15 @@ def detect_host_mood(messages: list[dict], wrapping_up: bool = False) -> str:
 
 
 
+class EmptyCallerBackgroundError(RuntimeError):
+    """Raised when a caller prompt is built from a background with no identity.
+
+    A hollow prompt still generates dialog — the model invents the most generic
+    late-night radio call it can (relationship trouble, every time) and a regular
+    like Silas loses all his lore. That failure is silent and costs a whole show,
+    so refuse to build the prompt instead."""
+
+
 def get_caller_prompt(caller: dict, theme: str = "") -> str:
     """Caller system prompt. Identity carries the weight."""
     name = caller.get("name", "")
@@ -547,6 +556,12 @@ def get_caller_prompt(caller: dict, theme: str = "") -> str:
     situation = caller.get("situation", "")
     reason = caller.get("reason_calling", "")
     want = caller.get("secret_want", "")
+    if not (name or identity or situation):
+        raise EmptyCallerBackgroundError(
+            "Refusing to build a caller prompt with no name, identity, or situation — "
+            "session.caller_backgrounds was never populated. Call populate_backgrounds() "
+            "(POST /api/session/reset) before taking calls."
+        )
     opening = caller.get("opening_line", "")
     details = caller.get("specific_details", []) or []
     detail_str = " | ".join(f"- {d}" for d in details)
@@ -952,17 +967,14 @@ class Session:
                     return i
             return 999  # never appeared
 
-        regulars_for_tonight: list[dict] = []
-        for r in active_regulars:
-            misses = _shows_since_last(r.name)
-            prob = min(1.0, 0.4 + 0.3 * misses)
-            if random.random() < prob:
-                regulars_for_tonight.append(
-                    {"name": r.name, "voice": r.voice, "age": r.age,
-                     "lore": r.lore_body, "arc_state": r.arc_state,
-                     "_misses": misses, "_prob": prob}
-                )
-        regulars_for_tonight = regulars_for_tonight[:3]
+        selected = _select_regulars_for_tonight(active_regulars, _shows_since_last)
+        regulars_for_tonight: list[dict] = [
+            {"name": r.name, "voice": r.voice, "age": r.age,
+             "lore": r.lore_body, "arc_state": r.arc_state,
+             "register": r.register, "explicitness": r.explicitness,
+             "_misses": misses, "_prob": prob}
+            for r, misses, prob in selected
+        ]
         if regulars_for_tonight:
             names = ", ".join(f"{r['name']}(miss={r['_misses']},p={r['_prob']:.2f})"
                               for r in regulars_for_tonight)
@@ -1152,10 +1164,10 @@ class Session:
         self.start_prewarm()
 
     def _get_recent_summaries(self) -> list[str]:
-        """Return caller name+situation strings from the last 2 lineups, so Sonnet
-        can avoid repeating archetypes. Empty list on first run."""
+        """Return caller name+situation strings from the last LINEUP_DEDUP_SHOWS
+        lineups, so Sonnet can avoid repeating archetypes. Empty list on first run."""
         history = _load_lineup_history()
-        recent = history[-2:]
+        recent = history[-LINEUP_DEDUP_SHOWS:]
         summaries: list[str] = []
         for record in recent:
             for caller in record.get("lineup", []):
@@ -1257,7 +1269,77 @@ CHECKPOINT_LINEUP_MAX_AGE = 3600  # 1 hour
 
 # --- Lineup History (for anti-repeat context across sessions) ---
 LINEUP_HISTORY_FILE = Path(__file__).parent.parent / "data" / "caller_lineups.json"
-LINEUP_HISTORY_MAX = 10
+LINEUP_HISTORY_MAX = 20
+# How many past lineups to show the batch generator as "don't repeat these".
+# Replaces the cross-episode topic dedup deleted in Phase 5B (commit 83c7f44),
+# which left only a 2-show window and let archetypes recycle.
+LINEUP_DEDUP_SHOWS = 10
+
+MAX_REGULARS_PER_SHOW = 3
+GROUP_TWO_UP_CHANCE = 0.15  # Odds a faction gets two slots — "both sides tonight"
+
+
+def _weighted_sample(entries, k, rng):
+    """Sample k of [(regular, misses, prob)] without replacement, weighted by
+    group_weight. An anchor carrying an arc needs the group's slot more often
+    than a texture character does, or the arc takes 30 episodes to resolve."""
+    pool = list(entries)
+    picked = []
+    while pool and len(picked) < k:
+        weights = [max(float(getattr(e[0], "group_weight", 1.0) or 1.0), 0.0) for e in pool]
+        total = sum(weights)
+        if total <= 0:
+            picked.append(pool.pop(rng.randrange(len(pool))))
+            continue
+        target = rng.random() * total
+        upto = 0.0
+        for i, w in enumerate(weights):
+            upto += w
+            if target <= upto:
+                picked.append(pool.pop(i))
+                break
+        else:
+            picked.append(pool.pop())
+    return picked
+
+
+def _select_regulars_for_tonight(active_regulars, shows_since_last, rng=random):
+    """Pick tonight's regulars, collapsing factions so one group can't crowd out
+    everyone else. Returns [(regular, misses, prob)].
+
+    A group normally gets a single slot. On a GROUP_TWO_UP_CHANCE roll it gets
+    two, preferring the group lead plus one other member — the leader's version
+    of events and someone else's, in the same episode."""
+    candidates = []
+    for r in active_regulars:
+        misses = shows_since_last(r.name)
+        prob = min(1.0, 0.4 + 0.3 * misses)
+        if rng.random() < prob:
+            candidates.append((r, misses, prob))
+
+    grouped: dict[str, list] = {}
+    selected: list = []
+    for entry in candidates:
+        group = getattr(entry[0], "group", "")
+        if group:
+            grouped.setdefault(group, []).append(entry)
+        else:
+            selected.append(entry)
+
+    for members in grouped.values():
+        cap = 2 if rng.random() < GROUP_TWO_UP_CHANCE else 1
+        if len(members) <= cap:
+            selected.extend(members)
+            continue
+        leads = [m for m in members if getattr(m[0], "group_lead", False)]
+        rest = [m for m in members if not getattr(m[0], "group_lead", False)]
+        if cap >= 2 and leads and rest:
+            selected.extend([leads[0]] + _weighted_sample(rest, 1, rng))
+        else:
+            selected.extend(_weighted_sample(members, cap, rng))
+
+    rng.shuffle(selected)
+    return selected[:MAX_REGULARS_PER_SHOW]
 
 
 def _load_lineup_history() -> list[dict]:
@@ -2573,7 +2655,9 @@ async def get_callers():
     return {
         "callers": callers,
         "current": session.current_caller_key,
-        "session_id": session.id
+        "session_id": session.id,
+        "lineup_ready": bool(session.caller_backgrounds),
+        "lineup_count": len(session.caller_backgrounds),
     }
 
 
@@ -2629,6 +2713,13 @@ async def start_call(caller_key: str):
     global _session_epoch
     if caller_key not in CALLER_BASES:
         raise HTTPException(404, "Caller not found")
+
+    # Backgrounds only land in the session via populate_backgrounds(), which used
+    # to be reachable only through POST /api/session/reset. Taking calls without
+    # hitting reset left caller_backgrounds empty for the whole show.
+    if not session.caller_backgrounds:
+        print("[Session] No caller lineup loaded — populating before first call")
+        await session.populate_backgrounds()
 
     # Guard against double-click or rapid switching
     if session.current_caller_key == caller_key:

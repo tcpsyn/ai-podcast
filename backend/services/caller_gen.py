@@ -66,6 +66,14 @@ def resolve_voice(suggestion: str, roster: list[str]) -> str:
     return random.choice(roster)
 
 
+# Per-character dial rather than a global switch, so explicitness varies by who
+# called instead of the whole show moving together.
+_EXPLICITNESS_GUIDANCE = {
+    "low": "alludes to sex obliquely at most, deflects or changes the subject when it comes up — their discomfort is part of the characterization",
+    "medium": "references sex bluntly and matter-of-factly when it's relevant, but doesn't dwell or go into detail",
+    "high": "talks about sex and kink frankly, graphically, and without embarrassment — it is simply how this person talks",
+}
+
 BATCH_SYSTEM_PROMPT = """You are writing a roster of callers for Luke's late-night radio show, broadcast out of Alpine, Texas, in the Big Bend country of far West Texas.
 
 WHERE THESE CALLERS LIVE: The show's world is the Big Bend region of far West Texas — high desert, remote, dark skies, ranching country up against the Mexico border. Most callers are from or know this area. Ground them in REAL places and facts only — never invent businesses or landmarks that don't exist. The towns:
@@ -91,6 +99,8 @@ Maximum character distance between callers. No two callers should feel like sibl
 ANTI-COLLISION RULE — THIS IS NON-NEGOTIABLE: All callers in this roster must be clearly differentiated. No two callers may share the same hobby, obsession, profession archetype, or story theme. Specifically forbidden within a single roster: two BBQ competitors, two taxidermists, two amateur-radio or mystery-signal callers, two callers with ex-spouse drama, two believers chasing the SAME phenomenon (e.g. two UFO callers, or two cryptid callers — if you have two believer calls they must be about completely different things), two retired military, two grandmothers-of-many, two callers calling about a weird neighbor, two callers with religious-object stories. Each caller's defining "thing" — their hook, their obsession, the specific topic they're calling about — must appear exactly once in the roster. Before finalizing, scan your output and swap any collisions.
 
 Do not default to sitcom plots. Real humans are specific and strange. Give each caller details that could only belong to them.
+
+ADULT SHOW: This is a late-night show for adults. Callers are adults and may talk about sex, relationships, and kink frankly and without euphemism when it fits who they are — this is not a family program and you should not sanitize a caller whose story is genuinely about sex. But do NOT make the roster horny: at most 1-2 of the 10 callers should have sex as their central subject, or the show flattens into one note. Everyone involved in any sexual material is a consenting adult. Where a situation involves pressure, manipulation, or coercion, write it with real weight — that is a harm, not a punchline, and the host should be able to react to it as one.
 
 OPENING LINE RULES: Each caller's opening_line must be unique and specific to their situation. NEVER write "I've been listening for X years" or "long-time listener, first-time caller" or any variant. The caller should jump into their story or problem immediately — nervous, excited, angry, whatever fits. The opening line is the hook that makes the audience lean in.
 
@@ -133,6 +143,9 @@ def build_batch_prompt(ctx: dict) -> str:
             lines.append(f"### {r['name']}")
             lines.append(r["lore"])
             lines.append(f"Current arc state: {r['arc_state']}")
+            if r.get("register"):
+                lines.append(f"How {r['name']} plays: {r['register']}")
+            lines.append(f"Explicitness for {r['name']}: {_EXPLICITNESS_GUIDANCE[r.get('explicitness', 'low')]}")
             lines.append("")
             lines.append(f"For {r['name']}: invent a fresh reason he is calling tonight — a new development, grievance, or specific recent event. DO NOT alter his voice, personality, or core traits. Write a new scene for an existing character.")
             lines.append(f"CRITICAL — this caller MUST appear in the output JSON with EXACTLY these fields locked: name=\"{r['name']}\", voice_suggestion=\"{r['voice']}\", age={r['age']}. Do NOT rename this caller. Do NOT give him a different voice. Do NOT change his age. Only invent: location, identity, situation, reason_calling, opening_line, secret_want, specific_details, emotional_register.")
@@ -191,6 +204,8 @@ async def generate_regular_situation(regular: dict, ctx: dict) -> dict:
         f"### {regular['name']}",
         regular["lore"],
         f"Current arc state: {regular['arc_state']}",
+        *([f"How {regular['name']} plays: {regular['register']}"] if regular.get("register") else []),
+        f"Explicitness for {regular['name']}: {_EXPLICITNESS_GUIDANCE[regular.get('explicitness', 'low')]}",
         "",
         f"Invent a fresh reason {regular['name']} is calling tonight — a new development, grievance, or specific recent event. DO NOT alter his voice, personality, or core traits.",
         "",

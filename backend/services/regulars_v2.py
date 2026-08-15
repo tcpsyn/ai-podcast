@@ -24,6 +24,12 @@ class Regular:
     arc_state: str
     lore_body: str
     file_path: Path
+    group: str = ""          # Faction key. Members of a group are capped per show.
+    group_lead: bool = False  # On a two-up night, the lead is preferred + one other
+    group_weight: float = 1.0  # Relative odds of taking the group's slot. Anchors
+                               # carrying an arc need slots faster than texture does.
+    register: str = ""       # How this character plays: dry, evangelical, exhausted...
+    explicitness: str = "low"  # low | medium | high — how frankly they discuss sex
 
 
 def load_regular(path: Path) -> Regular:
@@ -37,6 +43,15 @@ def load_regular(path: Path) -> Regular:
         if ":" in line:
             k, v = line.split(":", 1)
             fm[k.strip()] = v.strip()
+    explicitness = fm.get("explicitness", "low").strip().lower()
+    if explicitness not in ("low", "medium", "high"):
+        explicitness = "low"
+    try:
+        group_weight = float(fm.get("group_weight", 1.0))
+    except (TypeError, ValueError):
+        group_weight = 1.0
+    if group_weight <= 0:
+        group_weight = 1.0
     return Regular(
         name=fm["name"],
         voice=fm["voice"],
@@ -44,6 +59,11 @@ def load_regular(path: Path) -> Regular:
         arc_state=fm.get("arc_state", ""),
         lore_body=body,
         file_path=path,
+        group=fm.get("group", "").strip(),
+        group_lead=fm.get("group_lead", "").strip().lower() in ("true", "yes", "1"),
+        group_weight=group_weight,
+        register=fm.get("register", "").strip(),
+        explicitness=explicitness,
     )
 
 

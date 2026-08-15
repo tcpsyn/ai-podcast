@@ -8,6 +8,60 @@ from ..config import settings
 from .cost_tracker import cost_tracker
 
 
+# Refusals come back as ordinary 200s, so a text heuristic is the backstop when
+# the API's own refusal signals are absent.
+#
+# Tuned for PRECISION, not recall. Callers on this show say "Luke, I can't help
+# with that" and "I can't continue pretending everything's fine" constantly — a
+# false positive silences a working call, which is worse than missing a refusal.
+# So bare refusal verbs don't count; only meta-language a caller would never use.
+_REFUSAL_META = (
+    "as an ai",
+    "as a language model",
+    "i'm an ai",
+    "i am an ai",
+    "i'm claude",
+    "against my guidelines",
+    "content policy",
+    "usage policies",
+)
+
+# A refusal needs BOTH a refusal verb and a meta object. "I won't write her
+# another letter" has the verb but no meta object, so it stays on the air.
+_REFUSAL_VERBS = (
+    "i can't",
+    "i cannot",
+    "i won't",
+    "i will not",
+    "i'm not going to",
+    "i am not going to",
+    "i'm not able to",
+    "i'm not comfortable",
+    "i am not comfortable",
+)
+
+_REFUSAL_OBJECTS = (
+    "request",
+    "content",
+    "guidelines",
+    "policy",
+    "policies",
+    "this material",
+    "that material",
+    "this prompt",
+)
+
+
+def _looks_like_refusal(text: str) -> bool:
+    head = text.strip().lower()[:200]
+    if not head:
+        return False
+    if any(m in head for m in _REFUSAL_META):
+        return True
+    return (any(v in head for v in _REFUSAL_VERBS)
+            and any(o in head for o in _REFUSAL_OBJECTS))
+
+
 # Available OpenRouter models
 OPENROUTER_MODELS = [
     # Primary
@@ -382,8 +436,24 @@ class LLMService:
                     latency_ms=latency_ms,
                     caller_name=caller_name,
                 )
-            content = data["choices"][0]["message"]["content"]
+            choice = data["choices"][0]
+            message = choice.get("message", {})
+            content = message.get("content")
+
+            # A content refusal is not an exception — it arrives as a normal 200.
+            # Left undetected it either reaches air as broken-character text or
+            # reads as dead silence, with no signal saying which knob caused it.
+            refusal = message.get("refusal")
+            if refusal:
+                print(f"[LLM-REFUSAL] {model} refused ({category}, caller={caller_name or 'n/a'}): {str(refusal)[:200]}")
+                return None
+            if choice.get("finish_reason") == "content_filter":
+                print(f"[LLM-REFUSAL] {model} content-filtered ({category}, caller={caller_name or 'n/a'})")
+                return None
             if content and content.strip():
+                if _looks_like_refusal(content):
+                    print(f"[LLM-REFUSAL] {model} returned a refusal-shaped reply ({category}, caller={caller_name or 'n/a'}): {content.strip()[:160]}")
+                    return None
                 return content
             print(f"[LLM] {model} returned empty response")
             return None

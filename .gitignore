@@ -75,6 +75,8 @@ social_posts/
 
 # Generated analytics artifacts (rebuilt from cost_tracker)
 data/costs.db
+data/costs.db-shm
+data/costs.db-wal
 data/cost_reports/
 
 # Generated caller avatars
