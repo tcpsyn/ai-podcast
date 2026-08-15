@@ -5,9 +5,21 @@
 
 set -e
 
-NAS_HOST="mmgnas-10g"
 NAS_USER="luke"
 NAS_PORT="8001"
+
+# mmgnas-10g is only up when the 10G cable is physically connected. Prefer it
+# when reachable (faster transfers), otherwise fall back to the wireless/1G
+# host. Override with NAS_HOST=... to skip detection.
+if [ -z "$NAS_HOST" ]; then
+    if ssh -p "$NAS_PORT" -o ConnectTimeout=2 -o BatchMode=yes \
+           "$NAS_USER@mmgnas-10g" true 2>/dev/null; then
+        NAS_HOST="mmgnas-10g"
+    else
+        NAS_HOST="mmgnas"
+    fi
+    echo "NAS host: $NAS_HOST"
+fi
 DOCKER_BIN="/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker"
 DEPLOY_DIR="/share/CACHEDEV1_DATA/podcast-stats"
 CONTAINER_NAME="podcast-stats"
