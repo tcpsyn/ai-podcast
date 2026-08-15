@@ -1871,10 +1871,6 @@ def main():
     shutil.copy2(str(transcript_path), str(website_transcript_path))
     print(f"    Transcript copied to website/transcripts/")
 
-    # Build this episode's static page and regenerate the sitemap wholesale.
-    # generate_episode_pages.py is the only writer of sitemap.xml.
-    regenerate_website_pages()
-
     # Sync any remaining episode media to BunnyCDN (cover art, etc.)
     print("    Syncing remaining episode media to CDN...")
     sync_episode_media_to_bunny(episode["id"], uploaded_keys)
@@ -1890,6 +1886,15 @@ def main():
             print("    Warning: Publish API failed, but episode is in DB with published_at set")
         else:
             raise
+
+    # Build this episode's static page and regenerate the sitemap wholesale.
+    # generate_episode_pages.py is the only writer of sitemap.xml.
+    #
+    # MUST run after the publish above: the generator is driven entirely by the
+    # RSS feed, so running it earlier silently omits the episode being published
+    # and its page only appears on the NEXT publish. Social posts link to
+    # /episode/<slug>/, so that left every launch-day link 404ing.
+    regenerate_website_pages()
 
     # Step 5: Deploy website (transcript + sitemap must be live before social links go out)
     print("[5/5] Deploying website...")
