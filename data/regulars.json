@@ -45,22 +45,17 @@
           "arc_status": "ongoing"
         },
         {
-          "summary": "The caller, Concho, reports seeing mysterious vehicles mapping water sources on private ranches for nearly a year. He fears a large entity is compiling a secret inventory of water rights before making claims, and is frustrated that landowners dismiss his concerns. By the end of the call, Concho seems defeated, accepting that he's done all he can.",
-          "timestamp": 1785831693.931573,
-          "arc_status": "ongoing"
-        },
-        {
-          "summary": "Silas called in to discuss a land dispute with his new neighbor in Alpine, Texas, which he initially framed as a problem with conflicting surveys and the potential loss of his well. However, through the conversation, he emotionally revealed that this dispute has triggered anxieties from a past failed communal living project in New Mexico, leading him to realize he's been neglecting the spiritual foundation and community-building aspects of his new \"Wellspring\" project, and needs to reconnect with his values and address past relational issues.",
+          "summary": "Silas called in to discuss a land dispute with his new neighbor near Terlingua, Texas, which he initially framed as a problem with conflicting surveys and the potential loss of his well. However, through the conversation, he emotionally revealed that this dispute has triggered anxieties from a past failed communal living project in New Mexico, leading him to realize he's been neglecting the spiritual foundation and community-building aspects of his new \"Wellspring\" project, and needs to reconnect with his values and address past relational issues.",
           "timestamp": 1786774547.786939,
           "arc_status": "ongoing"
         },
         {
-          "summary": "Imogen called to share her fascination with a massive, ancient, and now invisible mountain range buried under West Texas. While the host didn't share her excitement for the \"invisible\" geology, Imogen became emotional as she realized her limited perspective as a geology student and expressed a newfound desire to travel and see exposed geological wonders.",
-          "timestamp": 1786782497.5843341,
+          "summary": "Wendell, a night-shift gas station worker and former dispatcher, has logged 17 nights of his dash clock jumping exactly 11 minutes ahead of his phone on a stretch of Route 118 between 3 and 4 a.m., while the phone and radio stay correct. Luke and Devon suggested GPS time syncing as the cause, and Wendell agreed to test it by pulling the GPS antenna fuse and logging another week of drives.",
+          "timestamp": 1795659354.911745,
           "arc_status": "ongoing"
         }
       ],
-      "last_call": 1786782497.584337,
+      "last_call": 1795659354.911755,
       "created_at": 1772430000.0
     },
     {
@@ -95,15 +90,35 @@
         "emotional_register": "Defensive and intellectualizing at first \u2014 reaching for craft-talk and literary precedent \u2014 then progressively quieter as he hears himself. He's not a villain, he's a 29-year-old who made a choice he knew was wrong and is only now feeling the weight of it at full scale."
       },
       "avatar": "Crispin.jpg",
-      "relationships": {},
+      "relationships": {
+        "Silas": {
+          "type": "mentioned",
+          "context": "Referenced during call: .... It's a pretty good trace, though. No. Silas hasn't said anything to me about a lock. I don't think..."
+        }
+      },
       "call_history": [
         {
           "summary": "Crispin, a fiction writer, is panicking because a literary journal accepted a story he wrote based on a past relationship, and he fears his ex will recognize herself and be hurt by the intimate details. He feels immense guilt and is struggling with the decision to either withdraw the story and potentially damage his career, or allow it to be published and face the consequences with his ex.",
           "timestamp": 1780395016.4822028,
           "arc_status": "ongoing"
+        },
+        {
+          "summary": "Doyle, a soap maker, discovered his bank account, where he'd been depositing his money for 11 months, was actually held by a mysterious company and not in his name. This revelation, combined with his observations of Junie, a young woman in the community, using a boot to wedge her trailer door shut at night, has prompted him to take action. He plans to install a lock on Junie's door and offer her a way out of the community.",
+          "timestamp": 1794278280.8968608,
+          "arc_status": "ongoing"
+        },
+        {
+          "summary": "Winston Abernathy Cole, a retired surveyor, believes he's found a repeating pattern in the Marfa Lights' brightness over 31 nights, suggesting they are \"tuning\" in response to an unknown structure underground. Initially dismissing the idea of the lights being \"programmed,\" he eventually concedes that both the lights and the hypothetical underground structure would have to be intentionally placed and designed to interact. He plans to conduct a controlled experiment by logging highway traffic to rule out car headlights as the cause before pursuing further investigation.",
+          "timestamp": 1794281796.025601,
+          "arc_status": "ongoing"
+        },
+        {
+          "summary": "Junie called in after tracing her bedroom door-stop boot on a biscuit card to document that someone has been entering her room at night, and she told Luke she wanted to stop living at the Wellspring and find work with housing included. Luke helped her plan the steps, including getting her birth certificate, exploring workcamper jobs like the Gila National Forest, and recognizing red flags, while Junie showed growing confidence in saying no and decided to accept a small safety latch from Doyle first.",
+          "timestamp": 1795658746.774476,
+          "arc_status": "ongoing"
         }
       ],
-      "last_call": 1780395016.482204,
+      "last_call": 1795658746.7744792,
       "created_at": 1780395016.482204
     },
     {
@@ -144,9 +159,19 @@
           "summary": "Lyndon called in because he found a tin with his mother's maiden name, old photos, and a land record in a wall while working as an electrician. He's been driving around with it, conflicted about returning it to the homeowner, who is renting the house as an Airbnb. The host suggested he explain the situation to the owner and ask to show it to his mother, who is in a care facility and whose memory is fading. Lyndon became emotional when realizing this was the only way to potentially connect his mother to her family history before it's too late.",
           "timestamp": 1786781199.9054542,
           "arc_status": "ongoing"
+        },
+        {
+          "summary": "Wade called in to discuss his dilemma about lying to his son's employer, claiming a family funeral, to cover his son's entry into a pill addiction clinic. Wade, himself two years sober, was deeply conflicted, especially after learning about ADA protections for employees seeking substance abuse treatment, realizing the lie might not be necessary and could even endanger his son's life in a dangerous oilfield job. He ultimately decided to support his son by exploring legal options and helping him be honest, rather than lying.",
+          "timestamp": 1792991810.263992,
+          "arc_status": "ongoing"
+        },
+        {
+          "summary": "Hap called in about a Model T radiator cap with a name stamped inside that he found 43 years ago. He recently saw the same name on a church pew and is debating whether to return the cap to the family, seeking advice on how to proceed respectfully.",
+          "timestamp": 1794281232.793924,
+          "arc_status": "ongoing"
         }
       ],
-      "last_call": 1786781199.905455,
+      "last_call": 1794281232.793925,
       "created_at": 1786781199.905455
     }
   ]

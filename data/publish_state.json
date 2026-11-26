@@ -467,5 +467,56 @@
       }
     },
     "started_at": "2026-08-15T08:53:47.130692+00:00"
+  },
+  "60": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-10-26T06:29:02.624708+00:00",
+        "episode_id": "63",
+        "slug": "episode-60-junie-s-boot-dr-boone-s-mountain-hum-and-harlan-gets-called-lantern"
+      },
+      "youtube": {
+        "completed_at": "2026-10-26T06:41:38.362631+00:00",
+        "video_id": "k0fPCN7TXHA"
+      },
+      "social": {
+        "completed_at": "2026-10-26T06:41:45.440405+00:00"
+      }
+    },
+    "started_at": "2026-10-26T06:29:02.624661+00:00"
+  },
+  "61": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-11-10T04:40:39.447836+00:00",
+        "episode_id": "64",
+        "slug": "episode-61-silas-faces-his-wellspring-cult-a-foreman-gets-caught-cutting-corners-and-chili-beans-spark-a-porch-feud"
+      },
+      "youtube": {
+        "completed_at": "2026-11-10T04:53:21.171297+00:00",
+        "video_id": "tOBc3TMKKHA"
+      },
+      "social": {
+        "completed_at": "2026-11-10T04:53:27.720657+00:00"
+      }
+    },
+    "started_at": "2026-11-10T04:40:39.447810+00:00"
+  },
+  "62": {
+    "steps": {
+      "castopod": {
+        "completed_at": "2026-11-26T03:22:55.897019+00:00",
+        "episode_id": "65",
+        "slug": "episode-62-darnell-s-daughter-a-room-full-of-tire-rims-and-a-nurse-who-saw-too-much"
+      },
+      "youtube": {
+        "completed_at": "2026-11-26T03:37:23.929982+00:00",
+        "video_id": "bWUSBbmjnZY"
+      },
+      "social": {
+        "completed_at": "2026-11-26T03:37:32.037166+00:00"
+      }
+    },
+    "started_at": "2026-11-26T03:22:55.896929+00:00"
   }
 }

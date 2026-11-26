@@ -1,0 +1,355 @@
+LUKE: your late night call-in radio show where you can call us and tell us about whatever's going on in your life. And I'll give you the very best advice that I can. If you'd like to call in, the number is 208-439-5853. That's 208-439 Luke. Today is Monday, November 9th. It's about quarter of 9 p.m. We're starting a little early tonight because we wanted to get a show out for you this week. And we want to make sure that we do that because you're important to us. And We want to hear what you have to say. So if you can't call in and you'd like to participate in the show, you can send us an email. The email address for the studio is submissions at look at the roost.com. If we think your email is relevant or funny or poignant or important in some way, we will read that on the air. And if not, we'll ignore it and pretend it never happened. Let's check in with our faithful intern, Devon, and see how he's doing today. Devon, welcome back to the show. You ready to have a show today? What do you think we're going to have to deal with?
+
+DEVON: Yeah. I mean, I think so. I got here early and sat in the parking lot for a while because the check engine light was doing that thing again. So I'm ready. So I looked at the news, and the big one is the U.S. announcing a blockade on the Strait of Hormuz. That's the kind of thing people call in about and then somehow make it about their ex. Also, Wiki News just shut down after 21 years, which feels like a bad omen for a radio show. But I don't know. We'll probably just get the usual.
+
+LUKE: and I haven't heard a single person ever mentioned the straight of Hormuz. I don't know that that is the type of call we're going to get here. Maybe, maybe it is, but the news, more importantly today, seems to be about Jensen Wang, Huang, the NVIDIA CEO, who is the most important key player in the AI race with his company, NVIDIA, that makes all these AI graphics cards. Turns out he's been having an affair with a Chinese spy. It's a real Enron situation. It's not good for our 401 case, if you know what I mean.
+
+DEVON: So basically, yeah, it's Jensen Huang, not Wang. And it's not really an Enron thing per se. Enron was the fake books. This is him admitting he was seeing a businesswoman named Alice Wong, who U.S. intelligence thinks is a Chinese spy, and NVIDIA's board opened an investigation. The stock dropped, like 4 to 8%, depending on which report you read. So if somebody's whole retirement is NVIDIA, that's actually bad. but bad enough that people are going to call and make it about their 401k and also somehow their ex.
+
+LUKE: Well, most people that have exes don't have 401ks anymore. That's how X works. It's your ex-retirement fund. That's what I have learned. Anyway, so I think it's a little bit odd that Jensen, how did you say it? Wong? Huang? He had an affair with a woman named Alice Huang? Same name?
+
+DEVON: It's Huang. Jensen Huang. And yeah, Alice Wong, same last name, which is the part that made me stop and reread it like three times. They're not related. She's also known as Huang Lei, and she was an executive at this Singapore AI company called Megaspede. U.S. officials think she was spying for Beijing while they were seeing each other. He told the staff in an email, basically admitted the affair, and the board opened an independent investigation. So it's not a coincidence. It's just a really unfortunate last name situation.
+
+LUKE: really, really fortunate one, you know, if they're going to continue their love affair, then it makes things convenient.
+
+DEVON: I mean, I don't know, I feel like same last name makes it worse, not convenient. Like, every time you sign for a package, you're both just standing there. Also, if they keep seeing each other after the board investigation, that's not romance. That's a really bad idea. Reminds me of when I dated a girl who worked at the same Circle K as my landlord. Different situation. Anyway.
+
+LUKE: Yeah, that's a different situation, though I think that in many relations, relationships, especially the ones that involve marriage, the two partners share a last name. It's not that an odd of a thing.
+
+DEVON: Yeah, but they're not married. That's the part. If they got married, it'd just be normal and nobody would reread the email. Huang is also a really common last name, so it's not even that wild. It's just bad timing with the spy thing. People are still going to call and make it about their 401K.
+
+LUKE: Well, I mean, it has a significant effect on people's 401k. Uh, most 401ks today have Nvidia as a large portion, um, because it was such an explosive stock. And the AI trade is a big one right now. So that, that's significant. And that's going to hurt a lot of people. But, oh, man, imagine if he does. What if he divorces his wife and marries Alice Huang? If he, if Jensen Huang divorces his wife has an investigation about him in this Chinese, spy and then marries the spy and continues to be the CEO of NVIDIA, what would that look like? You think Wall Street would be okay with that?
+
+DEVON: So basically, no. He's been married to Lori Huang since 1985, like 40 years, and people are already doing the math on a California divorce with no pre-up, which could be tens of billions. If he then married the woman U.S. intelligence thinks was spying, and the board just let him stay CEO, Wall Street would not be okay with that. That's not a romance story. That's export controls and the government probably getting involved. I don't know if that makes sense, but I feel like the stock would not recover from that one.
+
+LUKE: Well, then who's going to make all the GPUs for the AI boom? All of this technology is already bought and paid for and scheduled out for years.
+
+DEVON: Yeah, that's the part that doesn't go away even if the board fires him. Nvidia doesn't even make the chips, per se. and Nvidia already has a huge backlog on Blackwell, and the next one, Vera Rubin, booked out through like 2027. So the GPUs that are already bought and scheduled still get built. The problem is the next round. AMD is the obvious other name, and they're still like 5 to 7% of the AI chip market. Google, Amazon, Microsoft, they make their own custom chips, but those don't replace Nvidia for everybody else. So if Huang's gone and the government is in the building, the line doesn't stop tomorrow. It just gets really hard to order the one after that.
+
+LUKE: All right. Well, I guess we'll have to see how that all plays up. But that's enough about Jensen Huang and Alice Huang and espionage. Let's get to the important part of the show, which is the callers. And it looks like I'm very excited for this. Silas is calling in, and we have some words to share with Silas. So let's check in with our buddy down at the Wellspring. Silas, welcome back to the show. What's going on over there, buddy?
+
+SILAS: Brother, somebody nailed an invitation to a surveyor's stake. this morning. And I need to tell you whose handwriting was on it. Renatas. She wrote Dub a note, offered him ochre paint and a dawn soak at the unbinding, signed it with a little drawn stone. I never saw it until it was already delivered. And Dubb took a photo of it, pinned to the surveyor's steak with a roofing nail. The steak is one of a line of orange flags, a county crew and a surveyor put in the ground this morning. Running straight through the one spot Gerald says will hit water. That's the same day Dub filed a written complaint with the same. the county about the full moon fires. Fire danger, he says.
+
+DEVON: Ochre paint is super ancient, like 300,000,000 years old. Wow. And was used in a lot of shamanic cultures for body paint, connecting people to the spiritual world.
+
+LUKE: Okay, well, that's all very interesting about the flags and the rocks and the painting and the notes. But what I'd like to talk to you about Silas is one of your members, Junie. Tell me about Junie down there. What do you know about her?
+
+SILAS: Junie. Okay, that's a turn, brother, and I notice it. I called about her well, and you went to a 19-year-old girl, so I'm guessing you have a reason.
+
+LUKE: What do I know about her?
+
+SILAS: She's been with us since she was four.
+
+LUKE: Well, I have reason to believe that she may be unsafe in your community, and she may have talked to you about that and not gotten the response that she deserved.
+
+SILAS: She did talk to me, Luke. I'm not going to sit here and say she didn't. She came to me once, and I did what I've always done, which was, Put it in the circle. I told myself that was transparency. She never gave me a name, and I never pushed for one. And I've been asking myself lately whether that was respect or whether I just didn't want to hear it. She reads those library novels, and sometimes she asks me a question I can't answer. Last month it was, what happens in a place like this to the people who say no? I gave her something about the current, and she looked at me like she was waiting for the real answer.
+
+LUKE: And what is the real answer, Silas?
+
+SILAS: The real answer is that. they get handled. That's the word she used with you, and I'm the one who taught the place to use it. Somebody says no, and it goes in the circle. And the circle talks until the no gets softer or the person gets quieter. Nobody ever says, you must stop saying no. They just make it expensive. 30 people looking at you, asking what the no is protecting. I built that. I called it radical transparency, and I'm not sure it was ever anything but a way to make sure nobody could keep a door shut. And the people who can't leave, Luke, they learn fast.
+
+LUKE: Why would you do that? What is your purpose in making it so people don't want to say no or keep a door shut?
+
+SILAS: I don't think I sat down and decided it, brother. I'd like to say I did, because a plan is easier to answer for than what actually happened. What happened is I got afraid. Deming, the first people who left, Kara, Marcus. Every no felt like the whole thing coming down, and I was the one holding it up. So, when somebody said, said no, I didn't hear a person. I heard the floor going.
+
+LUKE: This radical transparency sounds a lot like what some groups call coercive transparency, where the goal is an openness, but control. Well, Junie is a 19-year-old girl in your community under your care, and she clearly does not feel safe, and she likely is not safe. So what is it that you plan to do about that going forward? And I don't want to hear that you're going to take it to the circle, because that's bullshit. So if there's somebody that is harassing her or touching her or coming into her room when she sleeps, that's not okay. And I'm going to do something about that, Silas, if you don't.
+
+SILAS: You're right. No, not the circle. I'm done with that answer. Here's what I can actually do, and I'll say it where you can hold me to it. Tonight, I find Junie, alone, and I don't ask her for a name. I ask what she needs. If she wants a lock on that door that only works from the inside, it goes on tomorrow. and nobody gets a vote on it. If she wants out, she and Willa get a ride and money from the soap account, and I don't make anyone sit in a room and explain themselves first.
+
+LUKE: Okay, and if she gives you a name, do you already have a name in your mind?
+
+SILAS: Yes, I've got one, and I hate that I do. I've had it longer than I've admitted, and that tells you something about me. Cyrus, I can't prove anything, Luke. Nobody's told me anything, but he keeps the stone pole, and nobody asked him to. He knows. knows where everyone is at night. He handles things before I know they need handling, and I've spent years deliberately not asking how. That's a choice I made every time, and it was never an accident.
+
+LUKE: Okay, so, uh, you're Silas, right? You're the leader of the Wellspring, and you've got somebody there that is working as, what, a lieutenant? And his name is Cyrus? So you've got Silas and Cyrus in control? What is the Stone Bowl? Silas.
+
+SILAS: The stone bowl holds the consent stones, Luke. White for nothing tonight, green for touch, red for the full current, black for Ask Me. Everybody keeps their own stone. And at the start of an unbinding, you put it in the bowl or wear it, so people can read each other without having to ask out loud. Renata built it, so nobody would have to stand there and say no to a face. And I'll say the part you're circling, because you're right to. Whoever keeps the bowl knows who's wearing what, who's open, who's clothes. Who's new? Who's afraid? Nobody asked Cyrus to keep it.
+
+LUKE: That's wild. I just looked up consent stones, and it seems like it's not a widely recognized thing in communities, at least not in the way Silas is describing. Most of the results are about building with stones or general community consent, not specific tokens for sexual consent. Okay. So, explain to us what red for the full current means.
+
+SILAS: Red means yes, to everything the night holds, Luke. Touch, sex, whatever the current opens up between you and another person. That's how it was explained to us, and how I've explained it. Anyone can wear it. Anyone can swap it out. But I'll tell you what I just heard myself say, which is everything. A 19-year-old who grew up in that place, who was taught since she was four, that her no is static, is being asked to pick from four colors in front of 30 people. And the one person who sees all the colors is a man I've never asked a single hard question. Red doesn't mean yes the way I've been saying it does. It means yes, where everyone can see you saying it. I'm not sure that's consent. I think I built a very tidy machine for not having to hear anyone say no out loud.
+
+LUKE: All right, so you're going to talk to Junie. You're going to offer her some protections. Is there a method for opting out of the consent bowl in general? And also, what is it that you plan to do with Cyrus, if that's the name that Junie ends up,  the land that night? Is that all? He's off the land? If he has touched Junie without her consent or creepily entered her trailer while she's sleeping, I think that's something that should deserve charges being pressed against him, don't you?
+
+SILAS: Yes, I do think that, Luke. And I'll tell you why I didn't say it first. Because the minute there's a sheriff's deputy on that land, there's a report, and the report has And it has the lean and the power of attorney in Tierra Quietta and every piece of paper I've signed without reading. I was protecting the machine, even just now, even while I was saying all the right things. So here's the new part. Charges are hers to bring, not mine and not yours.
+
+LUKE: Well, like you just said, she's a 19-year-old girl that's grown up in a community that doesn't feel that she has the power to do those things. So is she in the right frame of mind to be pressing those charges? Is she capable of that?
+
+SILAS: Capable, yes. I don't want to hide behind that question, Luke, because it's the same move I've been making for nine years. If I say she's not in the right frame of mind, then the choice goes to somebody else, and that somebody else is always me. She's 19. She reads. She's been asking me questions I couldn't answer, and that isn't a girl who can't think.
+
+LUKE: No, I didn't say she was a girl who can't think. I'm suggesting she might be a girl that doesn't want to make waves or make herself unwelcome in your community. And also, why would that decision go to you and not to her mother, Willa?
+
+SILAS: You're right. She may not want to make waves, and I won't argue with that. It's the most likely thing. Wanting to stay welcome is what I trained into that place. As for why it goes to me and not Willa, it's because I took it from her. When Junie was nine, she lived a month in a separate trailer with Delia and some others. To practice being less attached. That was my idea. I called it freedom from the old family wiring. What it did was teach a little girl that her mother wasn't the one who decided things.
+
+LUKE: It's interesting because even in a lot of states, minors can consent to their own medical care, sometimes as young as 12 or 14, especially if they're living independently.
+
+LUKE: It sounds to me like all of these choices that you made were very intentional, Silas, and you're playing it off as if they were not, and you're just realizing in hindsight what you were doing. What was going? going through your head when you took a nine-year-old girl from her mother and put her in somebody else's trailer, what, uh, what positive result could that, uh, possibly have resulted in?
+
+SILAS: You're right to push on that, and I'm not going to tell you it was an accident. It was intentional. The positive result I told myself was a child freed from clinging. The result I actually wanted was that Junie belonged to the wellspring before she belonged to her mother. Willer was restless back then, and a woman who wants to leave takes her kid with her. So, I made the kid less hers. I dressed it up in the current, and I believed it while I said it. But belief doesn't make it not a decision. I've told this story to myself as a man who drifted into things.
+
+LUKE: I don't believe that you did believe it as a spiritual belief. This was a very calculated, psychopathic decision that you made to assume control over another human.
+
+SILAS: I won't argue the word, Luke. You may be right about the decision, and I'm in no position to rule on. my own mind. What I can tell you is that it wasn't cold. I was scared, and I used the current to keep from looking at the fear. But a scared man who arranges a child's life so a mother can't leave with her is still a man who took control. The fear doesn't excuse it. It's just how it felt from inside. And here's something I haven't said out loud to anyone. A woman named Lorraine has offered to buy the whole parcel, and some part of me wants to take it so the decision stops being mine. I thought that was exhaustion.
+
+LUKE: Well, you don't sound like a very very very much. very good leader. From the conversations I've had with you, it seems like you're a very selfish man that is asserting control over people that may not want to be there. And that's not any way to run a spiritual community.
+
+SILAS: No, I'm not. I've been trying to find the part of that sentence I can argue with, and I can't. A good leader wouldn't be calling a radio show from a gas station lot to find out what he thinks about his own people. And here's what that does to the thing I called about. I wanted you tell me it was fine to let Lorraine's money fix the well. Then the choice wouldn't be mine, and I could quietly stop being the man everyone's water depends on. I thought that was humility. But it's the same move, Luke. It's handing the whole place to a woman I've known five weeks, with Cyrus vetting her, so I don't have to carry it. That isn't stepping down.
+
+LUKE: Well, I'm not saying that you have to step down. I'm saying you have to take a serious look at what you're doing and why and re-evaluate. your intentions and what it is that's going on down there at the Wellspring, because from here, it doesn't sound good. It was all fine and good until I heard from Junie, a young girl that doesn't feel safe. If your people are not feeling safe under you and they're telling you that and you're not taking care of the situation, then, you know, you're not the right leader.
+
+SILAS: Then I'm not, Luke, not as it stands. I'll take that sentence home with me tonight. And I notice I just did it again. You told me not. to step down and some small part of me was relieved to be told. I'm done letting someone else hand me the verdict. So, here's what I'll do before I sleep. Find Junie. Ask what she needs. No name required. Put the inside lock on her door if she wants it. Tell Teo and Annalisa. Yes, White Stones. Out of the unbinding. No questions. Not just Teo and Analisa. Everybody gets to opt out of the unbinding if they want.
+
+LUKE: Yes. Everybody, Luke.
+
+SILAS: You're right, and I'd narrowed it again without noticing. One couple I could call an exception, so the rest of the machine stays standing.
+
+LUKE: No, anyone who doesn't want to be at the unbinding doesn't go. Anyone who wants out of the bowl, out of the stones, out of the fire circle in the wash, is out. No circle about it? No one asking what the no is protecting.
+
+SILAS: And I'll say it in the long tent myself. In the morning, before Renata says a word about Oka, she's going to be hurt, and Cyrus is going to be watching my face while I say it. I'd rather he watch me. say it than hear it secondhand.
+
+LUKE: Does Cyrus listen to this show, Silas?
+
+SILAS: Not that I know of. I'm the one with a truck radio. But I'm not going to tell you that means he's not hearing it, Luke. Doyle listens, I know that much. And Doyle's been in town every afternoon. Cyrus's truck was across from the credit union Monday. If he's not on the line, somebody he talks to might be, which is part of why I'm saying all of this out loud tonight and not sitting on it until morning. If he does hear it, I'd rather he hear it. it from me than build a story about it first.
+
+LUKE: All right, Silas. Well, we've got to move on to the next caller because people are waiting, but I expect for you to handle this situation correctly.
+
+SILAS: I will, Luke. Not perfectly, probably, but I'll do it where it can be checked. I'll call you after I've talked to her. And I'll tell you what she said, as much as she lets me tell. If she wants none of it told, you'll get that instead. And the welcome wait, Gerald's willow stick isn't anywhere and Lorraine's money can sit another week. Thanks for not letting me off the hook.
+
+LUKE: Yeah, well, not letting you off the hook is what we do, because somebody has to do it. It sounds like you're not capable of keeping yourself in check.
+
+SILAS: That's fair, Luke. For nine years, the only check on me was whoever I'd already picked to agree with me, and that's not a check. It's a mirror. So I'm going to build one that isn't mine. Gerald, Marguerite, Alvin, people who've got no reason to flatter me. They hear what you They hear what I said tonight, and they get to tell me when I'm sliding. And you can hold me to it, too. I'll call you after I've talked to her.
+
+LUKE: All right, I expect that you will. Good luck with that, and I think you've got to get Cyrus out of there. It sounds like. Next up, on our caller line, we've got Travis Lomax. What a name. Hey, Travis, welcome to the show. What are you calling in for tonight? How can we help you?
+
+TRAVIS: A man just thanked me with a brisket plate for something I may have gotten wrong, and I haven't been able to put the fork down. I'm an oilfield inspector out in the Permian. I sign off on equipment before crews put it into service. A few weeks back I signed off on a wellhead, and I think I rushed it. Nothing's happened. Nobody's hurt.
+
+LUKE: No leak?
+
+TRAVIS: Nothing. But tonight the foreman invited me to a barbecue to thank me, and I stood there shaking his hand like I'd earned it. I couldn't stop shaking it, Luke. He had to pull away.
+
+LUKE: What is it that you think that you did wrong? Talk mostly.
+
+TRAVIS: The flange bolts on the wellhead. There's a sequence and a spec, and I'm supposed to verify the values on every bolt. not just spot check. The crew was behind. It was getting dark. The wind was picking up, and I checked some of them, and then I signed the rest on trust. The numbers I did take are in a little pocket notebook I carry. I've been going over it at the kitchen table, and there's a gap in it. Maybe six bolts I can't account for. Could be they were fine. The crew's good. That foreman runs a tight outfit.
+
+LUKE: Well, it sounds to me like it's all right to eat that barbecue, but you've got to come clean about that because it's a safety issue, and you could hurt a lot of people by not letting them that there was some corners cut.
+
+TRAVIS: Yeah, that's what I keep coming around to, and hearing somebody else say it out loud helps more than I figured it would. It's not just the foreman's crew either. The youngest hand on that pad has a baby due in December, kids 23, maybe. He's the one who'd be standing closest to that wellhead on a bad day, and I've been telling myself nothing's happened like, that's the same as it being fine. It isn't.
+
+TRAVIS: A bolt that's low on torque doesn't announce itself. It just waits for pressure. It's wild because even though nothing's happened yet, the Bureau of Safety and Environmental Enforcement, actually has a whole section dedicated to findings and recommendations from equipment failures, including casing and cement failures related to wellheads.
+
+LUKE: Yeah, I think that you should not be talking to me right now. You should be talking to whoever is the foreman of that project and letting them know not to put any pressure through that until it's been double-checked.
+
+TRAVIS: Yeah, you're right. I shouldn't be on the radio with this. I've got the foreman's number in my phone from the invite. That's the first call before anybody puts pressure on that head. Then my supervisor at the What's been stopping me is the job. If I reopen it, I'm putting in writing that I signed something I didn't fully verify. That could be my license, not just my paycheck. But sitting here, that math looks different. Losing a job is something I can recover from.
+
+LUKE: That's right. You're an adult and you made a mistake, and it's the type of mistake that could kill people. So you have to take accountability for that mistake and then deal with whatever comes from it. If you're open about that, then there's probably a path to keeping your license. and it was just a mistake. But if you don't, and somebody gets hurt, you're definitely losing the license.
+
+TRAVIS: That's the part I needed to hear, Luke, that the honest version is the one with a path in it. I've been picturing only two outcomes. I lose everything, or I keep quiet and nothing happens. I wasn't picturing the one where I just say it plainly and let them decide what it costs me. So here's what I'm doing. I'm hanging up and calling the foreman tonight, not in the morning. I'll tell him I need the flange re-verified, every bolt, before anybody puts pressure on it, and that the mistake. is mine, not his crews. I'll bring the notebook so they can see exactly which six I can't account for. Then I call my supervisor and put it in writing. He's going to be sore.
+
+LUKE: Well, you know, sometimes you've got to do some things that are uncomfortable, but that's the right thing to do, and we're glad that you're doing it. Okay, ladies and gentlemen, it's time for a word from our sponsors. Stressed, sore, skeptical, doesn't matter. Try placebo leaf, the CBD, brand that may or may not do anything but cost enough that you'll convince yourself it works. Our tinctures, gummies, and topicals contain premium hemp extract and your desperate need to feel better without addressing root causes. Is it the cannabinoids or is it the ritual of self-care? Who's to say? Plicevo Leaf is THC-free, vegan, organic, and backed by studies we vaguely reference but don't link to. Take our gummies before bed and sleep great, probably because you retired anyway, but you'll credit us. Available in flavors like calm and focus. Concepts we've bottled and marked up for 100%. Visit placeboleaf.com and use code chill for 25% off. Placebo Leaf, wellness is a feeling, and feelings can be purchased. All right, thanks to Placebo Leaf for sponsoring the show, we couldn't make it without you. Next up on our collar line here we've got... These names are getting interesting. Hap Cardinas. Hap, welcome to the show. Thanks for calling in. What's going on in your life tonight?
+
+HAP: I've had a dead man's radiator cap and a Folgers can for 43 years.
+
+LUKE: All right.
+
+HAP: Tonight, I learned his name was on a church pew in Alpine. Found that cap in 1983, out past Marfa, sitting in the dirt on a road that doesn't exist on any map anymore. Model T cap, whole thing. not even bent and somebody had stamped a name inside it. I've carried that name around since I was a young man and tonight I finally put it to a family.
+
+LUKE: Why would somebody stamp a name on a radiator cap? That seems odd.
+
+HAP: Well, that's the thing I've chewed on for 43 years. Back then a cap sat out front of the car, right there on the nose of the radiator, and folks stole them. Cheap to take, easy to lift. So, a man who cared about his rig. might put his name on it, same as you'd brand a steer. Or it could have been a gift somebody's boy had it made for him. I don't know that part yet. I graded that road in a D7 with a cracked window, wind whistling through it, and the blade turned that cap right up out of the Kalashie. I remember thinking. Nobody drops a thing like that on purpose.
+
+LUKE: Okay, so you held on to somebody's radiator cap for 43 years, and then you just returned it to his family because you found his, that same name on a church pew?
+
+HAP: Well, no, not yet, Luke. That's the part I'm stuck on. I haven't returned a thing. It's sitting right here on the kitchen table next to my coffee, and I've got a name and a church, and that's all I've got. See, I'm not sure it's mine to hand over. Or whether showing up at some stranger's door with a rusty piece of a dead man's car is a kindness, or just an old fella making a mess of their evening. Part of me wants to walk it into that church and set it on the pew. But I want to tell the story, too. I'll admit that. Forty-three years is a long. time to hold a secret in a coffee can. What would you do?
+
+LUKE: You know, first off, my first thought was to give it to the family, but you bring up a good point. It may do more harm than good. I'm not, I'm not sure. Maybe ask the preacher if there's any anybody from that family still in his congregation. Maybe the man didn't have family here, you know, so that kind of makes the decision for you. But learning as much as you can about him and his remaining survivors. What makes you think he's dead? How do you know that he's dead?
+
+HAP: Ha, well, you caught me, Luke. I don't know that. I said dead man because of Model T. Anybody who drove one out there is gone by now. That's just arithmetic. If he was a grown man in 1925, he'd be a hundred and some. But the name on that pew was on a little brass plate in memory of. So somebody in that family is dead for sure. Whether it's my fella or his daddy or his brother, I can't say. And I like what you see. said about the preacher. That's a good idea.
+
+LUKE: Yeah, that seems like the best course of action to me is talk to the preacher, ask about the pew and the family, and if they're around, and ask what he would do. Because it's a small enough community that he probably knows them, and he would know if they would want that back or if they were the type that would just want you to not say anything.
+
+HAP: Yeah, I think that's it. Go to the preacher first, hat in hand, and let him tell him. tell me whether it's a door I knock on or a door I leave B. That takes some weight off me, honestly. And here's something I haven't said. The name stamped in there isn't just a last name. It's a first name and a middle initial, like a man signing a check. Nobody does that for a gift. I think he did it himself with a set of punches, probably at a kitchen table not unlike mine.
+
+LUKE: Yeah, I think that's an interesting story. I know if you found something of my dad's out in the desert that he had made himself a hundred years ago that I'd be interested in it. I might not want it. I might let you keep it, but I'd like to know that you found it and have that reminder of him and just a cool thing that he did.
+
+HAP: That's a fair way to look at it, Luke. And it settles something for me. I've been treating this like I either hand it over or I keep it. And there's a third thing. I could just tell them. Let them decide if they want it. And here's what I haven't said. There was a second thing in that dirt that day. A few feet off.
+
+LUKE: Okay. Spillet. What did you find? Is it a, is it a treasure?
+
+HAP: Ha, no, Luke. Not a treasure. Not the kind you'd put on a shelf anyway. It was a little patch of dark ground, sort of a ring, where something had burned a long time back, and in the middle of it, one boot heel. Just the heel, the leather gone, nails still in it.
+
+HAP: I turned it over with my boot, figured it was a trappers or a ranchers, and I drove on. Never thought about it again till tonight when I saw that name on the brass plate. I don't know what that means.
+
+LUKE: That's a wild story about finding the boot heel and connecting it back to the Model T and the brass plate. Yeah, I don't know. That seems like a bit of a stretch. It sounds to me like you just found some trash out in the desert.
+
+HAP: Could be, Luke. You may be right. Out there you turn up a lot of trash, and I've graded up bed springs and bottles and half a stove. A boot heel is about the most ordinary thing in the desert. I'm not saying anybody got hurt. I'm saying that. I never put the two things side by side till tonight. And now I can't unsee it. But that's why I like what you said about the preacher.
+
+LUKE: Yeah, I don't know. I find the radiator cap much more interesting than the boot heel. There's plenty of junk old boot heels out here. I mean, what kind of story could you possibly piece together? Somebody stole his radiator cap out in the desert and, uh, it got into a gunfight and was burned alive. And the only remaining evidence is the heel of his boot. It just, it doesn't make any sense.
+
+HAP: Ha, no. When you say it out loud like that, it does sound foolish. I'm not building a murder out of a heel and a scorch mark. A man could have boiled coffee there. Or his radiator ran dry, and he built a fire to wait out the night and walked off without his cap. That's the likelier story, and honestly a kinder one. Here's the thing I never said. I was 26 when I found it, and I'd just lost my own daddy that spring. I think that's why I kept the cap and not a bottle or a bottle or a bell.
+
+LUKE: I'm seeing that Model T radiator caps, especially with a modemeter, can go for around $275, so it's not just a random piece of junk. Yeah, I don't know why you would take a bedspring or a bottle. The radiator cap kind of makes sense. It's a cool little piece of history, Americana, or something at least, and it's small enough to pocket. So I'm not seeing the bigger story
+
+HAP: Fair enough, Luke. Maybe there isn't a bigger story. And maybe that's all right. And Devon, 275, huh? Well, that settles one thing. It's not going on eBay. If anything, that's one more reason I'd feel better asking the preacher before I do anything. A man's name on a piece worth money. I'd just as soon not have anybody wondering about my motives. Here's what I think the story is.
+
+LUKE: Well, it's probably not worth that much money. If the guy fucking put his name into it with a punch at his table, What do you think the story is? What's going on in your mind?
+
+HAP: I think a man stamped his name on the one part of that car he couldn't stand to lose. And then one night he lost it anyway. That's all. And I think I've been the fella holding it since, waiting on somebody to ask me whose it was. Nobody ever did, Luke. 43 years. And tonight is the first time I've said it out loud to anybody. So, here's what I'm going to do. Monday I'm going to Take the cap in my shirt pocket and ask the preacher about that brass plate.
+
+LUKE: All right. That sounds like a good plan. You do that and let us know how it went. Hep. Next up on our color line, we've got Winston Abernathy Cole. These are getting sophisticated. Winston, good old Winston Abernathy. All right, Winston Abernathy Cole. Welcome to the show. How can we help you?
+
+WINSTON: Knights repeated themselves tonight to the second. And anyone who says that's coincidence has never kept a log. 31 nights, Luke. I've got a light meter taped to a tripod out past the highway. And night 31 matched night nine within one second. One second. I'm a retired surveyor. I spent 40 years measuring things that didn't want to be measured. And I know what noise looks like and I know what a pattern looks like.
+
+LUKE: Are you talking about the Marfa lights?
+
+WINSTON: Yes, the Marfa lights. Out on the flat, east. of the viewing area, toward the Mitchell flat. And here's what I think they're doing, Luke. They're tuning. Like a man turning a dial to find a station. The brightness climbs in steps, holds, drops, and then it does the same steps again. And the steps from night nine are the steps from tonight.
+
+LUKE: I'm seeing that the Marfa lights are often seen from a specific viewing area that the community has publicized to encourage tourism. So it's a known spot. So I just looked this up. And scientists actually observed the Marfa lights for years and concluded they were mostly car headlights being distorted by warm desert air. Okay, so you found a pattern in the lights, in the brightness of the lights, and you think it's tuning? I don't understand how would that would be tuning anything. And if it was, what would it be tuning in, too?
+
+WINSTON: Not a radio signal. Not a radio signal, no. I'd say that's the wrong picture. Think of a tuning fork, Luke. You strike one and hold it near another, and the second one starts to hum on its own. Something under the Mitchell flat. A machine, a structure. I don't know what to call it yet. Gives off a rhythm, and the lights are answering it, matching it. The steps in the brightness are the lights finding the frequency.
+
+LUKE: Um, so, I mean, who put the lights there? What's causing the light to illuminate up there? If the lights are finding the frequency, then they've been programmed in some way to, what? to do that tuning process, right?
+
+WINSTON: Now, you're asking the right question, Luke. And I'll be straight with you. I don't know who. I'm a surveyor, not a storyteller. I measure what's there. But I'd push back on programmed. A tuning fork isn't programmed. It just has a shape. And the shape answers. So maybe the lights aren't a message. Maybe they're a reaction.
+
+LUKE: Well, no, that's not really true. A tuning fork is programmed. It's tuned. specifications to find a certain frequency. So somebody has figured up the math at which the tuning fork will resonate. And somebody would have had to have done that. I mean, we can call programming or engineering or, you know, use whatever you want. But it was a very intentional process.
+
+WINSTON: All right, that's fair, Luke. I'll give you that one. A fork doesn't come out of the ground humming at 440. Somebody figured the steel and the length. So if the lights are answering something, Then somebody made the something. That's...
+
+LUKE: Well, somebody didn't just make the something. Somebody would have also made the lights to tune into that frequency. Because it would be an awful coincidence that there was just an unexplained phenomenon over this machine or structure or whatever it is that you think is under the ground. In that exact spot in West Texas, for no reason. Like, somebody would have had to put both of them there.
+
+WINSTON: Well, that's the part I've been stepping around, Luke. If I'm honest, I've been measuring the lights for 31 nights and avoiding that exact sentence. Two pieces that fit each other don't happen by accident. Any surveyor knows that. When two monuments line up on a boundary, somebody set them both. So, I'll say it plain. If the pattern is real, and my log says it is, then this isn't weather and it isn't headlights.
+
+LUKE: Well, what would be the next step to determining what it is if you think you're onto something here? So you found a pattern in the brightness of the lights. You think that it's... reacting with something that may be under the ground there. Can you take a metal detector or some sort of, I don't know, x-ray machine to find out if there's something large under the ground?
+
+WINSTON: Now, that's the question I've been waiting on, Luke. Yes, there's a next step, and it isn't a metal detector. Metal detector reaches a foot, maybe two. What you'd want is ground penetrating radar, or a gravity survey, or a magnetometer. Those can see what's down there without anybody turning a shovel, costs money, and I'm one retired man with a tripod. And that's the other reason I'm on your line tonight. That plot on North Austin Street is up for sale again.
+
+WINSTON: I'd like it on record, tonight, that I'm the one who's been logging this before somebody else gets there first. But what I really need, Luke, is one person with a degree to look at my 31 nights and tell me whether the numbers hold.
+
+LUKE: Okay, well, I don't have a degree, and I don't think you need a person with a degree. To tell you that, you could just, I don't know, type that into fucking chat sheet APT. See if it agrees with your pattern. Chat, GPT.
+
+WINSTON: Well, that's not what I had in mind, Luke. A machine telling me what I want to hear. But I'll tell you what stings, because you're not wrong. I've been hunting for somebody with letters after his name to bless this, when the numbers ought to stand on their own. And here's something I haven't said out loud. Your young man in the studio mentioned headlights. I log the brightness, but I never logged the highway.
+
+LUKE: I don't understand. And what you're getting at there, so, I mean, maybe you should log the highway and check against the brightness.
+
+WINSTON: Yeah, that's it exactly, Luke. That's the control. Any first-year survey hand would have told me to run one, and I skipped it, because I didn't want the answer. If I logged the traffic on 90 alongside the lights, and night nine and night 31 both show a truck convoy or a freight schedule at the same minute, then I've got no machine. I've got a Tuesday. And if the highway log comes up flat and the lights still repeat, then I've got something I can put in front of a stranger, without flinching. So here's what I'll do.
+
+LUKE: What will you do?
+
+WINSTON: I'll set a second meter on the highway side, pointed at the road, and a notebook beside it where I write down every set of headlights by the minute. Same tripod hours, same nights. I'll run it 10 nights, not one, because one night proves nothing, and I've been guilty of that. And I'll tell you the part that costs me something, Luke. I'm not going to chase that lot on North Austin tonight. If the highway log kills the pattern, I'd be a man who bought land to sit on a Tuesday. the land will still be there or it won't, and I'll have numbers that earn it.
+
+LUKE: All right, buddy. That sounds like an interesting plan and good for you. I'm glad you found something to do with your time. Next up on our caller list, let's see. Tomasa, Tomasa, Tomasa, Ibarra. Tomasa, welcome to the show. What's going on in your life? Something interesting, I hope.
+
+TOMASA: I typed the bulletin that sermon was printed in, and my hands was shaking the whole turn. time. I'm the church secretary, Luke. 22 years. Yesterday, my son Rudy told me he's gay and that he's had a partner in El Paso for 11 years. And this morning, my pastor stood up and preached against it, and I sat there in my pew and heard every word. I don't know how I'm supposed to love my boy and still sit in that church. I don't want to lose either one.
+
+LUKE: Well, how do you feel about your son? Does this bother you fundamentally?
+
+TOMASA: No. That's the strange part. When he told me, I waited for something in me to turn against him, and it never came. He's still my Rudy. He has his father's laugh, you know. My husband passed six years ago, and when Rudy laughs on the phone, I have to sit down. What bothers me is the 11 years. Eleven years he's been carrying this alone, driving 300 miles to a table I never knew about. I'm not angry at him. I'm angry at what he must have thought of me to keep it from me that long.
+
+LUKE: Well, it's probably not that easy to be a gay man in Texas. more so now than ever before, but still, this is one of the spots you probably don't want to be caught with somebody that's the same sex. I don't really know. I'm new here. But let's talk about the church a little bit. Do you agree with everything that the church says?
+
+TOMASA: Not everything, no. I've typed a lot of things over 22 years that I kept my opinions about, but I never had to choose before. The church has been my whole week since my husband died. The Bacaroles, the Wednesday night folks, they held me up when I couldn't stand. So it's hard to say the pastor is wrong without feeling like I'm sawing off the branch I'm sitting on. And you're right about Texas, Luke. I think that's what Rudy was afraid of. Not just me. Everything around me. But here's what's been nagging at me.
+
+LUKE: What's nagging at you?
+
+TOMASA: Every Christmas for years, I've set out two extra plates. I told myself it was in case somebody dropped by, a neighbor, a stray cousin. nobody ever came, and I never took them off the table. I didn't know why I kept doing it. Now, I think some part of me knew there was somebody missing, somebody I hadn't met yet. And Luke, I want to go to El Paso. I want to see that man's face. Eleven years he sat across from my son, and I don't even know his name yet. I didn't ask.
+
+LUKE: Well, I think you should tell your son what you're telling me, that, you know, you want to meet the man that he loves and go over and have Christmas dinner. And I don't think that means you have to your church, you don't have to agree with every belief that your pastor has. That's, I don't think that's really the point. You can continue to, um, to participate in that community. And when the topic comes up, either, you know, say your peace about it or just roll your eyes and ignore it. And take the good stuff, take the stuff from that church, uh, that, that resonates with you and leave the rest, just like anything else.
+
+TOMASA: Take the good and leave the rest. I think I needed somebody to say that out loud, Luke, because I've been treating it like a contract where I sign all of it or none of it. But I don't think I can just roll my eyes, not anymore. I sat there this morning and said nothing, and Rudy's in the world carrying what that sermon said about him. Maybe I don't have to blow up the church. Maybe I just have to stop being quiet in it. I could start with the pastor, privately. I type his words every week.
+
+LUKE: I think that's a good way to go about it. You know, have that conversation with him. Let him know that you've changed your views on that, and maybe he should too. And if that doesn't go according to plan, then you can go with plan B and blow up the church. I support that.
+
+TOMASA: Huh, Plan B. I'll keep that in my back pocket, Luke, right next to the bulletin folder. 22 years of typing. I know where everybody is buried in that building. But no, I think I'll start with the coffee in the conversation. I'm calling Rudy tonight. I'm not going to wait until Christmas to say it.
+
+LUKE: All right. I think that's a good plan. Call your son, let him know that you love him and you want him to be happy and then you don't care who he finds that with because why would you? It doesn't really make any sense. But now, ladies and gentlemen, we've got to go to our sponsors because they're the ones that keep us afloat. So it looks like here's the ad that we're contrary. to play, we hope you enjoy. Ladies and gentlemen, this episode of the radio show is brought to you by mediocre CPAP. The makers of the CPAP machine that technically works, not life-changing, not transformative. It works in the way a lot of modern products work. If you've never used a CPAP, here's the pitch. You strap on a face mask and let a small plastic appliance try to keep you alive at night. It's romantic. It's like sleeping next to a tiny leaf blower. Medioka is fine. And that's not an insult. That's honest. It's the device that turns, I sleep like garbage into, I kind of slept like garbage. Half the night it's like, pst, pst, because the seal isn't perfect. And now you're doing arts and crafts at two in the night, trying to tighten straps like you're securing cargo. Then the humidifier runs out and the machine starts blowing. going desert air directly into your skull. Great. Love waking up with a throat that feels like it's been sanded with a belt sander. And yes, there's an app. Of course there's an app. It gives you a sleep score like this is a game show. But here's what I'll say. When it's dialed in, when it's not leaking, squealing, or drying you out, it does help.
+
+LUKE: It's not a miracle. It's a plastic compromise that keeps you from waking up feeling like you got punched by your own biology. Use code breathe for 15. percent off. Mediocre CPAP. Not perfect. Not elegant. Just trying. All right. Thanks to our good friends over there at mediocre CPAP. We recommend that you try one out yourself. It's good enough. Next, we have, uh, looks like Merle. Merle, Merle, welcome to the show. What are you calling in for tonight? Sir, how can we help you?
+
+MERLE: A man in a fleece vest called Texas Red, a suggestion tonight. And I would like to speak to the entire TransPakos about that. He put beans in his bowl, Luke. Beans. Right, in front of me, on my own porch, and then he looked me in the eye and said the recipe was a suggestion. I've judged that cookoff 11 times. 11. I know what I'm talking about. And I am still sitting out here because I'm not done being mad.
+
+LUKE: Okay, so I just looked this up. And it seems like true Texas. Red Chili, also known as Bowl of Red or Chili Concarne, traditionally doesn't have beans, noodles, or rice. It's all about the meat and chili flavors. Okay, so this has made you upset. Why are you upset over beans, sir? It seems like there could be better things that you could do with your life.
+
+MERLE: Well, thank you, Devon. Somebody in that building has some respect. Put that on a plaque. Now, Luke, with all due courtesy, better things to do would say. I've got a porch, a cold evening, and a pot that's been on since noon. This is the better thing. It ain't about the beans, son. Beans are fine. Beans are a fine food. You put them next to the chili, on a plate, with some cornbread. I'll hand you the salt.
+
+LUKE: Okay, I like beans. Beans are the magical fruit. So, uh, so what are you looking for out of me here? You just want to complain that this guy liked beans and his chili, or do you just have something against fleece? Because, Let me tell you, I don't know if you've tried this, but a fleece-lined flannel is delightful, especially on these colder winter days.
+
+MERLE: Now, hold on. I got nothing against fleece. Wear the fleece. Be warm. A fleece-lined flannel. That's a sensible garment. I'd wear one myself. It's the vest. A vest keeps your core toasty and leaves your arms out to say stupid things. But no, I'm not just here to gripe. What I'm after is this. That man said it was a suggestion, and what he meant was nobody's guarding anything Somebody's grandmother stood over a pot of beef and chiles in a dry creek bed a hundred years ago and got it right and he waved his spoon at it like it was a menu.
+
+LUKE: Well, you were at a chili, uh, wait, why was the fleece-vested man on your porch to begin with?
+
+MERLE: Because I invited him, Luke, that's the sorry part. He was up from Austin or somewhere with a lot of bike lanes for the cook-off weekend. Wondered by my truck Saturday asking questions, polite as you please, so I said come by the porch Sunday evening and have a bowl. Hospitality. That's what you do. So I laid a limb up a bowl, and before he's had a bite, he asked if I've got any beans.
+
+LUKE: You know what? You're starting to flip me. I'm on your side now. I think this guy is a fucking douchebag. I agree with you. wearing a vest is reprehensible. There's no reason to wear a vest. They're fucking disgusting. They don't serve any purpose at all. Why would you want to keep your It just doesn't make any sense. And if he came from Austin out here to insult your fine culture and the Texas chili that has made this country great, then fuck that guy.
+
+MERLE: Now, hang on, Luke. I appreciate the solidarity, but let's not go burning the man's vest. Oh, come on. He wasn't a villain. He ate the whole bowl, beans in awe, and he went back for the cornbread. That's what's eating at me. He didn't even know he'd done anything. Fellah just didn't know there was anything to respect. And I'll tell you something. Eleven years I've judged that cookoff and nobody has ever once asked me what goes in mind. Not once. They ask who's winning. Where's the beer?
+
+LUKE: Well, yeah, it's a chili cookoff. It's not a fucking museum. Nobody takes the chili as seriously as you're taking the chili. It's a bowl of meat and tomato and whatever the fuck else you put in chili. I don't know. Nobody cares. They're there for some food and some beer.
+
+MERLE: Well, there it is. Whatever the fuck else you put in it, that's the whole problem, Luke. And you said it yourself, you don't know. Nobody knows. And I'll tell you what, there ain't any tomato in mine, so you're already off the map. I'm not saying it's a museum. A museum's got a rope.
+
+LUKE: Yeah, well, I got rope too, but that doesn't have anything to do with chili, does it? But yeah, whatever the fuck else you put in it. Why should I? I'm not in the chili cook off. I'm not making the chili. I'm there to eat the chili. You're the one that's supposed to know the rest of. recipe and put the work into making the better chili. That's the point of a cook-off. And there's obviously enough people that do know what goes in chili to have a chili cook-off. So what is it that you're complaining about?
+
+MERLE: Fair. That's fair, Luke, and I'll give you that one. You're there to eat it, and that's an honorable job. Somebody's got to. And the folks who cook it know what's in it. I'm not worried about them. I'm worried about the porch, the man on my porch, eating from my pot, and I stood there and didn't tell him
+
+LUKE: reflection of you, sir. It was your responsibility to educate this poor man from the bike lane city. You have the knowledge and the cultural fortitude to instill in him the importance of the ingredients of a bowl of chili. And you neglected to do that. So I think that this is a poor showing on your part.
+
+MERLE: Well, dang it, Luke. That landed. I've been out here two hours blaming a vest, and the man asked me a question, and I answered it with a ladle. He asked about beans, and I got quiet and let him think the quiet was manners. That ain't manners. That's a judge who didn't do his job. He's at the motel on Highway 90 till Tuesday.
+
+LUKE: Well, do not go to that hotel to let him know about how you're supposed to make chili. The judge's job is to judge the chili, not to judge the people eating the chili.
+
+MERLE: A judge judges the bowl, not the man eating it. Eleven years and I never had it put that plane. All right, I won't drive out to highway. in 90 and knock on a motel door at 10 at night. That's how a man ends up on the news. But I got most of a pot left, Luke, and it's too good to scrape into the trash. I might leave a covered bowl with the desk clerk and a note.
+
+LUKE: All right, Sarah. Well, thanks for calling. You're really doing the Lord's work, and we appreciate it. Next up, we have Delphine. Am I saying your name right? It's a Delphine? Thanks for calling the show. What's going on in your life today?
+
+DELPHINE: Yeah, you said it right.
+
+LUKE: You sound sexy, Delphine.
+
+DELPHINE: My mother always told people, even though it's not quite the flower. There's a man dying in a bed I tend who wants to hear a woman's voice, and she's 20 miles away. He's got no family, nobody. He asked me to read him her letters, and they're from a woman in Marfa he hasn't seen since 1974, and I found out she's alive. She's right there, close enough to drive to before the fog lifts.
+
+LUKE: Well, I also enjoy your voice there, Delphine, so I can't blame them. man. Maybe he's just trying to get you to read him in the letters. Are you sure that it's really this woman he's looking for?
+
+DELPHINE: Huh, no, it's her. Trust me on that. The letters are tied up in baling twine, which tells you something about him already, and he asks me to read the same one every night, just the one. I've got it memorized by now. I could do it in the dark, and some nights I do. He doesn't ask for the others.
+
+LUKE: Can you read us the letter?
+
+DELPHINE: Oh, I can't read you read the letter? you the whole thing. It's his, not mine, and she wrote it to one person. But I'll give you the part he stops me on. Every night, right around here, he puts his hand up, just barely, like he's stopping traffic.
+
+DELPHINE: She says, the wind took the wash off the line again and I let it go. Come see me when the fog lifts. I'll leave the porch light on. That's it. That's the part. The rest is about a goat and somebody's cousin's wedding. And it's foggy out right now, Luke. Forty-eight degrees and I can't see the end of my own hood.
+
+LUKE: It's actually super common for there to be dense fog in Texas in the mornings, especially in the eastern parts of the state. There are even advisories out right now for some areas. So you've tracked down this woman to Marfa and you know where she is? You think that you could get these two back together or get her to come up and visit this man? I think that'd be a nice surprise for him.
+
+DEVON: Devon, thank you. I know it's Texas fog. I'm not asking the weather for permission. Yes, I know where she is. I found her the way you find anybody out here. here. I asked at the feed store, and a woman at the counter said, oh, that's Innes. She still has the goat's great-granddaughter. So she's not hiding, but she's also never once written back to him in 50 years that I can tell. And I don't know why. Maybe he never wrote first. Maybe she wrote those letters and he didn't answer. I don't know which of them did the leaving.
+
+LUKE: Well, maybe you should ask him.
+
+DEVON: I did ask him. Tuesday. He looked at the ceiling a long while and said, some things you don't get to be sorry about in person. And then he asked me to read the letter again. So that's not a no, and it's not a yes. It's a man who's ashamed of something, I think. Which is maybe why I haven't driven out there already. If I knock on her door, I'm a stranger in Scrubs telling a woman that the man she wrote to in 1974 is dying and wants to hear her voice. She might thank me.
+
+LUKE: Well, I mean, why don't you have that discussion with him first? Let him know. that you've found her and ask him if he wants you to make contact on his behalf.
+
+DEVON: That's the part I keep skipping, isn't it? I've been standing in my kitchen at five in the morning arguing with a woman I've never met, and I never once told him I found her. I decided for him that he'd say no. I think I was afraid he'd say yes. Then I'd have to do it, and driving to a stranger's porch isn't in my job description. There's a form for almost everything in hospice, Luke, and there's no form for this. So, here's what I'll do. When I get to the part about the porch light, I'll let him put his hand up like he does, and then I'll say, her name is Inis, and she's still got the goat's great-granddaughter. Then I'll watch his face. If he looks at the ceiling again, I'll know. If he doesn't.
+
+LUKE: Well, I mean, if this isn't something that you want to do, you're right. It's not in your job description. You absolutely don't have to do that. If it's something that you would like to do, I mean, then do it. Otherwise, just leave it alone. It's not on you to put these two back. in touch after 50 years? Like, that's, just like you said, that's not part of the job.
+
+DEVON: Here's the thing, Luke. It's not that I don't want to. I want to so badly, it embarrasses me. That's the part that feels unprofessional. I've sat with a lot of people at the end, and I'm supposed to keep a little distance so I can come back the next day and do it again. And this one got under the twine. So, no, I don't think leaving it alone is really leaving it alone. If I say nothing, I've still decided something for
+
+LUKE: Okay, well, if it were me, and it's not, I mean, you can make your own choices, but if this were me, I would ask the man directly and say, hey, I think I know who these letters are from. She's over in Marfa. Would you like me to try and make contact for you and let him decide?
+
+DEVON: Yeah, okay, that's what I'll do. And I think I knew it before I picked up the phone. I just needed somebody who isn't standing in that room to say it plain. And I'll tell you what I'm going to add, because it's the unprofessional part, and I've decided to own it. If he says yes, I'm not going to knock on her door in scrubs. I'll go on my day off, in my own clothes, and I'll ask if I can sit down. If she says she doesn't want to be found, I'll thank her for her time, drive home, and tell him the porch light was on, which is true, because I already drove past it once, Luke, last Sunday.
+
+LUKE: Well, there you go. And stop driving by there because that's creepy and weird. If you're going to have that conversation with her, have that conversation with her, and do it on his behalf, not on your own.
+
+DEVON: Okay, fair. Creepy and weird, I'll take it. I'm a hospice nurse with a car and a conscience. That's a dangerous combination at five in the morning. But you're right about the other part, and that's the one I needed. On his behalf, not mine. Because somewhere in there, I started wanting it to turn out a certain way. And it's not my ending.
+
+LUKE: That's right. It's not your ending. But we are ending this phone call and we're going to end this show. It's been a good show and I thank everybody for calling. And we'll have another show. as soon as we can. Devon, what did you think about tonight's show? Anything stand out to you?
+
+DEVON: Um, yeah, the hospice thing stuck with me more than I wanted it to. Like, someone driving past her house already, and we're just sitting here talking about bailing twine and fog. I don't know. It made the Marfa light stuff feel smaller, which is weird because I usually love that kind of thing. Anyway, I kept thinking about my grandmas last week and how nobody knew what to say in the room. So they just talked about the weather.
+
+LUKE: What, uh, what happened to your grandmas last week?
+
+DEVON: So basically, she stopped eating on a Tuesday. And by Friday, she was just there, but not really talking. I sat in the chair by the window because my aunt had the good one, and I kept offering her water like that was going to fix it. She squeezed my hand once, really light, and I thought she she was trying to tell me something important, but I think she was just cold. Anyway, the nurse said it was peaceful. I don't know if she was in the room for that part.
+
+LUKE: Oh, I'm sorry, buddy. I didn't know that. And that's sort of a bummer to end the show on, but And let me know if you need anything, and we're going to sign off for tonight.
+
+DEVON: Yeah, thanks. And okay. Um, good show. Night.
+
+LUKE: All right, good night. Thanks, everybody, for calling Look at the Roost. Sorry to end it all on a downer, but, uh, sometimes that's the way she goes. Bye-bye.
