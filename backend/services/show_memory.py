@@ -38,8 +38,23 @@ OFFBEAT_QUERIES = ["weird news", "strange but true", "offbeat news"]
 
 HEADLINE_CURATOR_PROMPT = """You pick stories for Devon, the 23-year-old intern on a late-night comedy call-in radio show, to bring up in the opening banter.
 From the candidate stories, pick exactly 5: 2 "big" stories (major national/world news most listeners have heard about) and 3 "offbeat" ones (weird, funny, can-you-believe-this stories that are great to riff on).
+Pick big stories from BIG CANDIDATES and offbeat ones from OFFBEAT CANDIDATES. If a list has too few usable stories, return fewer rather than padding.
 Skip tragedies with deaths, anything too grim to joke near, sports scores, stock tickers, and duplicates.
 Return JSON: {"headlines": [{"title": "...", "kind": "big|offbeat", "summary": "one line, plain facts", "angle": "why it's fun to talk about"}]}"""
+
+
+OFFBEAT_WINDOW_DAYS = 7
+GRIM_RE = re.compile(
+    r"\b(?:dead|deaths?|died|dies|dying|killed|kills?|killing|fatal(?:ly|ity|ities)?|loss of life|"
+    r"murder(?:ed|s)?|homicide|manslaughter|shooting|shot dead|massacre|suicide|bodies|body found|"
+    r"casualt(?:y|ies)|slain|perish(?:ed)?|drown(?:ed|s)?|stabb(?:ed|ing)|overdose|funeral|"
+    r"remains found|execut(?:ed|ion))\b",
+    re.IGNORECASE,
+)
+
+
+def is_grim(*texts: str) -> bool:
+    return any(GRIM_RE.search(t or "") for t in texts)
 
 
 def _norm(text: str) -> str:
@@ -68,6 +83,8 @@ def filter_items(items: list, since: datetime) -> list:
             continue
         published = _parse_date(item.published) if item.published else None
         if published and published < since:
+            continue
+        if is_grim(item.title, item.content):
             continue
         key = _norm(item.title)
         if not key or key in seen:
@@ -244,14 +261,26 @@ class ShowMemory:
             days = window_days(await last_episode_date(), now)
             since = now - timedelta(days=days)
             time_range = "day" if days <= 1 else "week"
-            items = await news_service.search_recent(BIG_QUERIES + OFFBEAT_QUERIES, time_range)
-            items = filter_items(items, since)[:40]
-            if not items:
+            # Offbeat stories are scarce in a 1-day window, so always look back a week for them.
+            big_raw, odd_raw = await asyncio.gather(
+                news_service.search_recent(BIG_QUERIES, time_range),
+                news_service.search_recent(OFFBEAT_QUERIES, "week"),
+            )
+            big = filter_items(big_raw, since)[:25]
+            big_keys = {_norm(i.title) for i in big}
+            odd = [i for i in filter_items(odd_raw, now - timedelta(days=OFFBEAT_WINDOW_DAYS))
+                   if _norm(i.title) not in big_keys][:25]
+            if not big and not odd:
                 print("[ShowMemory] No fresh headlines found")
                 return
-            listing = "\n".join(f"- {i.title}: {i.content[:160]}" for i in items)
+
+            def listing(items):
+                return "\n".join(f"- {i.title}: {i.content[:160]}" for i in items) or "(none)"
+
+            prompt = (f"BIG CANDIDATES (last {days} day(s)):\n{listing(big)}\n\n"
+                      f"OFFBEAT CANDIDATES (last {OFFBEAT_WINDOW_DAYS} days):\n{listing(odd)}")
             raw = await llm_service.generate(
-                messages=[{"role": "user", "content": f"CANDIDATE STORIES (last {days} day(s)):\n{listing}"}],
+                messages=[{"role": "user", "content": prompt}],
                 system_prompt=HEADLINE_CURATOR_PROMPT,
                 max_tokens=700,
                 response_format={"type": "json_object"},
@@ -268,6 +297,7 @@ class ShowMemory:
         self.headlines = [
             {k: str(h.get(k, "")).strip() for k in ("title", "kind", "summary", "angle")}
             for h in picks if isinstance(h, dict) and str(h.get("title", "")).strip()
+            and not is_grim(str(h.get("title", "")), str(h.get("summary", "")))
         ][:5]
         self.headlines_built_at = time.time()
         print(f"[ShowMemory] Opening headlines ({days}d window): {self.headline_titles()}")
