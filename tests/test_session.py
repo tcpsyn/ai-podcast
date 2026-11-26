@@ -1,7 +1,16 @@
 import sys
 sys.path.insert(0, "/Users/lukemacneil/ai-podcast")
 
+import pytest
+
 from backend.main import Session, CallRecord
+
+
+@pytest.fixture(autouse=True)
+def _no_live_data_writes(monkeypatch):
+    import backend.main as main
+    monkeypatch.setattr(main.intern_service, "new_show", lambda: None)
+    monkeypatch.setattr(main.intern_service, "_save", lambda: None)
 
 
 def test_call_record_creation():
@@ -161,3 +170,91 @@ def test_fresh_session_reports_no_lineup():
     s = Session()
     assert s.caller_backgrounds == {}
     assert bool(s.caller_backgrounds) is False
+
+
+def test_session_feeds_show_memory():
+    from backend.main import show_memory
+    show_memory.reset()
+    try:
+        s = Session()
+        s.add_message("user", "We're in West Virginia tonight")
+        s.add_message("assistant", "Oh nice")
+        s.add_message("real_caller:555", "Hi Luke")
+        assert show_memory.host_lines == ["We're in West Virginia tonight"]
+        assert not show_memory.calls_started
+        s.start_call("1")
+        assert show_memory.calls_started
+        s.reset()
+        assert show_memory.host_lines == []
+        assert not show_memory.calls_started
+    finally:
+        show_memory.reset()
+
+
+def _patch_reset_deps(monkeypatch, built):
+    import backend.main as main
+
+    async def fake_populate():
+        built.append("populate")
+
+    async def fake_build():
+        built.append("build")
+
+    monkeypatch.setattr(main.session, "populate_backgrounds", fake_populate)
+    monkeypatch.setattr(main.show_memory, "build_headlines", fake_build)
+    return main
+
+
+def test_reset_session_carries_fresh_headlines(monkeypatch):
+    import asyncio
+    import time
+    built = []
+    main = _patch_reset_deps(monkeypatch, built)
+    main.show_memory.reset()
+    try:
+        main.show_memory.headlines = [{"title": "A", "kind": "big", "summary": "", "angle": ""}]
+        main.show_memory.headlines_built_at = time.time() - 60
+        main.show_memory.add_fact("Luke is in West Virginia")
+        asyncio.run(main.reset_session())
+        assert built == ["populate"]
+        assert main.show_memory.headline_titles() == ["A"]
+        assert main.show_memory.facts == []
+    finally:
+        main.show_memory.reset()
+
+
+def test_reset_session_rebuilds_stale_headlines_before_fresh_lineup(monkeypatch):
+    import asyncio
+    import time
+    built = []
+    main = _patch_reset_deps(monkeypatch, built)
+    main.show_memory.reset()
+    monkeypatch.setattr(main.session, "pending_backgrounds", None)
+    monkeypatch.setattr(main.session, "_prewarm_task", None)
+    try:
+        main.show_memory.headlines = [{"title": "Old", "kind": "big", "summary": "", "angle": ""}]
+        main.show_memory.headlines_built_at = time.time() - 3600
+        asyncio.run(main.reset_session())
+        assert built == ["build", "populate"]
+        assert main.show_memory.headlines == []
+    finally:
+        main.show_memory.reset()
+
+
+def test_reset_session_mid_show_does_not_carry_headlines(monkeypatch):
+    import asyncio
+    import time
+    built = []
+    main = _patch_reset_deps(monkeypatch, built)
+    main.show_memory.reset()
+    monkeypatch.setattr(main.session, "pending_backgrounds", None)
+    monkeypatch.setattr(main.session, "_prewarm_task", None)
+    try:
+        main.show_memory.headlines = [{"title": "A", "kind": "big", "summary": "", "angle": ""}]
+        main.show_memory.headlines_built_at = time.time() - 60
+        main.show_memory.mark_call_started()
+        asyncio.run(main.reset_session())
+        assert built == ["build", "populate"]
+        assert main.show_memory.headlines == []
+    finally:
+        main.show_memory.reset()

@@ -81,6 +81,22 @@ class NewsService:
                 return self._search_cache[cache_key][1]
             return []
 
+    async def search_recent(self, queries: list[str], time_range: str) -> list[NewsItem]:
+        """Parallel news searches limited to a SearXNG time_range ('day'/'week')."""
+        async def one(q):
+            try:
+                resp = await self.client.get(
+                    f"{SEARXNG_URL}/search",
+                    params={"q": q, "format": "json", "categories": "news", "time_range": time_range},
+                )
+                resp.raise_for_status()
+                return self._parse_searxng(resp.json(), max_items=15)
+            except Exception as e:
+                print(f"[News] Recent search failed for '{q}': {e}")
+                return []
+        results = await asyncio.gather(*(one(q) for q in queries))
+        return [item for batch in results for item in batch]
+
     def _parse_searxng(self, data: dict, max_items: int = 10) -> list[NewsItem]:
         items = []
         for result in data.get("results", [])[:max_items]:

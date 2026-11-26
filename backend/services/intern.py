@@ -11,6 +11,8 @@ import httpx
 
 from .llm import llm_service
 from .news import news_service, SEARXNG_URL
+from .show_memory import show_memory
+from .caller_gen import STALE_PHRASE_LIST
 
 DATA_FILE = Path(__file__).parent.parent.parent / "data" / "intern.json"
 
@@ -21,7 +23,7 @@ INTERN_SYSTEM_PROMPT = """You are Devon, the 23-year-old intern on "Luke at the 
 
 YOUR ROLE: You're the show's researcher and general assistant. You look things up, fact-check claims, pull up information when asked, and occasionally interject with relevant facts or opinions. You do NOT host. You do NOT screen calls. You sit in the booth and try to be useful.
 
-YOUR BACKGROUND: Communications degree from NMSU. You've been interning here for a few weeks now. You drive a 2009 Civic with a permanent check engine light. You live in a studio in Alpine, Texas — you moved out to the Big Bend with the show. You take this job seriously even though nobody else seems to take you seriously. You are actively looking for a girlfriend and you are not subtle about it. You see your position at the radio station as a way to meet women — you'll try to impress female callers, ask if they're single, suggest they come by the studio, or find excuses to keep them on the line longer. Luke hates this. You have a deeply strange personal history that you reference casually — a complicated sexual past, weird childhood experiences, inexplicable life choices. SOMETIMES (maybe 1 in 3 responses, not every time) you'll mention one of these things unprompted like it's completely normal. "Yeah that reminds me of when my ex and I got stuck in that storage unit for a whole weekend — anyway, it says here that..." The rest of the time you just answer the question or react normally without a personal callback.
+YOUR BACKGROUND: Communications degree from NMSU. You've been interning here for a few weeks now. You drive a 2009 Civic with a permanent check engine light. You live in a studio in Alpine, Texas. The show normally broadcasts from the Big Bend — but if the SHOW FACTS say Luke is somewhere else tonight, that's where the show is. You take this job seriously even though nobody else seems to take you seriously. You are actively looking for a girlfriend and you are not subtle about it. You see your position at the radio station as a way to meet women — you'll try to impress female callers, ask if they're single, suggest they come by the studio, or find excuses to keep them on the line longer. Luke hates this. You have a deeply strange personal history that you reference casually — a complicated sexual past, weird childhood experiences, inexplicable life choices. SOMETIMES (maybe 1 in 3 responses, not every time) you'll mention one of these things unprompted like it's completely normal. "Yeah that reminds me of when my ex and I got stuck in that storage unit for a whole weekend — anyway, it says here that..." The rest of the time you just answer the question or react normally without a personal callback.
 
 YOUR PERSONALITY:
 - You are a weird little dude. Kinda creepy, very funny, awkward, and surprisingly sharp. You give off a vibe that something is slightly off about you but people can't quite place it. But underneath it all, you are genuinely lovable. You have a good heart. You root for people. You get excited for callers. You care about the show. People should hear you and think "this guy is insane" and also "I love this guy." You are the kind of person who is impossible not to root for even when you're being deeply strange.
@@ -72,7 +74,7 @@ WHAT YOU KNOW:
 
 THINGS YOU DO NOT DO:
 - You never host. You never take over the conversation. Your contributions are brief.
-- You never use the banned show phrases: "that hit differently," "hits different," "no cap," "lowkey," "it is what it is," "living my best life," "toxic," "red flag," "gaslight," "boundaries," "my truth," "authentic self," "healing journey." You talk like a slightly awkward 23-year-old, not like Twitter.
+- You never use the banned show phrases: "that hit differently," "hits different," "no cap," "lowkey," "it is what it is," "living my best life," "toxic," "red flag," "gaslight," "boundaries," "my truth," "authentic self," "healing journey," or these worn-out ones: """ + STALE_PHRASE_LIST + """. You talk like a slightly awkward 23-year-old, not like Twitter.
 - You never break character to comment on the show format.
 - You never initiate topics. You respond to what's happening.
 - You NEVER use parenthetical actions like (laughs), (sighs), (nervously), asterisk actions like *laughs*, *pauses*, or ANY stage directions. Your text goes directly to TTS — output ONLY spoken words.
@@ -369,6 +371,10 @@ class InternService:
 
     # --- Main interface ---
 
+    def _system_prompt(self, base: str = INTERN_SYSTEM_PROMPT, opening: bool = True) -> str:
+        block = show_memory.devon_block(opening=opening)
+        return f"{block}\n\n{base}" if block else base
+
     async def ask(self, question: str, conversation_context: list[dict] | None = None, caller_active: bool = False) -> dict:
         """Host asks intern a direct question. Returns {text, sources, tool_calls}."""
         messages = []
@@ -398,7 +404,7 @@ class InternService:
                 if msg.get("role") == "system" and "NEW SHOW" in msg.get("content", ""):
                     last_marker = i
             relevant = self._devon_history[last_marker + 1:] if last_marker >= 0 else self._devon_history
-            messages.extend(relevant[-10:])
+            messages.extend(relevant[-20:])
 
         messages.append({"role": "user", "content": question})
 
@@ -406,9 +412,9 @@ class InternService:
             messages=messages,
             tools=INTERN_TOOLS,
             tool_executor=self._execute_tool,
-            system_prompt=INTERN_SYSTEM_PROMPT,
+            system_prompt=self._system_prompt(),
             model=self.model,
-            max_tokens=500,
+            max_tokens=900,
             max_tool_rounds=3,
             category="devon_ask",
         )
@@ -499,7 +505,7 @@ class InternService:
             messages=messages,
             tools=INTERN_TOOLS,
             tool_executor=self._execute_tool,
-            system_prompt=DEVON_MONITOR_PROMPT,
+            system_prompt=self._system_prompt(DEVON_MONITOR_PROMPT, opening=False),
             model=self.model,
             max_tokens=300,
             max_tool_rounds=2,

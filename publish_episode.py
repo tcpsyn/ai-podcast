@@ -204,10 +204,11 @@ TRANSCRIPT:
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": "anthropic/claude-sonnet-4.6",
+                    "model": "anthropic/claude-sonnet-5.5",
                     "messages": [{"role": "user", "content": full_prompt}],
                     "max_tokens": 8192,
-                    "temperature": 0
+                    "temperature": 0,
+                    "reasoning": {"effort": "low"},
                 },
                 timeout=300
             )
@@ -350,9 +351,10 @@ Respond with ONLY valid JSON, no markdown or explanation."""
             "Content-Type": "application/json"
         },
         json={
-            "model": "anthropic/claude-haiku-4.5",
+            "model": "anthropic/claude-haiku-5.5",
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7
+            "temperature": 0.7,
+            "reasoning": {"effort": "low"},
         },
         timeout=300
     )
@@ -1209,6 +1211,25 @@ def upload_image_to_postiz(image_path: str) -> dict | None:
     return None
 
 
+def _fit_description(desc: str, budget: int) -> str:
+    """Trim desc to budget chars, preferring a sentence boundary, else a word boundary."""
+    if len(desc) <= budget:
+        return desc
+    cut = desc[:budget]
+    sentence_end = cut.rfind(". ")
+    if sentence_end > budget // 2:
+        return cut[:sentence_end + 1]
+    return cut[:budget - 1].rsplit(" ", 1)[0].rstrip(",;:") + "…"
+
+
+def _fit_post(head: str, desc: str, tail: str, limit: int) -> str:
+    """head + desc + tail within limit, shrinking only the description."""
+    budget = limit - len(head) - len(tail)
+    if budget < 40:
+        return (head + tail)[:limit]
+    return head + _fit_description(desc, budget) + tail
+
+
 def _build_platform_content(metadata: dict, episode_url: str, yt_url: str | None,
                             platform: str) -> str:
     """Generate platform-tailored social post content for episode announcements."""
@@ -1228,8 +1249,9 @@ def _build_platform_content(metadata: dict, episode_url: str, yt_url: str | None
         content = f"New episode 🎙️\n\n{desc}\n\nLink in bio.\n\n{hashtags}"
 
     elif platform == "threads":
-        content = (f"{title}\n\n{desc}\n\nlukeattheroost.com"
-                   f"\n\n#podcast #LukeAtTheRoost #newepisode #callinshow")
+        content = _fit_post(f"{title}\n\n", desc,
+                            "\n\nlukeattheroost.com\n\n#podcast #LukeAtTheRoost #newepisode #callinshow",
+                            THREADS_LIMIT)
 
     elif platform == "bluesky":
         content = f"{desc}\n\n{episode_url}"
@@ -1238,9 +1260,8 @@ def _build_platform_content(metadata: dict, episode_url: str, yt_url: str | None
             content = desc[:avail].rsplit(" ", 1)[0] + "\n\n" + episode_url
 
     elif platform == "mastodon":
-        content = f"{title}\n\n{desc}\n\n{episode_url}"
-        if yt_url:
-            content += f"\n{yt_url}"
+        tail = f"\n\n{episode_url}" + (f"\n{yt_url}" if yt_url else "")
+        content = _fit_post(f"{title}\n\n", desc, tail, MASTODON_LIMIT)
 
     elif platform == "linkedin":
         content = f"{title}\n\n{desc}"
@@ -1268,6 +1289,9 @@ def _build_platform_content(metadata: dict, episode_url: str, yt_url: str | None
 
     return content
 
+
+THREADS_LIMIT = 500
+MASTODON_LIMIT = 500  # instance default; Postiz rejects longer with an empty bad_body error
 
 # Platforms that post immediately vs scheduled (minutes offset from publish time)
 _IMMEDIATE_PLATFORMS = {"x", "bluesky"}
@@ -1900,7 +1924,7 @@ def main():
     print("[5/5] Deploying website...")
     project_dir = Path(__file__).parent
     deploy_result = subprocess.run(
-        ["npx", "wrangler", "pages", "deploy", "website/",
+        ["npx", "--yes", "wrangler", "pages", "deploy", "website/",
          "--project-name=lukeattheroost", "--branch=main", "--commit-dirty=true"],
         capture_output=True, text=True, cwd=project_dir, timeout=120
     )

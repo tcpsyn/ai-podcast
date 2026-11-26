@@ -118,4 +118,4 @@ def test_build_batch_prompt_includes_silas_lore_when_present():
     assert "Silas" in prompt
     assert "desert cult" in prompt
     assert "seeking new members" in prompt
-    assert "DO NOT alter his voice, personality, or core traits" in prompt
+    assert "DO NOT alter their voice, personality, or core traits" in prompt

@@ -131,6 +131,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         initEventListeners();
         initClock();
         loadShowTheme();
+        loadShowFacts();
+        setInterval(loadShowFacts, 10000);
         loadVoicemails();
         setInterval(loadVoicemails, 30000);
         loadEmails();
@@ -352,6 +354,13 @@ function initEventListeners() {
     document.getElementById('clear-theme-btn')?.addEventListener('click', clearShowTheme);
     document.getElementById('show-theme-input')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') setShowTheme();
+        else if (e.key === 'Escape') e.target.blur();
+    });
+
+    // Show Facts
+    document.getElementById('add-fact-btn')?.addEventListener('click', addShowFact);
+    document.getElementById('show-fact-input')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addShowFact();
         else if (e.key === 'Escape') e.target.blur();
     });
 
@@ -777,6 +786,7 @@ async function newSession() {
         // Reload callers to get new session ID
         await loadCallers();
         await loadShowTheme();
+        await loadShowFacts();
 
         log('New session started - all callers have fresh backgrounds');
     } finally {
@@ -1420,6 +1430,90 @@ async function clearShowTheme() {
     } catch (e) {
         console.error('Failed to clear show theme:', e);
     }
+}
+
+
+// --- Show Facts ---
+async function loadShowFacts() {
+    try {
+        const res = await fetch('/api/show/facts');
+        const { facts } = await res.json();
+        const list = document.getElementById('show-facts-list');
+        if (!list || document.activeElement?.classList.contains('fact-text')) return; // don't clobber an in-progress edit
+        list.innerHTML = '';
+        for (const f of facts) {
+            const li = document.createElement('li');
+            li.className = 'fact-item' + (f.pinned ? ' pinned' : '');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'fact-text';
+            input.maxLength = 200;
+            input.value = f.text;
+            input.size = Math.max(12, Math.min(f.text.length, 48));
+            input.title = f.pinned ? 'Set by you' : 'Picked up from what you said on air — edit to pin';
+            input.addEventListener('change', () => editShowFact(f.id, input.value, f.text));
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') input.blur();
+                else if (e.key === 'Escape') { input.value = f.text; input.blur(); }
+            });
+            const del = document.createElement('button');
+            del.className = 'theme-btn clear';
+            del.textContent = '✕';
+            del.title = 'Delete fact';
+            del.addEventListener('click', () => deleteShowFact(f.id));
+            li.append(input, del);
+            list.append(li);
+        }
+    } catch (e) {
+        console.error('Failed to load show facts:', e);
+    }
+}
+
+async function addShowFact() {
+    const input = document.getElementById('show-fact-input');
+    const text = input.value.trim();
+    if (!text) return;
+    try {
+        const res = await fetch('/api/show/facts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+        if (!res.ok) {
+            log('Show fact not added (empty, duplicate, or list full)');
+            return;
+        }
+        input.value = '';
+        await loadShowFacts();
+    } catch (e) {
+        console.error('Failed to add show fact:', e);
+    }
+}
+
+async function editShowFact(id, text, original) {
+    try {
+        if (text.trim() && text.trim() !== original) {
+            const res = await fetch(`/api/show/facts/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            if (!res.ok) log('Show fact not saved (duplicate or no longer exists)');
+        }
+    } catch (e) {
+        console.error('Failed to edit show fact:', e);
+    }
+    await loadShowFacts();
+}
+
+async function deleteShowFact(id) {
+    try {
+        const res = await fetch(`/api/show/facts/${id}`, { method: 'DELETE' });
+        if (!res.ok) log('Show fact not deleted (no longer exists)');
+    } catch (e) {
+        console.error('Failed to delete show fact:', e);
+    }
+    await loadShowFacts();
 }
 
 

@@ -8,13 +8,21 @@ from backend.services.llm import OPENROUTER_MODELS, LLMService
 
 _CALLER_DIALOG_MODEL_PARAMS = LLMService._CALLER_DIALOG_MODEL_PARAMS
 
-# Retired on OpenRouter — kept here so a reintroduction fails loudly.
+# Retired (or expiring) on OpenRouter — kept here so a reintroduction fails loudly.
 RETIRED_MODELS = {
+    "anthropic/claude-3-haiku",
     "anthropic/claude-3.5-haiku",
     "anthropic/claude-3.5-sonnet",
     "anthropic/claude-sonnet-4-5",   # note the dash; the live id uses a dot
+    "deepseek/deepseek-r1-distill-llama-70b",
+    "google/gemini-2.5-flash",       # expires 2026-12-01
+    "google/gemini-2.5-pro",         # expires 2026-12-01
     "google/gemini-flash-1.5",
+    "minimax/minimax-m2-her",
+    "mistralai/mistral-medium-3",
     "mistralai/mistral-small-creative",
+    "moonshotai/kimi-k2",
+    "qwen/qwen3-235b-a22b",
     "x-ai/grok-4",
     "x-ai/grok-4-fast",
     "x-ai/grok-4.1-fast",
@@ -88,3 +96,58 @@ def test_no_retired_model_ids_anywhere_in_the_codebase():
             offenders[str(path.relative_to(root))] = hits
 
     assert not offenders, f"retired model ids still referenced: {offenders}"
+
+
+def test_mandatory_reasoning_models_pin_effort():
+    """Sonnet 5.5 / Grok 4.7 can't disable reasoning, and reasoning tokens come
+    out of max_tokens — unpinned, short caller budgets return empty text."""
+    from backend.services.caller_gen import BATCH_MODEL
+    from backend.services.llm import REASONING_EFFORT
+    for model in (settings.category_models["caller_dialog"],
+                  settings.category_models["devon_ask"], BATCH_MODEL):
+        assert model in REASONING_EFFORT, f"{model} routed without a reasoning effort pin"
+
+
+def test_no_retired_models_in_fallbacks():
+    from backend.services.llm import FALLBACK_MODELS
+    stale = sorted(set(FALLBACK_MODELS) & RETIRED_MODELS)
+    assert not stale, f"retired models in FALLBACK_MODELS: {stale}"
+
+
+def test_fallback_models_are_priced():
+    from backend.services.llm import FALLBACK_MODELS
+    unpriced = [m for m in FALLBACK_MODELS if m not in OPENROUTER_PRICING]
+    assert not unpriced, f"fallback models with no pricing entry: {unpriced}"
+
+
+def test_reasoning_headroom_skipped_when_reasoning_off():
+    """effort "none" disables reasoning, so the extra headroom would just let
+    cheap-category responses run long."""
+    import asyncio
+    from unittest.mock import AsyncMock, MagicMock
+    from backend.services.llm import REASONING_HEADROOM
+
+    async def run(model):
+        svc = LLMService()
+        resp = MagicMock()
+        resp.json.return_value = {"choices": [{"message": {"content": "ok"}}]}
+        client = MagicMock(is_closed=False)
+        client.post = AsyncMock(return_value=resp)
+        svc._client = client
+        await svc._call_openrouter_once([{"role": "user", "content": "hi"}], model, max_tokens=200)
+        return client.post.call_args.kwargs["json"]
+
+    off = asyncio.run(run("anthropic/claude-haiku-5.5"))
+    assert off["reasoning"] == {"effort": "none"}
+    assert off["max_tokens"] == 200
+
+    on = asyncio.run(run("anthropic/claude-sonnet-5.5"))
+    assert on["reasoning"] == {"effort": "low"}
+    assert on["max_tokens"] == 200 + REASONING_HEADROOM
+
+
+def test_show_facts_routes_to_cheap_model_with_reasoning_off():
+    from backend.services.llm import REASONING_EFFORT
+    model = settings.category_models.get("show_facts")
+    assert model == "anthropic/claude-haiku-5.5"
+    assert REASONING_EFFORT.get(model) == "none"

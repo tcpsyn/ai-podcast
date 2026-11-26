@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 TRANSCRIPT_DIR = Path(__file__).parent / "website" / "transcripts"
-MODEL = "anthropic/claude-sonnet-4.6"
+MODEL = "anthropic/claude-sonnet-5.5"
 CHUNK_SIZE = 8000
 
 PROMPT = """Insert speaker labels into this radio show transcript. The show is "Luke at the Roost". The host is LUKE. Callers call in one at a time.
@@ -73,7 +73,8 @@ def label_chunk(text, context=""):
             "model": MODEL,
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 8192,
-            "temperature": 0
+            "temperature": 0,
+            "reasoning": {"effort": "low"},
         }
     )
 

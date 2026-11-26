@@ -33,15 +33,20 @@ class TTSCallRecord:
     cost_usd: float
 
 
-# OpenRouter pricing per 1M tokens (as of March 2026)
+# OpenRouter pricing per 1M tokens (as of Nov 2026)
 OPENROUTER_PRICING = {
     # Claude
+    "anthropic/claude-opus-5.5":        {"prompt": 4.00,  "completion": 20.00},
+    "anthropic/claude-sonnet-5.5":      {"prompt": 2.00,  "completion": 10.00},
     "anthropic/claude-sonnet-4.6":      {"prompt": 3.00,  "completion": 15.00},
     "anthropic/claude-sonnet-4.5":      {"prompt": 3.00,  "completion": 15.00},
     "anthropic/claude-sonnet-4-5":      {"prompt": 3.00,  "completion": 15.00},  # retired id, historical
-    "anthropic/claude-haiku-4.5":       {"prompt": 0.80,  "completion": 4.00},
+    "anthropic/claude-haiku-5.5":       {"prompt": 0.10,  "completion": 0.50},
+    "anthropic/claude-haiku-4.5":       {"prompt": 1.00,  "completion": 5.00},
     "anthropic/claude-3-haiku":         {"prompt": 0.25,  "completion": 1.25},
     # Grok
+    "x-ai/grok-4.7":                   {"prompt": 2.00,  "completion": 6.00},
+    "x-ai/grok-4.6":                   {"prompt": 2.00,  "completion": 6.00},
     "x-ai/grok-4.3":                   {"prompt": 1.25,  "completion": 2.50},
     "x-ai/grok-4.5":                   {"prompt": 2.00,  "completion": 6.00},
     "x-ai/grok-4.20":                  {"prompt": 1.25,  "completion": 2.50},
@@ -56,28 +61,29 @@ OPENROUTER_PRICING = {
     "mistralai/mistral-small-creative": {"prompt": 0.10, "completion": 0.30},
     # DeepSeek
     "deepseek/deepseek-r1-distill-llama-70b": {"prompt": 0.70, "completion": 0.80},
-    "deepseek/deepseek-chat-v3-0324":  {"prompt": 0.27,  "completion": 1.10},
-    "deepseek/deepseek-v3.2":          {"prompt": 0.14,  "completion": 0.28},
+    "deepseek/deepseek-chat-v3-0324":  {"prompt": 0.25,  "completion": 1.00},
+    "deepseek/deepseek-v3.2":          {"prompt": 0.26,  "completion": 0.38},
     # Google
-    "google/gemini-2.5-flash":          {"prompt": 0.30,  "completion": 2.50},
-    "google/gemini-2.5-pro":           {"prompt": 1.25,  "completion": 10.00},
+    "google/gemini-2.5-flash":          {"prompt": 0.30,  "completion": 2.50},  # expires 2026-12-01, historical
+    "google/gemini-2.5-pro":           {"prompt": 1.25,  "completion": 10.00},  # expires 2026-12-01, historical
     "google/gemini-3-flash-preview":   {"prompt": 0.50,  "completion": 3.00},
     "google/gemini-flash-1.5":          {"prompt": 0.075, "completion": 0.30},
     # Meta
-    "meta-llama/llama-3.3-70b-instruct": {"prompt": 0.10, "completion": 0.32},
+    "meta-llama/llama-3.3-70b-instruct": {"prompt": 0.71, "completion": 0.71},
     "meta-llama/llama-3.1-8b-instruct": {"prompt": 0.05, "completion": 0.08},
-    "meta-llama/llama-4-maverick":     {"prompt": 0.20,  "completion": 0.60},
+    "meta-llama/llama-4-maverick":     {"prompt": 0.35,  "completion": 1.00},
     # Other
     "moonshotai/kimi-k2":              {"prompt": 0.60,  "completion": 2.00},
     "qwen/qwen3-235b-a22b":           {"prompt": 0.20,  "completion": 0.60},
     "minimax/minimax-m2-her":           {"prompt": 0.50,  "completion": 1.50},
+    "openai/gpt-6-luna":               {"prompt": 0.10,  "completion": 0.50},
     "openai/gpt-4o-mini":              {"prompt": 0.15,  "completion": 0.60},
     "openai/gpt-4o":                   {"prompt": 2.50,  "completion": 10.00},
 }
 
 # TTS pricing per character
 TTS_PRICING = {
-    "inworld": 0.000015,
+    "inworld": 0.000025,  # TTS-2 pay-as-you-go, $25/1M chars
     "elevenlabs": 0.000030,
     "kokoro": 0.0,
     "f5tts": 0.0,
@@ -324,7 +330,7 @@ class CostTracker:
         for model, data in by_model.items():
             if "sonnet" in model and data["calls"] > 5:
                 haiku_cost = _calc_llm_cost(
-                    "anthropic/claude-haiku-4.5",
+                    "anthropic/claude-haiku-5.5",
                     data["prompt_tokens"],
                     data["completion_tokens"],
                 )
@@ -332,7 +338,7 @@ class CostTracker:
                 if savings > 0.05:
                     recs.append(
                         f"{model} cost ${data['cost']:.2f} ({data['calls']} calls). "
-                        f"Switching to Haiku 4.5 would save ~${savings:.2f} per session."
+                        f"Switching to Haiku 5.5 would save ~${savings:.2f} per session."
                     )
 
         # Background gen on expensive model

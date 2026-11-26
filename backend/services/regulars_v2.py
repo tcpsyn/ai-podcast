@@ -78,7 +78,7 @@ def load_all_active_regulars() -> list[Regular]:
     return out
 
 
-PROMOTION_MODEL = "anthropic/claude-sonnet-4.6"
+PROMOTION_MODEL = "anthropic/claude-sonnet-5.5"
 
 PROMOTION_PROMPT = """You are evaluating whether a one-time caller should become a recurring character.
 
@@ -104,6 +104,7 @@ async def _call_sonnet(prompt: str) -> dict:
                 "messages": [{"role": "user", "content": prompt}],
                 "response_format": {"type": "json_object"},
                 "max_tokens": 500,
+                "reasoning": {"effort": "low"},
             },
         )
         resp.raise_for_status()

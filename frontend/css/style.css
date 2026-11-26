@@ -189,6 +189,51 @@ header button:hover, .header-link-btn:hover {
     color: #ff5050;
 }
 
+.facts-bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+}
+
+.facts-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    list-style: none;
+}
+
+.fact-item {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.fact-text {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px dashed rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+    color: #fff;
+    padding: 3px 6px;
+    font-size: 0.8rem;
+    font-family: inherit;
+}
+
+.fact-item.pinned .fact-text {
+    border: 1px solid #f5a623;
+    background: rgba(245, 166, 35, 0.1);
+}
+
+.fact-text:focus {
+    outline: none;
+    border: 1px solid #f5a623;
+}
+
 .on-air-btn {
     font-weight: 700;
     text-transform: uppercase;

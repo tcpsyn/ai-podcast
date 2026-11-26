@@ -60,10 +60,11 @@ def _llm_request(prompt: str, max_tokens: int = 2048, temperature: float = 0.3,
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "anthropic/claude-sonnet-4.6",
+                    "model": "anthropic/claude-sonnet-5.5",
                     "messages": [{"role": "user", "content": prompt}],
                     "max_tokens": max_tokens,
                     "temperature": temperature,
+                    "reasoning": {"effort": "low"},
                 },
                 timeout=timeout,
             )
@@ -90,6 +91,25 @@ def _llm_request(prompt: str, max_tokens: int = 2048, temperature: float = 0.3,
                 continue
             return None
     return None
+
+
+def _parse_json_array(content: str) -> list:
+    """Return the last valid JSON array in content (models sometimes emit a draft, then a correction)."""
+    content = re.sub(r"```(?:json)?", "", content)
+    decoder = json.JSONDecoder()
+    found = None
+    for i, ch in enumerate(content):
+        if ch != "[":
+            continue
+        try:
+            obj, _ = decoder.raw_decode(content, i)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(obj, list) and obj and all(isinstance(x, dict) for x in obj):
+            found = obj
+    if found is None:
+        raise json.JSONDecodeError("No JSON array of objects found", content, 0)
+    return found
 
 
 def _build_whisper_prompt(labeled_transcript: str) -> str:
@@ -327,20 +347,15 @@ IMPORTANT:
 - Prefer moments with back-and-forth dialog over monologues
 - Avoid intro/outro segments
 
-Respond with ONLY a JSON array, no markdown or explanation:
-[{{"title": "...", "start_time": 0.0, "end_time": 0.0, "caption_text": "..."}}]"""
+Respond with ONLY a single JSON array of exactly {count} objects with keys title, start_time, end_time, caption_text. No markdown, no explanation, no drafts or corrections — output the final answer once."""
 
     content = _llm_request(prompt, max_tokens=2048, temperature=0.3, timeout=60)
     if content is None:
         print("    Failed to get clip selections from LLM — aborting")
         return []
 
-    if content.startswith("```"):
-        content = re.sub(r"^```(?:json)?\n?", "", content)
-        content = re.sub(r"\n?```$", "", content)
-
     try:
-        clips = json.loads(content)
+        clips = _parse_json_array(content)
     except json.JSONDecodeError as e:
         print(f"Error parsing LLM response: {e}")
         print(f"Response was: {content[:500]}")
@@ -350,6 +365,9 @@ Respond with ONLY a JSON array, no markdown or explanation:
     validated = []
     for clip in clips:
         duration = clip["end_time"] - clip["start_time"]
+        if duration <= 0:
+            print(f"    Skipping invalid clip ({clip['start_time']}-{clip['end_time']}s): {clip.get('title')}")
+            continue
         if duration < 15:
             clip["end_time"] = clip["start_time"] + 30
         elif duration > 75:
@@ -383,20 +401,15 @@ For each clip, generate:
 1. description: A short, engaging description for social media (1-2 sentences, hook the viewer, conversational tone). Do NOT include hashtags in the description.
 2. hashtags: An array of 5-8 hashtags. Always include #lukeattheroost and #podcast. Add topic-relevant and trending-style tags.
 
-Respond with ONLY a JSON array matching the clip order:
-[{{"description": "...", "hashtags": ["#tag1", "#tag2", ...]}}]"""
+Respond with ONLY a single JSON array of {len(clips)} objects in clip order, each with keys description (string) and hashtags (array of strings). No markdown, no explanation."""
 
     content = _llm_request(prompt, max_tokens=2048, temperature=0.7, timeout=60)
     if content is None:
         print("    Failed to generate social metadata — skipping")
         return clips
 
-    if content.startswith("```"):
-        content = re.sub(r"^```(?:json)?\n?", "", content)
-        content = re.sub(r"\n?```$", "", content)
-
     try:
-        metadata = json.loads(content)
+        metadata = _parse_json_array(content)
     except json.JSONDecodeError as e:
         print(f"Error parsing social metadata: {e}")
         return clips

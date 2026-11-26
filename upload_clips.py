@@ -772,7 +772,7 @@ def sync_clips_to_website():
     # Deploy
     print("  Deploying website...")
     deploy = subprocess.run(
-        ["npx", "wrangler", "pages", "deploy", "website/",
+        ["npx", "--yes", "wrangler", "pages", "deploy", "website/",
          "--project-name=lukeattheroost", "--branch=main", "--commit-dirty=true"],
         capture_output=True, text=True,
         cwd=str(Path(__file__).parent),

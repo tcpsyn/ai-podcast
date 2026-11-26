@@ -977,7 +977,19 @@ class AudioService:
             self._music_playing = False
 
     def _refresh_devices(self):
-        """Re-initialize PortAudio to pick up device changes, then re-resolve settings."""
+        """Re-initialize PortAudio to pick up device changes, then re-resolve settings.
+        Terminating PortAudio kills every open stream, so persistent streams are
+        dropped and reopened — otherwise push-to-talk piggybacks on a dead host stream."""
+        host_cb = self._host_send_callback if self._host_stream is not None else None
+        had_host = self._host_stream is not None
+        had_stem_mic = self._stem_mic_stream is not None
+        had_live_caller = self._live_caller_stream is not None
+        self._host_stream = None
+        self._stem_mic_stream = None
+        self._monitor_stream = None
+        self._monitor_write = None
+        self._live_caller_stream = None
+        self._live_caller_write = None
         try:
             sd._terminate()
             sd._initialize()
@@ -985,6 +997,15 @@ class AudioService:
             self._load_settings()
         except Exception as e:
             print(f"[Audio] PortAudio refresh failed: {e}")
+            return
+        if had_host:
+            self.start_host_stream(host_cb)
+        elif had_stem_mic:
+            self.start_stem_mic()
+        if had_live_caller:
+            self._start_live_caller_stream()
+        if had_host or had_stem_mic or had_live_caller:
+            print(f"[Audio] Reopened streams after refresh (host={had_host}, stem_mic={had_stem_mic}, live_caller={had_live_caller})")
 
     def _open_output_stream(self, **kwargs) -> sd.OutputStream:
         """Open an OutputStream with one retry after refreshing PortAudio on failure."""

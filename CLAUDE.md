@@ -36,15 +36,18 @@ Required in `.env`:
 - **Known issues resolved**: Lock-free recorder (old version used threading.Lock in audio callbacks causing crashes), scipy.signal.resample replaced with nearest-neighbor (was producing artifacts on small chunks), sys import bug in auto-postprod, host mic not captured without persistent stream
 
 ## LLM Settings
-- `_pick_response_budget()` in main.py controls caller dialog token limits (150-450 tokens). MiniMax respects limits strictly — if responses seem short, check these values.
+- `_pick_response_budget()` in main.py controls caller dialog token limits (600-900 tokens, 200 on wrap-up; `_trim_to_sentences` enforces the sentence cap). MiniMax respects limits strictly — if responses seem short, check these values.
 - Default max_tokens in llm.py is 300 (for non-caller uses)
-- Grok (`x-ai/grok-4.3`) works well for natural dialog; MiniMax tends toward terse responses. Note `grok-4`, `grok-4-fast` and `grok-4.1-fast` were retired from OpenRouter — a retired id 404s, and `llm.py` swallows the error and returns empty text, so callers go silent with nothing in the logs. `tests/test_model_config.py` guards against reintroducing them.
+- Sonnet 5.5 and Grok 4.7 have **mandatory reasoning** on OpenRouter (can't be disabled; reasoning tokens come out of `max_tokens`). `REASONING_EFFORT` in llm.py pins them to `effort: low` and `REASONING_HEADROOM` adds 400 tokens — without it the 200-token wrap-up returns empty and falls back to Mistral mid-call. Sonnet 5.5 ignores `temperature`/penalties. Any new reasoning model must be added to `REASONING_EFFORT` (guarded by `tests/test_model_config.py`).
+- **Cheap categories** (`devon_monitor`, `call_summary`, `news_summary`, `topic_gen`) use Haiku 5.5 ($0.10/$0.50) with `REASONING_EFFORT` = `none` — reasoning off, no headroom added. Fallbacks: mistral-small-2603 → haiku-5.5 → gpt-6-luna. `gemini-2.5-flash`/`-pro` expire on OpenRouter 2026-12-01; `moonshotai/kimi-k2` is gone. All are in `RETIRED_MODELS` in the test.
+- **Checking for stale models**: `curl -s https://openrouter.ai/api/v1/models` — each entry has live `pricing`, `reasoning.mandatory`, and `expiration_date`. Check `expiration_date` on routed models when reviewing.
+- Grok (`x-ai/grok-4.7`, Devon) works well for natural dialog; MiniMax tends toward terse responses. Note `grok-4`, `grok-4-fast` and `grok-4.1-fast` were retired from OpenRouter — a retired id 404s, and `llm.py` swallows the error and returns empty text, so callers go silent with nothing in the logs. `tests/test_model_config.py` guards against reintroducing them.
 - `generate_with_tools()` in llm.py supports OpenRouter function calling for the intern feature
 
 ## Caller Generation System
-- **Two-stage pipeline**: (1) batch identity pregen via Sonnet 4.6 at session start, (2) live dialog via Sonnet 4.6 per turn. Cost ~$3-4/show.
+- **Two-stage pipeline**: (1) batch identity pregen via Sonnet 5.5 at session start, (2) live dialog via Sonnet 5.5 per turn. Cost ~$2-3/show.
 - **Slim caller dict**: Populated once at `Session._pregenerate_backgrounds()` via `caller_gen.generate_batch()`. Keys: `name`, `age`, `voice`, `location`, `identity`, `situation`, `reason_calling`, `opening_line`, `secret_want`, `specific_details`, `emotional_register`. Stored in `session.caller_backgrounds[caller_key]`.
-- **Dialog model**: Always Sonnet 4.6 via the `caller_dialog` category in `config.category_models`. No per-caller model routing — deleted in Phase 5B.
+- **Dialog model**: Always Sonnet 5.5 via the `caller_dialog` category in `config.category_models`. No per-caller model routing — deleted in Phase 5B.
 - **Prompt builder**: `get_caller_prompt(caller)` in main.py builds the slim system prompt from the dict; see `tests/test_caller_prompt.py` for the contract.
 - **Regulars**: `backend/services/regulars_v2.py` loads lore from Obsidian markdown files for named recurring callers (e.g. Silas). The batch prompt optionally includes 2-3 active regulars per session.
 - **Inter-caller awareness**: `get_show_history()` scores previous callers by keyword overlap with the current caller's `situation`/`reason_calling`. Reaction frequency scales with match strength (60%/35%/15%).
@@ -66,6 +69,7 @@ Required in `.env`:
 - **Wrap It Up**: Amber button that signals callers to wind down gracefully. Reduces response budget, injects wrap-up signals, forces goodbye after 2 exchanges.
 - **Caller info panel**: Shows identity, situation, signature detail, secret want during active calls
 - **Caller buttons**: Populated from the slim caller background dicts
+- **TTS**: every caller uses Inworld (`inworld-tts-2`). Roster lives in `INWORLD_MALE_VOICES`/`INWORLD_FEMALE_VOICES` in main.py; no per-caller local-TTS routing.
 - **Pinned SFX**: Cheer/Applause/Boo always visible, rest collapsible
 - **Visual polish**: Thinking pulse, call glow, compact media row, smoother transitions
 

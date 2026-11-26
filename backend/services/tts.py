@@ -83,6 +83,9 @@ VITS_SPEAKERS = {
 DEFAULT_VITS_SPEAKER = "p225"
 
 # Inworld voice mapping - maps ElevenLabs voice IDs to Inworld voices
+# Added 2026-10: Harold, Warren, Wade, Calvin, Josh, Vincent, Casey, Bryce,
+# Grayson, Chip, Dante, Tonya, Zoe, Camille, Piper, Hazel, plus accented
+# transplants Jarrah, Lachlan, Marek, Winston, Freddie, Eileen, Seraphine, Rosalind.
 # Full voice list from API (English, as of 2026-05): Abby, Alex, Amina, Anjali,
 # Arjun, Ashley, Avery, Bianca, Blake, Brandon, Brian, Callum, Carter, Cedric,
 # Celeste, Chloe, Claire, Clive, Conrad, Craig, Damon, Darlene, Deborah, Dennis,
@@ -239,6 +242,31 @@ VOICE_PROFILES = {
     "Sophie":    {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},   # friendly British
     "Veronica":  {"weight": "medium", "energy": "medium", "warmth": "cool",    "age_feel": "middle"},
     "Victoria":  {"weight": "medium", "energy": "low",    "warmth": "cool",    "age_feel": "mature"},
+    # --- Added 2026-10 ---
+    "Harold":   {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "mature"},  # crisp, seasoned, trustworthy
+    "Warren":   {"weight": "heavy",  "energy": "medium", "warmth": "neutral", "age_feel": "mature"},  # resonant, classic announcer quality
+    "Wade":     {"weight": "medium", "energy": "low",    "warmth": "warm",    "age_feel": "middle"},  # casual, easygoing conversational
+    "Calvin":   {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},  # casual, grounded African American
+    "Josh":     {"weight": "medium", "energy": "low",    "warmth": "warm",    "age_feel": "young"},  # relaxed, welcoming African American
+    "Vincent":  {"weight": "medium", "energy": "low",    "warmth": "neutral", "age_feel": "middle"},  # polished, smooth, measured
+    "Casey":    {"weight": "light",  "energy": "low",    "warmth": "warm",    "age_feel": "young"},  # laid-back, chill
+    "Bryce":    {"weight": "light",  "energy": "high",   "warmth": "neutral", "age_feel": "young"},  # confident, energetic
+    "Grayson":  {"weight": "heavy",  "energy": "low",    "warmth": "neutral", "age_feel": "middle"},  # smooth, low, easy delivery
+    "Chip":     {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": "middle"},  # cheerful, witty, game-show energy
+    "Dante":    {"weight": "light",  "energy": "low",    "warmth": "warm",    "age_feel": "middle"},  # breathy, intimate, soft-spoken
+    "Jarrah":   {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},  # easygoing Australian transplant
+    "Lachlan":  {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},  # thick Glasgow Scottish accent
+    "Marek":    {"weight": "heavy",  "energy": "low",    "warmth": "cool",    "age_feel": "mature"},  # gruff, steady Polish accent
+    "Winston":  {"weight": "medium", "energy": "low",    "warmth": "warm",    "age_feel": "mature"},  # mature British storyteller
+    "Freddie":  {"weight": "light",  "energy": "medium", "warmth": "warm",    "age_feel": "young"},  # young, casual British
+    "Tonya":    {"weight": "medium", "energy": "medium", "warmth": "warm",    "age_feel": "middle"},  # direct, friendly African American
+    "Zoe":      {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},  # upbeat, expressive
+    "Camille":  {"weight": "light",  "energy": "medium", "warmth": "neutral", "age_feel": "young"},  # clear, composed
+    "Piper":    {"weight": "light",  "energy": "high",   "warmth": "warm",    "age_feel": "young"},  # bright, playful
+    "Hazel":    {"weight": "medium", "energy": "high",   "warmth": "warm",    "age_feel": "middle"},  # warm, upbeat
+    "Eileen":   {"weight": "light",  "energy": "low",    "warmth": "warm",    "age_feel": "mature"},  # gentle, breathy, elderly Belfast accent
+    "Seraphine":{"weight": "medium", "energy": "low",    "warmth": "cool",    "age_feel": "middle"},  # smoky, low-key Australian
+    "Rosalind": {"weight": "medium", "energy": "low",    "warmth": "warm",    "age_feel": "mature"},  # mature, warm British
 }
 
 
@@ -836,20 +864,6 @@ async def generate_speech_inworld(text: str, voice_id: str, emotional_register: 
         audio = librosa.resample(audio, orig_sr=sr, target_sr=24000)
 
     return audio.astype(np.float32), 24000
-
-
-def pick_caller_tts_provider() -> str | None:
-    """Randomly assign a TTS provider for a caller.
-    Returns None to use the global default, or a specific provider name.
-    ~70% inworld (default), ~20% kokoro, ~10% other available."""
-    import random
-    roll = random.random()
-    if roll < 0.70:
-        return None  # Use global default (typically inworld)
-    elif roll < 0.90:
-        return "kokoro"
-    else:
-        return random.choice(["kokoro", "f5tts", "chattts"])
 
 
 _TTS_PROVIDERS = {

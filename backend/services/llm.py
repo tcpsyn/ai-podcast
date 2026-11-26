@@ -65,35 +65,50 @@ def _looks_like_refusal(text: str) -> bool:
 # Available OpenRouter models
 OPENROUTER_MODELS = [
     # Primary
+    "anthropic/claude-sonnet-5.5",
+    "x-ai/grok-4.7",
+    "anthropic/claude-opus-5.5",
+    "x-ai/grok-4.6",
     "anthropic/claude-sonnet-4.6",
     "x-ai/grok-4.3",
     "x-ai/grok-4.5",
     # Style-matched pool
     "mistralai/mistral-large-2512",
-    "deepseek/deepseek-r1-distill-llama-70b",
     "meta-llama/llama-3.3-70b-instruct",
-    "google/gemini-2.5-flash",
+    "openai/gpt-6-luna",
     # Other good options
     "anthropic/claude-sonnet-4.5",
+    "anthropic/claude-haiku-5.5",
     "anthropic/claude-haiku-4.5",
     "deepseek/deepseek-chat-v3-0324",
     "mistralai/mistral-small-2603",
-    "google/gemini-2.5-pro",
     "google/gemini-3-flash-preview",
     "x-ai/grok-4.20",
-    "moonshotai/kimi-k2",
-    "qwen/qwen3-235b-a22b",
     "meta-llama/llama-4-maverick",
     # Legacy
-    "anthropic/claude-3-haiku",
     "meta-llama/llama-3.1-8b-instruct",
 ]
+
+# Reasoning tokens count against max_tokens, so pin effort low on models where
+# reasoning is mandatory, and turn it off on cheap models where it's optional
+# but on by default — otherwise short budgets come back empty.
+REASONING_EFFORT = {
+    "anthropic/claude-sonnet-5.5": "low",
+    "anthropic/claude-opus-5.5": "low",
+    "anthropic/claude-haiku-5.5": "none",
+    "x-ai/grok-4.7": "low",
+    "x-ai/grok-4.6": "low",
+    "openai/gpt-6-luna": "none",
+}
+# Low effort still sometimes reasons; headroom keeps a 200-token wrap-up from
+# coming back empty. Sentence caps, not max_tokens, control caller length.
+REASONING_HEADROOM = 400
 
 # Fast models to try as fallbacks (cheap, fast, good enough for conversation)
 FALLBACK_MODELS = [
     "mistralai/mistral-small-2603",
-    "google/gemini-2.5-flash",
-    "openai/gpt-4o-mini",
+    "anthropic/claude-haiku-5.5",
+    "openai/gpt-6-luna",
 ]
 
 
@@ -238,6 +253,10 @@ class LLMService:
                 "tools": tools,
                 "tool_choice": "auto",
             }
+            if model in REASONING_EFFORT:
+                payload["reasoning"] = {"effort": REASONING_EFFORT[model]}
+                if REASONING_EFFORT[model] != "none":
+                    payload["max_tokens"] += REASONING_HEADROOM
 
             start_time = time.time()
             try:
@@ -382,15 +401,13 @@ class LLMService:
     # Different models need different tuning for natural conversation:
     # - Qwen: high freq penalty to fight phrase-level repetition loops
     # - Llama: high temp + low freq penalty to reduce terseness
-    # - Grok/Mistral/DeepSeek/Kimi: slightly warmer than Sonnet defaults
+    # - Grok/Mistral/DeepSeek: slightly warmer than Sonnet defaults
     _CALLER_DIALOG_MODEL_PARAMS = {
         "anthropic/claude-sonnet-4.6":          {"temperature": 0.65, "frequency_penalty": 0.3,  "presence_penalty": 0.15},
         "x-ai/grok-4.3":                         {"temperature": 0.7,  "frequency_penalty": 0.2,  "presence_penalty": 0.1},
         "x-ai/grok-4.5":                         {"temperature": 0.7,  "frequency_penalty": 0.2,  "presence_penalty": 0.1},
-        "qwen/qwen3-235b-a22b":                  {"temperature": 0.6,  "frequency_penalty": 0.5,  "presence_penalty": 0.2},
         "mistralai/mistral-large-2512":          {"temperature": 0.7,  "frequency_penalty": 0.2,  "presence_penalty": 0.1},
         "deepseek/deepseek-chat-v3-0324":        {"temperature": 0.7,  "frequency_penalty": 0.2,  "presence_penalty": 0.1},
-        "moonshotai/kimi-k2":                    {"temperature": 0.7,  "frequency_penalty": 0.2,  "presence_penalty": 0.1},
         "meta-llama/llama-3.3-70b-instruct":     {"temperature": 0.8,  "frequency_penalty": 0.1,  "presence_penalty": 0.1},
     }
 
@@ -414,6 +431,10 @@ class LLMService:
             }
             if response_format:
                 payload["response_format"] = response_format
+            if model in REASONING_EFFORT:
+                payload["reasoning"] = {"effort": REASONING_EFFORT[model]}
+                if REASONING_EFFORT[model] != "none":
+                    payload["max_tokens"] += REASONING_HEADROOM
             response = await self.client.post(
                 "https://openrouter.ai/api/v1/chat/completions",
                 headers={

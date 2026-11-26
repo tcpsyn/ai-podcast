@@ -33,19 +33,20 @@ class Settings(BaseSettings):
 
     # LLM Settings
     llm_provider: str = "openrouter"  # "openrouter" or "ollama"
-    openrouter_model: str = "anthropic/claude-sonnet-4.6"  # primary/default model
+    openrouter_model: str = "anthropic/claude-sonnet-5.5"  # primary/default model
     ollama_model: str = "llama3.2"
     ollama_host: str = "http://localhost:11434"
 
     # Per-category model routing
     category_models: dict = {
-        "caller_dialog": "anthropic/claude-sonnet-4.6",       # live caller dialog — quality matters ($3/$15)
-        "devon_ask": "x-ai/grok-4.3",                        # Devon matches show energy (grok-4.1-fast deprecated 2026-05)
-        "devon_monitor": "google/gemini-2.5-flash",          # just yes/no decisions, keep cheap ($0.15/$0.60)
-        "background_gen": "anthropic/claude-sonnet-4.6",       # backgrounds drive the whole call — worth the quality ($3/$15, ~$0.30/show)
-        "call_summary": "google/gemini-2.5-flash",           # post-call, no personality needed ($0.15/$0.60)
-        "news_summary": "google/gemini-2.5-flash",           # just digesting headlines ($0.15/$0.60)
-        "topic_gen": "google/gemini-2.5-flash",              # structured output ($0.15/$0.60)
+        "caller_dialog": "anthropic/claude-sonnet-5.5",       # live caller dialog — quality matters ($2/$10)
+        "devon_ask": "x-ai/grok-4.7",                        # Devon matches show energy ($2/$6, mandatory reasoning)
+        "devon_monitor": "anthropic/claude-haiku-5.5",       # just yes/no decisions, keep cheap ($0.10/$0.50)
+        "background_gen": "anthropic/claude-sonnet-5.5",       # backgrounds drive the whole call — worth the quality ($2/$10, ~$0.20/show)
+        "call_summary": "anthropic/claude-haiku-5.5",        # post-call, no personality needed ($0.10/$0.50)
+        "news_summary": "anthropic/claude-haiku-5.5",        # just digesting headlines ($0.10/$0.50)
+        "topic_gen": "anthropic/claude-haiku-5.5",           # structured output ($0.10/$0.50)
+        "show_facts": "anthropic/claude-haiku-5.5",          # extracts durable show facts from host lines ($0.10/$0.50)
     }
 
     # TTS Settings

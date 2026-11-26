@@ -35,6 +35,13 @@ search:
   formats:
     - html
     - json
+general:
+  contact_url: "https://lukeattheroost.com"
+engines:
+  - name: brave
+    disabled: false
+  - name: bing
+    disabled: false
 EOF
   scp -P "$NAS_PORT" "$TMP" "$NAS_USER@$NAS_HOST:$DEPLOY_DIR/settings.yml"
   rm "$TMP"

@@ -1,6 +1,14 @@
 import pytest
 
 from backend.main import EmptyCallerBackgroundError, get_caller_prompt
+from backend.services.show_memory import show_memory
+
+
+@pytest.fixture
+def clean_show_memory():
+    show_memory.reset()
+    yield show_memory
+    show_memory.reset()
 
 
 def test_empty_background_raises_instead_of_hollow_prompt():
@@ -76,3 +84,18 @@ def test_prompt_without_opening_line():
     prompt = get_caller_prompt(caller)
     assert "FIRST message" not in prompt
     assert "planned opening" not in prompt.lower()
+
+
+def test_prompt_includes_show_facts_when_given(clean_show_memory):
+    clean_show_memory.add_fact("Luke is in West Virginia tonight")
+    prompt = get_caller_prompt(
+        {"name": "Danny", "identity": "A plumber", "situation": "Leaky pipes"},
+        facts=clean_show_memory.caller_block(),
+    )
+    assert "TONIGHT'S SHOW" in prompt
+    assert prompt.index("West Virginia") < prompt.index("CRITICAL OUTPUT RULES")
+
+
+def test_prompt_has_no_facts_block_by_default():
+    prompt = get_caller_prompt({"name": "Danny", "identity": "A plumber", "situation": "Leaky pipes"})
+    assert "TONIGHT'S SHOW" not in prompt

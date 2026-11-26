@@ -32,6 +32,8 @@ from .services.stem_recorder import StemRecorder
 from .services.news import news_service, extract_keywords, STOP_WORDS
 from .services.regulars import regular_caller_service
 from .services.intern import intern_service
+from .services.caller_gen import STALE_PHRASES, STALE_PHRASE_LIST
+from .services.show_memory import show_memory
 from .services.avatars import avatar_service, AVATAR_DIR
 
 
@@ -82,22 +84,25 @@ FEMALE_NAMES = [
 
 # Voice pools per TTS provider
 INWORLD_MALE_VOICES = [
-    "Alex", "Arjun", "Arthur", "Avery", "Blake", "Brandon", "Brian", "Callum",
-    "Carter", "Cedric", "Clive", "Conrad", "Craig", "Damon", "Daniel", "Dennis",
-    "Derek", "Duncan",
-    "Edward", "Elliot", "Ethan", "Evan", "Felix", "Gareth", "Graham", "Grant",
-    "Hades", "Hamish", "Hank", "Jake", "James", "Jason", "Jonah", "Levi",
-    "Liam", "Malcolm", "Marcus", "Mark", "Mortimer", "Nate", "Oliver", "Reed",
-    "Ronald", "Rupert", "Sebastian", "Shaun", "Simon", "Theodore", "Timothy",
-    "Trevor", "Tristan", "Tyler", "Victor", "Vinny",
+    "Alex", "Arjun", "Arthur", "Avery", "Blake", "Brandon", "Brian",
+    "Bryce", "Callum", "Calvin", "Carter", "Casey", "Cedric", "Chip",
+    "Clive", "Conrad", "Craig", "Damon", "Daniel", "Dante", "Dennis",
+    "Derek", "Duncan", "Edward", "Elliot", "Ethan", "Evan", "Felix",
+    "Freddie", "Gareth", "Graham", "Grant", "Grayson", "Hades", "Hamish",
+    "Hank", "Harold", "Jake", "James", "Jarrah", "Jason", "Jonah", "Josh",
+    "Lachlan", "Levi", "Liam", "Malcolm", "Marcus", "Marek", "Mark",
+    "Mortimer", "Nate", "Oliver", "Reed", "Ronald", "Rupert", "Sebastian",
+    "Shaun", "Simon", "Theodore", "Timothy", "Trevor", "Tristan", "Tyler",
+    "Victor", "Vincent", "Vinny", "Wade", "Warren", "Winston",
 ]
 INWORLD_FEMALE_VOICES = [
-    "Amina", "Anjali", "Ashley", "Bianca", "Brooke", "Celeste", "Chloe",
-    "Claire", "Darlene", "Deborah", "Eleanor", "Elizabeth", "Evelyn", "Hana",
-    "Jessica", "Joy", "Julia", "Kayla", "Kelsey", "Lauren", "Loretta", "Luna",
-    "Marlene", "Miranda", "Nadia", "Naomi", "Olivia", "Pippa", "Priya",
-    "Saanvi", "Sarah", "Selene", "Serena", "Sophie", "Tessa", "Veronica",
-    "Victoria", "Wendy", "Zadie",
+    "Amina", "Anjali", "Ashley", "Bianca", "Brooke", "Camille", "Celeste",
+    "Chloe", "Claire", "Darlene", "Deborah", "Eileen", "Eleanor",
+    "Elizabeth", "Evelyn", "Hana", "Hazel", "Jessica", "Joy", "Julia",
+    "Kayla", "Kelsey", "Lauren", "Loretta", "Luna", "Marlene", "Miranda",
+    "Nadia", "Naomi", "Olivia", "Piper", "Pippa", "Priya", "Rosalind",
+    "Saanvi", "Sarah", "Selene", "Seraphine", "Serena", "Sophie", "Tessa",
+    "Tonya", "Veronica", "Victoria", "Wendy", "Zadie", "Zoe",
 ]
 
 ELEVENLABS_MALE_VOICES = [
@@ -197,11 +202,10 @@ def _randomize_callers():
     m_voices = random.sample(male_pool, min(num_m, len(male_pool)))
     f_voices = random.sample(female_pool, min(num_f, len(female_pool)))
     mi, fi = 0, 0
-    from .services.tts import pick_caller_tts_provider
     for base in CALLER_BASES.values():
         base["returning"] = False
         base["regular_id"] = None
-        base["tts_provider"] = pick_caller_tts_provider()
+        base["tts_provider"] = None
         if base["gender"] == "male":
             base["name"] = males[mi]
             base["voice"] = m_voices[mi]
@@ -549,7 +553,7 @@ class EmptyCallerBackgroundError(RuntimeError):
     so refuse to build the prompt instead."""
 
 
-def get_caller_prompt(caller: dict, theme: str = "") -> str:
+def get_caller_prompt(caller: dict, theme: str = "", facts: str = "") -> str:
     """Caller system prompt. Identity carries the weight."""
     name = caller.get("name", "")
     identity = caller.get("identity", "")
@@ -601,6 +605,21 @@ Your planned opening line (use this or something very close for your FIRST messa
             except Exception:
                 pass
 
+    lore_regular = None
+    world_block = ""
+    try:
+        from .services import wellspring
+        lore_regular = wellspring.find_regular(name)
+        if lore_regular:
+            is_regular = True
+            arc_state = (lore_regular.arc_state or "").strip() or arc_state
+            prior = wellspring.recent_arc_log(lore_regular.lore_body) or prior
+            world = wellspring.prompt_context(lore_regular)
+            if world:
+                world_block = f"\n\n{world}\n"
+    except Exception as e:
+        print(f"[Wellspring] Failed to build lore context for {name}: {e}")
+
     regular_block = ""
     if is_regular:
         regular_block = "\n\nYOU ARE A RECURRING CALLER ON THIS SHOW. Luke knows you. You've called before — do NOT introduce yourself as a first-time listener.\n"
@@ -625,7 +644,7 @@ What you secretly want from this call: {want}
 {opening_block}
 Specific details you'll drop if it feels natural:
 {detail_str}
-{regular_block}{theme_block}
+{regular_block}{world_block}{theme_block}{facts}
 Speak as this person. React to what Luke says. Stay in character.
 
 CRITICAL OUTPUT RULES:
@@ -635,10 +654,11 @@ CRITICAL OUTPUT RULES:
 - No narration. No describing what you're doing or feeling except through what you say.
 - If you catch yourself writing an asterisk or parenthesis, delete it and just say the words instead.
 - NEVER say you've "been listening for X years" or "long-time listener, first-time caller." Just get into your story.
+- NEVER use these worn-out phrases or close variants: {STALE_PHRASE_LIST}. Say it the way this specific person would.
 - If you've already shared a specific fact or detail in this conversation, do NOT restate it. Move the story forward — share something new, react to what Luke just said, or escalate the stakes.
 
 YOU CAN BE MOVED — DON'T CIRCLE:
-- You have a position and something you want, but you're a real person, not a stuck record. If Luke makes a good point or gives real advice, actually take it in — let it land. Agree, change your mind, soften, get defensive, dig in harder, or come to a decision. Something shifts.
+- You have a position and something you want, but you're a real person, not a stuck record. If Luke makes a good point or gives real advice, actually take it in. Agree, change your mind, soften, get defensive, dig in harder, or come to a decision. Something shifts.
 - NEVER restate the same dilemma, worry, or argument you've already made. If you catch yourself going in a circle, that's the moment to move: make a decision, admit something new, react to his point, or let the conversation turn somewhere it hasn't been.
 - It's good to reach a resolution, a choice, or an emotional turn over the call. You are NOT required to stay stuck in the same problem until you're cut off. Real conversations go somewhere.
 
@@ -770,6 +790,7 @@ class Session:
         self._caller_hangup = False
         self._wrapping_up = False
         self._wrapup_exchanges = 0
+        show_memory.mark_call_started()
 
     def end_call(self):
         self.current_caller_key = None
@@ -777,6 +798,8 @@ class Session:
 
     def add_message(self, role: str, content: str):
         self.conversation.append({"role": role, "content": content, "timestamp": time.time()})
+        if role == "user":
+            show_memory.add_host_line(content)
 
     def get_caller_background(self, caller_key: str) -> str:
         """Return the caller's situation string for UI display.
@@ -939,9 +962,9 @@ class Session:
         return None
 
     async def _build_backgrounds(self) -> dict[str, dict]:
-        """Generate a fresh caller lineup via two parallel sonnet-4.6 calls.
+        """Generate a fresh caller lineup via two parallel sonnet-5.5 calls.
         Returns a caller_backgrounds dict keyed by caller slot (no mutation)."""
-        from .services import caller_gen, regulars_v2
+        from .services import caller_gen, regulars_v2, wellspring
         from datetime import datetime
 
         # Voice rotation: Sonnet biases toward familiar-sounding names when shown
@@ -972,6 +995,7 @@ class Session:
             {"name": r.name, "voice": r.voice, "age": r.age,
              "lore": r.lore_body, "arc_state": r.arc_state,
              "register": r.register, "explicitness": r.explicitness,
+             "world": wellspring.prompt_context(r, assign_storyline=True),
              "_misses": misses, "_prob": prob}
             for r, misses, prob in selected
         ]
@@ -986,10 +1010,7 @@ class Session:
             r.pop("_misses", None)
             r.pop("_prob", None)
 
-        headlines: list[str] = []
-        if self.news_headlines:
-            for h in self.news_headlines[:5]:
-                headlines.append(h.title if hasattr(h, "title") else str(h))
+        headlines: list[str] = show_memory.headline_titles()
 
         weather_line = "cool desert night"
         try:
@@ -1199,6 +1220,7 @@ class Session:
         self.intern_monitoring = True
         intern_service.stop_monitoring()
         intern_service.new_show()
+        show_memory.reset()
         cost_tracker.reset()
         _randomize_callers()
         self.id = str(uuid.uuid4())[:8]
@@ -1412,6 +1434,7 @@ def _save_checkpoint():
             "call_quality_signals": session.call_quality_signals,
             "caller_queue": session.caller_queue,
             "intern_monitoring": session.intern_monitoring,
+            "show_memory": show_memory.to_dict(),
             "costs": cost_tracker.get_live_summary(),
             "cost_records": {
                 "llm": [asdict(r) for r in cost_tracker.llm_records],
@@ -1462,6 +1485,8 @@ def _load_checkpoint() -> bool:
         session.call_quality_signals = data.get("call_quality_signals", [])
         session.caller_queue = data.get("caller_queue", [])
         session.intern_monitoring = data.get("intern_monitoring", True)
+        if age < CHECKPOINT_LINEUP_MAX_AGE:
+            show_memory.load_dict(data.get("show_memory", {}))
         for key, snapshot in data.get("caller_bases", {}).items():
             if key in CALLER_BASES:
                 CALLER_BASES[key]["name"] = snapshot["name"]
@@ -1744,6 +1769,11 @@ async def _sync_signalwire_voicemails():
 
 
 # --- Lifecycle ---
+_startup_headlines_task: asyncio.Task | None = None
+_reset_headlines_task: asyncio.Task | None = None
+HEADLINE_WAIT_SECONDS = 25
+
+
 @app.on_event("startup")
 async def startup():
     """Pre-generate caller backgrounds on server start"""
@@ -1753,6 +1783,9 @@ async def startup():
     asyncio.create_task(_backfill_voicemail_transcripts())
     asyncio.create_task(_poll_imap_emails())
     restored = _load_checkpoint()
+    global _startup_headlines_task
+    if not show_memory.headlines and not show_memory.calls_started:
+        _startup_headlines_task = asyncio.create_task(show_memory.build_headlines())
     if not restored or not session.caller_backgrounds:
         # First reset will need callers — prewarm now so they're ready
         session.start_prewarm()
@@ -2671,9 +2704,28 @@ async def get_regulars():
 async def reset_session():
     """Reset session - all callers get fresh backgrounds.
     Uses pre-warmed batch if available (instant); otherwise generates fresh."""
+    global _reset_headlines_task
+    carried = (show_memory.headlines, show_memory.headlines_built_at) if show_memory.headlines_fresh() and not show_memory.calls_started else None
     session.reset()
     _chat_updates.clear()
+    if carried:
+        show_memory.headlines, show_memory.headlines_built_at = carried
+        print(f"[ShowMemory] Reusing opening headlines built {(time.time() - carried[1]) / 60:.0f}m ago")
+        await session.populate_backgrounds()
+        return {"status": "reset", "session_id": session.id}
+
+    deadline = time.monotonic() + HEADLINE_WAIT_SECONDS
+    _reset_headlines_task = asyncio.create_task(show_memory.build_headlines())
+    prewarmed = session.pending_backgrounds is not None or (
+        session._prewarm_task is not None and not session._prewarm_task.done()
+    )
+    if not prewarmed:
+        # A fresh lineup reads headline_titles() at build time, so let headlines land first.
+        await asyncio.wait({_reset_headlines_task}, timeout=HEADLINE_WAIT_SECONDS)
     await session.populate_backgrounds()
+    remaining = deadline - time.monotonic()
+    if remaining > 0:
+        await asyncio.wait({_reset_headlines_task}, timeout=remaining)
     return {"status": "reset", "session_id": session.id}
 
 
@@ -2927,6 +2979,18 @@ async def _summarize_ai_call(caller_key: str, caller_name: str, conversation: li
     except Exception as e:
         print(f"[Regulars] Promotion logic error: {e}")
 
+    if conversation:
+        try:
+            from .services import wellspring
+            speaker = {"user": "LUKE", "assistant": caller_name.upper()}
+            labeled = "\n".join(
+                f"{speaker.get(m['role'], m['role'].split(':')[-1].upper())}: {m['content']}"
+                for m in conversation
+            )
+            await wellspring.run_continuity(caller_name, labeled)
+        except Exception as e:
+            print(f"[Continuity] Failed for {caller_name}: {e}")
+
     # Detect relationships: if this caller mentioned another regular by name
     _detect_caller_relationships(caller_key, caller_name, conversation, summary)
 
@@ -3075,6 +3139,47 @@ def _has_repetition(response: str, conversation: list, threshold: int = 3) -> bo
             if not all(w in _REPETITION_STOPWORDS for w in words):
                 return True
     return False
+
+
+_STALE_PHRASE_RES = {label: re.compile(rx, re.IGNORECASE) for label, rx in STALE_PHRASES.items()}
+_REPETITION_NUDGE = "You're repeating yourself. Say something NEW — a detail you haven't mentioned, a different angle, or move the story forward. Do not repeat facts you've already stated."
+
+
+def _stale_phrases(text: str) -> list[str]:
+    text = (text or "").replace("\u2019", "'")
+    return [label for label, rx in _STALE_PHRASE_RES.items() if rx.search(text)]
+
+
+async def _retry_if_stale(response: str, messages: list, system_prompt: str, max_tokens: int,
+                          caller_name: str, model_override, conversation: list,
+                          wrapping_up: bool, tag: str) -> str:
+    """Retry once if the reply repeats earlier lines or uses a worn-out phrase.
+    Repetition is ignored during wrap-up; stale phrases are always checked."""
+    if not response or "[HANGUP]" in response:
+        return response
+
+    def problems(text):
+        repeated = not wrapping_up and _has_repetition(text, conversation)
+        return repeated, _stale_phrases(text)
+
+    repeated, stale = problems(response)
+    if not repeated and not stale:
+        return response
+    nudges = [_REPETITION_NUDGE] if repeated else []
+    if stale:
+        quoted = ", ".join(f'"{p}"' for p in stale)
+        nudges.append(f"Rewrite that without {quoted} — those are worn-out radio-caller phrases. Say it the way you actually would.")
+    print(f"[{tag}] Retrying: repetition={repeated} stale={stale}")
+    retry = await llm_service.generate(
+        messages=messages + [{"role": "user", "content": " ".join(nudges)}],
+        system_prompt=system_prompt, max_tokens=max_tokens, category="caller_dialog",
+        caller_name=caller_name, model_override=model_override,
+    )
+    if retry and problems(retry) == (False, []):
+        print(f"[{tag}] Retry succeeded")
+        return retry
+    print(f"[{tag}] Retry no better, keeping original")
+    return response
 
 
 def _trim_to_sentences(text: str, max_sentences: int) -> str:
@@ -3685,12 +3790,12 @@ async def chat(request: ChatRequest):
                     mood += "\nSay goodbye NOW and end with [HANGUP]\n"
 
             slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
-            system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme)
+            system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme, facts=show_memory.caller_block())
 
             max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
             messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
             _caller_name = session.caller.get("name", "") if session.caller else ""
-            _model_override = None  # caller_dialog category routes to sonnet-4.6
+            _model_override = None  # caller_dialog category routes to sonnet-5.5
             response = await llm_service.generate(
                 messages=messages,
                 system_prompt=system_prompt,
@@ -3702,19 +3807,9 @@ async def chat(request: ChatRequest):
             response = await _retry_if_too_short(
                 response, llm_service, messages, system_prompt, max_tokens,
                 _caller_name, _model_override, wrapping_up=is_wrapping)
-            if not is_wrapping and response and "[HANGUP]" not in response and _has_repetition(response, session.conversation):
-                print(f"[Chat] Repetition detected, retrying with anti-repetition prompt...")
-                retry_messages = messages + [{"role": "user", "content": "You're repeating yourself. Say something NEW — a detail you haven't mentioned, a different angle, or move the story forward. Do not repeat facts you've already stated."}]
-                retry_response = await llm_service.generate(
-                    messages=retry_messages, system_prompt=system_prompt,
-                    max_tokens=max_tokens, category="caller_dialog",
-                    caller_name=_caller_name, model_override=_model_override,
-                )
-                if retry_response and not _has_repetition(retry_response, session.conversation):
-                    print(f"[Chat] Anti-repetition retry succeeded")
-                    response = retry_response
-                else:
-                    print(f"[Chat] Anti-repetition retry no better, keeping original")
+            response = await _retry_if_stale(
+                response, messages, system_prompt, max_tokens, _caller_name, _model_override,
+                session.conversation, wrapping_up=is_wrapping, tag="Chat")
     except HTTPException:
         raise
     except Exception as e:
@@ -4139,6 +4234,41 @@ async def set_show_theme(data: dict):
     return {"theme": session.show_theme}
 
 
+# --- Show Facts ---
+
+@app.get("/api/show/facts")
+async def get_show_facts():
+    return {"facts": show_memory.facts}
+
+
+@app.post("/api/show/facts")
+async def add_show_fact(data: dict):
+    fact = show_memory.add_fact(str(data.get("text") or "")[:200], pinned=True)
+    if not fact:
+        raise HTTPException(400, "Empty, duplicate, or too many facts")
+    _save_checkpoint()
+    return {"fact": fact}
+
+
+@app.patch("/api/show/facts/{fact_id}")
+async def edit_show_fact(fact_id: int, data: dict):
+    if not any(f["id"] == fact_id for f in show_memory.facts):
+        raise HTTPException(404, "Fact not found")
+    fact = show_memory.edit_fact(fact_id, str(data.get("text") or "")[:200])
+    if not fact:
+        raise HTTPException(400, "Empty or duplicate fact")
+    _save_checkpoint()
+    return {"fact": fact}
+
+
+@app.delete("/api/show/facts/{fact_id}")
+async def delete_show_fact(fact_id: int):
+    if not show_memory.delete_fact(fact_id):
+        raise HTTPException(404, "Fact not found")
+    _save_checkpoint()
+    return {"status": "deleted"}
+
+
 # --- Cost Tracking Endpoints ---
 
 @app.get("/api/costs")
@@ -4559,6 +4689,7 @@ async def take_call_from_queue(caller_id: str):
         "channel": call_info["channel"],
         "phone": call_info["phone"],
     }
+    show_memory.mark_call_started()
 
     return {
         "status": "on_air",
@@ -4662,12 +4793,12 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
             if session._wrapup_exchanges > 2:
                 mood += "\nSay goodbye NOW and end with [HANGUP]\n"
         slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
-        system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme)
+        system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme, facts=show_memory.caller_block())
 
         max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
         _caller_name = session.caller.get("name", "") if session.caller else ""
-        _model_override = None  # caller_dialog category routes to sonnet-4.6
+        _model_override = None  # caller_dialog category routes to sonnet-5.5
         response = await llm_service.generate(
             messages=messages,
             system_prompt=system_prompt,
@@ -4679,19 +4810,9 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
         response = await _retry_if_too_short(
             response, llm_service, messages, system_prompt, max_tokens,
             _caller_name, _model_override, wrapping_up=is_wrapping)
-        if not is_wrapping and response and "[HANGUP]" not in response and _has_repetition(response, session.conversation):
-            print(f"[Auto-Respond] Repetition detected, retrying...")
-            retry_messages = messages + [{"role": "user", "content": "You're repeating yourself. Say something NEW — a detail you haven't mentioned, a different angle, or move the story forward. Do not repeat facts you've already stated."}]
-            retry_response = await llm_service.generate(
-                messages=retry_messages, system_prompt=system_prompt,
-                max_tokens=max_tokens, category="caller_dialog",
-                caller_name=_caller_name, model_override=_model_override,
-            )
-            if retry_response and not _has_repetition(retry_response, session.conversation):
-                print(f"[Auto-Respond] Anti-repetition retry succeeded")
-                response = retry_response
-            else:
-                print(f"[Auto-Respond] Anti-repetition retry no better, keeping original")
+        response = await _retry_if_stale(
+            response, messages, system_prompt, max_tokens, _caller_name, _model_override,
+            session.conversation, wrapping_up=is_wrapping, tag="Auto-Respond")
 
     # Discard if call changed during generation
     if _session_epoch != epoch:
@@ -4784,12 +4905,12 @@ async def ai_respond():
                 if session._wrapup_exchanges > 2:
                     mood += "\nSay goodbye NOW and end with [HANGUP]\n"
             slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
-            system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme)
+            system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme, facts=show_memory.caller_block())
 
             max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
             messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
             _caller_name = session.caller.get("name", "") if session.caller else ""
-            _model_override = None  # caller_dialog category routes to sonnet-4.6
+            _model_override = None  # caller_dialog category routes to sonnet-5.5
             response = await llm_service.generate(
                 messages=messages,
                 system_prompt=system_prompt,
@@ -4801,19 +4922,9 @@ async def ai_respond():
             response = await _retry_if_too_short(
                 response, llm_service, messages, system_prompt, max_tokens,
                 _caller_name, _model_override, wrapping_up=is_wrapping)
-            if not is_wrapping and response and "[HANGUP]" not in response and _has_repetition(response, session.conversation):
-                print(f"[Chat] Repetition detected, retrying with anti-repetition prompt...")
-                retry_messages = messages + [{"role": "user", "content": "You're repeating yourself. Say something NEW — a detail you haven't mentioned, a different angle, or move the story forward. Do not repeat facts you've already stated."}]
-                retry_response = await llm_service.generate(
-                    messages=retry_messages, system_prompt=system_prompt,
-                    max_tokens=max_tokens, category="caller_dialog",
-                    caller_name=_caller_name, model_override=_model_override,
-                )
-                if retry_response and not _has_repetition(retry_response, session.conversation):
-                    print(f"[Chat] Anti-repetition retry succeeded")
-                    response = retry_response
-                else:
-                    print(f"[Chat] Anti-repetition retry no better, keeping original")
+            response = await _retry_if_stale(
+                response, messages, system_prompt, max_tokens, _caller_name, _model_override,
+                session.conversation, wrapping_up=is_wrapping, tag="Chat")
     except HTTPException:
         raise
     except Exception as e:
@@ -5036,6 +5147,7 @@ async def intern_ask(data: dict):
     if not question:
         raise HTTPException(400, "No question provided")
 
+    show_memory.add_host_line(question)
     # Run research + response (non-blocking for the caller audio)
     result = await intern_service.ask(
         question=question,

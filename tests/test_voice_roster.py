@@ -4,11 +4,12 @@ from backend.main import (
     BLACKLISTED_VOICES,
 )
 
-NEWLY_ADDED = ["Arthur", "Daniel", "Brooke", "Joy", "Selene", "Zadie"]
+NEWLY_ADDED = ["Arthur", "Daniel", "Brooke", "Joy", "Selene", "Zadie",
+               "Harold", "Calvin", "Lachlan", "Tonya", "Eileen", "Rosalind"]
 
 # Child / adolescent voices — deliberately kept off the roster for an
 # adult late-night call-in show.
-EXCLUDED_CHILD_VOICES = ["Abby", "Mia", "Riley"]
+EXCLUDED_CHILD_VOICES = ["Abby", "Archie", "Mia", "Pixie", "Poppy", "Riley"]
 
 
 def test_rosters_are_sorted_and_deduped():
@@ -45,3 +46,10 @@ def test_effective_pool_is_large_enough_for_session_sampling():
     roster = set(INWORLD_MALE_VOICES) | set(INWORLD_FEMALE_VOICES)
     effective = roster - set(BLACKLISTED_VOICES)
     assert len(effective) >= 25
+
+
+def test_randomized_callers_all_use_inworld():
+    from backend.main import CALLER_BASES, _randomize_callers
+    _randomize_callers()
+    overrides = {b["name"]: b["tts_provider"] for b in CALLER_BASES.values() if b.get("tts_provider")}
+    assert not overrides, f"callers routed off Inworld: {overrides}"

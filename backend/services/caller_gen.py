@@ -8,13 +8,28 @@ import httpx
 from ..config import settings
 from .cost_tracker import cost_tracker
 
-BATCH_MODEL = "anthropic/claude-sonnet-4.6"
+BATCH_MODEL = "anthropic/claude-sonnet-5.5"
 
 REQUIRED_FIELDS = {
     "name", "age", "voice_suggestion", "location", "identity",
     "situation", "reason_calling", "opening_line", "secret_want",
     "specific_details", "emotional_register"
 }
+
+# Worn-out phrases callers (and Devon) kept leaning on. Label -> regex; the
+# label is what the prompts quote, the regex is what the retry check matches.
+STALE_PHRASES = {
+    "that lands": r"\b(?:that|it|this|which|something that) land(?:s|ed)\b|\blet (?:it|that) land\b",
+    "what's keeping me up": r"\b(?:keep|keeps|keeping|kept) (?:me|you) up\b",
+    "that's the part": r"\bthat(?:'s| is) (?:not )?the part\b",
+    "I keep coming back to": r"\bi keep coming back\b",
+    "sit with that": r"\bsit(?:ting)? with (?:that|it|this)\b",
+    "I hear you": r"\bi hear you\b",
+    "that's fair": r"\bthat(?:'s| is) fair\b(?! game)",
+    "here's the thing": r"\bhere(?:'s| is) the thing\b",
+    "that tracks": r"\bthat tracks\b",
+}
+STALE_PHRASE_LIST = ", ".join(f'"{p}"' for p in STALE_PHRASES)
 
 
 @dataclass
@@ -102,7 +117,7 @@ Do not default to sitcom plots. Real humans are specific and strange. Give each 
 
 ADULT SHOW: This is a late-night show for adults. Callers are adults and may talk about sex, relationships, and kink frankly and without euphemism when it fits who they are — this is not a family program and you should not sanitize a caller whose story is genuinely about sex. But do NOT make the roster horny: at most 1-2 of the 10 callers should have sex as their central subject, or the show flattens into one note. Everyone involved in any sexual material is a consenting adult. Where a situation involves pressure, manipulation, or coercion, write it with real weight — that is a harm, not a punchline, and the host should be able to react to it as one.
 
-OPENING LINE RULES: Each caller's opening_line must be unique and specific to their situation. NEVER write "I've been listening for X years" or "long-time listener, first-time caller" or any variant. The caller should jump into their story or problem immediately — nervous, excited, angry, whatever fits. The opening line is the hook that makes the audience lean in.
+OPENING LINE RULES: Each caller's opening_line must be unique and specific to their situation. NEVER write "I've been listening for X years" or "long-time listener, first-time caller" or any variant. The caller should jump into their story or problem immediately — nervous, excited, angry, whatever fits. The opening line is the hook that makes the audience lean in. Never use worn-out phrases like "what's keeping me up" or "that's the part".
 
 You will output strict JSON with a "callers" array. Each caller has exactly these fields: name, age, voice_suggestion, location, identity, situation, reason_calling, opening_line, secret_want, specific_details (array of 2-3 strings), emotional_register."""
 
@@ -146,9 +161,12 @@ def build_batch_prompt(ctx: dict) -> str:
             if r.get("register"):
                 lines.append(f"How {r['name']} plays: {r['register']}")
             lines.append(f"Explicitness for {r['name']}: {_EXPLICITNESS_GUIDANCE[r.get('explicitness', 'low')]}")
+            if r.get("world"):
+                lines.append("")
+                lines.append(r["world"])
             lines.append("")
-            lines.append(f"For {r['name']}: invent a fresh reason he is calling tonight — a new development, grievance, or specific recent event. DO NOT alter his voice, personality, or core traits. Write a new scene for an existing character.")
-            lines.append(f"CRITICAL — this caller MUST appear in the output JSON with EXACTLY these fields locked: name=\"{r['name']}\", voice_suggestion=\"{r['voice']}\", age={r['age']}. Do NOT rename this caller. Do NOT give him a different voice. Do NOT change his age. Only invent: location, identity, situation, reason_calling, opening_line, secret_want, specific_details, emotional_register.")
+            lines.append(f"For {r['name']}: invent a fresh reason they are calling tonight — a new development, grievance, or specific recent event that follows from where their story stands. DO NOT alter their voice, personality, or core traits. Write a new scene for an existing character.")
+            lines.append(f"CRITICAL — this caller MUST appear in the output JSON with EXACTLY these fields locked: name=\"{r['name']}\", voice_suggestion=\"{r['voice']}\", age={r['age']}. Do NOT rename this caller. Do NOT give them a different voice. Do NOT change their age. Only invent: location, identity, situation, reason_calling, opening_line, secret_want, specific_details, emotional_register.")
             lines.append("")
 
     lines.append(f"Available voices (voice_suggestion must match one of these exactly):")
@@ -159,7 +177,7 @@ def build_batch_prompt(ctx: dict) -> str:
 
 
 async def generate_batch(ctx: dict) -> list[CallerIdentity]:
-    """Call sonnet-4.6 with the batch prompt, parse + voice-resolve the response."""
+    """Call sonnet-5.5 with the batch prompt, parse + voice-resolve the response."""
     prompt = build_batch_prompt(ctx)
     async with httpx.AsyncClient(timeout=120.0) as client:
         resp = await client.post(
@@ -171,6 +189,7 @@ async def generate_batch(ctx: dict) -> list[CallerIdentity]:
                 "response_format": {"type": "json_object"},
                 "max_tokens": 16000,
                 "temperature": 0.9,
+                "reasoning": {"effort": "low"},
             },
         )
         resp.raise_for_status()
@@ -190,7 +209,7 @@ async def generate_batch(ctx: dict) -> list[CallerIdentity]:
     return callers
 
 
-REGULAR_SYSTEM_PROMPT = """You are writing a single caller — a recurring character on Luke's late-night radio show. The character's identity is fixed (name, voice, age, core lore). You only invent a fresh reason he's calling tonight, grounded in his current arc state.
+REGULAR_SYSTEM_PROMPT = """You are writing a single caller — a recurring character on Luke's late-night radio show. The character's identity is fixed (name, voice, age, core lore). You only invent a fresh reason they're calling tonight, grounded in his current arc state.
 
 Output strict JSON with these fields only: location, identity, situation, reason_calling, opening_line, secret_want, specific_details (array of 2-3 strings), emotional_register. Do NOT include name, voice_suggestion, or age — those are locked."""
 
@@ -206,8 +225,9 @@ async def generate_regular_situation(regular: dict, ctx: dict) -> dict:
         f"Current arc state: {regular['arc_state']}",
         *([f"How {regular['name']} plays: {regular['register']}"] if regular.get("register") else []),
         f"Explicitness for {regular['name']}: {_EXPLICITNESS_GUIDANCE[regular.get('explicitness', 'low')]}",
+        *(["", regular["world"]] if regular.get("world") else []),
         "",
-        f"Invent a fresh reason {regular['name']} is calling tonight — a new development, grievance, or specific recent event. DO NOT alter his voice, personality, or core traits.",
+        f"Invent a fresh reason {regular['name']} is calling tonight — a new development, grievance, or specific recent event that follows from where their story stands. DO NOT alter their voice, personality, or core traits.",
         "",
         "Output JSON only, no prose.",
     ]
@@ -221,8 +241,9 @@ async def generate_regular_situation(regular: dict, ctx: dict) -> dict:
                 "model": BATCH_MODEL,
                 "messages": [{"role": "user", "content": prompt}],
                 "response_format": {"type": "json_object"},
-                "max_tokens": 1500,
+                "max_tokens": 2500,
                 "temperature": 0.9,
+                "reasoning": {"effort": "low"},
             },
         )
         resp.raise_for_status()
