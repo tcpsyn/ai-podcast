@@ -84,3 +84,48 @@ def test_stale_phrase_checked_during_wrap_up(monkeypatch):
 def test_hangup_is_never_retried(monkeypatch):
     out, fake = run_retry(monkeypatch, "That lands. [HANGUP]", [])
     assert fake.calls == []
+
+
+from backend.main import _overused_openers, _sentence_openers
+
+
+def caller(*lines):
+    return [{"role": "assistant", "content": l} for l in lines]
+
+
+def test_openers_skip_fillers_and_trivial_starts():
+    openers = _sentence_openers("Well, Luke, that makes sense to me. I don't know about that. My truck died.")
+    assert "that makes sense" in openers
+    assert "my truck died" in openers
+    assert not any(o.startswith("i don't") for o in openers)
+
+
+def test_opener_used_by_two_callers_is_flagged():
+    show = [caller("Funny thing is, my dog ran off."), caller("Okay. Funny thing is, I knew it.")]
+    assert "funny thing is" in _overused_openers(show)
+
+
+def test_one_caller_repeating_is_not_show_level():
+    show = [caller("Funny thing is, yes.", "Funny thing is, no."), caller("My truck died.")]
+    assert _overused_openers(show) == []
+
+
+def test_host_lines_ignored():
+    show = [[{"role": "user", "content": "Funny thing is, sure."}], caller("Funny thing is, nope.")]
+    assert _overused_openers(show) == []
+
+
+def test_show_phrase_triggers_retry(monkeypatch):
+    fake = FakeLLM(["My dog ran off again."])
+    monkeypatch.setattr(main, "llm_service", fake)
+    out = asyncio.run(_retry_if_stale(
+        "Funny thing is, my dog ran off.", [{"role": "user", "content": "hi"}], "sys", 300, "C", None,
+        [], wrapping_up=False, tag="Test", extra_phrases=["funny thing is"]))
+    assert out == "My dog ran off again."
+    assert '"funny thing is"' in fake.calls[0][-1]["content"]
+
+
+def test_caller_prompt_lists_overused_openers():
+    prompt = get_caller_prompt({"name": "Concho", "identity": "a welder", "situation": "x"},
+                               overused=["funny thing is"])
+    assert '"funny thing is"' in prompt

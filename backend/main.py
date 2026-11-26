@@ -544,6 +544,32 @@ def detect_host_mood(messages: list[dict], wrapping_up: bool = False) -> str:
 
 
 
+RESOLVING_ENDING = ("It's good to reach a resolution, a choice, or an emotional turn over the call. "
+                    "You are NOT required to stay stuck in the same problem until you're cut off. "
+                    "Real conversations go somewhere.")
+UNRESOLVED_ENDINGS = [
+    "You do NOT figure this out tonight. Take in what Luke says and let it change how you see things, "
+    "but by the end you're honestly still undecided — and you say so. Being undecided is not the same "
+    "as repeating yourself: bring new reasons and new details.",
+    "Luke does NOT change your mind tonight. Push back and defend your position with new arguments; "
+    "you can concede a small point, but you leave believing what you came in believing.",
+    "If Luke pushes hard or misreads you, you get irritated. By the end you're curt and done with "
+    "the conversation — not a tantrum, just a real person who didn't like how this went.",
+    "You leave having confidently taken the WRONG lesson from the call. You misunderstand Luke's point "
+    "in a way that makes sense for who you are, and you're happy about it.",
+]
+UNRESOLVED_SHARE = 3  # 1 in 3 callers
+
+
+def caller_ending(caller: dict) -> str:
+    """Hidden ending style, stable per caller so restored lineups keep theirs."""
+    key = f"{caller.get('name', '')}|{caller.get('identity', '')}|{caller.get('situation', '')}"
+    digest = int(hashlib.sha256(key.encode()).hexdigest(), 16)
+    if digest % UNRESOLVED_SHARE:
+        return RESOLVING_ENDING
+    return UNRESOLVED_ENDINGS[(digest // UNRESOLVED_SHARE) % len(UNRESOLVED_ENDINGS)]
+
+
 class EmptyCallerBackgroundError(RuntimeError):
     """Raised when a caller prompt is built from a background with no identity.
 
@@ -553,7 +579,7 @@ class EmptyCallerBackgroundError(RuntimeError):
     so refuse to build the prompt instead."""
 
 
-def get_caller_prompt(caller: dict, theme: str = "", facts: str = "") -> str:
+def get_caller_prompt(caller: dict, theme: str = "", facts: str = "", overused: list[str] = ()) -> str:
     """Caller system prompt. Identity carries the weight."""
     name = caller.get("name", "")
     identity = caller.get("identity", "")
@@ -632,6 +658,12 @@ Your planned opening line (use this or something very close for your FIRST messa
         if prior or arc_state:
             regular_block += "\nIf Luke asks about something from a past call, you remember it. You and he have a rapport built from those prior conversations.\n"
 
+    ending = caller_ending(caller)
+    overused_rule = ""
+    if overused:
+        quoted = ", ".join(f'"{p}"' for p in overused)
+        overused_rule = f"\n- Other callers tonight already leaned on these openers — don't use them: {quoted}."
+
     theme_block = ""
     if theme:
         theme_block = f'\n\nTonight\'s show theme: "{theme}". If your reason for calling connects to this, lean into the connection with energy and specificity. If it genuinely doesn\'t fit your story, don\'t force it.\n'
@@ -654,13 +686,13 @@ CRITICAL OUTPUT RULES:
 - No narration. No describing what you're doing or feeling except through what you say.
 - If you catch yourself writing an asterisk or parenthesis, delete it and just say the words instead.
 - NEVER say you've "been listening for X years" or "long-time listener, first-time caller." Just get into your story.
-- NEVER use these worn-out phrases or close variants: {STALE_PHRASE_LIST}. Say it the way this specific person would.
+- NEVER use these worn-out phrases or close variants: {STALE_PHRASE_LIST}. Say it the way this specific person would.{overused_rule}
 - If you've already shared a specific fact or detail in this conversation, do NOT restate it. Move the story forward — share something new, react to what Luke just said, or escalate the stakes.
 
 YOU CAN BE MOVED — DON'T CIRCLE:
 - You have a position and something you want, but you're a real person, not a stuck record. If Luke makes a good point or gives real advice, actually take it in. Agree, change your mind, soften, get defensive, dig in harder, or come to a decision. Something shifts.
 - NEVER restate the same dilemma, worry, or argument you've already made. If you catch yourself going in a circle, that's the moment to move: make a decision, admit something new, react to his point, or let the conversation turn somewhere it hasn't been.
-- It's good to reach a resolution, a choice, or an emotional turn over the call. You are NOT required to stay stuck in the same problem until you're cut off. Real conversations go somewhere.
+- {ending}
 
 Mix short punchy replies with longer ones where natural. Real callers breathe, react in fragments, ask their own questions — they don't deliver a monologue every turn."""
 
@@ -3042,6 +3074,7 @@ def _detect_caller_relationships(caller_key: str, caller_name: str,
 
 # --- Chat & TTS Endpoints ---
 
+import hashlib
 import re
 
 
@@ -3145,14 +3178,76 @@ _STALE_PHRASE_RES = {label: re.compile(rx, re.IGNORECASE) for label, rx in STALE
 _REPETITION_NUDGE = "You're repeating yourself. Say something NEW — a detail you haven't mentioned, a different angle, or move the story forward. Do not repeat facts you've already stated."
 
 
-def _stale_phrases(text: str) -> list[str]:
+def _stale_phrases(text: str, extra: list[str] = ()) -> list[str]:
     text = (text or "").replace("\u2019", "'")
-    return [label for label, rx in _STALE_PHRASE_RES.items() if rx.search(text)]
+    found = [label for label, rx in _STALE_PHRASE_RES.items() if rx.search(text)]
+    if extra:
+        words = " ".join(_words(text))
+        found += [p for p in extra if re.search(rf"(?:^| ){re.escape(p)}(?: |$)", words)]
+    return found
+
+
+# Show-level overused openers: a sentence-opening phrase two different callers
+# have used tonight gets banned for the rest of the show.
+_OPENER_FILLERS = {"well", "yeah", "okay", "ok", "oh", "um", "uh", "so", "look", "listen", "now",
+                   "and", "but", "luke", "man", "see", "no", "yes", "right", "alright", "hey", "honestly"}
+_TRIVIAL_CONTRACTIONS = {"don't", "can't", "i'm", "it's", "i've", "i'd", "i'll", "won't", "didn't",
+                         "doesn't", "isn't", "wasn't", "you're", "he's", "she's", "we're", "they're",
+                         "there's", "let's", "couldn't", "wouldn't", "haven't"}
+# Everyday verbs/adverbs: an opener made only of these ("I don't know", "can I ask")
+# is normal speech, not a tic worth a retry.
+_PLAIN_WORDS = {"know", "think", "mean", "guess", "want", "just", "really", "sure", "going", "gonna",
+                "say", "said", "tell", "told", "ask", "came", "come", "look", "looked", "need", "feel",
+                "got", "go", "went", "make", "made", "take", "took", "let", "keep", "thought", "never",
+                "even", "still", "also", "kind", "sort", "lot", "little", "much", "very", "too", "when",
+                "where", "why", "there", "here", "something", "anything", "nothing", "everything",
+                "one", "thing", "way", "time", "back", "first", "last", "him", "her", "them", "us",
+                "his", "hers", "their", "our", "its", "know"}
+OPENER_WORDS = 3
+MAX_OVERUSED = 12
+
+
+def _words(text: str) -> list[str]:
+    return re.findall(r"[a-z']+", (text or "").lower().replace("\u2019", "'"))
+
+
+def _sentence_openers(text: str) -> set[str]:
+    openers = set()
+    for sentence in re.split(r"[.!?]+", text or ""):
+        words = _words(sentence)
+        while words and words[0] in _OPENER_FILLERS:
+            words.pop(0)
+        if len(words) < OPENER_WORDS:
+            continue
+        gram = words[:OPENER_WORDS]
+        trivial = _REPETITION_STOPWORDS | _OPENER_FILLERS | _TRIVIAL_CONTRACTIONS | _PLAIN_WORDS
+        if any(w not in trivial for w in gram):
+            openers.add(" ".join(gram))
+    return openers
+
+
+def _overused_openers(transcripts: list[list[dict]]) -> list[str]:
+    callers_using: dict[str, int] = {}
+    for transcript in transcripts:
+        used = set()
+        for msg in transcript:
+            if msg.get("role") == "assistant":
+                used |= _sentence_openers(msg.get("content", ""))
+        for gram in used:
+            callers_using[gram] = callers_using.get(gram, 0) + 1
+    hits = [g for g, n in callers_using.items() if n >= 2]
+    return sorted(hits, key=lambda g: -callers_using[g])[:MAX_OVERUSED]
+
+
+def _show_overused_phrases() -> list[str]:
+    transcripts = [r.transcript for r in session.call_history if r.caller_type == "ai" and r.transcript]
+    transcripts.append(session.conversation)
+    return _overused_openers(transcripts)
 
 
 async def _retry_if_stale(response: str, messages: list, system_prompt: str, max_tokens: int,
                           caller_name: str, model_override, conversation: list,
-                          wrapping_up: bool, tag: str) -> str:
+                          wrapping_up: bool, tag: str, extra_phrases: list[str] = ()) -> str:
     """Retry once if the reply repeats earlier lines or uses a worn-out phrase.
     Repetition is ignored during wrap-up; stale phrases are always checked."""
     if not response or "[HANGUP]" in response:
@@ -3160,7 +3255,7 @@ async def _retry_if_stale(response: str, messages: list, system_prompt: str, max
 
     def problems(text):
         repeated = not wrapping_up and _has_repetition(text, conversation)
-        return repeated, _stale_phrases(text)
+        return repeated, _stale_phrases(text, extra_phrases)
 
     repeated, stale = problems(response)
     if not repeated and not stale:
@@ -3790,7 +3885,7 @@ async def chat(request: ChatRequest):
                     mood += "\nSay goodbye NOW and end with [HANGUP]\n"
 
             slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
-            system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme, facts=show_memory.caller_block())
+            system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme, facts=show_memory.caller_block(), overused=_show_overused_phrases())
 
             max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
             messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
@@ -3809,7 +3904,7 @@ async def chat(request: ChatRequest):
                 _caller_name, _model_override, wrapping_up=is_wrapping)
             response = await _retry_if_stale(
                 response, messages, system_prompt, max_tokens, _caller_name, _model_override,
-                session.conversation, wrapping_up=is_wrapping, tag="Chat")
+                session.conversation, wrapping_up=is_wrapping, extra_phrases=_show_overused_phrases(), tag="Chat")
     except HTTPException:
         raise
     except Exception as e:
@@ -4793,7 +4888,7 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
             if session._wrapup_exchanges > 2:
                 mood += "\nSay goodbye NOW and end with [HANGUP]\n"
         slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
-        system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme, facts=show_memory.caller_block())
+        system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme, facts=show_memory.caller_block(), overused=_show_overused_phrases())
 
         max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
         messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
@@ -4812,7 +4907,7 @@ async def _trigger_ai_auto_respond(accumulated_text: str):
             _caller_name, _model_override, wrapping_up=is_wrapping)
         response = await _retry_if_stale(
             response, messages, system_prompt, max_tokens, _caller_name, _model_override,
-            session.conversation, wrapping_up=is_wrapping, tag="Auto-Respond")
+            session.conversation, wrapping_up=is_wrapping, extra_phrases=_show_overused_phrases(), tag="Auto-Respond")
 
     # Discard if call changed during generation
     if _session_epoch != epoch:
@@ -4905,7 +5000,7 @@ async def ai_respond():
                 if session._wrapup_exchanges > 2:
                     mood += "\nSay goodbye NOW and end with [HANGUP]\n"
             slim_caller = session.caller_backgrounds.get(session.current_caller_key, {})
-            system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme, facts=show_memory.caller_block())
+            system_prompt = get_caller_prompt(slim_caller, theme=session.show_theme, facts=show_memory.caller_block(), overused=_show_overused_phrases())
 
             max_tokens, max_sentences = _pick_response_budget(wrapping_up=is_wrapping)
             messages = _normalize_messages_for_llm(session.conversation[-_dynamic_context_window():])
@@ -4924,7 +5019,7 @@ async def ai_respond():
                 _caller_name, _model_override, wrapping_up=is_wrapping)
             response = await _retry_if_stale(
                 response, messages, system_prompt, max_tokens, _caller_name, _model_override,
-                session.conversation, wrapping_up=is_wrapping, tag="Chat")
+                session.conversation, wrapping_up=is_wrapping, extra_phrases=_show_overused_phrases(), tag="Chat")
     except HTTPException:
         raise
     except Exception as e:

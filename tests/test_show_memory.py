@@ -535,3 +535,55 @@ def test_non_list_picks_do_not_raise(monkeypatch):
     m = ShowMemory()
     asyncio.run(m.build_headlines())
     assert m.headlines == []
+
+
+def test_grim_stories_dropped_before_and_after_curation(monkeypatch):
+    from backend.services import show_memory as sm
+    seen = {}
+
+    async def fake_recent(queries, time_range):
+        seen[tuple(queries)] = time_range
+        if queries == sm.BIG_QUERIES:
+            return [NewsItem("Plane crash kills six in Mississippi", "brave.news", ""),
+                    NewsItem("Oil prices rise", "brave.news", "")]
+        return [NewsItem("Coffee machine blast, reports of loss of life", "bing news", ""),
+                NewsItem("Goat elected honorary mayor", "bing news", "")]
+
+    prompts = []
+
+    async def fake_generate(**kw):
+        prompts.append(kw["messages"][0]["content"])
+        return json.dumps({"headlines": [
+            {"title": "Oil prices rise", "kind": "big", "summary": "s", "angle": "a"},
+            {"title": "Goat elected honorary mayor", "kind": "offbeat", "summary": "s", "angle": "a"},
+            {"title": "Bus tragedy", "kind": "big", "summary": "Three people died", "angle": "a"},
+        ]})
+
+    async def fake_last():
+        return None
+
+    monkeypatch.setattr(sm.news_service, "search_recent", fake_recent)
+    monkeypatch.setattr(sm.llm_service, "generate", fake_generate)
+    monkeypatch.setattr(sm, "last_episode_date", fake_last)
+    m = ShowMemory()
+    asyncio.run(m.build_headlines())
+    assert "Plane crash" not in prompts[0] and "loss of life" not in prompts[0]
+    assert [h["title"] for h in m.headlines] == ["Oil prices rise", "Goat elected honorary mayor"]
+    assert seen[tuple(sm.BIG_QUERIES)] == "day" and seen[tuple(sm.OFFBEAT_QUERIES)] == "week"
+
+
+def test_devon_headline_tool_returns_curated_list(monkeypatch):
+    from backend.services import intern as intern_mod
+    from backend.services.show_memory import show_memory
+
+    async def boom():
+        raise AssertionError("raw search should not run when curated headlines exist")
+
+    monkeypatch.setattr(intern_mod.news_service, "get_headlines", boom)
+    show_memory.reset()
+    show_memory.headlines = list(HEADLINES)
+    try:
+        out = asyncio.run(intern_mod.intern_service._tool_get_headlines())
+    finally:
+        show_memory.reset()
+    assert HEADLINES[0]["title"] in out

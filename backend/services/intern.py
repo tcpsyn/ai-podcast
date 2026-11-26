@@ -302,6 +302,10 @@ class InternService:
             return f"Search failed: {e}"
 
     async def _tool_get_headlines(self) -> str:
+        curated = [h for h in show_memory.headlines if h.get("title")]
+        if curated:
+            return "Tonight's headlines (already picked for the show):\n" + "\n".join(
+                f"- {h['title']} — {h.get('summary', '')}" for h in curated)
         try:
             items = await news_service.get_headlines()
             if not items:

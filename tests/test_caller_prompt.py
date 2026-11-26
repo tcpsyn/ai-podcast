@@ -99,3 +99,17 @@ def test_prompt_includes_show_facts_when_given(clean_show_memory):
 def test_prompt_has_no_facts_block_by_default():
     prompt = get_caller_prompt({"name": "Danny", "identity": "A plumber", "situation": "Leaky pipes"})
     assert "TONIGHT'S SHOW" not in prompt
+
+
+def test_about_a_third_of_callers_get_unresolved_endings():
+    from backend.main import RESOLVING_ENDING, caller_ending
+    endings = [caller_ending({"name": f"Caller {i}", "identity": "x", "situation": "y"}) for i in range(600)]
+    unresolved = sum(e != RESOLVING_ENDING for e in endings) / len(endings)
+    assert 0.25 < unresolved < 0.42
+
+
+def test_ending_is_stable_and_in_prompt():
+    from backend.main import caller_ending
+    c = {"name": "Concho", "identity": "a welder", "situation": "x"}
+    assert caller_ending(c) == caller_ending(dict(c))
+    assert caller_ending(c) in get_caller_prompt(c)
